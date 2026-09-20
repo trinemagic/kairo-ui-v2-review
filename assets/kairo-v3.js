@@ -1,6 +1,7 @@
 /* KAIRO UI V3 — presentation only. No database or business-logic writes. */
 (() => {
   'use strict';
+  let queuedLoginSubmit = false;
 
   const q = (selector, root = document) => root.querySelector(selector);
   const qa = (selector, root = document) => [...root.querySelectorAll(selector)];
@@ -146,7 +147,32 @@
   else boot();
 
   document.addEventListener('submit', event => {
-    if (event.target?.id === 'login-form') setTimeout(mountDashboardHeader, 700);
+    if (event.target?.id !== 'login-form') return;
+    if (!window.__KAIRO_APP_READY__) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      if (queuedLoginSubmit) return;
+      queuedLoginSubmit = true;
+      const button = q('#login-button');
+      const error = q('#auth-error');
+      if (button) { button.disabled = true; button.textContent = 'Menyiapkan KAIRO...'; }
+      const started = Date.now();
+      const waitForApp = setInterval(() => {
+        if (window.__KAIRO_APP_READY__) {
+          clearInterval(waitForApp);
+          queuedLoginSubmit = false;
+          if (button) { button.disabled = false; button.textContent = 'Masuk'; }
+          event.target.requestSubmit();
+        } else if (Date.now() - started > 20000) {
+          clearInterval(waitForApp);
+          queuedLoginSubmit = false;
+          if (button) { button.disabled = false; button.textContent = 'Masuk'; }
+          if (error) { error.textContent = 'Aplikasi belum berhasil dimuat. Periksa koneksi lalu refresh halaman.'; error.style.display = 'block'; }
+        }
+      }, 100);
+      return;
+    }
+    setTimeout(mountDashboardHeader, 700);
   }, true);
   document.addEventListener('click', event => {
     if (event.target.closest('[data-tab="dashboard"], [data-mobile-tab="dashboard"], #saas-side-home')) setTimeout(mountDashboardHeader, 60);

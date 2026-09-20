@@ -2549,7 +2549,6 @@ db.auth.onAuthStateChange((event,session)=>{
   await handleAuthSession(null);
 })();
 
-
 /* ---- KAIRO SCRIPT BOUNDARY ---- */
 
 /* Legacy inactivity watcher removed. The current Auto Lock controller below is
@@ -5099,3 +5098,6 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
     if(e.target.closest('[data-tab="input"],[data-mobile-tab="input"],.kairo-mobile-orders-main,[data-settings-category="packages"]'))setTimeout(maybeBootSellerTemplate,0);
   },true);
 })();
+
+/* Auth boot handshake: presentation may safely release a queued login submit. */
+window.__KAIRO_APP_READY__=true;
