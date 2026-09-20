@@ -12,6 +12,23 @@ const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   }
 });
 
+/* Heavy optional libraries are loaded only by the feature that needs them. */
+const kairoLibraryPromises = new Map();
+function loadKairoLibrary(key,src,test){
+  if(test())return Promise.resolve();
+  if(kairoLibraryPromises.has(key))return kairoLibraryPromises.get(key);
+  const promise=new Promise((resolve,reject)=>{
+    const existing=document.querySelector(`script[data-kairo-library="${key}"]`);
+    if(existing){existing.addEventListener('load',resolve,{once:true});existing.addEventListener('error',reject,{once:true});return;}
+    const script=document.createElement('script');script.src=src;script.async=true;script.dataset.kairoLibrary=key;
+    script.onload=()=>test()?resolve():reject(new Error(`${key} tidak tersedia setelah dimuat.`));
+    script.onerror=()=>reject(new Error(`Gagal memuat library ${key}.`));document.head.appendChild(script);
+  }).catch(error=>{kairoLibraryPromises.delete(key);throw error});
+  kairoLibraryPromises.set(key,promise);return promise;
+}
+function ensureChartLibrary(){return loadKairoLibrary('chart','https://cdn.jsdelivr.net/npm/chart.js',()=>typeof window.Chart!=='undefined')}
+function ensureXlsxLibrary(){return loadKairoLibrary('xlsx','https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js',()=>typeof window.XLSX!=='undefined')}
+
 /* =========================
    SAAS WORKSPACE + ROLE/PLAN RUNTIME — V20.3.4
    Visual UI is intentionally unchanged.
@@ -320,6 +337,10 @@ async function handleAuthSession(session){
     activeWorkspaceRole=null;
     activeAuthUserId=null;
     activePlatformAdmin=false;
+    mastersWorkspaceId='';
+    workspaceDataCache.workspaceId=null;
+    workspaceDataCache.rows.clear();
+    workspaceDataCache.promises.clear();
     document.getElementById("kairo-app-switcher")?.remove();
     document.body.classList.remove("authenticated");
     document.body.classList.add("auth-locked");
@@ -367,6 +388,30 @@ let monthlyRevenueComparison = {
   currentLabel:"",
   previousLabel:""
 };
+
+/* One request per table, per workspace. Page loaders derive their own views
+   from this shared cache instead of scanning the same Supabase table repeatedly. */
+const workspaceDataCache={workspaceId:null,rows:new Map(),promises:new Map()};
+function ensureWorkspaceCache(){
+  const wid=String(activeWorkspaceId||'');
+  if(workspaceDataCache.workspaceId!==wid){workspaceDataCache.workspaceId=wid;workspaceDataCache.rows.clear();workspaceDataCache.promises.clear();}
+}
+function invalidateWorkspaceData(keys=[]){
+  ensureWorkspaceCache();
+  const list=keys.length?keys:['transactions','payouts','cash_expenses','cash_injections','customers','reading_shifts'];
+  list.forEach(key=>{workspaceDataCache.rows.delete(key);workspaceDataCache.promises.delete(key)});
+}
+async function cachedWorkspaceRows(key,loader){
+  ensureWorkspaceCache();
+  if(workspaceDataCache.rows.has(key))return workspaceDataCache.rows.get(key);
+  if(workspaceDataCache.promises.has(key))return workspaceDataCache.promises.get(key);
+  const promise=Promise.resolve().then(loader).then(rows=>{const safe=Array.isArray(rows)?rows:[];workspaceDataCache.rows.set(key,safe);workspaceDataCache.promises.delete(key);return safe}).catch(error=>{workspaceDataCache.promises.delete(key);throw error});
+  workspaceDataCache.promises.set(key,promise);return promise;
+}
+function allTransactions(){return cachedWorkspaceRows('transactions',()=>fetchAllRows(()=>db.from('transactions').select('*').eq('workspace_id',requireWorkspaceId()).order('transaction_date',{ascending:false}).order('created_at',{ascending:false})))}
+function allPayouts(){return cachedWorkspaceRows('payouts',()=>fetchAllRows(()=>db.from('payouts').select('*').eq('workspace_id',requireWorkspaceId()).order('payout_date',{ascending:false}).order('created_at',{ascending:false})))}
+function allCashExpenses(){return cachedWorkspaceRows('cash_expenses',()=>fetchAllRows(()=>db.from('cash_expenses').select('*').eq('workspace_id',requireWorkspaceId()).order('expense_date',{ascending:false}).order('created_at',{ascending:false})))}
+function allCashInjections(){return cachedWorkspaceRows('cash_injections',()=>fetchAllRows(()=>db.from('cash_injections').select('*').eq('workspace_id',requireWorkspaceId()).order('injection_date',{ascending:false}).order('created_at',{ascending:false})))}
 
 const rupiah = n => "Rp" + Number(n || 0).toLocaleString("id-ID");
 
@@ -466,7 +511,7 @@ function setPeriod(period,refresh=true){
     document.getElementById("filter-to").value=range.to;
   }
 
-  if(refresh) refreshAll();
+  if(refresh) loadPageData(currentAppPage()).catch(()=>{});
 }
 
 function showToast(message, error=false){
@@ -493,6 +538,7 @@ async function switchActiveWorkspace(workspaceId){
   activeWorkspaceId=membership.workspace_id; activeWorkspaceRole=membership.role; activeWorkspaceName=membership.workspaces?.name||"Workspace";
   localStorage.setItem("trine_active_workspace_id_v1",activeWorkspaceId);
   document.documentElement.dataset.workspaceRole=normalizedWorkspaceRole();
+  mastersWorkspaceId='';invalidateWorkspaceData();
   await loadWorkspaceSaasContext();
   dashboardInitialized=false;
   await initializeDashboard();
@@ -568,8 +614,9 @@ function openAppPage(tabName){
   };
   if(pageTitle&&pageCopy[tabName]) pageTitle.textContent=pageCopy[tabName][0];
   if(pageSub&&pageCopy[tabName]) pageSub.textContent=pageCopy[tabName][1];
-  if(tabName==="customers") renderCustomerDatabase();
-  if(tabName==="performance") setTimeout(()=>[dailyChart,packageChart,monthlyRevenueChart,topicChart].forEach(c=>c?.resize?.()),60);
+  loadPageData(tabName).then(()=>{
+    if(tabName==="performance")setTimeout(()=>[dailyChart,packageChart,monthlyRevenueChart,topicChart,platformChart].forEach(c=>c?.resize?.()),60);
+  }).catch(()=>{});
   window.scrollTo({top:0,left:0,behavior:"auto"});
 }
 function openLanding(){
@@ -765,12 +812,8 @@ function monthLabel(date){
 }
 
 async function fetchPlatformAnalytics(){
-  const now=new Date(), start=new Date(now.getFullYear(),now.getMonth(),now.getDate()-59), rows=[], PAGE_SIZE=500;
-  for(let page=0;;page++){
-    const {data,error}=await db.from("transactions").select("transaction_date,platform").eq("workspace_id",requireWorkspaceId()).gte("transaction_date",localISODate(start)).lte("transaction_date",localISODate(now)).order("transaction_date",{ascending:true}).range(page*PAGE_SIZE,(page+1)*PAGE_SIZE-1);
-    if(error)throw error; const batch=data||[]; rows.push(...batch); if(batch.length<PAGE_SIZE)break;
-  }
-  platformAnalyticsRows=rows;
+  const now=new Date(),start=new Date(now.getFullYear(),now.getMonth(),now.getDate()-59),from=localISODate(start),to=localISODate(now);
+  platformAnalyticsRows=(await allTransactions()).filter(row=>String(row.transaction_date||'')>=from&&String(row.transaction_date||'')<=to);
 }
 function platformKey(v){const s=String(v||"Other").trim(),n=s.toLowerCase();if(n==="x"||n==="twitter")return "X";if(n.includes("instagram"))return "Instagram";if(n.includes("threads"))return "Threads";if(n.includes("tiktok"))return "TikTok";if(n.includes("whatsapp")||n==="wa")return "WhatsApp";if(n.includes("telegram")||n==="tg")return "Telegram";return s||"Other";}
 function chartBrandColors(){
@@ -799,21 +842,7 @@ async function fetchMonthlyRevenueComparison(){
   const from=localISODate(previousStart);
   const to=localISODate(now);
 
-  const PAGE_SIZE=500;
-  const rows=[];
-  for(let page=0;;page++){
-    const {data,error}=await db.from("transactions")
-      .select("transaction_date,total_price")
-      .eq("workspace_id",requireWorkspaceId())
-      .gte("transaction_date",from)
-      .lte("transaction_date",to)
-      .order("transaction_date",{ascending:true})
-      .range(page*PAGE_SIZE,(page+1)*PAGE_SIZE-1);
-    if(error) throw error;
-    const batch=data||[];
-    rows.push(...batch);
-    if(batch.length<PAGE_SIZE) break;
-  }
+  const rows=(await allTransactions()).filter(row=>String(row.transaction_date||'')>=from&&String(row.transaction_date||'')<=to);
 
   const currentFrom=localISODate(currentStart);
   const previousFrom=localISODate(previousStart);
@@ -849,13 +878,12 @@ function formatDurationBetween(start,end=new Date()){
   return h>0?`${h}j ${m}m`:`${m}m`;
 }
 async function fetchShiftData(){
-  const [{data:shiftRows,error:sErr},txRows]=await Promise.all([
-    db.from("reading_shifts").select("*").eq("workspace_id",requireWorkspaceId()).order("opened_at",{ascending:false}).limit(30),
-    fetchAllRows(()=>db.from("transactions").select("id,shift_id,total_price,reading_started_at").eq("workspace_id",requireWorkspaceId()).not("shift_id","is",null))
+  const [shiftRows,txRows]=await Promise.all([
+    cachedWorkspaceRows('reading_shifts',async()=>{const {data,error}=await db.from("reading_shifts").select("*").eq("workspace_id",requireWorkspaceId()).order("opened_at",{ascending:false}).limit(30);if(error)throw error;return data||[]}),
+    allTransactions()
   ]);
-  if(sErr)throw sErr;
   shifts=shiftRows||[];
-  shiftTransactions=txRows||[];
+  shiftTransactions=(txRows||[]).filter(row=>row.shift_id!=null);
   currentShift=shifts.find(s=>!s.closed_at)||null;
 }
 function shiftStats(shift){
@@ -989,30 +1017,7 @@ document.getElementById("close-shift-btn")?.addEventListener("click",closeReadin
 
 async function fetchTransactions(){
   const {from,to}=getRange();
-  const PAGE_SIZE=500;
-  const rows=[];
-
-  for(let page=0;;page++){
-    let q=db.from("transactions")
-      .select("*")
-      .eq("workspace_id",requireWorkspaceId())
-      .order("transaction_date",{ascending:false})
-      .order("created_at",{ascending:false})
-      .range(page*PAGE_SIZE,(page+1)*PAGE_SIZE-1);
-
-    if(from) q=q.gte("transaction_date",from);
-    if(to) q=q.lte("transaction_date",to);
-
-    const {data,error}=await q;
-    if(error) throw error;
-
-    const batch=data||[];
-    rows.push(...batch);
-
-    if(batch.length<PAGE_SIZE) break;
-  }
-
-  transactions=rows;
+  transactions=(await allTransactions()).filter(row=>(!from||String(row.transaction_date||'')>=from)&&(!to||String(row.transaction_date||'')<=to));
 }
 
 
@@ -1028,102 +1033,26 @@ function historyFilterBounds(mode=historyDateFilter,customDate=historyCustomDate
 
 async function fetchHistoryTransactions(){
   const {from,to}=historyFilterBounds();
-  const PAGE_SIZE=500;
-  const rows=[];
-  for(let page=0;;page++){
-    let q=db.from("transactions")
-      .select("*")
-      .eq("workspace_id",requireWorkspaceId())
-      .order("transaction_date",{ascending:false})
-      .order("created_at",{ascending:false})
-      .range(page*PAGE_SIZE,(page+1)*PAGE_SIZE-1);
-    if(from) q=q.gte("transaction_date",from);
-    if(to) q=q.lte("transaction_date",to);
-    const {data,error}=await q;
-    if(error) throw error;
-    const batch=data||[]; rows.push(...batch);
-    if(batch.length<PAGE_SIZE) break;
-  }
-  historyTransactions=rows;
+  historyTransactions=(await allTransactions()).filter(row=>(!from||String(row.transaction_date||'')>=from)&&(!to||String(row.transaction_date||'')<=to));
 }
 
 async function fetchPayouts(){
   const {from,to}=getRange();
-
-  let q=db.from("payouts")
-    .select("*")
-    .eq("workspace_id",requireWorkspaceId())
-    .order("payout_date",{ascending:false})
-    .order("created_at",{ascending:false});
-
-  if(from) q=q.gte("payout_date",from);
-  if(to) q=q.lte("payout_date",to);
-
-  const PAGE_SIZE=500;
-  let offset=0;
-  const rows=[];
-
-  while(true){
-    const {data,error}=await q.range(offset,offset+PAGE_SIZE-1);
-    if(error) throw error;
-
-    const batch=data||[];
-    rows.push(...batch);
-
-    if(batch.length<PAGE_SIZE) break;
-    offset+=PAGE_SIZE;
-  }
-
-  payouts=rows;
+  payouts=(await allPayouts()).filter(row=>(!from||String(row.payout_date||'')>=from)&&(!to||String(row.payout_date||'')<=to));
 }
 async function fetchCashExpenses(){
   const {from,to}=getRange();
-  let q=db.from("cash_expenses").select("*").eq("workspace_id",requireWorkspaceId()).order("expense_date",{ascending:false}).order("created_at",{ascending:false});
-  if(from) q=q.gte("expense_date",from);
-  if(to) q=q.lte("expense_date",to);
-  const PAGE_SIZE=500; let offset=0; const rows=[];
-  while(true){
-    const {data,error}=await q.range(offset,offset+PAGE_SIZE-1);
-    if(error) throw error;
-    const batch=data||[]; rows.push(...batch);
-    if(batch.length<PAGE_SIZE) break; offset+=PAGE_SIZE;
-  }
-  cashExpenses=rows;
+  cashExpenses=(await allCashExpenses()).filter(row=>(!from||String(row.expense_date||'')>=from)&&(!to||String(row.expense_date||'')<=to));
 }
 async function fetchCashInjections(){
   const {from,to}=getRange();
-  let q=db.from("cash_injections").select("*").eq("workspace_id",requireWorkspaceId()).order("injection_date",{ascending:false}).order("created_at",{ascending:false});
-  if(from) q=q.gte("injection_date",from);
-  if(to) q=q.lte("injection_date",to);
-  const PAGE_SIZE=500; let offset=0; const rows=[];
-  while(true){
-    const {data,error}=await q.range(offset,offset+PAGE_SIZE-1);
-    if(error) throw error;
-    const batch=data||[]; rows.push(...batch);
-    if(batch.length<PAGE_SIZE) break; offset+=PAGE_SIZE;
-  }
-  cashInjections=rows;
+  cashInjections=(await allCashInjections()).filter(row=>(!from||String(row.injection_date||'')>=from)&&(!to||String(row.injection_date||'')<=to));
 }
 
 async function fetchFinancialSnapshot(){
   const {to}=getRange();
-  const fetchAllSnapshot = async (makeQuery) => {
-    const PAGE_SIZE=500; let offset=0; const all=[];
-    while(true){
-      const {data,error}=await makeQuery().range(offset,offset+PAGE_SIZE-1);
-      if(error) throw error;
-      const batch=data||[]; all.push(...batch);
-      if(batch.length<PAGE_SIZE) break; offset+=PAGE_SIZE;
-    }
-    return all;
-  };
-  // These four snapshots are independent; fetch them concurrently to reduce mobile latency.
-  const [txAll,poAll,cashAll,injectionAll]=await Promise.all([
-    fetchAllSnapshot(()=>{let q=db.from("transactions").select("total_price,transaction_date,created_at,order_items,order_addons").eq("workspace_id",requireWorkspaceId()); if(to) q=q.lte("transaction_date",to); return q;}),
-    fetchAllSnapshot(()=>{let q=db.from("payouts").select("partner_id,partner_name,amount,payout_date").eq("workspace_id",requireWorkspaceId()); if(to) q=q.lte("payout_date",to); return q;}),
-    fetchAllSnapshot(()=>{let q=db.from("cash_expenses").select("amount,expense_date").eq("workspace_id",requireWorkspaceId()); if(to) q=q.lte("expense_date",to); return q;}),
-    fetchAllSnapshot(()=>{let q=db.from("cash_injections").select("amount,injection_date").eq("workspace_id",requireWorkspaceId()); if(to) q=q.lte("injection_date",to); return q;})
-  ]);
+  const [txSource,poSource,cashSource,injectionSource]=await Promise.all([allTransactions(),allPayouts(),allCashExpenses(),allCashInjections()]);
+  const txAll=txSource.filter(row=>!to||String(row.transaction_date||'')<=to),poAll=poSource.filter(row=>!to||String(row.payout_date||'')<=to),cashAll=cashSource.filter(row=>!to||String(row.expense_date||'')<=to),injectionAll=injectionSource.filter(row=>!to||String(row.injection_date||'')<=to);
   const revenue=txAll.reduce((s,t)=>s+Number(t.total_price||0),0);
   const payoutTotal=poAll.reduce((s,p)=>s+Number(p.amount||0),0);
   const cashSpent=cashAll.reduce((s,e)=>s+Number(e.amount||0),0);
@@ -1133,29 +1062,44 @@ async function fetchFinancialSnapshot(){
   poAll.forEach(p=>{const key=p.partner_id||p.partner_name||"-"; payoutByPartner[key]=(payoutByPartner[key]||0)+Number(p.amount||0);});
   financialSnapshot={revenue,payoutTotal,payoutByPartner,cashEarned,cashInjected,cashSpent,cashBalance:cashEarned+cashInjected-cashSpent,txAll};
 }
-async function refreshAll(){
-  if(refreshInFlight) return refreshInFlight;
-  refreshInFlight=(async()=>{
-    try{
-      document.getElementById("connection-status").textContent="Memuat...";
-  { const ls=document.getElementById("landing-connection-status"); if(ls) ls.textContent="Memuat..."; }
-      // Current-period data and the cumulative financial snapshot are independent.
-      await Promise.all([fetchTransactions(),fetchHistoryTransactions(),fetchPayouts(),fetchCashExpenses(),fetchCashInjections(),fetchFinancialSnapshot(),fetchMonthlyRevenueComparison(),fetchPlatformAnalytics(),fetchShiftData()]);
-      renderDashboard();
-      renderShiftDashboard();
-      renderPayouts();
-      renderCashExpenses();
-      document.getElementById("connection-status").textContent="● Database terhubung";
-  { const ls=document.getElementById("landing-connection-status"); if(ls) ls.textContent="● Database terhubung"; }
-    }catch(e){
-      console.error(e);
-      document.getElementById("connection-status").textContent="Database error";
-  { const ls=document.getElementById("landing-connection-status"); if(ls) ls.textContent="Database error"; }
-      showToast(e.message || "Gagal mengambil data",true);
-    }finally{
-      refreshInFlight=null;
+let mastersWorkspaceId='';
+async function ensureMasters(){
+  const wid=String(requireWorkspaceId());
+  if(mastersWorkspaceId===wid)return;
+  await loadMasters();mastersWorkspaceId=wid;
+}
+function currentAppPage(){return document.querySelector('.section.active')?.id||'dashboard'}
+async function loadPageData(tabName=currentAppPage(),options={}){
+  const force=Boolean(options.force);
+  if(force)invalidateWorkspaceData(options.keys||[]);
+  const status=document.getElementById('connection-status');if(status)status.textContent='Memuat...';
+  try{
+    if(tabName==='dashboard'){
+      await ensureMasters();
+      await Promise.all([fetchTransactions(),fetchHistoryTransactions(),fetchPayouts(),fetchCashExpenses(),fetchCashInjections(),fetchFinancialSnapshot(),fetchShiftData()]);
+      renderDashboard();renderShiftDashboard();
+    }else if(tabName==='performance'){
+      await Promise.all([fetchTransactions(),fetchMonthlyRevenueComparison(),fetchPlatformAnalytics()]);
+      await ensureChartLibrary();renderCharts();
+    }else if(tabName==='input'){
+      await ensureMasters();await Promise.all([fetchTransactions(),fetchHistoryTransactions()]);
+    }else if(tabName==='customers'){
+      await loadCustomerDirectory();renderCustomerDatabase();
+    }else if(tabName==='payout'){
+      await ensureMasters();await Promise.all([fetchPayouts(),fetchFinancialSnapshot()]);renderPayouts();
+    }else if(tabName==='cash'){
+      await Promise.all([fetchCashExpenses(),fetchCashInjections(),fetchFinancialSnapshot()]);renderCashExpenses();
+    }else if(tabName==='settings'){
+      await ensureMasters();hydrateSaasUi();
     }
-  })();
+    if(status)status.textContent='● Database terhubung';
+  }catch(error){
+    console.error(`Page data ${tabName}:`,error);if(status)status.textContent='Database error';showToast(error.message||`Gagal memuat ${tabName}`,true);throw error;
+  }
+}
+async function refreshAll(){
+  if(refreshInFlight)return refreshInFlight;
+  refreshInFlight=loadPageData(currentAppPage(),{force:true}).finally(()=>{refreshInFlight=null});
   return refreshInFlight;
 }
 
@@ -1164,12 +1108,16 @@ async function refreshAll(){
    ========================= */
 let realtimeRetryTimer=null;
 let livePollTimer=null;
-function scheduleRealtimeRefresh(){
+let pendingRealtimeKeys=new Set();
+function scheduleRealtimeRefresh(key){
+  if(key)pendingRealtimeKeys.add(key);
   clearTimeout(realtimeRefreshTimer);
   realtimeRefreshTimer=setTimeout(()=>{
     realtimeRefreshTimer=null;
     if(!dashboardInitialized || document.body.classList.contains("auth-locked")) return;
-    refreshAll();
+    const keys=[...pendingRealtimeKeys];pendingRealtimeKeys.clear();
+    invalidateWorkspaceData(keys);
+    loadPageData(currentAppPage()).catch(()=>{});
   },350);
 }
 function stopRealtimeSync(){
@@ -1177,6 +1125,7 @@ function stopRealtimeSync(){
   clearTimeout(realtimeRetryTimer);
   clearInterval(livePollTimer);
   realtimeRefreshTimer=null; realtimeRetryTimer=null; livePollTimer=null;
+  pendingRealtimeKeys.clear();
   if(realtimeChannel){
     try{ db.removeChannel(realtimeChannel); }catch(e){ console.warn("Realtime cleanup:",e); }
     realtimeChannel=null;
@@ -1191,29 +1140,30 @@ function startLiveFallbackPolling(){
   clearInterval(livePollTimer);
   livePollTimer=setInterval(()=>{
     if(document.hidden || !dashboardInitialized || document.body.classList.contains("auth-locked")) return;
-    scheduleRealtimeRefresh();
-  },15000);
+    invalidateWorkspaceData();loadPageData(currentAppPage()).catch(()=>{});
+  },60000);
 }
 function startRealtimeSync(){
   if(realtimeChannel) return;
   realtimeChannel=db.channel("trine-magic-live-dashboard")
-    .on("postgres_changes",{event:"*",schema:"public",table:"transactions",filter:`workspace_id=eq.${requireWorkspaceId()}`},scheduleRealtimeRefresh)
-    .on("postgres_changes",{event:"*",schema:"public",table:"payouts",filter:`workspace_id=eq.${requireWorkspaceId()}`},scheduleRealtimeRefresh)
-    .on("postgres_changes",{event:"*",schema:"public",table:"cash_expenses",filter:`workspace_id=eq.${requireWorkspaceId()}`},scheduleRealtimeRefresh)
-    .on("postgres_changes",{event:"*",schema:"public",table:"cash_injections",filter:`workspace_id=eq.${requireWorkspaceId()}`},scheduleRealtimeRefresh)
-    .on("postgres_changes",{event:"*",schema:"public",table:"profit_share_versions",filter:`workspace_id=eq.${requireWorkspaceId()}`},async()=>{await loadMasters();scheduleRealtimeRefresh();})
+    .on("postgres_changes",{event:"*",schema:"public",table:"transactions",filter:`workspace_id=eq.${requireWorkspaceId()}`},()=>scheduleRealtimeRefresh('transactions'))
+    .on("postgres_changes",{event:"*",schema:"public",table:"payouts",filter:`workspace_id=eq.${requireWorkspaceId()}`},()=>scheduleRealtimeRefresh('payouts'))
+    .on("postgres_changes",{event:"*",schema:"public",table:"cash_expenses",filter:`workspace_id=eq.${requireWorkspaceId()}`},()=>scheduleRealtimeRefresh('cash_expenses'))
+    .on("postgres_changes",{event:"*",schema:"public",table:"cash_injections",filter:`workspace_id=eq.${requireWorkspaceId()}`},()=>scheduleRealtimeRefresh('cash_injections'))
+    .on("postgres_changes",{event:"*",schema:"public",table:"profit_share_versions",filter:`workspace_id=eq.${requireWorkspaceId()}`},async()=>{mastersWorkspaceId='';await ensureMasters();loadPageData(currentAppPage()).catch(()=>{})})
     .subscribe((status)=>{
       const statusEl=document.getElementById("connection-status");
       if(status==="SUBSCRIBED"){
+        clearInterval(livePollTimer);livePollTimer=null;
         if(statusEl) statusEl.textContent="Live";
       }else if(status==="CHANNEL_ERROR" || status==="TIMED_OUT" || status==="CLOSED"){
         console.warn("Supabase Realtime status:",status);
         if(statusEl) statusEl.textContent="Sinkronisasi...";
         if(realtimeChannel){ try{ db.removeChannel(realtimeChannel); }catch(e){} realtimeChannel=null; }
+        startLiveFallbackPolling();
         scheduleRealtimeRetry();
       }
     });
-  startLiveFallbackPolling();
 }
 
 /* =========================
@@ -1309,7 +1259,6 @@ function renderDashboard(){
   setKpiValue("kpi-cash",financialSnapshot.cashBalance);
   setKpiValue("kpi-rights",currentCalendarMonthRevenue());
   renderShares(revenue);
-  renderCharts();
   renderHistory();
 }
 
@@ -1670,11 +1619,10 @@ function normalizeCustomerName(v){
 
 async function loadCustomerDirectory(){
   try{
-    const [{data:customerRows,error:cErr},txRows]=await Promise.all([
-      db.from("customers").select("id,display_name,social_name,whatsapp,created_at").eq("workspace_id",requireWorkspaceId()).order("display_name"),
-      fetchAllRows(()=>db.from("transactions").select("id,customer_id,customer_name,transaction_date,total_price,platform,order_items,package_code,package_qty,reading_status,reading_started_at").eq("workspace_id",requireWorkspaceId()))
+    const [customerRows,txRows]=await Promise.all([
+      cachedWorkspaceRows('customers',async()=>{const {data,error}=await db.from("customers").select("id,display_name,social_name,whatsapp,created_at").eq("workspace_id",requireWorkspaceId()).order("display_name");if(error)throw error;return data||[]}),
+      allTransactions()
     ]);
-    if(cErr) throw cErr;
 
     const byId={},legacy={};
     (txRows||[]).forEach(t=>{
@@ -2371,8 +2319,11 @@ function styleTable(ws, range, headerRows=[], totalRows=[]){
   });
 }
 
-function exportExcel(){
-  if(typeof XLSX==="undefined"){showToast("Library Excel belum termuat. Coba refresh halaman.",true);return;}
+async function exportExcel(){
+  if(typeof XLSX==="undefined"){
+    showToast("Menyiapkan export Excel...");
+    try{await ensureXlsxLibrary()}catch(error){showToast(error.message||"Library Excel gagal dimuat.",true);return;}
+  }
   try{
     const wb=XLSX.utils.book_new();
     const header={font:{name:"Arial",sz:11,bold:true,color:{rgb:"FFFFFF"}},fill:{fgColor:{rgb:"4B2354"}},alignment:{horizontal:"center",vertical:"center",wrap_text:true}};
@@ -2486,9 +2437,7 @@ function exportExcel(){
 async function init(){
   setDefaultDates();
   try{
-    await loadMasters();
-    await loadCustomerDirectory();
-    await refreshAll();
+    await loadPageData('dashboard');
   }catch(e){
     console.error(e);
     document.getElementById("connection-status").textContent="Gagal terhubung";
@@ -2538,14 +2487,14 @@ document.getElementById("filter-from").addEventListener("change",()=>{
   activePeriod="custom";
   setActivePeriodButton("custom");
   const {from,to}=getPeriodRange("custom");
-  if(from && to) refreshAll();
+  if(from && to) loadPageData(currentAppPage()).catch(()=>{});
 });
 
 document.getElementById("filter-to").addEventListener("change",()=>{
   activePeriod="custom";
   setActivePeriodButton("custom");
   const {from,to}=getPeriodRange("custom");
-  if(from && to) refreshAll();
+  if(from && to) loadPageData(currentAppPage()).catch(()=>{});
 });
 
 document.getElementById("login-form").addEventListener("submit",async (e)=>{
@@ -2603,51 +2552,8 @@ db.auth.onAuthStateChange((event,session)=>{
 
 /* ---- KAIRO SCRIPT BOUNDARY ---- */
 
-
-(function(){
-  const INACTIVITY_LIMIT=365*24*60*60*1000;
-  const WARNING_BEFORE=0;
-  let lastActivityAt=Date.now(), warningShown=false, locked=false;
-
-  function modal(show){
-    const m=document.getElementById("inactivity-modal");
-    if(!m)return;
-    m.style.display=show?"flex":"none";
-    m.setAttribute("aria-hidden",show?"false":"true");
-  }
-  function logoutAndLogin(){
-    if(locked)return;
-    locked=true;
-    modal(false);
-    try{
-      if(typeof supabaseClient!=="undefined" && supabaseClient?.auth) supabaseClient.auth.signOut().catch(()=>{});
-      else if(typeof supabase!=="undefined" && supabase?.auth) supabase.auth.signOut().catch(()=>{});
-    }catch(e){}
-    setTimeout(()=>window.location.reload(),250);
-  }
-  function activity(){
-    if(locked)return;
-    lastActivityAt=Date.now();
-    if(warningShown){warningShown=false;modal(false);}
-  }
-  ["pointerdown","keydown","scroll","touchstart","wheel","click"].forEach(e=>{
-    window.addEventListener(e,activity,{passive:true});
-  });
-  document.addEventListener("visibilitychange",()=>{
-    if(document.visibilityState==="visible") lastActivityAt=Date.now();
-  });
-  const b=document.getElementById("inactivity-login-button");
-  if(b)b.addEventListener("click",logoutAndLogin);
-  setInterval(()=>{
-    if(locked||document.visibilityState!=="visible")return;
-    const idle=Date.now()-lastActivityAt;
-    if(idle>=INACTIVITY_LIMIT){logoutAndLogin();return;}
-    if(idle>=INACTIVITY_LIMIT-WARNING_BEFORE&&!warningShown){
-      warningShown=true;modal(true);
-    }
-  },1000);
-})();
-
+/* Legacy inactivity watcher removed. The current Auto Lock controller below is
+   the single owner of idle tracking and logout behavior. */
 
 /* ---- KAIRO SCRIPT BOUNDARY ---- */
 
@@ -4164,15 +4070,14 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
  function isPro(){return String(activeWorkspacePlan||'basic').toLowerCase()==='pro'}
  function lockPerformanceNav(){document.querySelectorAll('[data-tab="performance"],.saas-mobile-nav-btn[data-mobile-tab="performance"]').forEach(btn=>{btn.classList.remove('plan-locked','entitlement-locked');btn.setAttribute('aria-disabled','false');btn.querySelector('.saas-nav-lock')?.remove()})}
  const oldOpen=window.openAppPage||openAppPage;window.openAppPage=function(tab){return oldOpen.apply(this,arguments)};try{openAppPage=window.openAppPage}catch(e){}
- function wireTools(){const tr=document.getElementById('orders-tool-trigger'),label=document.getElementById('orders-tool-trigger-label'),menu=document.getElementById('orders-tool-menu'),auto=document.getElementById('smart-sales-open'),manual=document.getElementById('manual-orders-select');if(!tr||!menu)return;const close=()=>{menu.hidden=true;tr.setAttribute('aria-expanded','false')};const sync=()=>{const p=isPro();if(auto){auto.disabled=!p;auto.title=p?'':'Autofill Orders tersedia di paket PRO.';auto.setAttribute('aria-disabled',p?'false':'true')}};tr.onclick=e=>{e.stopPropagation();const open=menu.hidden;menu.hidden=!open;tr.setAttribute('aria-expanded',open?'true':'false')};manual&&(manual.onclick=e=>{e.preventDefault();e.stopPropagation();if(label)label.textContent='Manual Orders';manual.classList.add('is-active');auto?.classList.remove('is-active');close();document.getElementById('tx-form')?.scrollIntoView({behavior:'smooth',block:'start'})});auto&&(auto.onclick=e=>{if(!isPro()){e.preventDefault();e.stopPropagation();if(label)label.textContent='Manual Orders';manual?.classList.add('is-active');auto.classList.remove('is-active');showToast('Autofill Orders tersedia di paket PRO.',true);close();return}if(label)label.textContent='Autofill Orders';auto.classList.add('is-active');manual?.classList.remove('is-active');close()});document.addEventListener('click',e=>{if(!e.target.closest('#orders-tool-dropdown'))close()});sync()}
+ function wireTools(){const tr=document.getElementById('orders-tool-trigger'),label=document.getElementById('orders-tool-trigger-label'),menu=document.getElementById('orders-tool-menu'),auto=document.getElementById('smart-sales-open'),manual=document.getElementById('manual-orders-select');if(!tr||!menu)return;const close=()=>{menu.hidden=true;tr.setAttribute('aria-expanded','false')};const sync=()=>{const p=isPro();if(auto){auto.disabled=!p;auto.title=p?'':'Autofill Orders tersedia di paket PRO.';auto.setAttribute('aria-disabled',p?'false':'true')}};tr.onclick=e=>{e.stopPropagation();const open=menu.hidden;menu.hidden=!open;tr.setAttribute('aria-expanded',open?'true':'false')};manual&&(manual.onclick=e=>{e.preventDefault();e.stopPropagation();if(label)label.textContent='Manual Orders';manual.classList.add('is-active');auto?.classList.remove('is-active');close();document.getElementById('tx-form')?.scrollIntoView({behavior:'smooth',block:'start'})});auto&&(auto.onclick=e=>{if(!isPro()){e.preventDefault();e.stopPropagation();if(label)label.textContent='Manual Orders';manual?.classList.add('is-active');auto.classList.remove('is-active');showToast('Autofill Orders tersedia di paket PRO.',true);close();return}if(label)label.textContent='Autofill Orders';auto.classList.add('is-active');manual?.classList.remove('is-active');close()});if(!document.documentElement.dataset.kairoToolsOutsideWired){document.documentElement.dataset.kairoToolsOutsideWired='1';document.addEventListener('click',e=>{if(!e.target.closest('#orders-tool-dropdown')){const t=document.getElementById('orders-tool-trigger'),m=document.getElementById('orders-tool-menu');if(m)m.hidden=true;if(t)t.setAttribute('aria-expanded','false')}})}sync()}
  function formatPlanValidity(){const s=activeWorkspaceSubscription||{};const raw=s.current_period_end||s.expires_at||s.end_date||s.valid_until||s.trial_ends_at||null;if(!raw)return 'Belum ditentukan';const d=new Date(raw);return Number.isNaN(d.getTime())?String(raw):d.toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'})}
  function renderAccess(){const box=document.getElementById('settings-access-list');if(!box)return;const pro=isPro();const rows=pro?['Dashboard & operasional utama','Performance analytics','Autofill Orders','Custom branding & tampilan']:['Dashboard & operasional utama','Petty Cash, Withdraw, Orders & Customer Database','Performance terbatas di paket basic','Autofill Orders terkunci di paket basic'];box.innerHTML=rows.map((x,i)=>`<div class="settings-access-item"><svg viewBox="0 0 24 24" aria-hidden="true">${(!pro&&i>=2)?'<rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>':'<path d="m5 12 4 4L19 6"/>'}</svg><span>${x}</span></div>`).join('')}
  function ensureReceiptFooter(){const panel=document.querySelector('[data-settings-panel="receipt"] .receipt-layout-card');if(!panel||document.getElementById('settings-receipt-footer'))return;const box=document.createElement('div');box.className='receipt-footer-moved';box.innerHTML='<div class="form-group"><label class="label">Footer Struk</label><input id="settings-receipt-footer" class="input" type="text" maxlength="180" placeholder="Terima kasih sudah menggunakan layanan kami"></div>';const head=panel.querySelector('.receipt-layout-head');head?.insertAdjacentElement('afterend',box);const footer=document.getElementById('settings-receipt-footer');footer.value=activeWorkspaceBranding?.receipt_footer||'';footer.addEventListener('input',()=>{if(activeWorkspaceBranding)activeWorkspaceBranding.receipt_footer=footer.value.trim()||null;const p=window.__trineLastReceiptPayload;if(p&&document.getElementById('receipt-modal')?.style.display==='flex'&&typeof showReceiptPreview==='function'){const c=document.getElementById('receipt-content');if(c&&typeof buildHtml==='function')c.innerHTML=buildHtml(p)}})}
  const oldHydrate=window.hydrateSaasUi||hydrateSaasUi;window.hydrateSaasUi=function(){const r=oldHydrate.apply(this,arguments);setTimeout(()=>{syncSlogan();const v=document.getElementById('settings-meta-validity');if(v)v.textContent=formatPlanValidity();renderAccess();lockPerformanceNav();wireTools();ensureReceiptFooter();},0);return r};try{hydrateSaasUi=window.hydrateSaasUi}catch(e){}
  const oldBuildSidebar=window.buildSidebar;setTimeout(()=>{lockPerformanceNav();wireTools();syncHistory();syncSlogan();renderAccess();const v=document.getElementById('settings-meta-validity');if(v)v.textContent=formatPlanValidity();},80);
  
- // Add moved receipt footer to receipt save payload without changing database schema.
- const observer=new MutationObserver(()=>ensureReceiptFooter());observer.observe(document.getElementById('settings')||document.body,{childList:true,subtree:true});
+ // The hydrate hook above installs the footer only when Settings is rendered.
 })();
 
 
@@ -4230,10 +4135,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
   function refresh(){decorateSettingsLocks();guardLockedSelection()}
   const boot=()=>{
     refresh();
-    const target=document.getElementById('saas-sidebar')||document.body;
-    new MutationObserver(()=>decorateSettingsLocks()).observe(target,{childList:true,subtree:true});
     setTimeout(refresh,120);
-    setTimeout(refresh,600);
   };
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 
@@ -4548,7 +4450,13 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
  function patchSignup(){const page=document.getElementById('kairo-account-content');if(!page||!document.getElementById('kairo-signup-form'))return;const old=document.getElementById('kairo-plan-grid');if(old){old.outerHTML=planCompare()}const sel=document.getElementById('kairo-signup-template');if(sel){sel.parentElement.innerHTML=businessGrid()}const email=document.getElementById('kairo-signup-email');if(email&&!document.getElementById('kairo-signup-wa')){const g=document.createElement('div');g.className='form-group';g.innerHTML='<label class="label">Nomor WhatsApp aktif</label><input id="kairo-signup-wa" class="input" type="tel" required inputmode="tel" autocomplete="tel" placeholder="08xxxxxxxxxx"><div class="kairo-inline-note">Dipakai untuk konfirmasi pembelian/aktivasi paket dan komunikasi akun KAIRO.</div>';email.closest('.form-group').after(g)}const form=document.getElementById('kairo-signup-form');form.querySelectorAll('[data-kairo-plan]').forEach(h=>h.onclick=()=>{form.querySelectorAll('[data-kairo-plan]').forEach(x=>x.classList.toggle('selected',x===h));document.getElementById('kairo-selected-plan').value=h.dataset.kairoPlan;syncSignupButton()});form.querySelectorAll('input[name="kairo-business"]').forEach(r=>r.onchange=()=>form.querySelectorAll('.kairo-business-option').forEach(x=>x.classList.toggle('selected',x.querySelector('input').checked)));syncSignupButton()}
  function syncSignupButton(){const p=document.getElementById('kairo-selected-plan')?.value||'basic',b=document.getElementById('kairo-signup-submit');if(b)b.textContent=p==='basic'?'Buat Akun':'Buat Akun dan Konfirmasi ke WA'}
  const oldOpen=window.__kairoOpenAccountPage;
- const obs=new MutationObserver(()=>{if(document.getElementById('kairo-signup-form')&&!document.getElementById('kairo-selected-plan'))patchSignup()});obs.observe(document.body,{childList:true,subtree:true});
+ if(typeof oldOpen==='function'){
+   window.__kairoOpenAccountPage=function(){
+     const result=oldOpen.apply(this,arguments);
+     if(arguments[0]==='signup')queueMicrotask(patchSignup);
+     return result;
+   };
+ }
  // Capture submit to enrich metadata and open WA after successful Supabase signup flow.
  document.addEventListener('submit',e=>{if(e.target?.id!=='kairo-signup-form')return;const plan=document.getElementById('kairo-selected-plan')?.value||'basic',biz=document.querySelector('input[name="kairo-business"]:checked')?.value||'digital_subscription',wa=(document.getElementById('kairo-signup-wa')?.value||'').trim();const hiddenTemplate=document.getElementById('kairo-signup-template');if(hiddenTemplate)hiddenTemplate.value=biz;window.__kairoPendingSignup={plan,biz,wa}},true);
  // Basic-only upgrade frame + feedback in sidebar.
@@ -4616,9 +4524,13 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
    let plan='basic';try{plan=String(window.activeWorkspacePlan||activeWorkspacePlan||'basic').toLowerCase()}catch(e){}
    document.querySelectorAll('.kairo-lock-wrap,#kairo-lock-wrap,.kairo-lock-trigger').forEach(el=>{const host=el.classList.contains('kairo-lock-trigger')?el.closest('.kairo-lock-wrap')||el:el;host.style.display=plan==='basic'?'none':''});
  }
- const mo=new MutationObserver(()=>{upgrade();gateAutoLock()});mo.observe(document.body,{childList:true,subtree:true});
  document.addEventListener('click',e=>{if(e.target.closest('#kairo-create-account-btn,[data-kairo-open-account],#auth-signup-toggle'))setTimeout(upgrade,40)},true);
- setTimeout(()=>{upgrade();gateAutoLock()},1200);
+ const oldOpenAccount=window.__kairoOpenAccountPage;
+ if(typeof oldOpenAccount==='function'&&!oldOpenAccount.__kairoPlanWrapped){
+   const wrapped=function(){const result=oldOpenAccount.apply(this,arguments);if(arguments[0]==='signup')queueMicrotask(()=>{upgrade();gateAutoLock()});return result};
+   wrapped.__kairoPlanWrapped=true;window.__kairoOpenAccountPage=wrapped;
+ }
+ gateAutoLock();
 })();
 
 
@@ -4775,7 +4687,6 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
   }
   function refresh82(){basicPerformance();dedupeSettingsLocks();moveBasicPlanFrame()}
   const oldHyd=window.hydrateSaasUi||hydrateSaasUi;window.hydrateSaasUi=function(){const r=oldHyd.apply(this,arguments);setTimeout(refresh82,20);return r};try{hydrateSaasUi=window.hydrateSaasUi}catch(e){}
-  document.addEventListener('click',()=>setTimeout(refresh82,30));
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(refresh82,220),{once:true});else setTimeout(refresh82,220);
   setTimeout(refresh82,1100);
 })();
@@ -4857,7 +4768,6 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
   const oldHyd83=window.hydrateSaasUi||hydrateSaasUi;
   window.hydrateSaasUi=function(){const r=oldHyd83.apply(this,arguments);setTimeout(refresh83,25);return r};
   try{hydrateSaasUi=window.hydrateSaasUi}catch(e){}
-  document.addEventListener('click',()=>setTimeout(refresh83,35));
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(refresh83,250),{once:true});else setTimeout(refresh83,250);
   setTimeout(refresh83,1100);
 })();
@@ -4905,7 +4815,6 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
   window.hydrateSaasUi=function(){const r=prior.apply(this,arguments);setTimeout(unifiedHeader86,35);return r};
   try{hydrateSaasUi=window.hydrateSaasUi}catch(e){}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(unifiedHeader86,260),{once:true});else setTimeout(unifiedHeader86,260);
-  document.addEventListener('click',()=>setTimeout(unifiedHeader86,45));
   setTimeout(unifiedHeader86,1200);
 })();
 
@@ -5179,7 +5088,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
       if(!document.getElementById('seller-app-premium-js')){
         const script=document.createElement('script');
         script.id='seller-app-premium-js';
-        script.src='assets/templates/seller-app-premium.js?v=20.10.144';
+        script.src='assets/templates/seller-app-premium.js?v=20.10.147';
         script.defer=true;
         document.body.appendChild(script);
       }
@@ -5187,14 +5096,6 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
     finally{sellerTemplateChecking=false;}
   }
   document.addEventListener('click',e=>{
-    if(e.target.closest('[data-tab="input"],[data-mobile-tab="input"],.kairo-mobile-orders-main'))setTimeout(maybeBootSellerTemplate,0);
+    if(e.target.closest('[data-tab="input"],[data-mobile-tab="input"],.kairo-mobile-orders-main,[data-settings-category="packages"]'))setTimeout(maybeBootSellerTemplate,0);
   },true);
-  // Seller-only login bootstrap: bounded retries after an actual login submit.
-  // No observer and no polling loop; this only makes the seller template available
-  // on the first Dashboard render after login.
-  document.addEventListener('submit',e=>{
-    if(e.target?.id!=='login-form')return;
-    [350,800,1500,2600].forEach(ms=>setTimeout(maybeBootSellerTemplate,ms));
-  },true);
-  setTimeout(maybeBootSellerTemplate,700);
 })();

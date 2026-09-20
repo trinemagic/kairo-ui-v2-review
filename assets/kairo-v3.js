@@ -9,15 +9,15 @@
   })[char]);
 
   function openLogin() {
+    window.__kairoEnsureRuntime?.().catch(() => {});
     const card = q('#auth-screen .auth-card');
     card?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     setTimeout(() => q('#login-username')?.focus({ preventScroll: true }), 350);
   }
 
-  function openSignup() {
-    if (typeof window.__kairoOpenAccountPage === 'function') {
-      window.__kairoOpenAccountPage('signup');
-    }
+  async function openSignup() {
+    try { await window.__kairoEnsureRuntime?.(); } catch (_) { return; }
+    if (typeof window.__kairoOpenAccountPage === 'function') window.__kairoOpenAccountPage('signup');
   }
 
   function mobileMenu(open) {
@@ -146,7 +146,7 @@
   else boot();
 
   document.addEventListener('submit', event => {
-    if (event.target?.id === 'login-form') [700, 1500, 2800].forEach(delay => setTimeout(mountDashboardHeader, delay));
+    if (event.target?.id === 'login-form') setTimeout(mountDashboardHeader, 700);
   }, true);
   document.addEventListener('click', event => {
     if (event.target.closest('[data-tab="dashboard"], [data-mobile-tab="dashboard"], #saas-side-home')) setTimeout(mountDashboardHeader, 60);
