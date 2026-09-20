@@ -978,7 +978,8 @@
     },true);
 
     renderCategories();renderProducts();renderVariants();renderDurations();renderCart();
-    syncSellerDashboardView();installSellerSettings();syncSellerTemplateChrome();syncSellerUserFacingWording();
+    syncSellerDashboardView();syncSellerTemplateChrome();syncSellerUserFacingWording();
+    if(document.querySelector('.section.active')?.id==='settings'&&document.getElementById('settings-category-select')?.value==='packages')installSellerSettings();
     loadSellerProductSettings();loadSellerCustomerMeta();
     // If the seller module boots while Dashboard is already visible (first login),
     // repaint the existing dashboard immediately so seller KPI/history styling does
