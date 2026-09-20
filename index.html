@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<!-- KAIRO v20.10.63 Optimization & Cleanup: embedded raster assets converted to WebP; runtime preserved -->
+
+<html lang="id">
+<head>
+  <!-- KAIRO v20.10.66 freeze fix -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>KAIRO WORKSPACES — Business Dashboard</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="assets/kairo.css?v=20.10.144">
+</head>
+
+<body class="auth-locked">
+<div id="kairo-root">
+
+<div class="auth-screen" id="auth-screen">
+  <div class="auth-entry-layout">
+    <header aria-label="Kairo Workspaces" class="kairo-auth-page-brand">
+<div class="kairo-auth-page-title">KAIRO WORKSPACES</div>
+<div class="kairo-auth-page-tagline">EVERY STEP, FROM THE START.</div>
+</header>
+    <section class="auth-plans-panel" aria-label="Pilihan paket SaaS">
+      <div class="auth-plans-eyebrow">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 17 9 12l4 4 7-8"></path><path d="M15 8h5v5"></path></svg>
+        <span>PILIH KEBUTUHAN BISNISMU</span>
+      </div>
+      <h1 class="auth-plans-title">Someday, you'll look back at how far you've come. Kairo remembers where you started.</h1>
+      <p class="auth-plans-sub">Bandingkan paket sesuai dengan kebutuhanmu. Mulai pencatatan usahamu dengan Kairo.</p>
+      <section class="plan-carousel-shell auth-plan-carousel-static" aria-label="Pilihan paket">
+        <div class="plan-carousel-track auth-plan-track-static"><article class="plan-offer-card" data-plan-card="basic">
+<div class="plan-card-visual"><svg aria-hidden="true" viewbox="0 0 64 64"><rect height="44" rx="7" width="40" x="12" y="10"></rect><path d="M21 22h22M21 31h14M21 40h18"></path><circle cx="45" cy="42" r="5"></circle></svg><span>BASIC</span></div>
+<div class="plan-card-content"><div class="plan-card-tag"><svg viewbox="0 0 24 24"><path d="M20 13 11 22l-9-9V4h9l9 9Z"></path><circle cx="7" cy="9" r="1.5"></circle></svg><span>Mulai &amp; Catat</span></div><h3>Basic</h3><p>Fondasi buat bisnis yang baru mulai nyatet order dan arus kas secara rapi.</p><div class="plan-feature-chips"><span>Manual Orders</span><span>Petty Cash</span><span>Withdrawal</span><span>Receipt Basic</span></div><div class="plan-card-footer"><span class="plan-card-level">Pencatatan inti</span><span class="plan-card-arrow"><svg viewbox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></span></div></div>
+</article>
+<article class="plan-offer-card plan-featured" data-plan-card="plus">
+<div class="plan-card-visual"><svg aria-hidden="true" viewbox="0 0 64 64"><path d="M12 48V28l20-14 20 14v20"></path><path d="M22 48V34h20v14M32 14v34"></path><path d="m24 24 8 6 8-6"></path></svg><span>PLUS</span></div>
+<div class="plan-card-content"><div class="plan-card-tag"><svg viewbox="0 0 24 24"><path d="M12 3v18M3 12h18"></path><circle cx="12" cy="12" r="9"></circle></svg><span>Operate &amp; Grow</span></div><h3>Plus</h3><p>Workflow bisnis lebih praktis dengan automation, customer tools, branding, dan operasional tim.</p><div class="plan-feature-chips"><span>Customer Database</span><span>Open / Close Store</span><span>Autofill Orders</span><span>Export Excel</span><span>Custom Branding</span><span>Multi-partner</span></div><div class="plan-card-footer"><span class="plan-card-level">Operasional lengkap</span><span class="plan-card-arrow"><svg viewbox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></span></div></div>
+</article>
+<article class="plan-offer-card" data-plan-card="pro">
+<div class="plan-card-visual"><svg aria-hidden="true" viewbox="0 0 64 64"><path d="M12 50V34h10v16M27 50V24h10v26M42 50V14h10v36"></path><path d="m13 25 13-9 10 4 15-12"></path></svg><span>PRO</span></div>
+<div class="plan-card-content"><div class="plan-card-tag"><svg viewbox="0 0 24 24"><path d="M4 19V9M10 19V5M16 19v-7M22 19V2"></path><path d="M2 19h20"></path></svg><span>Understand &amp; Scale</span></div><h3>Pro</h3><p>Kontrol dan insight lebih dalam buat bisnis yang udah serius berkembang dan punya workflow kompleks.</p><div class="plan-feature-chips"><span>Full Performance</span><span>Advanced Profit Split</span><span>Business Insights</span><span>Advanced Reports</span><span>Activity Log</span><span>Multi-workspace</span></div><div class="plan-card-footer"><span class="plan-card-level">Management advanced</span><span class="plan-card-arrow"><svg viewbox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></span></div></div>
+</article></div>
+      </section>
+      <div class="plan-carousel-nav auth-carousel-nav">
+        <button type="button" class="plan-carousel-arrow" data-auth-static-carousel="left" aria-label="Geser paket ke kiri"><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"></path></svg></button>
+        <button type="button" class="plan-carousel-arrow" data-auth-static-carousel="right" aria-label="Geser paket ke kanan"><svg viewBox="0 0 24 24"><path d="m9 18 6 6-6-6"></path></svg></button>
+      </div>
+    </section>
+    <div class="auth-card">
+<div class="auth-brand kairo-auth-brand">
+<div class="brand-name">KAIRO WORKSPACES</div>
+</div>
+<div class="auth-title">Masuk ke Dashboard</div>
+<div class="auth-error" id="auth-error"></div>
+<form id="login-form">
+<div class="form-group">
+<label class="label" for="login-username">Username</label>
+<input autocomplete="username" class="input" id="login-username" placeholder="Masukkan username" required="" type="text"/>
+</div>
+<div class="form-group">
+<label class="label" for="login-password">Password</label>
+<input autocomplete="current-password" class="input" id="login-password" placeholder="••••••••" required="" type="password"/>
+</div>
+<button class="btn btn-green auth-submit" id="login-button" type="submit">Masuk</button>
+</form>
+</div>
+  </div>
+</div>
+
+<div class="app-shell" id="app-shell">
+
+<header class="header">
+  <div class="header-inner">
+    <div class="brand" id="v19-home" title="Kembali ke halaman utama">
+      <img class="brand-logo" src="assets/asset-3.webp" alt="Trine Magic">
+      <div>
+        <h1>TRINE MAGIC</h1>
+        <p>Let's Go Menjadi Kaya&nbsp;Bersama!</p>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end">
+      <nav class="v19-nav" aria-label="Navigasi halaman">
+        <button class="tab active" data-tab="dashboard" type="button">Dashboard</button>
+        <button class="tab" data-tab="performance" type="button">Performance</button>
+        <button class="tab" data-tab="cash" type="button">Petty Cash</button>
+        <button class="tab" data-tab="payout" type="button">Withdraw</button>
+        <button class="tab" data-tab="input" type="button">Orders</button>
+        <button class="tab" data-tab="customers" type="button">Customer Database</button>
+      </nav>
+      <div class="workspace-meta">
+          <select class="workspace-switcher" id="saas-workspace-switcher" title="Ganti workspace" aria-label="Ganti workspace" style="display:none"></select>
+          <span class="workspace-pill" id="saas-workspace-pill" title="Workspace aktif">Trine Magic</span>
+          <span class="plan-pill" id="saas-plan-pill">FREE</span>
+          <span class="role-pill" id="saas-role-pill">OWNER</span>
+          <button class="saas-settings-btn" id="saas-settings-btn" type="button" title="Workspace settings">Settings</button>
+        </div>
+        <div class="user-area saas-user-menu-wrap">
+          <button class="saas-theme-toggle" id="saas-theme-toggle" type="button" aria-label="Aktifkan dark mode" title="Dark mode">
+            <svg class="theme-icon theme-icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5 8.7 8.7 0 1 0 20.5 14.2Z"/></svg>
+            <svg class="theme-icon theme-icon-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.6"/><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.65 17.65l1.42 1.42M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.65 6.35l1.42-1.42"/></svg>
+          </button>
+          <button class="saas-avatar-btn" id="saas-user-avatar" type="button" aria-label="Buka menu akun" aria-expanded="false">G</button>
+          <div class="saas-user-menu" id="saas-user-menu" hidden>
+            <div class="saas-user-menu-head">
+              <div class="saas-user-menu-avatar" id="saas-user-menu-avatar">G</div>
+              <div class="saas-user-copy">
+                <strong id="user-email"></strong>
+                <span id="connection-status">Menghubungkan...</span>
+              </div>
+            </div>
+            <div class="saas-user-menu-divider"></div>
+            <button class="saas-user-menu-item" id="saas-user-settings-menu" type="button">
+              <span class="saas-menu-icon">⚙</span><span>Workspace Settings</span>
+            </button>
+            <button class="saas-user-menu-item saas-user-logout" id="logout-button" type="button">
+              <span class="saas-menu-icon">↪</span><span>Keluar</span>
+            </button>
+          </div>
+        </div>
+    </div>
+  </div>
+</header>
+
+
+<main class="container">
+  <div class="toolbar">
+    <div>
+      <div class="page-title">Dashboard</div>
+      <div class="page-sub" id="dashboard-slogan-display">Semoga berkah, waras, dan sukses selalu</div>
+    </div>
+    <div class="filters">
+      <div class="period-group" id="period-group">
+        <button type="button" class="period-btn" data-period="today">Hari Ini</button>
+        <button type="button" class="period-btn" data-period="7days">7 Hari Terakhir</button>
+        <button type="button" class="period-btn" data-period="30days">30 Hari Terakhir</button>
+        <button type="button" class="period-btn" data-period="custom">Kustom</button>
+      </div>
+      <div class="custom-range" id="custom-range">
+        <input id="filter-from" class="control" type="date" title="Tanggal mulai">
+        <span style="font-size:12px;color:var(--muted)">s/d</span>
+        <input id="filter-to" class="control" type="date" title="Tanggal akhir">
+      </div>
+      <button class="btn btn-green" onclick="refreshAll()">↻ Refresh</button>
+      <button class="btn btn-gold" onclick="exportExcel()">⬇ Export Excel</button>
+    </div>
+  </div>
+
+
+  <section id="dashboard" class="section active">
+    <div class="kpi-grid">
+      <div class="kpi"><div class="kpi-head"><div class="kpi-label">Total Omset</div><button class="kpi-eye" type="button" data-kpi="kpi-revenue" aria-label="Sembunyikan nominal"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"></path><circle cx="12" cy="12" r="2.7"></circle></svg></button></div><div class="kpi-value" id="kpi-revenue">Rp0</div></div>
+      <div class="kpi gold"><div class="kpi-label">Total Transaksi</div><div class="kpi-value" id="kpi-tx">0</div></div>
+      <div class="kpi green"><div class="kpi-label">Paket Terlaris</div><div class="kpi-value" id="kpi-best">-</div></div>
+      <div class="kpi"><div class="kpi-head"><div class="kpi-label">Saldo Kas</div><button class="kpi-eye" type="button" data-kpi="kpi-cash" aria-label="Sembunyikan nominal"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"></path><circle cx="12" cy="12" r="2.7"></circle></svg></button></div><div class="kpi-value" id="kpi-cash">Rp0</div></div>
+      <div class="kpi gold"><div class="kpi-head"><div class="kpi-label">Omzet Bulan Ini</div><button class="kpi-eye" type="button" data-kpi="kpi-rights" aria-label="Sembunyikan nominal"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"></path><circle cx="12" cy="12" r="2.7"></circle></svg></button></div><div class="kpi-value" id="kpi-rights">Rp0</div></div>
+    </div>
+
+    <section class="plan-carousel-shell" id="plan-carousel-shell" aria-label="Pilihan paket">
+      <div class="plan-carousel-heading">
+        <div><div class="card-title">Pilih Paket yang Sesuai Bisnis Lo</div><div class="page-sub">Mulai dari pencatatan dasar, naik ke operasional yang lebih praktis, sampai kontrol bisnis yang lebih lengkap.</div></div>
+        <div class="plan-carousel-nav">
+          <button type="button" class="plan-carousel-arrow" id="plan-carousel-left" aria-label="Geser paket ke kiri"><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg></button>
+          <button type="button" class="plan-carousel-arrow" id="plan-carousel-right" aria-label="Geser paket ke kanan"><svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button>
+        </div>
+      </div>
+      <div class="plan-carousel-track" id="plan-carousel-track">
+        <article class="plan-offer-card" data-plan-card="basic">
+          <div class="plan-card-visual"><svg viewBox="0 0 64 64" aria-hidden="true"><rect x="12" y="10" width="40" height="44" rx="7"/><path d="M21 22h22M21 31h14M21 40h18"/><circle cx="45" cy="42" r="5"/></svg><span>BASIC</span></div>
+          <div class="plan-card-content"><div class="plan-card-tag"><svg viewBox="0 0 24 24"><path d="M20 13 11 22l-9-9V4h9l9 9Z"/><circle cx="7" cy="9" r="1.5"/></svg><span>Mulai & Catat</span></div><h3>Basic</h3><p>Fondasi buat bisnis yang baru mulai nyatet order dan arus kas secara rapi.</p><div class="plan-feature-chips"><span>Manual Orders</span><span>Petty Cash</span><span>Withdrawal</span><span>Receipt Basic</span></div><div class="plan-card-footer"><span class="plan-card-level">Pencatatan inti</span><span class="plan-card-arrow"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div></div>
+        </article>
+        <article class="plan-offer-card plan-featured" data-plan-card="plus">
+          <div class="plan-card-visual"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M12 48V28l20-14 20 14v20"/><path d="M22 48V34h20v14M32 14v34"/><path d="m24 24 8 6 8-6"/></svg><span>PLUS</span></div>
+          <div class="plan-card-content"><div class="plan-card-tag"><svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18"/><circle cx="12" cy="12" r="9"/></svg><span>Operate & Grow</span></div><h3>Plus</h3><p>Workflow bisnis lebih praktis dengan automation, customer tools, branding, dan operasional tim.</p><div class="plan-feature-chips"><span>Customer Database</span><span>Open / Close Store</span><span>Autofill Orders</span><span>Export Excel</span><span>Custom Branding</span><span>Multi-partner</span></div><div class="plan-card-footer"><span class="plan-card-level">Operasional lengkap</span><span class="plan-card-arrow"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div></div>
+        </article>
+        <article class="plan-offer-card" data-plan-card="pro">
+          <div class="plan-card-visual"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M12 50V34h10v16M27 50V24h10v26M42 50V14h10v36"/><path d="m13 25 13-9 10 4 15-12"/></svg><span>PRO</span></div>
+          <div class="plan-card-content"><div class="plan-card-tag"><svg viewBox="0 0 24 24"><path d="M4 19V9M10 19V5M16 19v-7M22 19V2"/><path d="M2 19h20"/></svg><span>Understand & Scale</span></div><h3>Pro</h3><p>Kontrol dan insight lebih dalam buat bisnis yang udah serius berkembang dan punya workflow kompleks.</p><div class="plan-feature-chips"><span>Full Performance</span><span>Advanced Profit Split</span><span>Business Insights</span><span>Advanced Reports</span><span>Activity Log</span><span>Multi-workspace</span></div><div class="plan-card-footer"><span class="plan-card-level">Management advanced</span><span class="plan-card-arrow"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div></div>
+        </article>
+      </div>
+    </section>
+
+    <div class="card shift-card">
+      <div class="shift-top">
+        <div>
+          <div class="card-title">Open Store</div><div class="page-sub">Jam buka & tutup bisa disesuaikan kalau kelupaan. Omzet Hari Ini tetap dihitung seperti biasa.</div>
+          <div class="page-sub">Dihitung dari saat sesi dibuka sampai ditutup, termasuk kalau lewat tengah malam. Omzet Hari Ini tetap mengikuti tanggal kalender seperti biasa.</div>
+          <div class="shift-live" style="margin-top:8px"><span id="shift-status-dot" class="shift-dot"></span><span id="shift-status-text">Store sedang tutup</span></div>
+        </div>
+        <div class="shift-actions">
+          <button id="open-shift-btn" type="button" class="btn btn-green">Open Store</button>
+          <button id="close-shift-btn" type="button" class="btn btn-danger" disabled>Close Store</button>
+        </div>
+      </div>
+      <div class="shift-grid">
+        <div class="shift-stat"><div class="shift-stat-label">Omzet Store Hari Sesi Ini</div><div class="shift-stat-value" id="shift-current-revenue">Rp0</div></div>
+        <div class="shift-stat"><div class="shift-stat-label">Transaksi Store</div><div class="shift-stat-value" id="shift-current-count">0</div></div>
+        <div class="shift-stat"><div class="shift-stat-label">Mulai</div><div class="shift-stat-value" id="shift-opened-at" style="font-size:14px">-</div></div>
+        <div class="shift-stat"><div class="shift-stat-label">Durasi</div><div class="shift-stat-value" id="shift-duration" style="font-size:14px">-</div></div>
+      </div>
+      <div class="shift-history" id="shift-history-panel">
+        <div class="shift-history-head">
+          <div class="card-title" style="font-size:14px;margin:0">Riwayat Open Store</div>
+          <button type="button" class="shift-history-toggle" id="shift-history-toggle" aria-expanded="true" title="Minimize riwayat Open Store">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+            <span>Minimize</span>
+          </button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Mulai</th><th>Tutup</th><th>Durasi</th><th>Transaksi</th><th>Omzet</th><th>Status</th><th>Aksi</th></tr></thead>
+            <tbody id="shift-history-body"><tr><td colspan="7" class="empty">Belum ada riwayat Open Store.</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" id="transaction-history-card">
+      <div class="toolbar history-card-toolbar" style="margin-bottom:10px">
+        <div>
+          <div class="card-title title-with-icon" style="margin-bottom:3px"><span class="title-svg-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 4h14v16H5z"/><path d="M8 8h8M8 12h8M8 16h5"/><path d="M3 7h2M3 12h2M3 17h2"/></svg></span><span>Riwayat Transaksi</span></div>
+          <div class="page-sub history-card-subtitle">Gunakan filter tanggal untuk mengatur riwayat yang tampil.</div>
+        </div>
+        <div class="history-card-actions">
+          <div class="history-filter-controls">
+          <select id="history-date-filter" class="history-filter-select" aria-label="Filter tanggal riwayat transaksi">
+            <option value="all">All</option>
+            <option value="today">Hari ini</option>
+            <option value="yesterday">Kemarin</option>
+            <option value="month">Bulan ini</option>
+            <option value="custom">Pilih tanggal sendiri</option>
+          </select>
+          <input id="history-custom-date" class="history-filter-date" type="date" aria-label="Pilih tanggal riwayat transaksi">
+          </div>
+          <button type="button" class="history-collapse-btn" id="history-collapse-btn" aria-expanded="true" title="Minimize riwayat transaksi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg><span>Minimize</span></button>
+        </div>
+      </div>
+      <div class="table-wrap history-table-wrap">
+        <table>
+          <thead><tr><th>Tanggal</th><th>Start Reading</th><th>Nama</th><th>Status</th><th>Paket</th><th>Qty</th><th>Topic</th><th>Add On</th><th>Tip</th><th>Total</th><th>Pembayaran</th><th>Aksi</th></tr></thead>
+          <tbody id="tx-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section id="performance" class="section">
+    <div class="performance-intro card" style="margin-bottom:18px">
+      <div class="card-title">Performance</div>
+      <div class="page-sub">Analisis performa penjualan berdasarkan periode yang dipilih.</div>
+    </div>
+
+    <div class="platform-analytics-grid">
+      <div class="card"><div class="toolbar" style="margin-bottom:8px"><div><div class="card-title">Performa Platform Media Sosial</div><div class="page-sub" id="platform-chart-note">Jumlah transaksi berdasarkan platform.</div></div><div class="platform-period-tabs"><button type="button" class="platform-period-btn" data-platform-period="today">Hari Ini</button><button type="button" class="platform-period-btn" data-platform-period="7">7 Hari</button><button type="button" class="platform-period-btn active" data-platform-period="30">30 Hari</button></div></div><div class="chart-wrap"><canvas id="platformChart"></canvas></div></div>
+      <div class="card"><div class="card-title">Perkembangan Platform</div><div class="page-sub">Dibanding periode sebelumnya dengan durasi yang sama.</div><div id="platform-summary-list" class="platform-summary-list"></div></div>
+    </div>
+
+    <div class="grid-main">
+      <div class="card">
+        <div class="card-title">Penjualan Harian <small>(sesuai filter tanggal)</small></div>
+        <div class="chart-wrap"><canvas id="dailyChart"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Penjualan Berdasarkan Paket</div>
+        <div class="chart-wrap"><canvas id="packageChart"></canvas></div>
+      </div>
+    </div>
+
+    <div class="grid-main" style="margin-bottom:18px">
+      <div class="card">
+        <div class="toolbar" style="margin-bottom:8px">
+          <div>
+            <div class="card-title">Omzet Bulan Ini vs Bulan Lalu</div>
+            <div class="page-sub" id="monthly-revenue-note">Perbandingan berdasarkan bulan kalender.</div>
+          </div>
+          <div style="text-align:right">
+            <div class="page-sub">Perubahan</div>
+            <strong id="monthly-revenue-delta">-</strong>
+          </div>
+        </div>
+        <div class="chart-wrap"><canvas id="monthlyRevenueChart"></canvas></div>
+      </div>
+
+      <div class="card">
+        <div class="toolbar" style="margin-bottom:8px">
+          <div>
+            <div class="card-title">Topik yang Dipilih</div>
+            <div class="page-sub">Jumlah pemilihan topik sesuai filter tanggal aktif.</div>
+          </div>
+          <div style="text-align:right">
+            <div class="page-sub">Total</div>
+            <strong id="topic-selection-total">0</strong>
+          </div>
+        </div>
+        <div class="chart-wrap"><canvas id="topicChart"></canvas></div>
+      </div>
+    </div>
+
+  </section>
+
+  <section id="input" class="section">
+    <div class="card">
+      <div class="card-title title-with-icon"><span class="title-svg-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h5"/><path d="M15 16h5M17.5 13.5v5"/></svg></span><span>Penjualan Baru</span></div>
+      <div class="orders-tools" style="margin:10px 0 16px">
+        <div class="orders-tool-dropdown" id="orders-tool-dropdown">
+          <button type="button" class="btn btn-light orders-tool-trigger" id="orders-tool-trigger" aria-expanded="false"><span id="orders-tool-trigger-label">Manual Orders</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+          <div class="orders-tool-menu" id="orders-tool-menu" hidden>
+            <button type="button" class="orders-tool-item" id="smart-sales-open" data-orders-mode="autofill"><span class="orders-tool-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v16H5z"/><path d="M8 8h8M8 12h5"/><path d="M16 14v5m-2.5-2.5h5"/></svg></span><span><strong>Autofill Orders</strong><small>Isi order otomatis dari form customer</small></span><span class="pro-inline-badge">PRO</span></button>
+            <button type="button" class="orders-tool-item is-active" id="manual-orders-select" data-orders-mode="manual"><span class="orders-tool-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="16" rx="2"/><path d="M8 9h8M8 13h8M8 17h5"/></svg></span><span><strong>Manual Orders</strong><small>Isi order secara manual seperti biasa</small></span><span class="orders-mode-check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg></span></button>
+          </div>
+        </div>
+      </div>
+      <div class="notice">Penyesuaian harga dapat dipakai untuk diskon/kenaikan harga. Tip dicatat sebagai bagian dari pendapatan transaksi.</div>
+      <form id="tx-form">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="label">Tanggal</label>
+            <input id="tx-date" class="input" type="date" required>
+          </div>
+          <div class="form-group">
+            <label class="label">Nama Customer</label>
+            <div class="customer-field-wrap">
+              <input id="tx-customer" class="input" type="text" placeholder="Nama customer" autocomplete="off" required>
+              <input id="tx-customer-id" type="hidden" value="">
+              <div id="customer-match-pop" class="customer-match-pop" aria-live="polite"></div>
+              <div id="customer-selected-note" class="customer-selected-note"></div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="label">Platform Media Sosial</label>
+            <select id="tx-platform" class="input" required>
+              <option value="">-- Pilih Platform --</option>
+              <option value="X">X</option>
+              <option value="Instagram">Instagram</option>
+              <option value="Threads">Threads</option>
+              <option value="TikTok">TikTok</option>
+              <option value="WhatsApp">WhatsApp</option>
+              <option value="Telegram">Telegram</option>
+              <option value="Other">Lainnya</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="label">Nama Media Sosial (Opsional)</label>
+            <input id="tx-social-name" class="input" type="text" placeholder="@username / nama akun">
+          </div>
+          <div class="form-group">
+            <label class="label">Nomor WhatsApp (Opsional)</label>
+            <input id="tx-whatsapp" class="input" type="tel" inputmode="tel" placeholder="08xxxxxxxxxx">
+          </div>
+          <div class="form-group">
+            <label class="label">Metode Pembayaran</label>
+            <select id="tx-payment" class="input" required>
+              <option value="QRIS">QRIS</option>
+              <option value="CASH">Cash</option>
+              <option value="TRANSFER">Transfer</option>
+              <option value="OTHER">Other</option>
+            </select>
+          </div>
+          <div class="full">
+            <label class="label">Package & Qty</label>
+            <div id="tx-packages" class="master-list"></div>
+          </div>
+          <div class="full">
+            <label class="label">Topik (bisa lebih dari satu)</label>
+            <div id="tx-topics" class="master-list"></div>
+          </div>
+          <div class="full">
+            <label class="label">Add On & Qty (opsional)</label>
+            <div id="tx-addons" class="master-list"></div>
+          </div>
+          <div class="full price-adjustment">
+            <label class="label">Penyesuaian Harga (opsional)</label>
+            <div class="price-adjustment-grid">
+              <select id="tx-adjustment-type" class="input" aria-label="Jenis penyesuaian harga">
+                <option value="none">Tidak ada penyesuaian</option>
+                <option value="discount">Diskon / Penurunan</option>
+                <option value="markup">Kenaikan Harga</option>
+              </select>
+              <select id="tx-adjustment-mode" class="input" aria-label="Metode penyesuaian harga">
+                <option value="percent">Persentase (%)</option>
+                <option value="fixed">Nominal (Rp)</option>
+              </select>
+              <div class="adjustment-value-wrap">
+                <input id="tx-adjustment-value" class="input" type="number" min="0" step="0.01" value="0" placeholder="Nilai">
+              </div>
+            </div>
+            <div class="adjustment-help" id="tx-adjustment-help">Bisa digunakan untuk promo, harga khusus, atau penyesuaian harga satu kali pada transaksi ini.</div>
+          </div>
+          <div class="full form-group">
+            <label class="label">Catatan</label>
+            <input id="tx-notes" class="input" type="text" placeholder="Opsional">
+          </div>
+          <div class="full form-group">
+            <label class="label">Tip (opsional)</label>
+            <input id="tx-tip" class="input" type="number" min="500" max="10000000" step="1" inputmode="numeric" placeholder="Rp500 - Rp10.000.000">
+            <div class="adjustment-help">Masukkan nominal tip manual. Minimal Rp500 dan maksimal Rp10.000.000.</div>
+          </div>
+          <div class="full total-box">
+            <span>Total Harga</span>
+            <strong id="tx-total">Rp0</strong>
+          </div>
+          <div class="full actions">
+            <button class="btn btn-pink" id="btn-save" type="submit">Simpan Penjualan</button>
+            <button class="btn btn-light" type="button" onclick="resetTxForm()">Reset</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <div id="receipt-modal" class="modal" style="display:none">
+    <div class="modal-backdrop" onclick="closeReceiptPreview()"></div>
+    <div class="modal-card">
+      <div class="card-title" id="receipt-preview-title">Preview Struk Penjualan</div>
+      <div id="receipt-content"></div>
+      <div class="actions" style="margin-top:16px">
+        <button class="btn btn-light" type="button" onclick="closeReceiptPreview()">Edit</button>
+        <button class="btn btn-light receipt-copy-btn" id="copy-receipt" type="button"><span class="receipt-copy-icon" aria-hidden="true"></span><span>Salin Struk</span></button>
+        <button class="btn btn-pink" id="confirm-save" type="button">Simpan Transaksi</button>
+      </div>
+    </div>
+  </div>
+
+  
+  <section id="customers" class="section">
+    <div class="card">
+      <div class="customer-db-toolbar">
+        <div>
+          <div class="card-title">Customer Database</div>
+          <div class="page-sub">Track customer repeat berdasarkan seluruh riwayat transaksi.</div>
+        </div>
+        <input id="customer-db-search" class="input customer-db-search" type="search" placeholder="Cari nama customer...">
+      </div>
+
+      <div class="customer-db-stats">
+        <div class="kpi"><div class="kpi-label">Total Customer</div><div class="kpi-value" id="customer-db-total">0</div></div>
+        <div class="kpi"><div class="kpi-label">Repeat Customer</div><div class="kpi-value" id="customer-db-repeat">0</div></div>
+        <div class="kpi customer-most-active-card" id="customer-db-most-active-card" role="button" tabindex="0" title="Klik untuk melihat riwayat customer teraktif"><div class="kpi-label">Customer Teraktif</div><div class="kpi-value customer-most-active-name" id="customer-db-most-active-name">-</div><div class="customer-most-active-meta" id="customer-db-most-active-meta">Belum ada data repeat order.</div></div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+<th>#</th>
+<th><button type="button" class="customer-sort-btn" data-sort="name">Customer <span class="customer-sort-arrow">↕</span></button></th>
+<th><button type="button" class="customer-sort-btn active" data-sort="order_count">Total Order <span class="customer-sort-arrow">↓</span></button></th>
+<th><button type="button" class="customer-sort-btn" data-sort="total_spend">Total Belanja <span class="customer-sort-arrow">↕</span></button></th>
+<th><button type="button" class="customer-sort-btn" data-sort="last_order">Terakhir Order <span class="customer-sort-arrow">↕</span></button></th>
+<th>Status Terakhir</th>
+<th><button type="button" class="customer-sort-btn" data-sort="platform">Platform Terakhir <span class="customer-sort-arrow">↕</span></button></th>
+<th>Paket Favorit</th>
+</tr>
+          </thead>
+          <tbody id="customer-db-body"><tr><td colspan="8" class="empty">Memuat database customer...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+<section id="payout" class="section">
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title title-with-icon"><span class="title-svg-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7h16v10H4z"/><path d="M7 10h6M7 14h4"/><path d="M16 9v6M13.5 12H18.5"/></svg></span><span>Withdrawal</span></div>
+        <form id="payout-form">
+          <div class="form-group"><label class="label">Nama</label><select id="payout-partner" class="input" required></select></div>
+          <div class="form-group"><label class="label">Nominal</label><input id="payout-amount" class="input" type="number" min="1" step="1" inputmode="numeric" required></div>
+          <div class="form-group"><label class="label">Tanggal</label><input id="payout-date" class="input" type="date" required></div>
+          <div class="form-group"><label class="label">Catatan</label><input id="payout-note" class="input" type="text" placeholder="Opsional"></div>
+          <button class="btn btn-green" type="submit">Simpan Pencairan</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <div class="card-title title-with-icon"><span class="title-svg-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 19V9M12 19V5M19 19v-7"/><path d="M3 19h18"/></svg></span><span>Profit Sharing</span></div>
+        <div class="share-list" id="share-summary"><div class="empty">Memuat...</div></div>
+      </div>
+    </div>
+
+    <div class="withdraw-history-grid">
+      <div class="card">
+      <div class="toolbar" style="margin-bottom:10px">
+        <div><div class="card-title card-title-icon" style="margin-bottom:3px"><span class="section-title-svg" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19h16"/><path d="M7 16v-5"/><path d="M12 16V8"/><path d="M17 16V5"/><path d="M5 8.5 9 5l4 2 6-4"/></svg></span><span>Rekap Pencairan</span></div><div class="page-sub">Total pencairan masing-masing orang mengikuti filter periode aktif.</div></div>
+        <strong id="payout-recap-total">Rp0</strong>
+      </div>
+      <div class="table-wrap"><table><thead><tr><th>Nama</th><th>Total Dicairkan</th></tr></thead><tbody id="payout-recap-table"></tbody></table></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title title-with-icon"><span class="title-svg-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v5l3 2"/></svg></span><span>Pencairan Terbaru</span></div>
+      <div class="table-wrap"><table><thead><tr><th>Tanggal</th><th>Nama</th><th>Nominal</th><th>Catatan</th></tr></thead><tbody id="payout-table"></tbody></table></div>
+      </div>
+    </div>
+
+>
+  </section>
+
+
+
+  <section id="cash" class="section">
+    <div class="card">
+      <div class="card-title cash-dynamic-title"><span class="cash-title-svg" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3.5 8.5h17v10h-17z"/><path d="M6 8.5V6.2L12 3l6 3.2v2.3"/><path d="M7 12h2m6 0h2M7 15h2m6 0h2"/></svg></span><span>Kas <span id="cash-workspace-name">Trine Magic</span></span></div>
+      <div class="kpi-grid" style="grid-template-columns:repeat(auto-fit,minmax(190px,1fr));margin-bottom:14px">
+        <div class="kpi"><div class="kpi-label">Kas dari Penjualan</div><div class="kpi-value" id="cash-earned">Rp0</div></div>
+        <div class="kpi"><div class="kpi-label">Kas dari Non Penjualan</div><div class="kpi-value" id="cash-injected-total">Rp0</div></div>
+        <div class="kpi"><div class="kpi-label">Total Kas Bisnis</div><div class="kpi-value" id="cash-total">Rp0</div></div>
+        <div class="kpi"><div class="kpi-label">Total Kas Terpakai</div><div class="kpi-value" id="cash-spent">Rp0</div></div>
+        <div class="kpi green"><div class="kpi-label">Sisa Kas</div><div class="kpi-value" id="cash-balance">Rp0</div></div>
+      </div>
+      <div class="table-wrap" style="margin-bottom:14px"><table><thead><tr><th>Komponen Kas</th><th>Nominal</th></tr></thead><tbody id="cash-summary-table"></tbody></table></div>
+      <div class="table-wrap" style="margin-bottom:14px"><table><thead><tr><th>Rekap Penggunaan Kas</th><th>Nominal</th></tr></thead><tbody><tr><td>Total Kas Terpakai</td><td><strong id="cash-spent-summary">Rp0</strong></td></tr></tbody></table></div>
+      <div class="page-sub" style="margin-bottom:14px"></div>
+      <form id="cash-expense-form" class="form-grid">
+        <div class="form-group"><label class="label">Tanggal</label><input id="cash-expense-date" class="input" type="date" required></div>
+        <div class="form-group"><label class="label">Nominal</label><input id="cash-expense-amount" class="input" type="number" min="1" step="1" required></div>
+        <div class="full form-group"><label class="label" for="cash-expense-note">Catatan Pengeluaran</label><textarea id="cash-expense-note" class="input cash-expense-note-input" rows="3" maxlength="500" autocomplete="off" placeholder="Contoh: iklan Instagram" required></textarea><div class="page-sub" style="margin-top:5px">Tulis kebutuhan/penggunaan kas di sini.</div></div>
+        <div class="full page-sub" id="cash-expense-available" style="margin-top:-4px">Saldo kas tersedia: Rp0</div>
+        <div class="full actions"><button class="btn btn-pink" type="submit">Catat Pengeluaran Kas</button></div>
+      </form>
+      <div class="table-wrap" style="margin-top:14px"><table><thead><tr><th>Tanggal</th><th>Keterangan</th><th>Nominal</th></tr></thead><tbody id="cash-expense-table"></tbody></table></div>
+
+      <div class="divider" style="margin:22px 0 16px"></div>
+      <div class="card-title cash-dynamic-title"><span class="cash-title-svg" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7.5h16v11H4z"/><path d="M7 7.5V5h10v2.5"/><path d="M12 10v6m-3-3h6"/></svg></span><span>Pemasukkan Kas Usaha</span></div>
+      <div class="page-sub" style="margin-bottom:12px">Untuk dana dari luar pendapatan usaha, misalnya dana pribadi atau investor. Tidak dihitung sebagai omzet dan tidak memengaruhi profit sharing.</div>
+      <form id="cash-injection-form" class="form-grid">
+        <div class="form-group"><label class="label">Tanggal</label><input id="cash-injection-date" class="input" type="date" required></div>
+        <div class="form-group"><label class="label">Nominal</label><input id="cash-injection-amount" class="input" type="number" min="1" step="1" required></div>
+        <div class="form-group"><label class="label">Sumber Dana</label><input id="cash-injection-source" class="input" type="text" placeholder="Contoh: Dana pribadi / Investor" required></div>
+        <div class="form-group"><label class="label">Keterangan</label><input id="cash-injection-note" class="input" type="text" placeholder="Opsional"></div>
+        <div class="full actions"><button class="btn btn-green" type="submit">Tambah Pemasukan Kas</button></div>
+      </form>
+      <div class="table-wrap" style="margin-top:14px"><table><thead><tr><th>Tanggal</th><th>Sumber</th><th>Keterangan</th><th>Nominal</th></tr></thead><tbody id="cash-injection-table"></tbody></table></div>
+    </div>
+  </section>
+
+
+  <section id="settings" class="section" data-section="settings">
+    <div class="settings-grid">
+      <div class="card">
+        <div class="card-title">Identitas Workspace</div>
+        <div id="settings-permission-note" class="notice" style="display:none">Role Staff hanya dapat melihat pengaturan workspace.</div>
+        <form id="workspace-settings-form" class="form-grid">
+          <div class="form-group full"><label class="label">Nama Bisnis / Workspace</label><input id="settings-workspace-name" class="input" type="text" maxlength="80" required></div>
+          <div class="form-group full"><label class="label">Slogan Dashboard</label><input id="settings-dashboard-slogan" class="input" type="text" maxlength="140" placeholder="Tulis slogan workspace lo"></div>
+          <div class="form-group full"><label class="label">Logo URL</label><input id="settings-logo-url" class="input" type="url" placeholder="https://..."></div>
+          <div class="form-group"><label class="label">Warna Utama</label><div class="color-field"><input id="settings-primary-color" type="color" value="#696F41"><input id="settings-primary-text" class="input" value="#696F41" maxlength="7"></div></div>
+          <div class="form-group"><label class="label">Warna Aksen</label><div class="color-field"><input id="settings-accent-color" type="color" value="#EA97A9"><input id="settings-accent-text" class="input" value="#EA97A9" maxlength="7"></div></div>
+          <div class="full" id="settings-branding-lock" style="display:none"><div class="pro-lock">Logo dan slogan tersedia mulai paket PLUS. Warna Utama dan Warna Aksen tetap dapat digunakan di paket BASIC.</div></div>
+          <div class="full actions"><button id="settings-save-btn" class="btn btn-green" type="submit">Simpan Pengaturan</button></div>
+        </form>
+      </div>
+      <div class="settings-stack">
+        <div class="card"><div class="card-title">Workspace Aktif</div><div class="settings-meta"><div class="settings-meta-item"><small>Workspace</small><strong id="settings-meta-name">-</strong></div><div class="settings-meta-item"><small>Role Kamu</small><strong id="settings-meta-role">-</strong></div><div class="settings-meta-item"><small>Plan</small><strong id="settings-meta-plan">-</strong></div><div class="settings-meta-item"><small>Status</small><strong id="settings-meta-status">-</strong></div><div class="settings-meta-item"><small>Masa Berlaku Plan</small><strong id="settings-meta-validity">Belum ditentukan</strong></div></div></div>
+        <div class="card"><div class="card-title">Akses</div><div class="page-sub" id="settings-access-copy">Ringkasan akses workspace.</div><div id="settings-access-list" class="settings-access-list"></div></div>
+      </div>
+    </div>
+
+    <div class="settings-admin-grid">
+      <div class="card settings-master-card">
+        <div class="settings-master-head"><div><div class="card-title">Package & Harga</div><div class="page-sub">Tambah, ubah, atau nonaktifkan package.</div></div><button class="btn btn-green" id="settings-add-package" type="button">+ Tambah Package</button></div>
+        <div class="settings-master-list" id="settings-package-list"><div class="empty">Memuat package...</div></div>
+      </div>
+      <div class="card settings-master-card">
+        <div class="settings-master-head"><div><div class="card-title">Add-on & Harga</div><div class="page-sub">Kelola add-on yang muncul di form Orders.</div></div><button class="btn btn-green" id="settings-add-addon" type="button">+ Tambah Add-on</button></div>
+        <div class="settings-master-list" id="settings-addon-list"><div class="empty">Memuat add-on...</div></div>
+      </div>
+      <div class="card settings-master-card" id="settings-topic-card">
+        <div class="settings-master-head"><div><div class="card-title" id="settings-topic-card-title">Topik</div><div class="page-sub">Kelola pilihan yang tersedia di menu Orders. Nama “Topik” juga bisa disesuaikan dengan kebutuhan bisnis.</div></div><button class="btn btn-green" id="settings-add-topic" type="button">+ Tambah Topik</button></div>
+        <div class="topic-label-editor">
+          <div class="form-group"><label class="label">Nama field</label><input class="input" id="settings-topic-label" maxlength="40" placeholder="Contoh: Topik, Kategori, Layanan, Jenis Pesanan"></div>
+          <button class="btn btn-light" id="settings-save-topic-label" type="button">Simpan Nama</button>
+        </div>
+        <div class="settings-master-list" id="settings-topic-list"><div class="empty">Memuat topik...</div></div>
+      </div>
+    </div>
+
+    <div class="card profit-editor-card" id="profit-share-editor-card">
+      <div class="profit-editor-head">
+        <div><div class="card-title">Pembagian Omzet</div><div class="page-sub">Atur persentase pembagian mulai tanggal tertentu. Perubahan baru tidak mengubah histori pembagian sebelumnya.</div></div>
+        <span class="profit-editor-badge" id="profit-share-active-label">Aturan aktif</span>
+      </div>
+      <form id="profit-share-editor-form">
+        <div class="profit-rule-grid" id="profit-share-rule-grid"><div class="empty">Memuat pembagian...</div></div>
+        <div class="profit-editor-actions">
+          <div class="profit-editor-date"><label class="label" for="profit-share-effective-date" style="margin:0">Berlaku mulai</label><input id="profit-share-effective-date" class="control" type="datetime-local" step="60" required></div>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="profit-total" id="profit-share-total">Total 100%</span><button class="btn btn-green" id="profit-share-save" type="submit">Simpan Pembagian</button></div>
+        </div>
+        <div class="profit-history" id="profit-share-history-note"></div>
+      </form>
+      <div class="profit-product-divider"></div>
+      <div class="profit-product-head"><div><div class="card-title" style="font-size:15px">HPP & Pembagian per Produk</div><div class="page-sub">Harga modal dipotong dulu. Sisa laba bersih bisa ikut persentase global di atas, atau dibagi pakai nominal manual per produk.</div></div><span class="profit-product-badge">Laba bersih = Harga jual − HPP</span></div>
+      <div id="profit-product-rules" class="profit-product-rules"><div class="empty">Memuat aturan produk...</div></div>
+      <div class="profit-product-note">Contoh: harga Rp100.000, HPP Rp5.000 → laba bersih Rp95.000. Kalau mode manual, total nominal Nesa + Ganesh + Kas wajib sama dengan Rp95.000 per unit.</div>
+    </div>
+
+  </section>
+
+</main>
+</div>
+
+
+<div id="logout-modal" class="modal" style="display:none">
+  <div class="modal-backdrop" onclick="closeLogoutConfirmation()"></div>
+  <div class="modal-card logout-confirm-card" role="dialog" aria-modal="true" aria-labelledby="logout-confirm-title">
+    <div class="logout-confirm-title" id="logout-confirm-title">Yakin banget mau keluar?</div>
+    <div class="logout-confirm-sub">Sesi akun kamu akan ditutup dan kamu akan kembali ke halaman login.</div>
+    <div class="logout-confirm-actions">
+      <button class="btn btn-light" id="logout-cancel-button" type="button" onclick="closeLogoutConfirmation()">Eh gak jadi deh</button>
+      <button class="btn btn-danger" id="logout-confirm-button" type="button" onclick="confirmLogout()">Yoi nih</button>
+    </div>
+  </div>
+</div>
+<div id="logout-busy-overlay" class="logout-busy-overlay" aria-hidden="true">
+  <div class="logout-busy-card"><span class="logout-spinner"></span><span>Keluar...</span></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+
+
+<div id="inactivity-modal" aria-hidden="true">
+  <div class="inactivity-card" role="dialog" aria-modal="true">
+    <h3>Dashboard dikunci sementara</h3>
+    <p>Dashboard tidak digunakan selama 5 menit. Demi keamanan, silakan login kembali untuk melanjutkan.</p>
+    <div class="inactivity-actions">
+      <button type="button" id="inactivity-login-button">Login lagi</button>
+    </div>
+  </div>
+</div>
+
+
+
+</div><!-- /app-shell -->
+
+<div id="smart-sales-modal" class="modal" aria-hidden="true" style="display:none">
+  <div class="modal-card" style="width:min(720px,94vw);max-height:88vh;overflow:auto">
+    <h3 style="margin-top:0">Autofill Orders</h3>
+    <p class="page-sub">Paste form customer seperti biasa, cek hasil pembacaan di preview, lalu gunakan datanya untuk mengisi Manual Orders secara otomatis.</p>
+    <textarea id="smart-sales-text" class="input" rows="13" style="resize:vertical;min-height:220px" placeholder="Paste form customer di sini..."></textarea>
+    <div id="smart-sales-status" class="page-sub" style="margin:10px 0"></div>
+    <div id="smart-sales-preview" style="display:none;margin:14px 0;padding:14px;border:1px solid rgba(0,0,0,.12);border-radius:14px"></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button type="button" id="smart-sales-parse" class="btn btn-green">Baca Form</button>
+      <button type="button" id="smart-sales-apply" class="btn btn-pink" style="display:none">Gunakan Data Ini</button>
+      <button type="button" id="smart-sales-close" class="btn">Batal</button>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- KAIRO v20.10.58 — custom lock menu + petty cash Cash_Share_Rate hotfix -->
+
+
+
+
+
+<!-- KAIRO v20.10.61 — auth simplification + package comparison polish -->
+
+
+
+
+<!-- KAIRO v20.10.62 — auth centering, package hover, glossy orders, Promo module -->
+
+
+
+
+<script src="assets/kairo-app.js?v=20.10.144"></script>
+
+<style id="v201091-auth-static-guard">
+/* v20.10.91: auth layout exists in HTML itself; no runtime DOM surgery required. */
+#auth-screen .auth-entry-layout{display:grid!important;opacity:1!important;visibility:visible!important}
+#auth-screen .auth-plan-carousel-static{display:block!important;width:100%!important;min-width:0!important}
+#auth-screen .auth-plan-track-static{display:flex!important;overflow-x:auto!important;scroll-snap-type:x mandatory!important;scrollbar-width:none!important}
+#auth-screen .auth-plan-track-static::-webkit-scrollbar{display:none!important}
+#auth-screen .auth-plan-track-static>.plan-offer-card{flex:0 0 min(360px,88%)!important;scroll-snap-align:start!important}
+</style>
+<script id="v201091-auth-static-carousel">
+(()=>{
+ const boot=()=>{
+   const auth=document.getElementById('auth-screen');
+   const track=auth?.querySelector('.auth-plan-track-static');
+   if(!auth||!track)return;
+   auth.addEventListener('click',e=>{
+     const b=e.target.closest('[data-auth-static-carousel]'); if(!b)return;
+     const dir=b.dataset.authStaticCarousel==='left'?-1:1;
+     track.scrollBy({left:dir*Math.max(260,track.clientWidth*.72),behavior:'smooth'});
+   });
+ };
+ document.readyState==='loading'?document.addEventListener('DOMContentLoaded',boot,{once:true}):boot();
+})();
+</script>
+
+</body>
+</html>
+
