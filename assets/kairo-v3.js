@@ -144,7 +144,7 @@
         caption.className = 'kairo-stat-caption';
         card.append(caption);
       }
-      caption.textContent = config.caption;
+      if (caption.textContent !== config.caption) caption.textContent = config.caption;
     });
   }
 
@@ -172,20 +172,13 @@
     header.innerHTML = `<div><small>WORKSPACE HARI INI</small><h2>Halo, siap rapihin bisnismu?</h2><p>${escapeHtml(workspaceName())} · ${escapeHtml(date)}</p></div><div class="v3-quick" aria-label="Aksi cepat"><button type="button" data-v3-tab="input">＋ Tambah Order</button><button type="button" data-v3-tab="customers">Tambah Customer</button><button type="button" data-v3-tab="cash">Catat Pengeluaran</button><button type="button" data-v3-tab="promo">Buat Promo</button></div>`;
     qa('[data-v3-tab]', header).forEach(button => button.addEventListener('click', () => openTab(button.dataset.v3Tab)));
     enhanceDashboardFoundation();
+    [120, 600, 1600].forEach(delay => setTimeout(enhanceDashboardFoundation, delay));
   }
 
   function boot() {
     const landing = q('#kairo-entry');
     if (landing) bindLanding(landing);
     mountDashboardHeader();
-    const dashboard = q('#dashboard');
-    if (dashboard) {
-      let frame = 0;
-      new MutationObserver(() => {
-        cancelAnimationFrame(frame);
-        frame = requestAnimationFrame(enhanceDashboardFoundation);
-      }).observe(dashboard, { childList: true, subtree: true });
-    }
     new MutationObserver(() => {
       if (document.body.classList.contains('authenticated')) {
         closeLogin({ restoreFocus: false });
