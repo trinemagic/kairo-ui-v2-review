@@ -2,6 +2,7 @@
 (() => {
   'use strict';
   let queuedLoginSubmit = false;
+  let loginReturnFocus = null;
 
   const q = (selector, root = document) => root.querySelector(selector);
   const qa = (selector, root = document) => [...root.querySelectorAll(selector)];
@@ -9,21 +10,41 @@
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
   })[char]);
 
-  function openLogin() {
+  function openLogin(event) {
     window.__kairoEnsureRuntime?.().catch(() => {});
-    const card = q('#auth-screen .auth-card');
-    card?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    setTimeout(() => q('#login-username')?.focus({ preventScroll: true }), 350);
+    const dialog = q('#kairo-login-dialog');
+    if (!dialog) return;
+    loginReturnFocus = event?.currentTarget || document.activeElement;
+    dialog.hidden = false;
+    document.body.classList.add('kairo-dialog-open');
+    requestAnimationFrame(() => {
+      dialog.classList.add('is-open');
+      q('#login-username', dialog)?.focus({ preventScroll: true });
+    });
+  }
+
+  function closeLogin({ restoreFocus = true } = {}) {
+    const dialog = q('#kairo-login-dialog');
+    if (!dialog || dialog.hidden) return;
+    dialog.classList.remove('is-open');
+    document.body.classList.remove('kairo-dialog-open');
+    dialog.hidden = true;
+    if (restoreFocus && loginReturnFocus instanceof HTMLElement) loginReturnFocus.focus({ preventScroll: true });
   }
 
   async function openSignup() {
+    closeLogin({ restoreFocus: false });
     try { await window.__kairoEnsureRuntime?.(); } catch (_) { return; }
+    const started = Date.now();
+    while (typeof window.__kairoOpenAccountPage !== 'function' && Date.now() - started < 10000) {
+      await new Promise(resolve => setTimeout(resolve, 50));
+    }
     if (typeof window.__kairoOpenAccountPage === 'function') window.__kairoOpenAccountPage('signup');
   }
 
   function mobileMenu(open) {
-    const nav = q('#kairo-v3-nav');
-    const toggle = q('#kairo-v3-menu-toggle');
+    const nav = q('#kairo-entry-nav');
+    const toggle = q('#kairo-menu-toggle');
     if (!nav || !toggle) return;
     nav.classList.toggle('menu-open', open);
     toggle.setAttribute('aria-expanded', String(open));
@@ -32,85 +53,28 @@
   function bindLanding(root) {
     qa('[data-v3-login]', root).forEach(button => button.addEventListener('click', openLogin));
     qa('[data-v3-signup]', root).forEach(button => button.addEventListener('click', openSignup));
-    qa('#kairo-v3-nav a', root).forEach(link => link.addEventListener('click', () => mobileMenu(false)));
-    q('[data-v3-home]', root)?.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
-    q('#kairo-v3-menu-toggle', root)?.addEventListener('click', event => {
+    qa('[data-login-close]', root).forEach(button => button.addEventListener('click', () => closeLogin()));
+    qa('#kairo-entry-nav a', root).forEach(link => link.addEventListener('click', () => mobileMenu(false)));
+    q('#kairo-menu-toggle', root)?.addEventListener('click', event => {
       const open = event.currentTarget.getAttribute('aria-expanded') !== 'true';
       mobileMenu(open);
     });
-  }
-
-  function mountLanding() {
-    const screen = q('#auth-screen');
-    const heroHost = q('.auth-plans-panel', screen);
-    if (!screen || !heroHost || screen.dataset.kairoV3Mounted === '1') return;
-    screen.dataset.kairoV3Mounted = '1';
-
-    heroHost.setAttribute('aria-label', 'Perkenalan KAIRO Workspaces');
-    heroHost.innerHTML = `
-      <div class="v3-hero">
-        <span class="v3-announce">KAIRO Workspaces kini hadir untuk seller digital</span>
-        <h1>Kelola bisnismu dalam satu workspace yang lebih rapi.</h1>
-        <p>Catat order, pantau omzet, kelola customer, subscription, dan buat struk profesional tanpa sistem yang ribet.</p>
-        <div class="v3-cta">
-          <button type="button" data-v3-signup>Coba KAIRO Gratis</button>
-          <a href="#kairo-v3-how">Lihat Cara Kerjanya ↓</a>
-        </div>
-        <div class="v3-mock" aria-label="Preview dashboard KAIRO">
-          <div class="v3-mock-top"><b>K</b><span>KAIRO Dashboard</span><i></i></div>
-          <div class="v3-mock-body">
-            <aside><i></i><i></i><i></i><i></i></aside>
-            <div class="v3-mock-main">
-              <div class="v3-mock-welcome"></div>
-              <div class="v3-mock-kpis"><i></i><i></i><i></i><i></i></div>
-              <div class="v3-mock-chart"><i></i><i></i><i></i><i></i><i></i></div>
-            </div>
-          </div>
-        </div>
-      </div>`;
-
-    const nav = document.createElement('nav');
-    nav.id = 'kairo-v3-nav';
-    nav.setAttribute('aria-label', 'Navigasi KAIRO');
-    nav.innerHTML = `
-      <button type="button" class="v3-brand" data-v3-home aria-label="Kembali ke atas">
-        <span class="v3-brand-mark">K</span><span><b>KAIRO</b><small>WORKSPACES</small></span>
-      </button>
-      <button type="button" id="kairo-v3-menu-toggle" class="v3-menu-toggle" aria-expanded="false" aria-controls="kairo-v3-menu"><span></span><span></span><span></span><b>Menu</b></button>
-      <div id="kairo-v3-menu" class="v3-menu">
-        <div class="v3-nav-links"><a href="#kairo-v3-features">Features</a><a href="#kairo-v3-solutions">Solutions</a><a href="#kairo-v3-pricing">Pricing</a><a href="#kairo-v3-footer">About</a></div>
-        <div class="v3-nav-actions"><button type="button" class="v3-login" data-v3-login>Masuk</button><button type="button" class="v3-trial" data-v3-signup>Coba Gratis</button></div>
-      </div>`;
-    screen.prepend(nav);
-
-    const marketing = document.createElement('main');
-    marketing.id = 'kairo-v3-marketing';
-    marketing.innerHTML = `
-      <section class="v3-section" id="kairo-v3-features">
-        <span class="v3-kicker">SATU WORKSPACE, LEBIH RAPI</span>
-        <h2>Kerjaan penting bisnis nggak lagi tercecer.</h2>
-        <p>KAIRO menyatukan operasional harian tanpa terasa seperti aplikasi akuntansi yang kompleks.</p>
-        <div class="v3-cap-grid">
-          <article><span>↗</span><h3>Order & customer</h3><p>Catat pesanan, simpan histori, dan kenali customer yang kembali.</p></article>
-          <article><span>◌</span><h3>Kas & performa</h3><p>Pantau omzet, pengeluaran, piutang, dan arah bisnis dari satu layar.</p></article>
-          <article><span>✦</span><h3>Struk profesional</h3><p>Preview, unduh, bagikan, dan cetak ulang struk dengan identitas bisnismu.</p></article>
-        </div>
-      </section>
-      <section class="v3-section v3-solution" id="kairo-v3-solutions">
-        <div><span class="v3-kicker">DIBUAT UNTUK BISNIS DIGITAL</span><h2>Sesuai cara jualanmu yang nyata.</h2><p>Kelola seller app premium, produk digital, jasa online, dan kebutuhan workspace lain tanpa alur yang berbelit.</p><button type="button" data-v3-signup>Coba KAIRO Gratis</button></div>
-        <div class="v3-solution-art" aria-hidden="true">K</div>
-      </section>
-      <section class="v3-section v3-how" id="kairo-v3-how">
-        <span class="v3-kicker">CARA KERJANYA</span><h2>Mulai rapi dalam tiga langkah.</h2>
-        <div class="v3-steps"><article><b>01</b><h3>Atur workspace</h3><p>Masukkan identitas dan kebutuhan dasar bisnis.</p></article><article><b>02</b><h3>Catat order</h3><p>Gunakan alur order yang sesuai cara kamu berjualan.</p></article><article><b>03</b><h3>Pantau & lanjutkan</h3><p>Lihat omzet, follow-up, dan bukti transaksi kapan pun.</p></article></div>
-      </section>
-      <section class="v3-section v3-price" id="kairo-v3-pricing">
-        <span class="v3-kicker">PAKET KAIRO</span><h2>Pilih ruang yang pas buat bisnismu.</h2>
-        <div class="v3-price-grid"><article><small>BASIC</small><h3>Mulai & catat</h3><p>Pencatatan inti untuk memulai operasional.</p><button type="button" data-v3-signup>Mulai Basic</button></article><article class="featured"><small>PLUS</small><h3>Operate & grow</h3><p>Workflow praktis untuk bisnis yang berkembang.</p><button type="button" data-v3-signup>Pilih Plus</button></article><article><small>PRO</small><h3>Understand & scale</h3><p>Insight dan kontrol bisnis yang lebih dalam.</p><button type="button" data-v3-signup>Pilih Pro</button></article></div>
-      </section>
-      <footer id="kairo-v3-footer"><div><b>KAIRO WORKSPACES</b><p>Every step, from the start.</p></div><button type="button" class="v3-login" data-v3-login>Masuk ke workspace →</button></footer>`;
-    screen.appendChild(marketing);
-    bindLanding(screen);
+    root.addEventListener('keydown', event => {
+      const dialog = q('#kairo-login-dialog');
+      if (!dialog || dialog.hidden) return;
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeLogin();
+        return;
+      }
+      if (event.key !== 'Tab') return;
+      const focusable = qa('button:not([disabled]), input:not([disabled]), a[href]', dialog).filter(el => !el.hidden && el.tabIndex !== -1);
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    });
   }
 
   function openTab(tab) {
@@ -139,8 +103,12 @@
   }
 
   function boot() {
-    mountLanding();
+    const landing = q('#kairo-entry');
+    if (landing) bindLanding(landing);
     mountDashboardHeader();
+    new MutationObserver(() => {
+      if (document.body.classList.contains('authenticated')) closeLogin({ restoreFocus: false });
+    }).observe(document.body, { attributes: true, attributeFilter: ['class'] });
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once: true });
@@ -176,6 +144,6 @@
   }, true);
   document.addEventListener('click', event => {
     if (event.target.closest('[data-tab="dashboard"], [data-mobile-tab="dashboard"], #saas-side-home')) setTimeout(mountDashboardHeader, 60);
-    if (!event.target.closest('#kairo-v3-nav')) mobileMenu(false);
+    if (!event.target.closest('#kairo-entry-nav')) mobileMenu(false);
   }, true);
 })();

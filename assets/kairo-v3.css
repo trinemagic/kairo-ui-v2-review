@@ -11,19 +11,7 @@ html.kairo-v3{
 html.kairo-v3 body{font-family:"Plus Jakarta Sans",Arial,sans-serif;color:var(--v3-ink)}
 html.kairo-v3 #kairo-mobile-quick-sheet{display:none}
 
-/* Public landing/auth */
-html.kairo-v3 body.auth-locked{background:var(--v3-canvas)!important}
-html.kairo-v3 #auth-screen.auth-screen{display:block!important;position:fixed!important;inset:0!important;z-index:99999!important;overflow:auto!important;padding:0!important;background:linear-gradient(125deg,var(--v3-gold-soft),var(--v3-canvas) 45%,var(--v3-sky))!important;color:var(--v3-ink)!important}
-html.kairo-v3 #auth-screen:before,html.kairo-v3 #auth-screen:after,html.kairo-v3 #auth-screen>.kairo-auth-page-brand{display:none!important}
-html.kairo-v3 #kairo-v3-nav{position:sticky;top:0;z-index:30;display:flex;align-items:center;justify-content:space-between;gap:20px;max-width:1220px;margin:auto;padding:18px 26px;border-bottom:1px solid rgba(220,235,240,.72);background:rgba(248,252,253,.8);backdrop-filter:blur(18px)}html.kairo-v3 .v3-menu{display:flex;align-items:center;justify-content:flex-end;gap:34px;flex:1}html.kairo-v3 .v3-menu-toggle{display:none}
-html.kairo-v3 .v3-brand{display:flex;align-items:center;gap:8px;border:0;background:none;color:var(--v3-ink);cursor:pointer}html.kairo-v3 .v3-brand-mark{display:grid;place-items:center;width:32px;height:32px;border-radius:10px;background:var(--v3-ink);color:var(--v3-primary);font-weight:850;font-size:17px}html.kairo-v3 .v3-brand b{font-size:14px;letter-spacing:-.03em}html.kairo-v3 .v3-brand small{color:var(--v3-muted);font-size:8px;letter-spacing:.13em}
-html.kairo-v3 .v3-nav-links{display:flex;gap:26px}html.kairo-v3 .v3-nav-links a{color:var(--v3-muted);font-size:12px;font-weight:700;text-decoration:none}html.kairo-v3 .v3-nav-links a:hover{color:var(--v3-ink)}html.kairo-v3 .v3-nav-actions{display:flex;gap:8px}html.kairo-v3 .v3-nav-actions button{padding:9px 13px;border-radius:11px;font:750 12px inherit;cursor:pointer}html.kairo-v3 .v3-login{border:1px solid var(--v3-line);background:#fff;color:var(--v3-ink)}html.kairo-v3 .v3-trial{border:1px solid transparent;background:var(--v3-primary);color:var(--v3-ink)}
-html.kairo-v3 #auth-screen .auth-entry-layout{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(320px,390px)!important;align-items:center!important;gap:clamp(34px,6vw,84px)!important;max-width:1220px!important;min-height:calc(100vh - 70px)!important;margin:auto!important;padding:48px 26px 68px!important;position:relative!important;z-index:2!important}
-html.kairo-v3 #auth-screen .auth-plans-panel{display:block!important;width:auto!important;padding:0!important;background:none!important;color:var(--v3-ink)!important;box-shadow:none!important}html.kairo-v3 .v3-announce{display:inline-flex;padding:7px 11px;border:1px solid rgba(217,164,65,.24);border-radius:999px;background:rgba(217,164,65,.14);color:#80601e;font-size:11px;font-weight:800}html.kairo-v3 .v3-hero h1{max-width:700px;margin:18px 0 15px;color:var(--v3-ink)!important;font-size:clamp(42px,5vw,68px)!important;line-height:1.02!important;letter-spacing:-.065em!important}html.kairo-v3 .v3-hero>p{max-width:580px;margin:0;color:var(--v3-muted)!important;font-size:15px!important;line-height:1.7!important}html.kairo-v3 .v3-cta{display:flex;align-items:center;gap:18px;margin:24px 0 34px}html.kairo-v3 .v3-cta button,html.kairo-v3 .v3-solution button,html.kairo-v3 .v3-price button{padding:12px 15px;border:0;border-radius:13px;background:var(--v3-primary);color:var(--v3-ink);font:800 13px inherit;cursor:pointer}html.kairo-v3 .v3-cta a{color:var(--v3-ink);font-size:12px;font-weight:800;text-decoration:none}
-html.kairo-v3 #auth-screen .auth-card{width:auto!important;max-width:none!important;margin:0!important;padding:26px!important;border:1px solid var(--v3-line)!important;border-radius:22px!important;background:rgba(255,255,255,.96)!important;color:var(--v3-ink)!important;box-shadow:0 18px 48px rgba(23,42,70,.10)!important}html.kairo-v3 .auth-card .kairo-auth-brand{display:block!important;margin-bottom:18px!important}html.kairo-v3 .auth-card .brand-name,html.kairo-v3 .auth-card .auth-title{color:var(--v3-ink)!important}html.kairo-v3 .auth-card .auth-title{font-size:24px!important}html.kairo-v3 .auth-card .auth-title:after{content:"Masuk untuk lanjut ngatur bisnis lo.";display:block;margin-top:7px;color:var(--v3-muted);font-size:12px;font-weight:500}html.kairo-v3 .auth-card .auth-submit{width:100%;background:var(--v3-primary)!important;color:var(--v3-ink)!important}html.kairo-v3 .auth-card .input{background:#fff!important;border-color:var(--v3-line)!important;color:var(--v3-ink)!important}
-html.kairo-v3 .v3-mock{max-width:650px;overflow:hidden;border:1px solid var(--v3-sky-strong);border-radius:19px;background:#fff;box-shadow:0 22px 44px rgba(23,42,70,.13)}html.kairo-v3 .v3-mock-top{display:flex;align-items:center;gap:8px;padding:10px 13px;border-bottom:1px solid var(--v3-line);font-size:9px;font-weight:800}html.kairo-v3 .v3-mock-top b{display:grid;place-items:center;width:20px;height:20px;border-radius:6px;background:var(--v3-ink);color:var(--v3-primary)}html.kairo-v3 .v3-mock-top i{margin-left:auto;width:58px;height:8px;border-radius:99px;background:var(--v3-sky)}html.kairo-v3 .v3-mock-body{display:grid;grid-template-columns:56px 1fr;min-height:205px}html.kairo-v3 .v3-mock-body aside{display:grid;align-content:start;gap:12px;padding:16px;border-right:1px solid var(--v3-line);background:#fbfeff}html.kairo-v3 .v3-mock-body aside i{height:8px;border-radius:99px;background:var(--v3-sky-strong)}html.kairo-v3 .v3-mock-main{padding:17px}html.kairo-v3 .v3-mock-welcome{height:35px;border-radius:10px;background:linear-gradient(90deg,var(--v3-gold-soft),var(--v3-sky))}html.kairo-v3 .v3-mock-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:16px 0}html.kairo-v3 .v3-mock-kpis i{height:42px;border-radius:10px;border-top:4px solid var(--v3-primary);background:var(--v3-sky)}html.kairo-v3 .v3-mock-kpis i:nth-child(2){border-color:var(--v3-gold);background:var(--v3-gold-soft)}html.kairo-v3 .v3-mock-chart{display:flex;align-items:end;gap:7px;height:57px;padding:9px;border-radius:11px;background:#f9fcfd}html.kairo-v3 .v3-mock-chart i{flex:1;border-radius:4px 4px 2px 2px;background:var(--v3-sky-strong)}html.kairo-v3 .v3-mock-chart i:nth-child(1){height:25%}html.kairo-v3 .v3-mock-chart i:nth-child(2){height:55%}html.kairo-v3 .v3-mock-chart i:nth-child(3){height:42%}html.kairo-v3 .v3-mock-chart i:nth-child(4){height:82%;background:var(--v3-primary)}html.kairo-v3 .v3-mock-chart i:nth-child(5){height:62%}
-html.kairo-v3 #kairo-v3-marketing{max-width:1220px;margin:auto;padding:0 26px;color:var(--v3-ink)}html.kairo-v3 .v3-section{padding:82px 0}html.kairo-v3 .v3-kicker{display:block;margin-bottom:10px;color:#8d6a22;font-size:10px;font-weight:850;letter-spacing:.13em}html.kairo-v3 .v3-section h2{max-width:650px;margin:0;color:var(--v3-ink);font-size:clamp(30px,3.5vw,47px);line-height:1.08;letter-spacing:-.055em}html.kairo-v3 .v3-section>p,html.kairo-v3 .v3-solution p{max-width:600px;color:var(--v3-muted);font-size:14px;line-height:1.65}html.kairo-v3 .v3-cap-grid,html.kairo-v3 .v3-price-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:30px}html.kairo-v3 .v3-cap-grid article,html.kairo-v3 .v3-price article{display:flex;flex-direction:column;min-height:185px;padding:22px;border:1px solid var(--v3-line);border-radius:20px;background:#fff}html.kairo-v3 .v3-cap-grid article:nth-child(2){background:var(--v3-sky)}html.kairo-v3 .v3-cap-grid article:nth-child(3),html.kairo-v3 .v3-price article.featured{background:var(--v3-ink);border-color:var(--v3-ink);color:#fff}html.kairo-v3 .v3-cap-grid h3,html.kairo-v3 .v3-price h3{margin:25px 0 8px;font-size:18px}html.kairo-v3 .v3-cap-grid p,html.kairo-v3 .v3-price p{margin:0;color:var(--v3-muted);font-size:12px;line-height:1.6}html.kairo-v3 .v3-cap-grid article:nth-child(3) p,html.kairo-v3 .v3-price article.featured p{color:#d2e0ec}html.kairo-v3 .v3-solution{display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:40px;padding:52px;border-radius:26px;background:var(--v3-sky)}html.kairo-v3 .v3-solution-art{display:grid;place-items:center;min-height:260px;border:1px dashed var(--v3-sky-strong);border-radius:50%;font-size:52px;font-weight:850;color:var(--v3-primary);background:radial-gradient(circle,var(--v3-ink) 0 28%,transparent 29%)}html.kairo-v3 .v3-price button{margin-top:auto;background:var(--v3-sky)}html.kairo-v3 .v3-price .featured button{background:var(--v3-primary)}html.kairo-v3 #kairo-v3-footer{display:flex;align-items:center;justify-content:space-between;padding:30px 0 42px;border-top:1px solid var(--v3-line)}
-html.kairo-v3 .v3-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:30px}html.kairo-v3 .v3-steps article{padding:22px;border:1px solid var(--v3-line);border-radius:20px;background:#fff}html.kairo-v3 .v3-steps b{display:grid;place-items:center;width:36px;height:36px;border-radius:11px;background:var(--v3-gold-soft);color:#7c5e1e;font-size:11px}html.kairo-v3 .v3-steps h3{margin:22px 0 8px;font-size:17px}html.kairo-v3 .v3-steps p{margin:0;color:var(--v3-muted);font-size:12px;line-height:1.6}html.kairo-v3 #kairo-v3-footer p{margin:5px 0 0;color:var(--v3-muted);font-size:11px}
+/* Public landing/auth moved to the isolated KAIRO UI v3.3 source below. */
 
 /* Authenticated shell */
 html.kairo-v3 body.authenticated{background:radial-gradient(circle at 92% 0%,rgba(168,221,240,.35),transparent 28rem),radial-gradient(circle at 8% 0%,rgba(255,247,214,.55),transparent 24rem),var(--v3-canvas)!important;color:var(--v3-ink)!important}html.kairo-v3 body.authenticated .living-origami-bg{display:none!important}
@@ -40,7 +28,1096 @@ html.kairo-v3 #performance .performance-intro{background:linear-gradient(120deg,
 /* Dark mode */
 html.kairo-v3 body.saas-dark{--v3-ink:#f2f7fa;--v3-canvas:#101b2d;--v3-surface:#17253a;--v3-line:#2b4058;--v3-muted:#b5c3d1;background:#101b2d!important}html.kairo-v3 body.saas-dark.authenticated{background:radial-gradient(circle at 92% 0%,rgba(34,199,184,.12),transparent 28rem),#101b2d!important}html.kairo-v3 body.saas-dark #app-shell .card,html.kairo-v3 body.saas-dark #app-shell .kpi{background:#17253a!important;border-color:#2b4058!important}html.kairo-v3 body.saas-dark #saas-sidebar,html.kairo-v3 body.saas-dark #app-shell .header{background:#132238!important;border-color:#2b4058!important}html.kairo-v3 body.saas-dark .saas-sidebar-nav .tab.active,html.kairo-v3 body.saas-dark .saas-settings-side-btn.active{background:rgba(34,199,184,.13)!important;border-color:rgba(34,199,184,.32)!important}html.kairo-v3 body.saas-dark .input,html.kairo-v3 body.saas-dark .control,html.kairo-v3 body.saas-dark select,html.kairo-v3 body.saas-dark textarea{background:#132238!important;border-color:#2b4058!important}html.kairo-v3 body.saas-dark .master-list,html.kairo-v3 body.saas-dark .price-adjustment,html.kairo-v3 body.saas-dark .master-item,html.kairo-v3 body.saas-dark .settings-master-row{background:#172c43!important;border-color:#2b4058!important}
 
-@media(max-width:900px){html.kairo-v3 #kairo-v3-nav{padding:15px 18px}html.kairo-v3 .v3-menu-toggle{display:grid;grid-template-columns:18px auto;align-items:center;column-gap:7px;padding:8px 10px;border:1px solid var(--v3-line);border-radius:10px;background:#fff;color:var(--v3-ink);font:750 11px inherit}html.kairo-v3 .v3-menu-toggle span{grid-column:1;width:18px;height:2px;border-radius:2px;background:currentColor}html.kairo-v3 .v3-menu-toggle b{grid-column:2;grid-row:1/4}html.kairo-v3 .v3-menu{display:none;position:absolute;top:calc(100% + 8px);left:18px;right:18px;flex-direction:column;align-items:stretch;gap:18px;padding:18px;border:1px solid var(--v3-line);border-radius:16px;background:#fff;box-shadow:var(--v3-shadow)}html.kairo-v3 #kairo-v3-nav.menu-open .v3-menu{display:flex}html.kairo-v3 .v3-nav-links{display:grid;gap:6px}html.kairo-v3 .v3-nav-links a{padding:10px;border-radius:9px}html.kairo-v3 .v3-nav-links a:hover{background:var(--v3-sky)}html.kairo-v3 .v3-nav-actions{display:grid;grid-template-columns:1fr 1fr}html.kairo-v3 #auth-screen .auth-entry-layout{grid-template-columns:1fr!important;min-height:0!important;padding:42px 18px 50px!important}html.kairo-v3 .v3-hero h1{font-size:clamp(38px,11vw,56px)!important}html.kairo-v3 #kairo-v3-marketing{padding:0 18px}html.kairo-v3 .v3-cap-grid,html.kairo-v3 .v3-price-grid,html.kairo-v3 .v3-solution,html.kairo-v3 .v3-steps{grid-template-columns:1fr}html.kairo-v3 .v3-solution{padding:32px 22px}html.kairo-v3 #app-shell main.container{padding:18px 14px 112px!important}html.kairo-v3 #kairo-v3-dashboard-head{align-items:flex-start;flex-direction:column;padding:20px 18px}html.kairo-v3 .v3-quick{justify-content:flex-start}html.kairo-v3 .kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}html.kairo-v3 #input>.card,html.kairo-v3 #customers>.card,html.kairo-v3 #cash>.card{padding:18px!important}html.kairo-v3 .orders-tools{justify-content:flex-start;margin:12px 0!important}html.kairo-v3 .platform-analytics-grid,html.kairo-v3 .grid-main,html.kairo-v3 .grid-2,html.kairo-v3 .withdraw-history-grid{grid-template-columns:1fr!important}}
+@media(max-width:900px){
+  html.kairo-v3 #app-shell main.container{padding:18px 14px 112px!important}
+  html.kairo-v3 #kairo-v3-dashboard-head{align-items:flex-start;flex-direction:column;padding:20px 18px}
+  html.kairo-v3 .v3-quick{justify-content:flex-start}
+  html.kairo-v3 .kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  html.kairo-v3 #input>.card,html.kairo-v3 #customers>.card,html.kairo-v3 #cash>.card{padding:18px!important}
+  html.kairo-v3 .orders-tools{justify-content:flex-start;margin:12px 0!important}
+  html.kairo-v3 .platform-analytics-grid,html.kairo-v3 .grid-main,html.kairo-v3 .grid-2,html.kairo-v3 .withdraw-history-grid{grid-template-columns:1fr!important}
+}
 @media(max-width:900px){html.kairo-v3 #kairo-mobile-quick-sheet{display:block;position:fixed;inset:0;z-index:121;pointer-events:none;visibility:hidden}html.kairo-v3 #kairo-mobile-quick-sheet.open{pointer-events:auto;visibility:visible}html.kairo-v3 #kairo-mobile-quick-sheet.open .kairo-mobile-more-backdrop{opacity:1}html.kairo-v3 #kairo-mobile-quick-sheet.open .kairo-mobile-more-panel{transform:none;opacity:1}html.kairo-v3 .kairo-mobile-quick-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}html.kairo-v3 .kairo-mobile-quick-item{display:flex;align-items:center;gap:10px;min-height:64px;padding:12px;border:1px solid var(--v3-line);border-radius:15px;background:var(--v3-sky);color:var(--v3-ink);text-align:left}html.kairo-v3 .kairo-mobile-quick-item span{display:grid;place-items:center;width:34px;height:34px;border-radius:11px;background:#fff;color:var(--v3-primary)}html.kairo-v3 .kairo-mobile-quick-item svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}html.kairo-v3 .kairo-mobile-quick-item strong{font-size:10px}}
-@media(max-width:520px){html.kairo-v3 .v3-brand small,html.kairo-v3 .v3-login{display:none}html.kairo-v3 .v3-cta{align-items:flex-start;flex-direction:column}html.kairo-v3 .v3-mock-body{grid-template-columns:42px 1fr}html.kairo-v3 .v3-mock-kpis{gap:5px}html.kairo-v3 .v3-quick{display:grid;grid-template-columns:1fr 1fr;width:100%}}
+@media(max-width:520px){html.kairo-v3 .v3-quick{display:grid;grid-template-columns:1fr 1fr;width:100%}}
 @media(prefers-reduced-motion:reduce){html.kairo-v3 *,html.kairo-v3 *:before,html.kairo-v3 *:after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+
+/* KAIRO UI v3.3 — single-source landing + Option A auth modal.
+   This namespace intentionally does not reuse the legacy auth-screen layout. */
+html.kairo-v3 {
+  --kairo-delft: #173a59;
+  --kairo-delft-soft: #31556f;
+  --kairo-turquoise: #25b9b0;
+  --kairo-turquoise-dark: #168f8a;
+  --kairo-sky-050: #f1f9fb;
+  --kairo-sky-100: #dceff4;
+  --kairo-sky-200: #b8dfe9;
+  --kairo-gold: #dfa94a;
+  --kairo-gold-050: #fff5d7;
+  --kairo-off-white: #fbfcf8;
+  --kairo-white: #ffffff;
+  --kairo-entry-line: #d9e9ed;
+  --kairo-entry-muted: #62798a;
+  --kairo-entry-shadow: 0 24px 64px rgba(23, 58, 89, .12);
+  --kairo-entry-container: 1180px;
+}
+
+html.kairo-v3 body.auth-locked {
+  background: var(--kairo-off-white) !important;
+}
+
+html.kairo-v3 body.authenticated #kairo-entry {
+  display: none;
+}
+
+html.kairo-v3 body.auth-locked #kairo-entry {
+  display: block;
+}
+
+html.kairo-v3 body.kairo-dialog-open {
+  overflow: hidden;
+}
+
+html.kairo-v3 .kairo-entry,
+html.kairo-v3 .kairo-entry * {
+  box-sizing: border-box;
+}
+
+html.kairo-v3 .kairo-entry {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  overflow-x: hidden;
+  overflow-y: auto;
+  background: var(--kairo-off-white);
+  color: var(--kairo-delft);
+  scroll-behavior: smooth;
+}
+
+html.kairo-v3 .kairo-entry-container {
+  width: min(100% - 48px, var(--kairo-entry-container));
+  margin-inline: auto;
+}
+
+html.kairo-v3 .kairo-entry-nav {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  border-bottom: 1px solid rgba(217, 233, 237, .78);
+  background: rgba(251, 252, 248, .94);
+  backdrop-filter: blur(14px);
+}
+
+html.kairo-v3 .kairo-nav-inner {
+  display: flex;
+  min-height: 76px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+}
+
+html.kairo-v3 .kairo-entry-brand,
+html.kairo-v3 .kairo-login-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--kairo-delft);
+  text-decoration: none;
+}
+
+html.kairo-v3 .kairo-entry-brand img,
+html.kairo-v3 .kairo-login-brand img {
+  display: block;
+  flex: 0 0 auto;
+}
+
+html.kairo-v3 .kairo-entry-brand span,
+html.kairo-v3 .kairo-login-brand span {
+  display: grid;
+  gap: 1px;
+}
+
+html.kairo-v3 .kairo-entry-brand strong,
+html.kairo-v3 .kairo-login-brand strong {
+  font-size: 14px;
+  line-height: 1;
+  letter-spacing: -.02em;
+}
+
+html.kairo-v3 .kairo-entry-brand small,
+html.kairo-v3 .kairo-login-brand small {
+  color: var(--kairo-entry-muted);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: .15em;
+}
+
+html.kairo-v3 .kairo-nav-menu,
+html.kairo-v3 .kairo-nav-links,
+html.kairo-v3 .kairo-nav-actions {
+  display: flex;
+  align-items: center;
+}
+
+html.kairo-v3 .kairo-nav-menu {
+  flex: 1;
+  justify-content: flex-end;
+  gap: 44px;
+}
+
+html.kairo-v3 .kairo-nav-links {
+  gap: 30px;
+}
+
+html.kairo-v3 .kairo-nav-links a {
+  position: relative;
+  padding: 10px 0;
+  color: var(--kairo-delft-soft);
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+html.kairo-v3 .kairo-nav-links a::after {
+  position: absolute;
+  right: 0;
+  bottom: 4px;
+  left: 0;
+  height: 2px;
+  border-radius: 99px;
+  background: var(--kairo-turquoise);
+  content: "";
+  opacity: 0;
+  transform: scaleX(.5);
+  transition: opacity .18s ease, transform .18s ease;
+}
+
+html.kairo-v3 .kairo-nav-links a:hover::after,
+html.kairo-v3 .kairo-nav-links a:focus-visible::after {
+  opacity: 1;
+  transform: scaleX(1);
+}
+
+html.kairo-v3 .kairo-nav-actions {
+  gap: 10px;
+}
+
+html.kairo-v3 .kairo-button {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 10px 16px;
+  border: 1px solid transparent;
+  border-radius: 13px;
+  font: 800 12px/1.2 "Plus Jakarta Sans", Arial, sans-serif;
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color .18s ease, background-color .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+
+html.kairo-v3 .kairo-button:hover {
+  transform: translateY(-1px);
+}
+
+html.kairo-v3 .kairo-button-primary {
+  background: var(--kairo-turquoise);
+  color: #092f3e;
+  box-shadow: 0 10px 22px rgba(37, 185, 176, .18);
+}
+
+html.kairo-v3 .kairo-button-primary:hover {
+  background: #32c7bd;
+}
+
+html.kairo-v3 .kairo-button-secondary {
+  border-color: var(--kairo-entry-line);
+  background: var(--kairo-white);
+  color: var(--kairo-delft);
+}
+
+html.kairo-v3 .kairo-button-text {
+  background: transparent;
+  color: var(--kairo-delft);
+}
+
+html.kairo-v3 .kairo-button-large {
+  min-height: 50px;
+  padding: 14px 20px;
+  border-radius: 15px;
+  font-size: 13px;
+}
+
+html.kairo-v3 .kairo-menu-toggle {
+  display: none;
+}
+
+html.kairo-v3 .kairo-hero {
+  position: relative;
+  min-height: calc(100vh - 76px);
+  overflow: hidden;
+  padding: clamp(64px, 8vw, 104px) 0 80px;
+  background: var(--kairo-off-white);
+}
+
+html.kairo-v3 .kairo-hero::before,
+html.kairo-v3 .kairo-hero::after {
+  position: absolute;
+  z-index: 0;
+  border-radius: 50%;
+  content: "";
+  pointer-events: none;
+}
+
+html.kairo-v3 .kairo-hero::before {
+  top: 40px;
+  left: -170px;
+  width: 430px;
+  height: 430px;
+  background: var(--kairo-gold-050);
+}
+
+html.kairo-v3 .kairo-hero::after {
+  top: 120px;
+  right: -190px;
+  width: 500px;
+  height: 500px;
+  background: var(--kairo-sky-100);
+}
+
+html.kairo-v3 .kairo-hero > .kairo-entry-container {
+  position: relative;
+  z-index: 1;
+}
+
+html.kairo-v3 .kairo-hero-copy {
+  display: flex;
+  max-width: 850px;
+  margin: 0 auto;
+  align-items: center;
+  flex-direction: column;
+  text-align: center;
+}
+
+html.kairo-v3 .kairo-announcement {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 7px 13px;
+  border: 1px solid rgba(223, 169, 74, .38);
+  border-radius: 999px;
+  background: var(--kairo-gold-050);
+  color: #7c5c1c;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+html.kairo-v3 .kairo-hero h1 {
+  max-width: 850px;
+  margin: 24px 0 20px;
+  color: var(--kairo-delft);
+  font-size: clamp(44px, 6.2vw, 76px);
+  font-weight: 800;
+  line-height: 1.03;
+  letter-spacing: -.06em;
+}
+
+html.kairo-v3 .kairo-hero-copy > p {
+  max-width: 660px;
+  margin: 0;
+  color: var(--kairo-entry-muted);
+  font-size: 16px;
+  line-height: 1.75;
+}
+
+html.kairo-v3 .kairo-hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 30px;
+}
+
+html.kairo-v3 .kairo-product-preview {
+  position: relative;
+  width: min(100%, 1060px);
+  margin: 68px auto 0;
+  overflow: hidden;
+  border: 1px solid var(--kairo-sky-200);
+  border-radius: 20px;
+  background: var(--kairo-white);
+  box-shadow: var(--kairo-entry-shadow);
+}
+
+html.kairo-v3 .kairo-product-preview::before {
+  position: absolute;
+  right: 15%;
+  bottom: -80px;
+  z-index: -1;
+  width: 70%;
+  height: 130px;
+  border-radius: 50%;
+  background: rgba(37, 185, 176, .18);
+  filter: blur(38px);
+  content: "";
+}
+
+html.kairo-v3 .kairo-browser-bar {
+  display: grid;
+  min-height: 46px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--kairo-entry-line);
+  background: var(--kairo-sky-050);
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 16px;
+}
+
+html.kairo-v3 .kairo-browser-dots {
+  display: flex;
+  gap: 6px;
+}
+
+html.kairo-v3 .kairo-browser-dots i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--kairo-sky-200);
+}
+
+html.kairo-v3 .kairo-browser-dots i:nth-child(2) {
+  background: var(--kairo-gold);
+}
+
+html.kairo-v3 .kairo-browser-dots i:nth-child(3) {
+  background: var(--kairo-turquoise);
+}
+
+html.kairo-v3 .kairo-browser-address {
+  min-width: 300px;
+  padding: 7px 20px;
+  border: 1px solid var(--kairo-entry-line);
+  border-radius: 999px;
+  background: var(--kairo-white);
+  color: var(--kairo-entry-muted);
+  font-size: 9px;
+  text-align: center;
+}
+
+html.kairo-v3 .kairo-preview-live {
+  justify-self: end;
+  color: var(--kairo-delft-soft);
+  font-size: 9px;
+  font-weight: 700;
+}
+
+html.kairo-v3 .kairo-preview-live i {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 5px;
+  border-radius: 50%;
+  background: var(--kairo-turquoise);
+}
+
+html.kairo-v3 .kairo-preview-shell {
+  display: grid;
+  min-height: 510px;
+  grid-template-columns: 180px minmax(0, 1fr);
+}
+
+html.kairo-v3 .kairo-preview-sidebar {
+  padding: 22px 14px;
+  border-right: 1px solid var(--kairo-entry-line);
+  background: #f8fbfc;
+}
+
+html.kairo-v3 .kairo-preview-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 7px 28px;
+  font-size: 11px;
+}
+
+html.kairo-v3 .kairo-preview-menu {
+  display: flex;
+  min-height: 38px;
+  align-items: center;
+  gap: 10px;
+  margin: 4px 0;
+  padding: 0 11px;
+  border-radius: 11px;
+  color: var(--kairo-entry-muted);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+html.kairo-v3 .kairo-preview-menu i {
+  width: 13px;
+  height: 13px;
+  border: 1.5px solid currentColor;
+  border-radius: 4px;
+}
+
+html.kairo-v3 .kairo-preview-menu.active {
+  background: var(--kairo-sky-100);
+  color: var(--kairo-delft);
+}
+
+html.kairo-v3 .kairo-preview-menu.active i {
+  border-color: var(--kairo-turquoise-dark);
+  background: var(--kairo-turquoise);
+}
+
+html.kairo-v3 .kairo-preview-main {
+  min-width: 0;
+  padding: 28px;
+  background: var(--kairo-white);
+}
+
+html.kairo-v3 .kairo-preview-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+html.kairo-v3 .kairo-preview-heading small,
+html.kairo-v3 .kairo-preview-card-head span {
+  color: var(--kairo-entry-muted);
+  font-size: 8px;
+  font-weight: 750;
+  letter-spacing: .08em;
+}
+
+html.kairo-v3 .kairo-preview-heading h2 {
+  margin: 6px 0 4px;
+  color: var(--kairo-delft);
+  font-size: 22px;
+  line-height: 1.15;
+  letter-spacing: -.04em;
+}
+
+html.kairo-v3 .kairo-preview-heading p {
+  margin: 0;
+  color: var(--kairo-entry-muted);
+  font-size: 10px;
+}
+
+html.kairo-v3 .kairo-preview-avatar {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+  background: var(--kairo-delft);
+  color: var(--kairo-white);
+  font-size: 11px;
+  font-weight: 800;
+  place-items: center;
+}
+
+html.kairo-v3 .kairo-preview-kpis {
+  display: grid;
+  margin: 24px 0 16px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+html.kairo-v3 .kairo-preview-kpis article {
+  display: flex;
+  min-width: 0;
+  min-height: 96px;
+  padding: 14px;
+  border: 1px solid var(--kairo-entry-line);
+  border-top: 3px solid var(--kairo-turquoise);
+  border-radius: 14px;
+  background: var(--kairo-white);
+  flex-direction: column;
+}
+
+html.kairo-v3 .kairo-preview-kpis article.gold {
+  border-top-color: var(--kairo-gold);
+  background: var(--kairo-gold-050);
+}
+
+html.kairo-v3 .kairo-preview-kpis article.sky {
+  border-top-color: var(--kairo-sky-200);
+  background: var(--kairo-sky-050);
+}
+
+html.kairo-v3 .kairo-preview-kpis span,
+html.kairo-v3 .kairo-preview-kpis small {
+  overflow: hidden;
+  color: var(--kairo-entry-muted);
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+html.kairo-v3 .kairo-preview-kpis strong {
+  margin: auto 0 5px;
+  overflow: hidden;
+  color: var(--kairo-delft);
+  font-size: 15px;
+  letter-spacing: -.03em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+html.kairo-v3 .kairo-preview-kpis small.positive {
+  color: var(--kairo-turquoise-dark);
+  font-weight: 800;
+}
+
+html.kairo-v3 .kairo-preview-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(230px, .8fr);
+  gap: 12px;
+}
+
+html.kairo-v3 .kairo-preview-chart,
+html.kairo-v3 .kairo-preview-orders {
+  min-width: 0;
+  min-height: 224px;
+  padding: 17px;
+  border: 1px solid var(--kairo-entry-line);
+  border-radius: 15px;
+  background: var(--kairo-white);
+}
+
+html.kairo-v3 .kairo-preview-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+html.kairo-v3 .kairo-preview-card-head > div {
+  display: grid;
+  gap: 3px;
+}
+
+html.kairo-v3 .kairo-preview-card-head strong {
+  color: var(--kairo-delft);
+  font-size: 11px;
+}
+
+html.kairo-v3 .kairo-preview-card-head b {
+  padding: 5px 7px;
+  border-radius: 8px;
+  background: var(--kairo-sky-050);
+  color: var(--kairo-turquoise-dark);
+  font-size: 8px;
+}
+
+html.kairo-v3 .kairo-preview-chart svg {
+  width: 100%;
+  height: 155px;
+  margin-top: 14px;
+  overflow: visible;
+}
+
+html.kairo-v3 .kairo-preview-chart .chart-area {
+  fill: var(--kairo-sky-050);
+}
+
+html.kairo-v3 .kairo-preview-chart .chart-line {
+  fill: none;
+  stroke: var(--kairo-turquoise);
+  stroke-linecap: round;
+  stroke-width: 5;
+}
+
+html.kairo-v3 .kairo-order-row {
+  display: grid;
+  min-width: 0;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--kairo-entry-line);
+  grid-template-columns: 30px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+}
+
+html.kairo-v3 .kairo-order-row:last-child {
+  border-bottom: 0;
+}
+
+html.kairo-v3 .kairo-order-row > i {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  background: var(--kairo-sky-100);
+  color: var(--kairo-delft);
+  font-size: 8px;
+  font-style: normal;
+  font-weight: 800;
+  place-items: center;
+}
+
+html.kairo-v3 .kairo-order-row > span {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+html.kairo-v3 .kairo-order-row b,
+html.kairo-v3 .kairo-order-row small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+html.kairo-v3 .kairo-order-row b {
+  color: var(--kairo-delft);
+  font-size: 9px;
+}
+
+html.kairo-v3 .kairo-order-row small {
+  color: var(--kairo-entry-muted);
+  font-size: 7px;
+}
+
+html.kairo-v3 .kairo-order-row em {
+  padding: 5px 7px;
+  border-radius: 999px;
+  background: var(--kairo-sky-050);
+  color: var(--kairo-turquoise-dark);
+  font-size: 7px;
+  font-style: normal;
+  font-weight: 800;
+}
+
+html.kairo-v3 .kairo-login-dialog[hidden] {
+  display: none !important;
+}
+
+html.kairo-v3 .kairo-login-dialog {
+  position: fixed;
+  inset: 0;
+  z-index: 120000;
+  display: grid;
+  padding: 24px;
+  place-items: center;
+}
+
+html.kairo-v3 .kairo-login-backdrop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: rgba(15, 42, 63, .55);
+  cursor: default;
+  opacity: 0;
+  transition: opacity .18s ease;
+}
+
+html.kairo-v3 .kairo-login-card {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 430px);
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  padding: 32px;
+  border: 1px solid var(--kairo-entry-line);
+  border-radius: 20px;
+  background: var(--kairo-white);
+  box-shadow: 0 28px 80px rgba(15, 42, 63, .24);
+  opacity: 0;
+  transform: translateY(12px) scale(.985);
+  transition: opacity .18s ease, transform .18s ease;
+}
+
+html.kairo-v3 .kairo-login-dialog.is-open .kairo-login-backdrop,
+html.kairo-v3 .kairo-login-dialog.is-open .kairo-login-card {
+  opacity: 1;
+}
+
+html.kairo-v3 .kairo-login-dialog.is-open .kairo-login-card {
+  transform: none;
+}
+
+html.kairo-v3 .kairo-login-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: grid;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid var(--kairo-entry-line);
+  border-radius: 11px;
+  background: var(--kairo-sky-050);
+  color: var(--kairo-delft);
+  font: 500 22px/1 Arial, sans-serif;
+  cursor: pointer;
+  place-items: center;
+}
+
+html.kairo-v3 .kairo-login-brand {
+  margin-bottom: 30px;
+}
+
+html.kairo-v3 .kairo-login-card .auth-title {
+  margin: 0;
+  color: var(--kairo-delft) !important;
+  font-size: 28px !important;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -.04em;
+}
+
+html.kairo-v3 .kairo-login-intro {
+  margin: 9px 0 24px;
+  color: var(--kairo-entry-muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+html.kairo-v3 .kairo-login-card .form-group {
+  margin-bottom: 16px;
+}
+
+html.kairo-v3 .kairo-login-card .label {
+  display: block;
+  margin-bottom: 7px;
+  color: var(--kairo-delft-soft) !important;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+html.kairo-v3 .kairo-login-card .input {
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 14px;
+  border: 1px solid var(--kairo-entry-line) !important;
+  border-radius: 13px !important;
+  background: var(--kairo-white) !important;
+  color: var(--kairo-delft) !important;
+  font: 600 13px/1.4 "Plus Jakarta Sans", Arial, sans-serif;
+  box-shadow: none !important;
+}
+
+html.kairo-v3 .kairo-login-card .input:focus {
+  border-color: var(--kairo-turquoise) !important;
+  outline: 0;
+  box-shadow: 0 0 0 4px rgba(37, 185, 176, .14) !important;
+}
+
+html.kairo-v3 .kairo-login-card .auth-submit {
+  width: 100%;
+  min-height: 48px;
+  margin-top: 4px;
+  border: 0 !important;
+  border-radius: 13px !important;
+  background: var(--kairo-turquoise) !important;
+  color: #092f3e !important;
+  font-weight: 800;
+  box-shadow: none !important;
+}
+
+html.kairo-v3 .kairo-login-card .auth-error {
+  display: none;
+  margin: 0 0 16px;
+  padding: 10px 12px;
+  border: 1px solid #efc3ca;
+  border-radius: 11px;
+  background: #fff2f4;
+  color: #9d3044;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+html.kairo-v3 .kairo-login-card .kairo-password-wrap {
+  position: relative;
+}
+
+html.kairo-v3 .kairo-login-card .kairo-eye {
+  color: var(--kairo-entry-muted);
+}
+
+html.kairo-v3 .kairo-login-card .kairo-auth-secondary {
+  display: block;
+  margin: 13px auto 0;
+  border: 0;
+  background: none;
+  color: var(--kairo-delft-soft);
+  font: 700 10px/1.4 "Plus Jakarta Sans", Arial, sans-serif;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+html.kairo-v3 .kairo-login-signup {
+  margin: 24px 0 0;
+  padding-top: 20px;
+  border-top: 1px solid var(--kairo-entry-line);
+  color: var(--kairo-entry-muted);
+  font-size: 11px;
+  text-align: center;
+}
+
+html.kairo-v3 .kairo-login-signup button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--kairo-turquoise-dark);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+html.kairo-v3 .kairo-entry :focus-visible {
+  outline: 3px solid rgba(37, 185, 176, .35);
+  outline-offset: 3px;
+}
+
+@media (max-width: 900px) {
+  html.kairo-v3 .kairo-entry-container {
+    width: min(100% - 40px, var(--kairo-entry-container));
+  }
+
+  html.kairo-v3 .kairo-nav-inner {
+    min-height: 70px;
+  }
+
+  html.kairo-v3 .kairo-menu-toggle {
+    display: grid;
+    width: 42px;
+    height: 42px;
+    padding: 10px;
+    border: 1px solid var(--kairo-entry-line);
+    border-radius: 12px;
+    background: var(--kairo-white);
+    color: var(--kairo-delft);
+    cursor: pointer;
+    place-content: center;
+    gap: 4px;
+  }
+
+  html.kairo-v3 .kairo-menu-toggle span {
+    display: block;
+    width: 18px;
+    height: 2px;
+    border-radius: 99px;
+    background: currentColor;
+  }
+
+  html.kairo-v3 .kairo-nav-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 20px;
+    left: 20px;
+    display: none;
+    padding: 18px;
+    border: 1px solid var(--kairo-entry-line);
+    border-radius: 17px;
+    background: var(--kairo-white);
+    box-shadow: var(--kairo-entry-shadow);
+    align-items: stretch;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  html.kairo-v3 #kairo-entry-nav.menu-open .kairo-nav-menu {
+    display: flex;
+  }
+
+  html.kairo-v3 .kairo-nav-links {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  html.kairo-v3 .kairo-nav-links a {
+    padding: 11px 10px;
+    border-radius: 10px;
+  }
+
+  html.kairo-v3 .kairo-nav-links a:hover {
+    background: var(--kairo-sky-050);
+  }
+
+  html.kairo-v3 .kairo-nav-links a::after {
+    display: none;
+  }
+
+  html.kairo-v3 .kairo-nav-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  html.kairo-v3 .kairo-hero {
+    min-height: 0;
+    padding: 64px 0 70px;
+  }
+
+  html.kairo-v3 .kairo-hero h1 {
+    font-size: clamp(42px, 8vw, 62px);
+  }
+
+  html.kairo-v3 .kairo-product-preview {
+    margin-top: 56px;
+  }
+
+  html.kairo-v3 .kairo-browser-address {
+    min-width: 250px;
+  }
+
+  html.kairo-v3 .kairo-preview-shell {
+    grid-template-columns: 72px minmax(0, 1fr);
+  }
+
+  html.kairo-v3 .kairo-preview-sidebar {
+    padding-inline: 10px;
+  }
+
+  html.kairo-v3 .kairo-preview-logo {
+    justify-content: center;
+    margin-inline: 0;
+  }
+
+  html.kairo-v3 .kairo-preview-logo b,
+  html.kairo-v3 .kairo-preview-menu span {
+    display: none;
+  }
+
+  html.kairo-v3 .kairo-preview-menu {
+    justify-content: center;
+    padding-inline: 0;
+  }
+
+  html.kairo-v3 .kairo-preview-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  html.kairo-v3 .kairo-preview-grid {
+    grid-template-columns: 1fr;
+  }
+
+  html.kairo-v3 .kairo-preview-orders {
+    min-height: 0;
+  }
+}
+
+@media (max-width: 600px) {
+  html.kairo-v3 .kairo-entry-container {
+    width: min(100% - 32px, var(--kairo-entry-container));
+  }
+
+  html.kairo-v3 .kairo-nav-inner {
+    min-height: 66px;
+  }
+
+  html.kairo-v3 .kairo-entry-brand small {
+    display: none;
+  }
+
+  html.kairo-v3 .kairo-hero {
+    padding: 48px 0 56px;
+  }
+
+  html.kairo-v3 .kairo-announcement {
+    font-size: 9px;
+  }
+
+  html.kairo-v3 .kairo-hero h1 {
+    margin: 20px 0 16px;
+    font-size: clamp(37px, 12vw, 52px);
+    letter-spacing: -.055em;
+  }
+
+  html.kairo-v3 .kairo-hero-copy > p {
+    font-size: 14px;
+    line-height: 1.65;
+  }
+
+  html.kairo-v3 .kairo-hero-actions {
+    width: 100%;
+    align-items: stretch;
+    flex-direction: column;
+    gap: 5px;
+    margin-top: 24px;
+  }
+
+  html.kairo-v3 .kairo-product-preview {
+    width: calc(100% + 12px);
+    margin-top: 44px;
+    margin-left: -6px;
+    border-radius: 16px;
+  }
+
+  html.kairo-v3 .kairo-browser-bar {
+    min-height: 40px;
+    padding-inline: 12px;
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  html.kairo-v3 .kairo-browser-address {
+    min-width: 0;
+    overflow: hidden;
+    padding-inline: 10px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  html.kairo-v3 .kairo-preview-live {
+    display: none;
+  }
+
+  html.kairo-v3 .kairo-preview-shell {
+    min-height: 0;
+    grid-template-columns: 1fr;
+  }
+
+  html.kairo-v3 .kairo-preview-sidebar {
+    display: none;
+  }
+
+  html.kairo-v3 .kairo-preview-main {
+    padding: 18px;
+  }
+
+  html.kairo-v3 .kairo-preview-heading h2 {
+    font-size: 17px;
+  }
+
+  html.kairo-v3 .kairo-preview-kpis {
+    margin-top: 18px;
+    gap: 8px;
+  }
+
+  html.kairo-v3 .kairo-preview-kpis article {
+    min-height: 82px;
+    padding: 11px;
+  }
+
+  html.kairo-v3 .kairo-preview-kpis strong {
+    font-size: 13px;
+  }
+
+  html.kairo-v3 .kairo-preview-chart {
+    min-height: 190px;
+  }
+
+  html.kairo-v3 .kairo-preview-chart svg {
+    height: 120px;
+  }
+
+  html.kairo-v3 .kairo-login-dialog {
+    padding: 16px;
+    align-items: end;
+  }
+
+  html.kairo-v3 .kairo-login-card {
+    width: 100%;
+    max-height: calc(100vh - 32px);
+    padding: 26px 22px;
+    border-radius: 20px;
+  }
+
+  html.kairo-v3 .kairo-login-brand {
+    margin-bottom: 24px;
+  }
+}
