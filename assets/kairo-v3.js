@@ -87,6 +87,77 @@
     return label || 'Workspace';
   }
 
+  const statPresentation = {
+    'kpi-revenue': {
+      tone: 'primary',
+      caption: 'Pendapatan sesuai periode aktif',
+      icon: '<path d="M4 7h16v10H4z"/><path d="M8 11h8M8 14h5"/>'
+    },
+    'seller-kpi-profit': {
+      tone: 'gold',
+      caption: 'Pendapatan setelah modal produk',
+      icon: '<path d="M5 16 10 11l3 3 6-7"/><path d="M14 7h5v5"/>'
+    },
+    'kpi-tx': {
+      tone: 'sky',
+      caption: 'Order pada periode aktif',
+      icon: '<path d="M6 5h12v14H6z"/><path d="M9 9h6M9 13h6"/>'
+    },
+    'kpi-best': {
+      tone: 'gold',
+      caption: 'Produk paling sering terjual',
+      icon: '<path d="M6 4h12v16H6z"/><path d="m9 10 2 2 4-4"/>'
+    },
+    'kpi-cash': {
+      tone: 'primary',
+      caption: 'Saldo operasional tercatat',
+      icon: '<path d="M4 7h16v11H4z"/><path d="M16 11h4v3h-4z"/>'
+    },
+    'kpi-rights': {
+      tone: 'sky',
+      caption: 'Ringkasan bulan berjalan',
+      icon: '<path d="M5 5h14v14H5z"/><path d="M8 3v4M16 3v4M8 11h3M13 11h3M8 15h3"/>'
+    }
+  };
+
+  function decorateStatCards() {
+    qa('#dashboard .kpi').forEach(card => {
+      const value = q('.kpi-value', card);
+      if (!value) return;
+      const config = statPresentation[value.id] || {
+        tone: 'sky',
+        caption: 'Ringkasan workspace aktif',
+        icon: '<circle cx="12" cy="12" r="7"/><path d="M12 8v4l3 2"/>'
+      };
+      card.classList.add('kairo-stat-card');
+      card.dataset.v3Tone = config.tone;
+      if (!q('.kairo-stat-icon', card)) {
+        const icon = document.createElement('span');
+        icon.className = 'kairo-stat-icon';
+        icon.setAttribute('aria-hidden', 'true');
+        icon.innerHTML = `<svg viewBox="0 0 24 24">${config.icon}</svg>`;
+        card.prepend(icon);
+      }
+      let caption = q('.kairo-stat-caption', card);
+      if (!caption) {
+        caption = document.createElement('small');
+        caption.className = 'kairo-stat-caption';
+        card.append(caption);
+      }
+      caption.textContent = config.caption;
+    });
+  }
+
+  function enhanceDashboardFoundation() {
+    q('#app-shell main.container > .toolbar')?.classList.add('kairo-page-header');
+    q('#transaction-history-card')?.classList.add('kairo-list-card');
+    q('#seller-dashboard-history-card')?.classList.add('kairo-list-card');
+    q('#seller-expiry-card')?.classList.add('kairo-information-card');
+    q('#seller-outstanding-card')?.classList.add('kairo-information-card');
+    q('#dashboard .shift-card')?.classList.add('kairo-information-card');
+    decorateStatCards();
+  }
+
   function mountDashboardHeader() {
     if (!document.body.classList.contains('authenticated')) return;
     const dashboard = q('#dashboard');
@@ -100,14 +171,26 @@
     const date = new Intl.DateTimeFormat('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(new Date());
     header.innerHTML = `<div><small>WORKSPACE HARI INI</small><h2>Halo, siap rapihin bisnismu?</h2><p>${escapeHtml(workspaceName())} · ${escapeHtml(date)}</p></div><div class="v3-quick" aria-label="Aksi cepat"><button type="button" data-v3-tab="input">＋ Tambah Order</button><button type="button" data-v3-tab="customers">Tambah Customer</button><button type="button" data-v3-tab="cash">Catat Pengeluaran</button><button type="button" data-v3-tab="promo">Buat Promo</button></div>`;
     qa('[data-v3-tab]', header).forEach(button => button.addEventListener('click', () => openTab(button.dataset.v3Tab)));
+    enhanceDashboardFoundation();
   }
 
   function boot() {
     const landing = q('#kairo-entry');
     if (landing) bindLanding(landing);
     mountDashboardHeader();
+    const dashboard = q('#dashboard');
+    if (dashboard) {
+      let frame = 0;
+      new MutationObserver(() => {
+        cancelAnimationFrame(frame);
+        frame = requestAnimationFrame(enhanceDashboardFoundation);
+      }).observe(dashboard, { childList: true, subtree: true });
+    }
     new MutationObserver(() => {
-      if (document.body.classList.contains('authenticated')) closeLogin({ restoreFocus: false });
+      if (document.body.classList.contains('authenticated')) {
+        closeLogin({ restoreFocus: false });
+        mountDashboardHeader();
+      }
     }).observe(document.body, { attributes: true, attributeFilter: ['class'] });
   }
 
@@ -143,7 +226,10 @@
     setTimeout(mountDashboardHeader, 700);
   }, true);
   document.addEventListener('click', event => {
-    if (event.target.closest('[data-tab="dashboard"], [data-mobile-tab="dashboard"], #saas-side-home')) setTimeout(mountDashboardHeader, 60);
+    if (event.target.closest('[data-tab="dashboard"], [data-mobile-tab="dashboard"], #saas-side-home')) {
+      setTimeout(mountDashboardHeader, 60);
+      setTimeout(enhanceDashboardFoundation, 220);
+    }
     if (!event.target.closest('#kairo-entry-nav')) mobileMenu(false);
   }, true);
 })();
