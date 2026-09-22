@@ -1,23 +1,23 @@
 /* KAIRO v20.10.121 — Seller App Premium UX isolated styles */
 .seller-template-hidden{display:none!important}
 body.seller-app-premium{
-  --seller-blue:var(--green,#696F41);
-  --seller-blue2:var(--gold,#F4D27A);
-  --seller-green:var(--green,#696F41);
+  --seller-blue:var(--v3-primary,#25b9b0);
+  --seller-blue2:var(--v3-gold,#dfa94a);
+  --seller-green:var(--v3-success,#287d68);
   --seller-red:var(--danger,#B94A5A);
-  --seller-panel:var(--card,#ffffff);
-  --seller-panel-2:color-mix(in srgb,var(--cream,#FAF8F5) 72%,#fff 28%);
-  --seller-line:var(--line,#dfe5df);
-  --seller-text:var(--ink,#2D3748);
-  --seller-muted:var(--muted,#73819a);
-  --seller-radius-sm:10px;
-  --seller-radius-md:14px;
-  --seller-radius-lg:20px;
+  --seller-panel:var(--v3-surface,#ffffff);
+  --seller-panel-2:var(--v3-surface-subtle,#f9fcfc);
+  --seller-line:var(--v3-line,#d9e9ed);
+  --seller-text:var(--v3-ink,#173a59);
+  --seller-muted:var(--v3-muted,#62798a);
+  --seller-radius-sm:var(--v3-r-sm,12px);
+  --seller-radius-md:var(--v3-r-md,16px);
+  --seller-radius-lg:var(--v3-r-lg,18px);
   --seller-radius-pill:999px;
-  --seller-shadow-sm:0 6px 16px rgba(45,55,72,.055);
-  --seller-shadow-md:0 14px 34px rgba(45,55,72,.075);
+  --seller-shadow-sm:var(--v3-shadow,0 8px 24px rgba(23,58,89,.055));
+  --seller-shadow-md:var(--v3-shadow,0 8px 24px rgba(23,58,89,.055));
 }
-body.saas-dark.seller-app-premium{--seller-panel:#151a18;--seller-panel-2:#1c211e;--seller-line:#343b36;--seller-text:#f2f4f2;--seller-muted:#a5afa7}
+body.saas-dark.seller-app-premium{--seller-panel:var(--v3-surface,#142436);--seller-panel-2:var(--v3-surface-subtle,#182b3f);--seller-line:var(--v3-line,#2a4156);--seller-text:var(--v3-ink,#edf5f8);--seller-muted:var(--v3-muted,#aabcc9)}
 
 .seller-app-panel{margin:14px 0 16px;padding:18px;border:1px solid var(--seller-line);border-radius:var(--seller-radius-lg);background:linear-gradient(180deg,var(--seller-panel),var(--seller-panel-2));box-shadow:var(--seller-shadow-md);color:var(--seller-text)}
 .seller-app-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:14px}
