@@ -18,7 +18,7 @@
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap"></noscript>
 
 <!-- Stable auth boot order. Feature-heavy libraries remain lazy inside kairo-app.js. -->
-<script defer src="assets/kairo-v3.js?v=3.2.0"></script>
+<script defer src="assets/kairo-v3.js?v=3.3.0"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 
@@ -65,62 +65,117 @@
 
 
 <link rel="stylesheet" href="assets/kairo.css?v=20.10.147">
-<link rel="stylesheet" href="assets/kairo-v3.css?v=3.0.0">
+<link rel="stylesheet" href="assets/kairo-v3.css?v=3.3.0">
 </head>
 
 <body class="auth-locked">
 <div id="kairo-root">
 
-<div class="auth-screen" id="auth-screen">
-  <div class="auth-entry-layout">
-    <header aria-label="Kairo Workspaces" class="kairo-auth-page-brand">
-<div class="kairo-auth-page-title">KAIRO WORKSPACES</div>
-<div class="kairo-auth-page-tagline">EVERY STEP, FROM THE START.</div>
-</header>
-    <section class="auth-plans-panel" aria-label="Pilihan paket SaaS">
-      <div class="auth-plans-eyebrow">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 17 9 12l4 4 7-8"></path><path d="M15 8h5v5"></path></svg>
-        <span>PILIH KEBUTUHAN BISNISMU</span>
+<div id="kairo-entry" class="kairo-entry">
+  <nav id="kairo-entry-nav" class="kairo-entry-nav" aria-label="Navigasi KAIRO">
+    <div class="kairo-entry-container kairo-nav-inner">
+      <a class="kairo-entry-brand" href="#kairo-hero" aria-label="KAIRO Workspaces — kembali ke awal">
+        <img src="assets/kairo-mark.svg" alt="" width="36" height="36">
+        <span><strong>KAIRO</strong><small>WORKSPACES</small></span>
+      </a>
+      <button id="kairo-menu-toggle" class="kairo-menu-toggle" type="button" aria-expanded="false" aria-controls="kairo-nav-menu" aria-label="Buka menu navigasi">
+        <span></span><span></span><span></span>
+      </button>
+      <div id="kairo-nav-menu" class="kairo-nav-menu">
+        <div class="kairo-nav-links">
+          <a href="#kairo-product-preview">Features</a>
+          <a href="#kairo-product-preview">Solutions</a>
+          <a href="#kairo-hero">Pricing</a>
+          <a href="#kairo-hero">About</a>
+        </div>
+        <div class="kairo-nav-actions">
+          <button type="button" class="kairo-button kairo-button-secondary" data-v3-login>Masuk</button>
+          <button type="button" class="kairo-button kairo-button-primary" data-v3-signup>Coba Gratis</button>
+        </div>
       </div>
-      <h1 class="auth-plans-title">Someday, you'll look back at how far you've come. Kairo remembers where you started.</h1>
-      <p class="auth-plans-sub">Bandingkan paket sesuai dengan kebutuhanmu. Mulai pencatatan usahamu dengan Kairo.</p>
-      <section class="plan-carousel-shell auth-plan-carousel-static" aria-label="Pilihan paket">
-        <div class="plan-carousel-track auth-plan-track-static"><article class="plan-offer-card" data-plan-card="basic">
-<div class="plan-card-visual"><svg aria-hidden="true" viewbox="0 0 64 64"><rect height="44" rx="7" width="40" x="12" y="10"></rect><path d="M21 22h22M21 31h14M21 40h18"></path><circle cx="45" cy="42" r="5"></circle></svg><span>BASIC</span></div>
-<div class="plan-card-content"><div class="plan-card-tag"><svg viewbox="0 0 24 24"><path d="M20 13 11 22l-9-9V4h9l9 9Z"></path><circle cx="7" cy="9" r="1.5"></circle></svg><span>Mulai &amp; Catat</span></div><h3>Basic</h3><p>Fondasi buat bisnis yang baru mulai nyatet order dan arus kas secara rapi.</p><div class="plan-feature-chips"><span>Manual Orders</span><span>Petty Cash</span><span>Withdrawal</span><span>Receipt Basic</span></div><div class="plan-card-footer"><span class="plan-card-level">Pencatatan inti</span><span class="plan-card-arrow"><svg viewbox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></span></div></div>
-</article>
-<article class="plan-offer-card plan-featured" data-plan-card="plus">
-<div class="plan-card-visual"><svg aria-hidden="true" viewbox="0 0 64 64"><path d="M12 48V28l20-14 20 14v20"></path><path d="M22 48V34h20v14M32 14v34"></path><path d="m24 24 8 6 8-6"></path></svg><span>PLUS</span></div>
-<div class="plan-card-content"><div class="plan-card-tag"><svg viewbox="0 0 24 24"><path d="M12 3v18M3 12h18"></path><circle cx="12" cy="12" r="9"></circle></svg><span>Operate &amp; Grow</span></div><h3>Plus</h3><p>Workflow bisnis lebih praktis dengan automation, customer tools, branding, dan operasional tim.</p><div class="plan-feature-chips"><span>Customer Database</span><span>Open / Close Store</span><span>Autofill Orders</span><span>Export Excel</span><span>Custom Branding</span><span>Multi-partner</span></div><div class="plan-card-footer"><span class="plan-card-level">Operasional lengkap</span><span class="plan-card-arrow"><svg viewbox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></span></div></div>
-</article>
-<article class="plan-offer-card" data-plan-card="pro">
-<div class="plan-card-visual"><svg aria-hidden="true" viewbox="0 0 64 64"><path d="M12 50V34h10v16M27 50V24h10v26M42 50V14h10v36"></path><path d="m13 25 13-9 10 4 15-12"></path></svg><span>PRO</span></div>
-<div class="plan-card-content"><div class="plan-card-tag"><svg viewbox="0 0 24 24"><path d="M4 19V9M10 19V5M16 19v-7M22 19V2"></path><path d="M2 19h20"></path></svg><span>Understand &amp; Scale</span></div><h3>Pro</h3><p>Kontrol dan insight lebih dalam buat bisnis yang udah serius berkembang dan punya workflow kompleks.</p><div class="plan-feature-chips"><span>Full Performance</span><span>Advanced Profit Split</span><span>Business Insights</span><span>Advanced Reports</span><span>Activity Log</span><span>Multi-workspace</span></div><div class="plan-card-footer"><span class="plan-card-level">Management advanced</span><span class="plan-card-arrow"><svg viewbox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></span></div></div>
-</article></div>
+    </div>
+  </nav>
+
+  <main id="kairo-hero" class="kairo-hero">
+    <div class="kairo-entry-container">
+      <div class="kairo-hero-copy">
+        <span class="kairo-announcement">KAIRO Workspaces kini hadir untuk seller digital</span>
+        <h1>Kelola bisnismu dalam satu workspace yang lebih rapi.</h1>
+        <p>Catat order, pantau omzet, kelola customer, subscription, dan buat struk profesional tanpa sistem yang ribet.</p>
+        <div class="kairo-hero-actions">
+          <button type="button" class="kairo-button kairo-button-primary kairo-button-large" data-v3-signup>Coba KAIRO Gratis</button>
+          <a class="kairo-button kairo-button-text" href="#kairo-product-preview">Lihat Cara Kerjanya <span aria-hidden="true">↓</span></a>
+        </div>
+      </div>
+
+      <section id="kairo-product-preview" class="kairo-product-preview" aria-label="Preview dashboard KAIRO Workspaces">
+        <div class="kairo-browser-bar">
+          <div class="kairo-browser-dots" aria-hidden="true"><i></i><i></i><i></i></div>
+          <div class="kairo-browser-address">app.kairoworkspaces.com/dashboard</div>
+          <span class="kairo-preview-live"><i></i> Workspace aktif</span>
+        </div>
+        <div class="kairo-preview-shell">
+          <aside class="kairo-preview-sidebar" aria-hidden="true">
+            <div class="kairo-preview-logo"><img src="assets/kairo-mark.svg" alt="" width="30" height="30"><b>KAIRO</b></div>
+            <div class="kairo-preview-menu active"><i></i><span>Dashboard</span></div>
+            <div class="kairo-preview-menu"><i></i><span>Orders</span></div>
+            <div class="kairo-preview-menu"><i></i><span>Customers</span></div>
+            <div class="kairo-preview-menu"><i></i><span>Finance</span></div>
+            <div class="kairo-preview-menu"><i></i><span>Promo</span></div>
+          </aside>
+          <div class="kairo-preview-main">
+            <header class="kairo-preview-heading">
+              <div><small>SELASA, 22 SEPTEMBER</small><h2>Selamat pagi, Ganesh</h2><p>Ini ringkasan bisnismu hari ini.</p></div>
+              <div class="kairo-preview-avatar">G</div>
+            </header>
+            <div class="kairo-preview-kpis">
+              <article><span>Omzet hari ini</span><strong>Rp4.850.000</strong><small class="positive">↗ 12,4%</small></article>
+              <article class="gold"><span>Saldo kas</span><strong>Rp8.240.000</strong><small>Siap digunakan</small></article>
+              <article><span>Order aktif</span><strong>28</strong><small>6 perlu diproses</small></article>
+              <article class="sky"><span>Piutang</span><strong>Rp720.000</strong><small>3 customer</small></article>
+            </div>
+            <div class="kairo-preview-grid">
+              <article class="kairo-preview-chart">
+                <div class="kairo-preview-card-head"><div><strong>Performa omzet</strong><span>7 hari terakhir</span></div><b>+18,2%</b></div>
+                <svg viewBox="0 0 600 190" role="img" aria-label="Grafik performa omzet meningkat">
+                  <path class="chart-area" d="M0 155 C60 142 82 146 120 120 S190 104 228 112 S295 126 340 88 S420 70 466 82 S540 56 600 32 L600 190 L0 190 Z"></path>
+                  <path class="chart-line" d="M0 155 C60 142 82 146 120 120 S190 104 228 112 S295 126 340 88 S420 70 466 82 S540 56 600 32"></path>
+                </svg>
+              </article>
+              <article class="kairo-preview-orders">
+                <div class="kairo-preview-card-head"><div><strong>Order terbaru</strong><span>Hari ini</span></div><b>28 order</b></div>
+                <div class="kairo-order-row"><i>AR</i><span><b>Ariana</b><small>Canva Pro · 12 bulan</small></span><em>Lunas</em></div>
+                <div class="kairo-order-row"><i>DM</i><span><b>Dimas</b><small>Netflix · 1 bulan</small></span><em>Diproses</em></div>
+                <div class="kairo-order-row"><i>SN</i><span><b>Sinta</b><small>Spotify · 3 bulan</small></span><em>Baru</em></div>
+              </article>
+            </div>
+          </div>
+        </div>
       </section>
-      <div class="plan-carousel-nav auth-carousel-nav">
-        <button type="button" class="plan-carousel-arrow" data-auth-static-carousel="left" aria-label="Geser paket ke kiri"><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"></path></svg></button>
-        <button type="button" class="plan-carousel-arrow" data-auth-static-carousel="right" aria-label="Geser paket ke kanan"><svg viewBox="0 0 24 24"><path d="m9 18 6 6-6-6"></path></svg></button>
-      </div>
-    </section>
-    <div class="auth-card">
-<div class="auth-brand kairo-auth-brand">
-<div class="brand-name">KAIRO WORKSPACES</div>
-</div>
-<div class="auth-title">Masuk ke Dashboard</div>
-<div class="auth-error" id="auth-error"></div>
-<form id="login-form">
-<div class="form-group">
-<label class="label" for="login-username">Username</label>
-<input autocomplete="username" class="input" id="login-username" placeholder="Masukkan username" required="" type="text"/>
-</div>
-<div class="form-group">
-<label class="label" for="login-password">Password</label>
-<input autocomplete="current-password" class="input" id="login-password" placeholder="••••••••" required="" type="password"/>
-</div>
-<button class="btn btn-green auth-submit" id="login-button" type="submit">Masuk</button>
-</form>
-</div>
+    </div>
+  </main>
+
+  <div id="kairo-login-dialog" class="kairo-login-dialog" role="dialog" aria-modal="true" aria-labelledby="kairo-login-title" hidden>
+    <button class="kairo-login-backdrop" type="button" data-login-close tabindex="-1" aria-label="Tutup dialog masuk"></button>
+    <div class="kairo-login-card" role="document">
+      <button class="kairo-login-close" type="button" data-login-close aria-label="Tutup dialog masuk">×</button>
+      <div class="kairo-login-brand"><img src="assets/kairo-mark.svg" alt="" width="36" height="36"><span><strong>KAIRO</strong><small>WORKSPACES</small></span></div>
+      <div class="auth-title" id="kairo-login-title">Masuk ke workspace</div>
+      <p class="kairo-login-intro">Lanjutkan pencatatan dan pantau bisnismu dari satu tempat.</p>
+      <div class="auth-error" id="auth-error" role="alert"></div>
+      <form id="login-form">
+        <div class="form-group">
+          <label class="label" for="login-username">Username atau email</label>
+          <input autocomplete="username" class="input" id="login-username" placeholder="Masukkan username atau email" required type="text">
+        </div>
+        <div class="form-group">
+          <label class="label" for="login-password">Password</label>
+          <input autocomplete="current-password" class="input" id="login-password" placeholder="••••••••" required type="password">
+        </div>
+        <button class="btn btn-green auth-submit" id="login-button" type="submit">Masuk</button>
+      </form>
+      <p class="kairo-login-signup">Belum punya akun? <button type="button" data-v3-signup>Mulai gratis</button></p>
+    </div>
   </div>
 </div>
 
@@ -828,30 +883,5 @@
 
 
 <script defer src="assets/kairo-app.js?v=20.10.148"></script>
-
-
-<style id="v201091-auth-static-guard">
-/* v20.10.91: auth layout exists in HTML itself; no runtime DOM surgery required. */
-#auth-screen .auth-entry-layout{display:grid!important;opacity:1!important;visibility:visible!important}
-#auth-screen .auth-plan-carousel-static{display:block!important;width:100%!important;min-width:0!important}
-#auth-screen .auth-plan-track-static{display:flex!important;overflow-x:auto!important;scroll-snap-type:x mandatory!important;scrollbar-width:none!important}
-#auth-screen .auth-plan-track-static::-webkit-scrollbar{display:none!important}
-#auth-screen .auth-plan-track-static>.plan-offer-card{flex:0 0 min(360px,88%)!important;scroll-snap-align:start!important}
-</style>
-<script id="v201091-auth-static-carousel">
-(()=>{
- const boot=()=>{
-   const auth=document.getElementById('auth-screen');
-   const track=auth?.querySelector('.auth-plan-track-static');
-   if(!auth||!track)return;
-   auth.addEventListener('click',e=>{
-     const b=e.target.closest('[data-auth-static-carousel]'); if(!b)return;
-     const dir=b.dataset.authStaticCarousel==='left'?-1:1;
-     track.scrollBy({left:dir*Math.max(260,track.clientWidth*.72),behavior:'smooth'});
-   });
- };
- document.readyState==='loading'?document.addEventListener('DOMContentLoaded',boot,{once:true}):boot();
-})();
-</script>
 </body>
 </html>
