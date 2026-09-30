@@ -50,6 +50,24 @@
     toggle.setAttribute('aria-expanded', String(open));
   }
 
+  function bindLandingReveal(root) {
+    const items = qa('[data-kairo-reveal]', root);
+    if (!items.length) return;
+    if (!('IntersectionObserver' in window) || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      items.forEach(item => item.classList.add('is-visible'));
+      return;
+    }
+    document.body.classList.add('kairo-reveal-ready');
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add('is-visible');
+        observer.unobserve(entry.target);
+      });
+    }, { threshold: 0.08, rootMargin: '0px 0px -48px 0px' });
+    items.forEach(item => observer.observe(item));
+  }
+
   function bindLanding(root) {
     qa('[data-v3-login]', root).forEach(button => button.addEventListener('click', openLogin));
     qa('[data-v3-signup]', root).forEach(button => button.addEventListener('click', openSignup));
@@ -59,6 +77,7 @@
       const open = event.currentTarget.getAttribute('aria-expanded') !== 'true';
       mobileMenu(open);
     });
+    bindLandingReveal(root);
     root.addEventListener('keydown', event => {
       const dialog = q('#kairo-login-dialog');
       if (!dialog || dialog.hidden) return;
