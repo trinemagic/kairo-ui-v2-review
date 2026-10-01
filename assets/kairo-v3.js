@@ -3,12 +3,36 @@
   'use strict';
   let queuedLoginSubmit = false;
   let loginReturnFocus = null;
+  let pendingRemember = null;
+  const REMEMBER_KEY = 'kairo_remember_username_v1';
 
   const q = (selector, root = document) => root.querySelector(selector);
   const qa = (selector, root = document) => [...root.querySelectorAll(selector)];
   const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, char => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
   })[char]);
+
+  function rememberedUsername() {
+    try { return localStorage.getItem(REMEMBER_KEY) || ''; } catch (_) { return ''; }
+  }
+
+  function setRememberedUsername(value) {
+    try {
+      if (value) localStorage.setItem(REMEMBER_KEY, value);
+      else localStorage.removeItem(REMEMBER_KEY);
+    } catch (_) {}
+  }
+
+  // "Ingat saya": stores only the username on this device; password and session are never stored.
+  function applyRememberedUsername() {
+    const saved = rememberedUsername();
+    const box = q('#kairo-remember-me');
+    const input = q('#login-username');
+    if (box) box.checked = Boolean(saved);
+    if (!saved || !input || input.value) return;
+    input.value = saved;
+    if (document.activeElement === input || document.activeElement === document.body) focusLoginField();
+  }
 
   function openLogin(event) {
     window.__kairoEnsureRuntime?.().catch(() => {});
@@ -19,8 +43,16 @@
     document.body.classList.add('kairo-dialog-open');
     requestAnimationFrame(() => {
       dialog.classList.add('is-open');
-      q('#login-username', dialog)?.focus({ preventScroll: true });
+      applyRememberedUsername();
+      focusLoginField();
     });
+  }
+
+  function focusLoginField() {
+    const dialog = q('#kairo-login-dialog');
+    if (!dialog || dialog.hidden) return;
+    const username = q('#login-username', dialog);
+    (username?.value ? q('#login-password', dialog) : username)?.focus({ preventScroll: true });
   }
 
   function closeLogin({ restoreFocus = true } = {}) {
@@ -90,6 +122,19 @@
 
   function bindLandingPages(root) {
     showLandingPage(root);
+    if (!location.hash && rememberedUsername()) openLogin();
+    // kairo-app.js wraps the password field (show/hide eye) during boot, which drops focus
+    // from a dialog that is already open. Restore it once the wrapper is in place.
+    const form = q('#login-form', root);
+    if (form && !q('.kairo-password-wrap', form)) {
+      const watcher = new MutationObserver(() => {
+        if (!q('.kairo-password-wrap', form)) return;
+        watcher.disconnect();
+        if (document.activeElement === document.body) focusLoginField();
+      });
+      watcher.observe(form, { childList: true, subtree: true });
+      setTimeout(() => watcher.disconnect(), 15000);
+    }
     window.addEventListener('hashchange', () => {
       if (document.body.classList.contains('auth-locked')) showLandingPage(root);
     });
@@ -104,6 +149,9 @@
     qa('[data-v3-login]', root).forEach(button => button.addEventListener('click', openLogin));
     qa('[data-v3-signup]', root).forEach(button => button.addEventListener('click', openSignup));
     qa('[data-login-close]', root).forEach(button => button.addEventListener('click', () => closeLogin()));
+    q('#kairo-remember-me', root)?.addEventListener('change', event => {
+      if (!event.target.checked) setRememberedUsername('');
+    });
     qa('#kairo-entry-nav a', root).forEach(link => link.addEventListener('click', () => mobileMenu(false)));
     q('#kairo-menu-toggle', root)?.addEventListener('click', event => {
       const open = event.currentTarget.getAttribute('aria-expanded') !== 'true';
@@ -232,8 +280,14 @@
     mountDashboardHeader();
     new MutationObserver(() => {
       if (document.body.classList.contains('authenticated')) {
+        if (pendingRemember) {
+          setRememberedUsername(pendingRemember.remember ? pendingRemember.username : '');
+          pendingRemember = null;
+        }
         closeLogin({ restoreFocus: false });
         mountDashboardHeader();
+      } else if (document.body.classList.contains('auth-locked')) {
+        applyRememberedUsername();
       }
     }).observe(document.body, { attributes: true, attributeFilter: ['class'] });
   }
@@ -243,6 +297,10 @@
 
   document.addEventListener('submit', event => {
     if (event.target?.id !== 'login-form') return;
+    pendingRemember = {
+      remember: Boolean(q('#kairo-remember-me')?.checked),
+      username: q('#login-username')?.value.trim() || ''
+    };
     if (!window.__KAIRO_APP_READY__) {
       event.preventDefault();
       event.stopImmediatePropagation();
