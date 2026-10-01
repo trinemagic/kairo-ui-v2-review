@@ -25,5 +25,7 @@ node audit-contrast.js light light  # audit kontras (light)
   40 transaksi (3 On Progress untuk notifikasi), customer, payout, kas, shift, promo.
 - `audit-contrast.js` — buka 8 menu × desktop/mobile, hitung rasio kontras semua
   teks terlihat vs latar sebenarnya, tulis `out/<tag>-audit.json`.
+- `audit-hover.js` — dark mode: hover baris pertama tiap tabel, laporkan kontras terendah.
+- `test-order-form.js` — Orders: simpan penjualan (platform/pembayaran tetap), lalu Reset.
 
 Catatan: hanya Chromium (tidak ada WebKit/Safari). `out/` dan `chartjs/` diabaikan git.
