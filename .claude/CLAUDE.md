@@ -73,8 +73,8 @@ URL live: `https://trinemagic.github.io/kairo-ui-v2-review/`
 | `assets/kairo-runtime.js` | Lazy loader lama | Tidak dimuat oleh `index.html` saat ini. |
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
-Versi terakhir: `kairo.css?v=20.10.149`, `kairo-v3.css?v=3.14.2`,
-`kairo-v3.js?v=3.14.0`, `kairo-app.js?v=20.10.154`.
+Versi terakhir: `kairo.css?v=20.10.149`, `kairo-v3.css?v=3.15.0`,
+`kairo-v3.js?v=3.15.0`, `kairo-app.js?v=20.10.155`.
 
 **Halaman app** = `main.container > section.section` dengan id:
 `dashboard`, `performance`, `input` (Orders), `customers`, `promo` (dibuat via JS),
@@ -99,6 +99,19 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   Teks "Store aktif sejak…" sudah dihapus beserta kodenya.
 - **Sidebar mini** 76px (`--sidebar-mini:96px`), ikon tidak bergeser saat transisi.
 - **Toolbar:** Orders/Customers/Promo/Petty Cash/Settings hanya tombol Refresh (CSS `:has`).
+  Refresh & Export pakai ikon SVG (`.kairo-btn-icon`; jangan glyph ⬇ — iOS jadi emoji).
+  Mobile: filter tanggal 4 kolom + Refresh/Export 2 kolom, semua tinggi 42px.
+- **Refresh:** `kairoManualRefresh(btn)` (kairo-app.js) = reset masters + `refreshAll()` +
+  event `kairo:refreshed` + toast "Data diperbarui", ikon berputar. **Jangan** `location.reload()`:
+  `persistSession:false` → reload = logout. Promo ikut lewat `loadPageData('promo')`
+  (`window.kairoRenderPromos`).
+- **Bottom nav mobile (semua template):** Dashboard · History · Orders (tombol tengah besar,
+  `kairo-mobile-orders-main` + `data-mobile-tab="input"`, dipakai loader seller) · Notifikasi ·
+  More (Performance, Customer Database, Promo, Withdraw, Petty Cash, Settings). History = halaman
+  Dashboard dengan `body.kairo-mobile-history` (CSS hanya tampilkan kartu riwayat; riwayat
+  disembunyikan dari Dashboard mobile). Notifikasi mobile = sheet `#kairo-mobile-notif-sheet`,
+  isi/dot/seen dari `window.kairoNotifications` (kairo-v3.js), sama dengan lonceng desktop.
+  Sheet "Tambah" (quick actions) sudah dihapus.
 - **Dashboard:** "Halo, {display_name}!" (`window.kairoDisplayName`), jam real-time,
   quick access sudah dihapus.
 - **Kartu statistik Dashboard (compact):** ikon kiri + label & angka bertumpuk, tanpa
@@ -180,5 +193,11 @@ cd .claude/testing && node example.js                                # lihat REA
   (`plan='pro'`, `feature_key='open_close_store'`, `enabled`).
 - Light mode: beberapa teks abu-abu kontras ±4.0 (sedikit di bawah 4.5) — belum
   diubah, tunggu keputusan owner.
+- Performa (audit Okt 2026): idle di luar Dashboard 0 re-layout; di Dashboard 1×/detik (jam).
+  Header Dashboard hanya ditulis ulang bila nama/workspace/tanggal berubah (dulu tiap
+  perubahan class body); jam berhenti saat tidak terlihat; cek notifikasi dilewati saat tab
+  tersembunyi. Ukur dengan CDP `Performance.getMetrics` (LayoutCount/TaskDuration).
+- Light mode bottom nav: label abu-abu 3,8 dan label aktif pink 2,0 (warna lama kairo.css) —
+  belum diubah, ikut keputusan light mode.
 - Kriteria notifikasi (24 jam, seen per perangkat) adalah keputusan Claude — owner
   boleh minta ubah.
