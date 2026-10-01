@@ -315,6 +315,27 @@ html.kairo-v3 body.saas-dark #app-shell .table-wrap {
   background: var(--v3-surface) !important;
 }
 
+html.kairo-v3 body.saas-dark #app-shell .customer-db-name-btn {
+  color: color-mix(in srgb, var(--v3-primary) 55%, #fff) !important;
+}
+
+html.kairo-v3 body.saas-dark #app-shell .btn-gold {
+  background: var(--v3-gold-soft) !important;
+  border-color: #6b5826 !important;
+  color: #f1d58c !important;
+}
+
+/* Row hover: kairo.css paints the hovered <tr> near-white (also in dark) and only gives the
+   cells a 3.5% overlay, so light text disappeared. Dark mode uses one solid, dark highlight. */
+html.kairo-v3 body.saas-dark #app-shell table tbody tr:hover {
+  background: transparent !important;
+}
+
+html.kairo-v3 body.saas-dark #app-shell #dashboard table tbody tr:nth-child(n):hover > td,
+html.kairo-v3 body.saas-dark #app-shell table tbody tr:nth-child(n):hover > td {
+  background: var(--v3-sky) !important;
+}
+
 html.kairo-v3 body.saas-dark #app-shell :is(.sh-select-trigger, .sh-select-label, .sh-select-option) {
   color: var(--v3-ink) !important;
 }

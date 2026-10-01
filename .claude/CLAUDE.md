@@ -73,8 +73,8 @@ URL live: `https://trinemagic.github.io/kairo-ui-v2-review/`
 | `assets/kairo-runtime.js` | Lazy loader lama | Tidak dimuat oleh `index.html` saat ini. |
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
-Versi terakhir: `kairo.css?v=20.10.149`, `kairo-v3.css?v=3.13.0`,
-`kairo-v3.js?v=3.13.0`, `kairo-app.js?v=20.10.151`.
+Versi terakhir: `kairo.css?v=20.10.149`, `kairo-v3.css?v=3.13.1`,
+`kairo-v3.js?v=3.13.0`, `kairo-app.js?v=20.10.152`.
 
 **Halaman app** = `main.container > section.section` dengan id:
 `dashboard`, `performance`, `input` (Orders), `customers`, `promo` (dibuat via JS),
@@ -108,6 +108,10 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   (24 jam terakhir), ≥30 menit merah. Seen: `kairo_notif_seen_v1_<workspace>`.
 - **Dark mode:** sudah diaudit 0 temuan kontras; transisi tema pakai View Transitions.
 - **Performance:** semua mengikuti filter tanggal utama (`getRange()`).
+- **Orders:** setelah simpan berhasil, Platform & Metode Pembayaran tetap terpilih
+  (`resetTxForm({keepChannel:true})`); tombol Reset manual mengosongkan semua.
+- **Dark mode hover tabel:** sorotan gelap solid (`--v3-sky`) — jangan biarkan
+  `tr:hover` dari `kairo.css` (latar hampir putih) tembus.
 
 ---
 
@@ -123,6 +127,10 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   termuat — logika paket harus dihitung ulang tiap render, bukan sekali kunci.
 - `kairo.css` memberi latar putih/zebra ke `td`/`.table-wrap` dengan specificity
   tinggi (`:has(#history-date-filter)`, `tr:nth-child(2n) td`) — cek dark mode.
+- Audit kontras statis tidak menangkap state **hover/fokus** — selalu uji juga dengan
+  `audit-hover.js`. Warna dari `color-mix` muncul sebagai `color(srgb …)`.
+- `form.reset()` tidak memicu `change`, sedangkan select kustom (`.sh-select-*`)
+  hanya memperbarui label saat `change` → setelah reset, dispatch `change`.
 - Saat tes, `document.querySelector('.btn-green')` pertama adalah tombol login di
   dialog, bukan Refresh — pakai selector yang spesifik.
 - Topik: tabel `topic_masters` mungkin tidak punya kolom `code`; simpan topik sudah
@@ -144,7 +152,9 @@ cd .claude/testing && node example.js                                # lihat REA
   (jangan `playwright install`). Tidak ada WebKit → **Safari tidak bisa diuji**.
 - Chart.js untuk halaman Performance: `npm pack chart.js@4` lalu route
   `**/npm/chart.js` ke `package/dist/chart.umd.min.js` (registry npm bisa diakses).
-- `audit-contrast.js` = audit kontras WCAG per menu (dark/light).
+- `audit-contrast.js` = audit kontras WCAG per menu (dark/light);
+  `audit-hover.js` = kontras baris tabel saat di-hover (dark);
+  `test-order-form.js` = alur simpan penjualan Orders.
 - Uji desktop 1440 & mobile 390, light & dark, dan kirim screenshot ke owner.
 
 ---
