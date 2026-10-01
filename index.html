@@ -15,7 +15,7 @@
 <link rel="preload" as="font" type="font/woff2" href="assets/fonts/plus-jakarta-sans-latin-wght-normal.woff2" crossorigin>
 
 <!-- Stable auth boot order. Feature-heavy libraries remain lazy inside kairo-app.js. -->
-<script defer src="assets/kairo-v3.js?v=3.10.0"></script>
+<script defer src="assets/kairo-v3.js?v=3.13.0"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 
@@ -62,7 +62,7 @@
 
 
 <link rel="stylesheet" href="assets/kairo.css?v=20.10.148">
-<link rel="stylesheet" href="assets/kairo-v3.css?v=3.12.0">
+<link rel="stylesheet" href="assets/kairo-v3.css?v=3.13.0">
 </head>
 
 <body class="auth-locked">
@@ -819,6 +819,7 @@
           <div class="form-group full"><label class="label">Nama Bisnis / Workspace</label><input id="settings-workspace-name" class="input" type="text" maxlength="80" required></div>
           <div class="form-group full"><label class="label">Slogan Dashboard</label><input id="settings-dashboard-slogan" class="input" type="text" maxlength="140" placeholder="Tulis slogan workspace lo"></div>
           <div class="form-group full"><label class="label">Logo URL</label><input id="settings-logo-url" class="input" type="url" placeholder="https://..."></div>
+          <div class="full kairo-layout-colors-head"><div><div class="kairo-layout-colors-title">Tampilan Layout Dashboard</div><div class="page-sub">Warna Utama dipakai tombol, filter tanggal, dan menu aktif di sidebar. Warna Aksen dipakai untuk sorotan dan latar tabel.</div></div><button type="button" id="settings-color-reset" class="btn btn-light">Reset</button></div>
           <div class="form-group"><label class="label">Warna Utama</label><div class="color-field"><input id="settings-primary-color" type="color" value="#696F41"><input id="settings-primary-text" class="input" value="#696F41" maxlength="7"></div></div>
           <div class="form-group"><label class="label">Warna Aksen</label><div class="color-field"><input id="settings-accent-color" type="color" value="#EA97A9"><input id="settings-accent-text" class="input" value="#EA97A9" maxlength="7"></div></div>
           <div class="full" id="settings-branding-lock" style="display:none"><div class="pro-lock">Logo dan slogan tersedia mulai paket PLUS. Warna Utama dan Warna Aksen tetap dapat digunakan di paket BASIC.</div></div>
@@ -1047,6 +1048,6 @@
 
 
 
-<script defer src="assets/kairo-app.js?v=20.10.150"></script>
+<script defer src="assets/kairo-app.js?v=20.10.151"></script>
 </body>
 </html>

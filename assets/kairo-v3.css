@@ -26,6 +26,7 @@ html.kairo-v3{
   --v3-primary:#25b9b0;
   --v3-primary-dark:#168f8a;
   --v3-primary-soft:#e6f8f6;
+  --v3-on-primary:#082f35;
   --v3-sky:#f1f9fb;
   --v3-sky-strong:#b8dfe9;
   --v3-gold:#dfa94a;
@@ -255,6 +256,55 @@ html.kairo-v3 .saas-side-meta {
   }
 }
 
+/* Settings > Workspace & Branding: heading + Reset above the layout colours. */
+html.kairo-v3 .kairo-layout-colors-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 4px;
+  padding-top: 14px;
+  border-top: 1px solid var(--v3-line);
+}
+
+html.kairo-v3 .kairo-layout-colors-title {
+  color: var(--v3-ink);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+html.kairo-v3 .kairo-layout-colors-head .page-sub {
+  margin-top: 3px;
+  font-size: 12px;
+}
+
+html.kairo-v3 .kairo-layout-colors-head .btn {
+  flex: none;
+  min-height: 36px;
+  padding: 0 14px;
+}
+
+/* Settings > Topik: rows have no price column, so they get their own 3-column grid
+   (kairo.css forced the 4-column package grid and stacked the buttons). Actions sit in
+   one row like Package & Harga. */
+html.kairo-v3 #settings .settings-master-row.settings-topic-master-row {
+  grid-template-columns: minmax(110px, .7fr) minmax(240px, 2.5fr) auto !important;
+}
+
+html.kairo-v3 #settings .settings-topic-master-row .settings-master-actions {
+  flex-wrap: nowrap;
+}
+
+@media (max-width: 700px) {
+  html.kairo-v3 #settings .settings-master-row.settings-topic-master-row {
+    grid-template-columns: 1fr 1.4fr !important;
+  }
+
+  html.kairo-v3 #settings .settings-topic-master-row .settings-master-actions {
+    flex-wrap: wrap;
+  }
+}
+
 /* Page toolbar: the period filter and Export Excel only apply to Dashboard,
    Performance and Withdraw. Orders, Customer Database, Promo, Petty Cash and
    Settings keep just Refresh. Plan-independent, so it applies to every package. */
@@ -304,9 +354,9 @@ html.kairo-v3 #kairo-v3-dashboard-head {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 28px;
+  gap: 20px;
   margin: 0 0 var(--v3-section-gap);
-  padding: 22px 24px;
+  padding: 16px 22px;
   border: 1px solid var(--v3-line);
   border-radius: var(--v3-r-lg);
   background: var(--v3-sky);
@@ -320,9 +370,9 @@ html.kairo-v3 #kairo-v3-dashboard-head small {
 }
 
 html.kairo-v3 #kairo-v3-dashboard-head h2 {
-  margin: 5px 0 4px;
+  margin: 4px 0 3px;
   color: var(--v3-ink);
-  font-size: clamp(20px, 2.3vw, 26px);
+  font-size: clamp(19px, 2vw, 23px);
   line-height: 1.2;
   letter-spacing: -.035em;
 }
@@ -333,40 +383,36 @@ html.kairo-v3 #kairo-v3-dashboard-head p {
   font-size: 11px;
 }
 
-html.kairo-v3 .v3-quick {
+html.kairo-v3 .kairo-live-clock {
   display: grid;
-  grid-template-columns: repeat(2, minmax(132px, 1fr));
-  gap: 8px;
-}
-
-html.kairo-v3 .v3-quick button {
-  min-height: 38px;
-  padding: 8px 11px;
+  justify-items: end;
+  gap: 2px;
+  min-width: 128px;
+  padding: 8px 14px;
   border: 1px solid var(--v3-line);
   border-radius: var(--v3-r-sm);
   background: var(--v3-surface);
+}
+
+html.kairo-v3 .kairo-live-clock strong {
   color: var(--v3-ink);
-  font: 750 10px/1.25 "Plus Jakarta Sans", Arial, sans-serif;
-  text-align: left;
-  cursor: pointer;
-  transition: border-color .16s ease, box-shadow .16s ease, background .16s ease;
+  font-size: 22px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.02em;
+  line-height: 1.1;
 }
 
-html.kairo-v3 .v3-quick button:first-child {
-  background: var(--v3-primary);
-  border-color: var(--v3-primary);
-  color: #082f35;
+html.kairo-v3 .kairo-live-clock span {
+  color: var(--v3-muted);
+  font-size: 11px;
+  font-weight: 700;
 }
 
-html.kairo-v3 .v3-quick button:hover {
-  border-color: var(--v3-primary);
-  box-shadow: 0 5px 14px rgba(23, 58, 89, .07);
-}
 
-html.kairo-v3 .v3-quick button:focus-visible {
-  outline: 3px solid color-mix(in srgb, var(--v3-primary) 25%, transparent);
-  outline-offset: 2px;
-}
+
+
+
 
 /* Stat cards: icon/context, label, value, secondary information. */
 html.kairo-v3 #dashboard .kpi-grid {
@@ -1122,7 +1168,7 @@ html.kairo-v3 .btn-green,
 html.kairo-v3 .period-btn.active {
   background: var(--v3-primary) !important;
   border-color: var(--v3-primary) !important;
-  color: #082f35 !important;
+  color: var(--v3-on-primary) !important;
 }
 
 html.kairo-v3 .btn-gold {
@@ -1228,14 +1274,6 @@ html.kairo-v3 body.saas-dark .seller-history-card {
   html.kairo-v3 {
     --v3-page-gutter: 24px;
   }
-
-  html.kairo-v3 #kairo-v3-dashboard-head {
-    grid-template-columns: 1fr;
-  }
-
-  html.kairo-v3 .v3-quick {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
 }
 
 @media (max-width: 900px) {
@@ -1261,10 +1299,6 @@ html.kairo-v3 body.saas-dark .seller-history-card {
     padding: 19px;
   }
 
-  html.kairo-v3 .v3-quick {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
   html.kairo-v3 #dashboard .kpi-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
@@ -1283,16 +1317,22 @@ html.kairo-v3 body.saas-dark .seller-history-card {
 }
 
 @media (max-width: 520px) {
+  html.kairo-v3 #kairo-v3-dashboard-head {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  html.kairo-v3 .kairo-live-clock {
+    justify-items: start;
+    justify-self: start;
+  }
+
   html.kairo-v3 #dashboard .kpi-grid {
     grid-template-columns: 1fr !important;
   }
 
   html.kairo-v3 #dashboard .kpi {
     min-height: 142px;
-  }
-
-  html.kairo-v3 .v3-quick {
-    width: 100%;
   }
 }
 

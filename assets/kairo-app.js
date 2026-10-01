@@ -317,6 +317,7 @@ async function handleAuthSession(session){
       await db.auth.signOut();
       return;
     }
+    window.kairoDisplayName=session.user.user_metadata?.display_name || session.user.user_metadata?.username || "";
     document.body.classList.remove("auth-locked");
     document.body.classList.add("authenticated");
     document.getElementById("user-email").textContent=session.user.user_metadata?.username || session.user.email || "";
@@ -725,11 +726,19 @@ function appendNewMasterRow(type){
   row.innerHTML=`<div class="form-group"><label class="label">Kode <span style="font-weight:500;color:var(--muted)">(opsional)</span></label><input class="input settings-master-code" maxlength="30" placeholder="${type==='package'?'PKG':type==='addon'?'ADD':'TOP'}"></div><div class="form-group master-name-field"><label class="label">Nama ${escapeHtml(m.label)}</label><input class="input settings-master-name" maxlength="100" placeholder="Nama ${escapeHtml(m.label)}"></div>${m.priced?'<div class="form-group"><label class="label">Harga</label><input class="input settings-master-price" type="number" min="0" step="1000" value="0"></div>':''}<div class="settings-master-actions"><button class="btn btn-green settings-master-create" type="button">Tambah</button><button class="btn btn-light settings-master-cancel" type="button">Batal</button></div>`;
   if(list.querySelector('.empty'))list.innerHTML=''; list.appendChild(row); row.querySelector('.settings-master-code')?.focus();
 }
+// Topics never use a code in Orders; older topic_masters tables may not even have the column.
+// Send code for topics only when filled, and retry once without it if the database rejects it.
+async function writeMasterPayload(m,payload,write){
+  if(!m.priced&&!payload.code)delete payload.code;
+  let res=await write(payload);
+  if(res.error&&!m.priced&&('code' in payload)&&/code/i.test(String(res.error.message||''))){const {code,...rest}=payload;res=await write(rest);}
+  return res;
+}
 async function saveExistingMasterRow(row){
-  try{requireWorkspaceRole(['owner','admin'],'mengubah master data'); const type=row.dataset.masterType,id=row.dataset.masterId,code=row.querySelector('.settings-master-code').value.trim(),name=row.querySelector('.settings-master-name').value.trim(),m=masterTypeMeta(type); if(!name)throw new Error('Nama wajib diisi.'); const payload={code:code||null,name}; if(m.priced){const price=Number(row.querySelector('.settings-master-price').value);if(!Number.isFinite(price)||price<0)throw new Error('Harga tidak valid.');payload.price=price} const {error}=await db.from(m.table).update(payload).eq('workspace_id',requireWorkspaceId()).eq('id',id); if(error)throw error; showToast(`${m.label} berhasil diperbarui.`); await loadMasters();}catch(err){showToast(err.message||'Gagal menyimpan master data.',true)}
+  try{requireWorkspaceRole(['owner','admin'],'mengubah master data'); const type=row.dataset.masterType,id=row.dataset.masterId,code=row.querySelector('.settings-master-code').value.trim(),name=row.querySelector('.settings-master-name').value.trim(),m=masterTypeMeta(type); if(!name)throw new Error('Nama wajib diisi.'); const payload={code:code||null,name}; if(m.priced){const price=Number(row.querySelector('.settings-master-price').value);if(!Number.isFinite(price)||price<0)throw new Error('Harga tidak valid.');payload.price=price} const {error}=await writeMasterPayload(m,payload,data=>db.from(m.table).update(data).eq('workspace_id',requireWorkspaceId()).eq('id',id)); if(error)throw error; showToast(`${m.label} berhasil diperbarui.`); await loadMasters();}catch(err){showToast(err.message||'Gagal menyimpan master data.',true)}
 }
 async function createMasterRow(row){
-  try{requireWorkspaceRole(['owner','admin'],'menambah master data'); const type=row.dataset.masterType,code=row.querySelector('.settings-master-code').value.trim(),name=row.querySelector('.settings-master-name').value.trim(),m=masterTypeMeta(type); if(!name)throw new Error('Nama wajib diisi.'); const payload={workspace_id:requireWorkspaceId(),code:code||null,name,is_active:true}; if(m.priced){const price=Number(row.querySelector('.settings-master-price').value);if(!Number.isFinite(price)||price<0)throw new Error('Harga tidak valid.');payload.price=price} const {error}=await db.from(m.table).insert(payload); if(error)throw error; showToast(`${m.label} berhasil ditambahkan.`); await loadMasters();}catch(err){showToast(err.message||'Gagal menambah master data.',true)}
+  try{requireWorkspaceRole(['owner','admin'],'menambah master data'); const type=row.dataset.masterType,code=row.querySelector('.settings-master-code').value.trim(),name=row.querySelector('.settings-master-name').value.trim(),m=masterTypeMeta(type); if(!name)throw new Error('Nama wajib diisi.'); const payload={workspace_id:requireWorkspaceId(),code:code||null,name,is_active:true}; if(m.priced){const price=Number(row.querySelector('.settings-master-price').value);if(!Number.isFinite(price)||price<0)throw new Error('Harga tidak valid.');payload.price=price} const {error}=await writeMasterPayload(m,payload,data=>db.from(m.table).insert(data)); if(error)throw error; showToast(`${m.label} berhasil ditambahkan.`); await loadMasters();}catch(err){showToast(err.message||'Gagal menambah master data.',true)}
 }
 async function deleteMasterRow(row){
   const type=row.dataset.masterType,id=row.dataset.masterId,name=row.querySelector('.settings-master-name')?.value||'',m=masterTypeMeta(type);

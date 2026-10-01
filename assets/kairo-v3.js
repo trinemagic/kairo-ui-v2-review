@@ -176,11 +176,6 @@
     });
   }
 
-  function openTab(tab) {
-    if (tab === 'settings') q('#saas-settings-btn')?.click();
-    else q(`#saas-sidebar .tab[data-tab="${tab}"], .v19-nav .tab[data-tab="${tab}"]`)?.click();
-  }
-
   function workspaceName() {
     const label = q('#saas-workspace-pill')?.textContent?.trim();
     return label || 'Workspace';
@@ -257,6 +252,27 @@
     decorateStatCards();
   }
 
+  // Real-time clock in the dashboard greeting card, in the device's own time zone.
+  let liveClockTimer = null;
+
+  function tickLiveClock() {
+    const time = q('[data-kairo-clock-time]');
+    if (!time || document.hidden) return;
+    const now = new Date();
+    time.textContent = new Intl.DateTimeFormat('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).format(now);
+    const zone = q('[data-kairo-clock-zone]');
+    if (zone) {
+      const part = new Intl.DateTimeFormat('id-ID', { timeZoneName: 'short' }).formatToParts(now).find(item => item.type === 'timeZoneName');
+      zone.textContent = part?.value || Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+    }
+  }
+
+  function startLiveClock() {
+    if (liveClockTimer) return;
+    liveClockTimer = setInterval(tickLiveClock, 1000);
+    document.addEventListener('visibilitychange', tickLiveClock);
+  }
+
   function mountDashboardHeader() {
     if (!document.body.classList.contains('authenticated')) return;
     const dashboard = q('#dashboard');
@@ -268,8 +284,10 @@
       dashboard.prepend(header);
     }
     const date = new Intl.DateTimeFormat('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(new Date());
-    header.innerHTML = `<div><small>WORKSPACE HARI INI</small><h2>Halo, siap rapihin bisnismu?</h2><p>${escapeHtml(workspaceName())} · ${escapeHtml(date)}</p></div><div class="v3-quick" aria-label="Aksi cepat"><button type="button" data-v3-tab="input">＋ Tambah Order</button><button type="button" data-v3-tab="customers">Tambah Customer</button><button type="button" data-v3-tab="cash">Catat Pengeluaran</button><button type="button" data-v3-tab="promo">Buat Promo</button></div>`;
-    qa('[data-v3-tab]', header).forEach(button => button.addEventListener('click', () => openTab(button.dataset.v3Tab)));
+    const name = String(window.kairoDisplayName || '').trim();
+    header.innerHTML = `<div><small>WORKSPACE HARI INI</small><h2>${name ? `Halo, ${escapeHtml(name)}!` : 'Halo!'}</h2><p>${escapeHtml(workspaceName())} · ${escapeHtml(date)}</p></div><div class="kairo-live-clock"><strong data-kairo-clock-time></strong><span data-kairo-clock-zone></span></div>`;
+    tickLiveClock();
+    startLiveClock();
     enhanceDashboardFoundation();
     [120, 600, 1600].forEach(delay => setTimeout(enhanceDashboardFoundation, delay));
   }
@@ -451,10 +469,68 @@
     });
   }
 
+  // Layout colours: the v3 tokens (buttons, period filter, sidebar accents) follow the
+  // workspace brand colours that kairo-app.js writes to --brand-primary/--brand-accent.
+  // The legacy defaults count as "not customised" and keep the KAIRO identity.
+  const KAIRO_IDENTITY = { primary: '#25B9B0', accent: '#173A59' };
+  const LEGACY_BRAND = ['#696F41', '#EA97A9'];
+  const LAYOUT_TOKENS = ['--v3-primary', '--v3-primary-dark', '--v3-primary-soft', '--v3-on-primary', '--v3-sky', '--v3-sky-strong'];
+
+  function brandHex(name) {
+    const value = document.documentElement.style.getPropertyValue(name).trim().toUpperCase();
+    return /^#[0-9A-F]{6}$/.test(value) && !LEGACY_BRAND.includes(value) ? value : '';
+  }
+
+  function readableOn(hex) {
+    const [r, g, b] = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16) / 255)
+      .map(c => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.36 ? '#0b2533' : '#ffffff';
+  }
+
+  function syncLayoutColors() {
+    const root = document.documentElement;
+    const primary = brandHex('--brand-primary');
+    const accent = brandHex('--brand-accent');
+    const next = {};
+    if (primary) {
+      next['--v3-primary'] = primary;
+      next['--v3-primary-dark'] = `color-mix(in srgb, ${primary} 72%, #000)`;
+      next['--v3-primary-soft'] = `color-mix(in srgb, ${primary} 13%, #fff)`;
+      next['--v3-on-primary'] = readableOn(primary);
+    }
+    if (accent) {
+      next['--v3-sky'] = `color-mix(in srgb, ${accent} 7%, #fff)`;
+      next['--v3-sky-strong'] = `color-mix(in srgb, ${accent} 30%, #fff)`;
+    }
+    LAYOUT_TOKENS.forEach(token => {
+      const value = next[token] || '';
+      if (root.style.getPropertyValue(token).trim() === value) return;
+      if (value) root.style.setProperty(token, value);
+      else root.style.removeProperty(token);
+    });
+  }
+
+  function bindLayoutColorReset() {
+    q('#settings-color-reset')?.addEventListener('click', () => {
+      if (typeof window.canManageSettings === 'function' && !window.canManageSettings()) return;
+      [['#settings-primary-text', '#settings-primary-color', KAIRO_IDENTITY.primary], ['#settings-accent-text', '#settings-accent-color', KAIRO_IDENTITY.accent]]
+        .forEach(([textSel, colorSel, value]) => {
+          const text = q(textSel);
+          const color = q(colorSel);
+          if (color) color.value = value;
+          if (text) { text.value = value; text.dispatchEvent(new Event('input', { bubbles: true })); }
+        });
+      if (typeof window.showToast === 'function') window.showToast('Warna dikembalikan ke identitas KAIRO. Klik Simpan Pengaturan untuk menerapkan.');
+    });
+  }
+
   function boot() {
     const landing = q('#kairo-entry');
     if (landing) bindLanding(landing);
     mountDashboardHeader();
+    syncLayoutColors();
+    new MutationObserver(syncLayoutColors).observe(document.documentElement, { attributes: true, attributeFilter: ['style'] });
+    bindLayoutColorReset();
     const historyBody = q('#tx-table-body');
     if (historyBody) {
       enhanceHistoryRows();
