@@ -892,23 +892,22 @@ function shiftStats(shift){
   return {revenue:rows.reduce((s,t)=>s+Number(t.total_price||0),0),count:rows.length};
 }
 function renderShiftDashboard(){
-  const status=document.getElementById("shift-status-text"); if(!status)return;
-  const dot=document.getElementById("shift-status-dot"),openBtn=document.getElementById("open-shift-btn"),closeBtn=document.getElementById("close-shift-btn");
+  const body=document.getElementById("shift-history-body"); if(!body)return;
+  const openBtn=document.getElementById("open-shift-btn"),closeBtn=document.getElementById("close-shift-btn");
   const stats=shiftStats(currentShift);
   document.getElementById("shift-current-revenue").textContent=rupiah(stats.revenue);
   document.getElementById("shift-current-count").textContent=stats.count.toLocaleString("id-ID");
   document.getElementById("shift-opened-at").textContent=currentShift?formatDateTimeID(currentShift.opened_at):"-";
   document.getElementById("shift-duration").textContent=currentShift?formatDurationBetween(currentShift.opened_at):"-";
-  status.textContent=currentShift?`Store aktif sejak ${formatDateTimeID(currentShift.opened_at)}`:"Store sedang tutup";
-  dot.classList.toggle("open",!!currentShift);
   openBtn.disabled=!!currentShift; closeBtn.disabled=!currentShift;
 
-  const body=document.getElementById("shift-history-body");
-  const visibleShifts=shiftHistoryCollapsed?shifts.filter(s=>!s.closed_at):shifts;
+  // Minimized: only today's sessions (opened today) plus a session that is still open.
+  const today=todayISO();
+  const visibleShifts=shiftHistoryCollapsed?shifts.filter(s=>!s.closed_at||localISODate(new Date(s.opened_at))===today):shifts;
   if(!shifts.length){
     body.innerHTML=`<tr><td colspan="7" class="empty">Belum ada riwayat Open Store.</td></tr>`;
   }else if(!visibleShifts.length){
-    body.innerHTML=`<tr><td colspan="7" class="empty">Riwayat Open Store yang sudah ditutup sedang disembunyikan. Klik Expand untuk melihat semuanya.</td></tr>`;
+    body.innerHTML=`<tr><td colspan="7" class="empty">Belum ada riwayat Open Store hari ini. Klik Expand untuk melihat semuanya.</td></tr>`;
   }else{
     body.innerHTML=visibleShifts.map(s=>{
       const st=shiftStats(s),isOpen=!s.closed_at;

@@ -371,10 +371,6 @@ html.kairo-v3 #dashboard > #seller-dashboard-alert-row {
 
 /* Open Store card: controls + session stats on the left, Riwayat Open Store on the right.
    Same markup and IDs as before (kairo-app.js keeps updating them); layout only. */
-html.kairo-v3 #dashboard > .shift-card .shift-live {
-  display: none;
-}
-
 html.kairo-v3 #dashboard > .shift-card .shift-top {
   flex-direction: column;
   align-items: stretch;
@@ -402,11 +398,6 @@ html.kairo-v3 #dashboard > .shift-card .shift-stat-label {
 
 html.kairo-v3 #dashboard > .shift-card .shift-history-head .card-title {
   font-size: 15px !important;
-}
-
-/* Transaksi per sesi is not in the new layout; the session count stays in the left stats. */
-html.kairo-v3 #dashboard > .shift-card .shift-history :is(th, td):nth-child(4) {
-  display: none;
 }
 
 html.kairo-v3 #dashboard > .shift-card .shift-history :is(th, td) {
@@ -444,6 +435,119 @@ html.kairo-v3 #dashboard > .shift-card .shift-history td.empty {
     grid-area: history;
     align-self: stretch;
     margin-top: 0;
+  }
+}
+
+/* Mobile: each Riwayat Open Store row becomes a card.
+   Omzet ........ Status
+   Mulai          Tutup
+   Durasi         Transaksi
+   [Hapus] */
+@media (max-width: 700px) {
+  html.kairo-v3 #dashboard > .shift-card .shift-history .table-wrap {
+    max-height: none;
+    overflow: visible;
+    border: 0;
+    background: transparent !important;
+  }
+
+  html.kairo-v3 #dashboard > .shift-card .shift-history table {
+    display: block;
+    min-width: 0;
+  }
+
+  html.kairo-v3 #dashboard > .shift-card .shift-history thead {
+    display: none;
+  }
+
+  html.kairo-v3 #dashboard > .shift-card .shift-history tbody {
+    display: grid;
+    gap: 10px;
+  }
+
+  html.kairo-v3 #dashboard > .shift-card .shift-history tbody tr {
+    display: grid;
+    padding: 12px 14px;
+    border: 1px solid var(--v3-line);
+    border-radius: var(--v3-r-sm);
+    background: var(--v3-surface);
+    grid-template-areas:
+      "omzet status"
+      "mulai tutup"
+      "durasi trx"
+      "aksi aksi";
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 10px 12px;
+  }
+
+  html.kairo-v3 #dashboard > .shift-card .shift-history tbody tr.shift-row-active {
+    border-color: var(--v3-primary);
+  }
+
+  html.kairo-v3 body #dashboard > .shift-card .shift-history tbody td {
+    display: block;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    font-size: 13px;
+    text-align: left;
+    white-space: normal;
+  }
+
+  /* Beats kairo.css cell, zebra and active-row backgrounds so each card has one surface. */
+  html.kairo-v3 body #dashboard > .shift-card .shift-history tbody tr:nth-child(n) td {
+    background: transparent !important;
+  }
+
+  html.kairo-v3 #dashboard > .shift-card .shift-history tbody td:is(:nth-child(1), :nth-child(2), :nth-child(3), :nth-child(4))::before {
+    display: block;
+    margin-bottom: 2px;
+    color: var(--v3-muted);
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  html.kairo-v3 #dashboard > .shift-card .shift-history tbody td:nth-child(1) { grid-area: mulai; }
+  html.kairo-v3 #dashboard > .shift-card .shift-history tbody td:nth-child(1)::before { content: "Mulai"; }
+  html.kairo-v3 #dashboard > .shift-card .shift-history tbody td:nth-child(2) { grid-area: tutup; }
+  html.kairo-v3 #dashboard > .shift-card .shift-history tbody td:nth-child(2)::before { content: "Tutup"; }
+  html.kairo-v3 #dashboard > .shift-card .shift-history tbody td:nth-child(3) { grid-area: durasi; }
+  html.kairo-v3 #dashboard > .shift-card .shift-history tbody td:nth-child(3)::before { content: "Durasi"; }
+  html.kairo-v3 #dashboard > .shift-card .shift-history tbody td:nth-child(4) { grid-area: trx; }
+  html.kairo-v3 #dashboard > .shift-card .shift-history tbody td:nth-child(4)::before { content: "Transaksi"; }
+
+  html.kairo-v3 body #dashboard > .shift-card .shift-history tbody td:nth-child(5) {
+    grid-area: omzet;
+    align-self: center;
+    font-size: 16px;
+  }
+
+  html.kairo-v3 body #dashboard > .shift-card .shift-history tbody td:nth-child(6) {
+    grid-area: status;
+    align-self: center;
+    justify-self: end;
+  }
+
+  html.kairo-v3 body #dashboard > .shift-card .shift-history tbody td:nth-child(7) {
+    grid-area: aksi;
+    padding-top: 10px;
+    border-top: 1px solid var(--v3-line);
+  }
+
+  html.kairo-v3 #dashboard > .shift-card .shift-history tbody td:nth-child(7) .shift-delete-btn {
+    width: 100%;
+    min-height: 34px;
+  }
+
+  html.kairo-v3 body #dashboard > .shift-card .shift-history tbody td.empty {
+    grid-column: 1 / -1;
+    padding: 10px 0;
+    color: var(--v3-muted);
+    text-align: center;
+  }
+
+  html.kairo-v3 #dashboard > .shift-card .shift-history tbody td.empty::before {
+    content: none;
   }
 }
 
