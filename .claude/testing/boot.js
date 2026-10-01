@@ -6,7 +6,7 @@ const path = require('path');
 const MOCK = fs.readFileSync(path.join(__dirname, 'mockdb.js'), 'utf8');
 const BASE = process.env.KAIRO_URL || 'http://localhost:8123/index.html';
 
-async function bootApp(browser, { width = 1440, height = 900, mobile = false, plan = 'pro', seed = '' } = {}) {
+async function bootApp(browser, { width = 1440, height = 900, mobile = false, plan = 'pro', seed = '', template = '' } = {}) {
   const ctx = await browser.newContext({ viewport: { width, height }, isMobile: mobile, hasTouch: mobile });
   const page = await ctx.newPage();
   page.errs = [];
@@ -27,6 +27,17 @@ async function bootApp(browser, { width = 1440, height = 900, mobile = false, pl
     try { window.hydrateSaasUi && window.hydrateSaasUi(); } catch (e) { console.warn(e); }
   }, { plan, seed });
   await page.waitForTimeout(500);
+  // template: 'seller' loads Seller App Premium the way kairo-app.js does for
+  // business_template=digital_subscription (the mock session has no user metadata).
+  if (template === 'seller') {
+    await page.evaluate(() => {
+      document.documentElement.dataset.businessTemplate = 'digital_subscription';
+      const l = document.createElement('link'); l.rel = 'stylesheet'; l.id = 'seller-app-premium-css'; l.href = 'assets/templates/seller-app-premium.css'; document.head.appendChild(l);
+      const s = document.createElement('script'); s.id = 'seller-app-premium-js'; s.src = 'assets/templates/seller-app-premium.js'; document.body.appendChild(s);
+    });
+    await page.waitForFunction(() => document.body.classList.contains('seller-app-premium'), null, { timeout: 8000 });
+    await page.waitForTimeout(500);
+  }
   return page;
 }
 
