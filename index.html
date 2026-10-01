@@ -15,7 +15,7 @@
 <link rel="preload" as="font" type="font/woff2" href="assets/fonts/plus-jakarta-sans-latin-wght-normal.woff2" crossorigin>
 
 <!-- Stable auth boot order. Feature-heavy libraries remain lazy inside kairo-app.js. -->
-<script defer src="assets/kairo-v3.js?v=3.14.0"></script>
+<script defer src="assets/kairo-v3.js?v=3.15.0"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 
@@ -62,7 +62,7 @@
 
 
 <link rel="stylesheet" href="assets/kairo.css?v=20.10.149">
-<link rel="stylesheet" href="assets/kairo-v3.css?v=3.14.2">
+<link rel="stylesheet" href="assets/kairo-v3.css?v=3.15.0">
 </head>
 
 <body class="auth-locked">
@@ -420,8 +420,8 @@
         <span style="font-size:12px;color:var(--muted)">s/d</span>
         <input id="filter-to" class="control" type="date" title="Tanggal akhir">
       </div>
-      <button class="btn btn-green" onclick="refreshAll()">↻ Refresh</button>
-      <button class="btn btn-gold" onclick="exportExcel()">⬇ Export Excel</button>
+      <button class="btn btn-green kairo-refresh-btn" onclick="kairoManualRefresh(this)"><svg class="kairo-btn-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v5h-5"/></svg><span>Refresh</span></button>
+      <button class="btn btn-gold" onclick="exportExcel()"><svg class="kairo-btn-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg><span>Export Excel</span></button>
     </div>
   </div>
 
@@ -1048,6 +1048,6 @@
 
 
 
-<script defer src="assets/kairo-app.js?v=20.10.154"></script>
+<script defer src="assets/kairo-app.js?v=20.10.155"></script>
 </body>
 </html>

@@ -1104,6 +1104,8 @@ async function loadPageData(tabName=currentAppPage(),options={}){
       await Promise.all([fetchCashExpenses(),fetchCashInjections(),fetchFinancialSnapshot()]);renderCashExpenses();
     }else if(tabName==='settings'){
       await ensureMasters();hydrateSaasUi();
+    }else if(tabName==='promo'){
+      await window.kairoRenderPromos?.();
     }
     if(status)status.textContent='● Database terhubung';
   }catch(error){
@@ -1114,6 +1116,19 @@ async function refreshAll(){
   if(refreshInFlight)return refreshInFlight;
   refreshInFlight=loadPageData(currentAppPage(),{force:true}).finally(()=>{refreshInFlight=null});
   return refreshInFlight;
+}
+// Toolbar Refresh: re-reads everything the open page shows (masters included) without reloading
+// the browser page, because sessions are not persisted and a full reload would log the user out.
+async function kairoManualRefresh(btn){
+  if(btn?.classList.contains('is-refreshing'))return;
+  btn?.classList.add('is-refreshing');if(btn)btn.disabled=true;
+  try{
+    mastersWorkspaceId='';
+    await refreshAll();
+    document.dispatchEvent(new CustomEvent('kairo:refreshed'));
+    showToast('Data diperbarui.');
+  }catch(_e){/* loadPageData already reported the error */}
+  finally{btn?.classList.remove('is-refreshing');if(btn)btn.disabled=false;}
 }
 
 /* =========================
@@ -4587,6 +4602,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
    const t=document.querySelector('main.container .page-title'),sub=document.querySelector('main.container .page-sub');if(t)t.textContent='Promo';if(sub)sub.textContent='Kelola diskon package dan topik untuk workspace aktif.';
    renderPromos();window.scrollTo({top:0,behavior:'auto'});
  }
+ window.kairoRenderPromos=renderPromos;
 
  function promoTargetHint(){const type=document.getElementById('promo-target-type')?.value;const h=document.getElementById('promo-target-hint');const input=document.getElementById('promo-target-value');if(!h||!input)return;const map={all_packages:'Semua package akan menerima diskon.',package:'Isi nama package persis atau sebagian.',topic:'Isi nama topik yang ingin diberi diskon.',package_keyword:'Contoh: ketik “general” untuk semua package yang mengandung keyword general.'};h.textContent=map[type]||'';input.disabled=type==='all_packages';if(type==='all_packages')input.value='';}
  async function renderPromos(){
@@ -4844,14 +4860,17 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
     payout:`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19 19 5M10 5h9v9M5 7v12h12"/></svg>`,
     cash:`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7.5h16a2 2 0 0 1 2 2v9H5a2 2 0 0 1-2-2z"/><path d="M3 8V6a2 2 0 0 1 2-2h13M16 13h5"/><circle cx="16" cy="13" r=".8"/></svg>`,
     more:`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>`,
-    plus:`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>`,
+    history:`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 12a8.5 8.5 0 1 0 2.5-6"/><path d="M3 4v4h4"/><path d="M12 8v4.5l3 2"/></svg>`,
+    bell:`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9a6 6 0 0 1 12 0c0 6 2.5 7.5 2.5 7.5h-17S6 15 6 9Z"/><path d="M10 19.5a2.2 2.2 0 0 0 4 0"/></svg>`,
     close:`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>`,
     lock:`<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>`,
     user:`<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>`,
     moon:`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 15.2A8.5 8.5 0 0 1 8.8 4a8.5 8.5 0 1 0 11.2 11.2Z"/></svg>`,
     sun:`<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>`
   };
-  const labels={performance:'Performance',customers:'Customer Database',payout:'Withdraw',cash:'Petty Cash'};
+  const labels={performance:'Performance',customers:'Customer Database',promo:'Promo',payout:'Withdraw',cash:'Petty Cash',settings:'Settings'};
+  // Tabs reached through the More sheet (they light up the More button when open).
+  const MORE_TABS=['performance','customers','promo','payout','cash','settings'];
   let booted=false;
   let resizeTimer=0;
 
@@ -4863,18 +4882,32 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
     document.getElementById('kairo-mobile-more-btn')?.setAttribute('aria-expanded','false');
     document.body.classList.remove('kairo-mobile-sheet-open');
   }
-  function closeQuickActions(){
-    const s=document.getElementById('kairo-mobile-quick-sheet');
+  function closeNotif(){
+    const s=document.getElementById('kairo-mobile-notif-sheet');
     if(s){s.classList.remove('open');s.setAttribute('aria-hidden','true')}
-    document.getElementById('kairo-mobile-quick-btn')?.setAttribute('aria-expanded','false');
+    document.getElementById('kairo-mobile-notif-btn')?.setAttribute('aria-expanded','false');
     document.body.classList.remove('kairo-mobile-sheet-open');
   }
+  // Mobile "History": the Dashboard page showing only its transaction history card
+  // (kairo-v3.css hides that card on the mobile Dashboard and everything else here).
+  function setHistoryMode(on){
+    document.body.classList.toggle('kairo-mobile-history',on);
+    if(on){
+      const t=document.querySelector('main.container .page-title'),sub=document.querySelector('main.container .page-sub');
+      if(t)t.textContent='History';if(sub)sub.textContent='Riwayat transaksi workspace.';
+    }
+  }
   function navTo(tab){
+    const history=tab==='history';
+    if(history)tab='dashboard';
     if(tab==='settings') document.getElementById('saas-settings-btn')?.click();
     else document.querySelector(`#saas-sidebar .tab[data-tab="${tab}"],.v19-nav .tab[data-tab="${tab}"]`)?.click();
-    closeMore();
+    setHistoryMode(history&&document.querySelector('.section.active')?.id==='dashboard');
+    if(history)window.scrollTo({top:0,behavior:'auto'});
+    closeMore();closeNotif();
     setTimeout(sync,30);
   }
+  window.kairoOpenMobileHistory=()=>navTo('history');
   function rebuildBottomNav(){
     let bar=document.getElementById('saas-mobile-bottom');
     if(!bar){bar=document.createElement('nav');bar.id='saas-mobile-bottom';document.body.appendChild(bar)}
@@ -4882,9 +4915,9 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
     bar.innerHTML='';
     const items=[
       {tab:'dashboard',label:'Dashboard'},
-      {tab:'input',label:'Orders'},
-      {kind:'quick',label:'Tambah',center:true},
-      {tab:'promo',label:'Promo'},
+      {tab:'history',label:'History'},
+      {tab:'input',label:'Orders',center:true},
+      {kind:'notif',label:'Notifikasi'},
       {kind:'more',label:'More'}
     ];
     items.forEach(item=>{
@@ -4896,22 +4929,24 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
         b.addEventListener('click',()=>{
           const s=document.getElementById('kairo-mobile-more-sheet');if(!s)return;
           const open=!s.classList.contains('open');
-          closeQuickActions();
+          closeNotif();
           s.classList.toggle('open',open);s.setAttribute('aria-hidden',open?'false':'true');
           b.setAttribute('aria-expanded',open?'true':'false');document.body.classList.toggle('kairo-mobile-sheet-open',open);
         });
-      }else if(item.kind==='quick'){
-        b.id='kairo-mobile-quick-btn';b.setAttribute('aria-expanded','false');
-        b.innerHTML=`<span>${icons.plus}</span><span>${item.label}</span>`;
+      }else if(item.kind==='notif'){
+        // Same list, rules and "seen" state as the desktop bell (kairo-v3.js renders into this sheet).
+        b.id='kairo-mobile-notif-btn';b.setAttribute('aria-expanded','false');b.setAttribute('aria-label','Notifikasi');
+        b.innerHTML=`<span class="kairo-mobile-notif-icon">${icons.bell}<span class="kairo-notif-dot" hidden></span></span><span>${item.label}</span>`;
         b.addEventListener('click',()=>{
-          const s=document.getElementById('kairo-mobile-quick-sheet');if(!s)return;
+          const s=document.getElementById('kairo-mobile-notif-sheet');if(!s)return;
           const open=!s.classList.contains('open');
           closeMore();
           s.classList.toggle('open',open);s.setAttribute('aria-hidden',open?'false':'true');
           b.setAttribute('aria-expanded',open?'true':'false');document.body.classList.toggle('kairo-mobile-sheet-open',open);
+          if(open)window.kairoNotifications?.open();
         });
       }else{
-        b.dataset.mobileTab=item.tab;b.innerHTML=`<span>${icons[item.tab]}</span><span>${item.label}</span>`;
+        b.dataset.mobileTab=item.tab;b.innerHTML=`<span>${icons[item.tab==='history'?'history':item.tab]}</span><span>${item.label}</span>`;
         b.addEventListener('click',()=>navTo(item.tab));
       }
       bar.appendChild(b);
@@ -4923,26 +4958,22 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
     wrap.innerHTML=`<button type="button" class="kairo-mobile-more-backdrop" aria-label="Tutup menu"></button><section class="kairo-mobile-more-panel" role="dialog" aria-modal="true" aria-label="Menu lainnya"><div class="kairo-mobile-sheet-handle"></div><div class="kairo-mobile-sheet-head"><div><strong>Menu Lainnya</strong><small>Akses cepat ke fitur workspace</small></div><button type="button" class="kairo-mobile-sheet-close" aria-label="Tutup menu">${icons.close}</button></div><div class="kairo-mobile-more-grid"></div><div class="kairo-mobile-sheet-tip"><span>✦</span><div><strong>Quick access</strong><small>Menu mengikuti akses paket dan role workspace.</small></div></div></section>`;
     document.body.appendChild(wrap);
     const grid=wrap.querySelector('.kairo-mobile-more-grid');
-    ['performance','customers','payout','cash','settings'].forEach(tab=>{
+    MORE_TABS.forEach(tab=>{
       const b=document.createElement('button');b.type='button';b.className='saas-mobile-nav-btn kairo-mobile-more-item';b.dataset.mobileTab=tab;
       b.innerHTML=`<span>${icons[tab]}</span><span>${labels[tab]}</span>`;b.addEventListener('click',()=>navTo(tab));grid.appendChild(b);
     });
     wrap.querySelector('.kairo-mobile-more-backdrop')?.addEventListener('click',closeMore);
     wrap.querySelector('.kairo-mobile-sheet-close')?.addEventListener('click',closeMore);
   }
-  function buildQuickActions(){
-    document.getElementById('kairo-mobile-quick-sheet')?.remove();
-    const wrap=document.createElement('div');wrap.id='kairo-mobile-quick-sheet';wrap.setAttribute('aria-hidden','true');
-    wrap.innerHTML=`<button type="button" class="kairo-mobile-more-backdrop" aria-label="Tutup aksi cepat"></button><section class="kairo-mobile-more-panel kairo-mobile-quick-panel" role="dialog" aria-modal="true" aria-label="Aksi cepat"><div class="kairo-mobile-sheet-handle"></div><div class="kairo-mobile-sheet-head"><div><strong>Aksi Cepat</strong><small>Mulai pekerjaan yang paling sering dipakai</small></div><button type="button" class="kairo-mobile-sheet-close" aria-label="Tutup aksi cepat">${icons.close}</button></div><div class="kairo-mobile-quick-grid"></div></section>`;
+  function buildNotifSheet(){
+    document.getElementById('kairo-mobile-notif-sheet')?.remove();
+    const wrap=document.createElement('div');wrap.id='kairo-mobile-notif-sheet';wrap.setAttribute('aria-hidden','true');
+    wrap.innerHTML=`<button type="button" class="kairo-mobile-more-backdrop" aria-label="Tutup notifikasi"></button><section class="kairo-mobile-more-panel kairo-mobile-notif-panel" role="dialog" aria-modal="true" aria-label="Notifikasi order"><div class="kairo-mobile-sheet-handle"></div><div class="kairo-mobile-sheet-head"><div><strong>Order belum tuntas</strong><small>Lebih dari 5 menit sejak Start Reading</small></div><button type="button" class="kairo-mobile-sheet-close" aria-label="Tutup notifikasi">${icons.close}</button></div><div class="kairo-notif-list" id="kairo-mobile-notif-list"></div><button type="button" class="kairo-notif-open">Lihat Riwayat Transaksi</button></section>`;
     document.body.appendChild(wrap);
-    const grid=wrap.querySelector('.kairo-mobile-quick-grid');
-    [{tab:'input',label:'Tambah Order',icon:'input'},{tab:'customers',label:'Tambah Customer',icon:'customers'},{tab:'cash',label:'Catat Pengeluaran',icon:'cash'},{tab:'promo',label:'Buat Promo',icon:'promo'}].forEach(item=>{
-      const b=document.createElement('button');b.type='button';b.className='kairo-mobile-quick-item';
-      b.innerHTML=`<span>${icons[item.icon]}</span><strong>${item.label}</strong>`;
-      b.addEventListener('click',()=>{navTo(item.tab);closeQuickActions()});grid.appendChild(b);
-    });
-    wrap.querySelector('.kairo-mobile-more-backdrop')?.addEventListener('click',closeQuickActions);
-    wrap.querySelector('.kairo-mobile-sheet-close')?.addEventListener('click',closeQuickActions);
+    wrap.querySelector('.kairo-mobile-more-backdrop')?.addEventListener('click',closeNotif);
+    wrap.querySelector('.kairo-mobile-sheet-close')?.addEventListener('click',closeNotif);
+    wrap.querySelector('.kairo-notif-open')?.addEventListener('click',()=>navTo('history'));
+    window.kairoNotifications?.render();
   }
   function desktopLogo(){
     return document.querySelector('#app-shell .header .brand-logo')?.getAttribute('src')||document.querySelector('#saas-sidebar .brand-logo')?.getAttribute('src')||'';
@@ -5032,18 +5063,20 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
   }
   function sync(){
     if(!isMobile()||!isAuthed())return;
-    const active=document.querySelector('.section.active')?.id||'dashboard';
+    const section=document.querySelector('.section.active')?.id||'dashboard';
+    if(section!=='dashboard')setHistoryMode(false);
+    const active=section==='dashboard'&&document.body.classList.contains('kairo-mobile-history')?'history':section;
     document.querySelectorAll('#saas-mobile-bottom .saas-mobile-nav-btn[data-mobile-tab],#kairo-mobile-more-sheet .saas-mobile-nav-btn[data-mobile-tab]').forEach(b=>b.classList.toggle('active',b.dataset.mobileTab===active));
-    document.getElementById('kairo-mobile-more-btn')?.classList.toggle('active',['performance','customers','payout','cash','settings'].includes(active));
+    document.getElementById('kairo-mobile-more-btn')?.classList.toggle('active',MORE_TABS.includes(active));
     if(active==='settings'){if(!document.getElementById('kairo-mobile-settings-hub'))buildSettings();syncSettings()}
     syncPlan();
   }
   function boot(){
     if(!isMobile()||!isAuthed())return;
-    if(!booted){rebuildBottomNav();buildMore();buildQuickActions();buildBrandbar();buildSettings();booted=true}else{
+    if(!booted){rebuildBottomNav();buildMore();buildNotifSheet();buildBrandbar();buildSettings();booted=true}else{
       if(!document.getElementById('saas-mobile-bottom'))rebuildBottomNav();
       if(!document.getElementById('kairo-mobile-more-sheet'))buildMore();
-      if(!document.getElementById('kairo-mobile-quick-sheet'))buildQuickActions();
+      if(!document.getElementById('kairo-mobile-notif-sheet'))buildNotifSheet();
       if(!document.getElementById('kairo-mobile-brandbar'))buildBrandbar();
     }
     sync();
@@ -5051,10 +5084,11 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
   function teardown(){
     if(isMobile())return;
     closeMore();
-    closeQuickActions();
+    closeNotif();
+    setHistoryMode(false);
     document.getElementById('kairo-mobile-brandbar')?.remove();
     document.getElementById('kairo-mobile-more-sheet')?.remove();
-    document.getElementById('kairo-mobile-quick-sheet')?.remove();
+    document.getElementById('kairo-mobile-notif-sheet')?.remove();
     document.getElementById('kairo-mobile-settings-hub')?.remove();
     booted=false;
   }
@@ -5066,7 +5100,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
     try{window.hydrateSaasUi=wrapped;hydrateSaasUi=wrapped}catch(e){window.hydrateSaasUi=wrapped}
   }
   window.addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>{if(isMobile())boot();else teardown()},120)});
-  document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeMore();closeQuickActions()}});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeMore();closeNotif()}});
   // One harmless fallback for already-authenticated sessions; no observer/polling.
   setTimeout(()=>{if(isAuthed())boot()},900);
 })();
