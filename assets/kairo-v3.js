@@ -184,32 +184,22 @@
   const statPresentation = {
     'kpi-revenue': {
       tone: 'primary',
-      caption: 'Pendapatan sesuai periode aktif',
       icon: '<path d="M4 7h16v10H4z"/><path d="M8 11h8M8 14h5"/>'
     },
     'seller-kpi-profit': {
       tone: 'gold',
-      caption: 'Pendapatan setelah modal produk',
       icon: '<path d="M5 16 10 11l3 3 6-7"/><path d="M14 7h5v5"/>'
     },
     'kpi-tx': {
       tone: 'sky',
-      caption: 'Order pada periode aktif',
       icon: '<path d="M6 5h12v14H6z"/><path d="M9 9h6M9 13h6"/>'
-    },
-    'kpi-best': {
-      tone: 'gold',
-      caption: 'Produk paling sering terjual',
-      icon: '<path d="M6 4h12v16H6z"/><path d="m9 10 2 2 4-4"/>'
     },
     'kpi-cash': {
       tone: 'primary',
-      caption: 'Saldo operasional tercatat',
       icon: '<path d="M4 7h16v11H4z"/><path d="M16 11h4v3h-4z"/>'
     },
     'kpi-rights': {
       tone: 'sky',
-      caption: 'Ringkasan bulan berjalan',
       icon: '<path d="M5 5h14v14H5z"/><path d="M8 3v4M16 3v4M8 11h3M13 11h3M8 15h3"/>'
     }
   };
@@ -220,7 +210,6 @@
       if (!value) return;
       const config = statPresentation[value.id] || {
         tone: 'sky',
-        caption: 'Ringkasan workspace aktif',
         icon: '<circle cx="12" cy="12" r="7"/><path d="M12 8v4l3 2"/>'
       };
       card.classList.add('kairo-stat-card');
@@ -232,13 +221,6 @@
         icon.innerHTML = `<svg viewBox="0 0 24 24">${config.icon}</svg>`;
         card.prepend(icon);
       }
-      let caption = q('.kairo-stat-caption', card);
-      if (!caption) {
-        caption = document.createElement('small');
-        caption.className = 'kairo-stat-caption';
-        card.append(caption);
-      }
-      if (caption.textContent !== config.caption) caption.textContent = config.caption;
     });
   }
 

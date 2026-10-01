@@ -1260,15 +1260,8 @@ function currentCalendarMonthRevenue(){
 }
 function renderDashboard(){
   const revenue=transactions.reduce((s,t)=>s+Number(t.total_price||0),0);
-  const counts={};
-  transactions.forEach(t=>{
-    const items=Array.isArray(t.order_items)&&t.order_items.length?t.order_items:[{name:t.package_code||"-",qty:Number(t.package_qty||1)}];
-    items.forEach(x=>{const name=x.name||x.code||"-"; counts[name]=(counts[name]||0)+Number(x.qty||1);});
-  });
-  const best=Object.entries(counts).sort((a,b)=>b[1]-a[1])[0];
   setKpiValue("kpi-revenue",revenue);
   document.getElementById("kpi-tx").textContent=transactions.length;
-  document.getElementById("kpi-best").textContent=best ? `${best[0]} (${best[1]}x)` : "-";
   setKpiValue("kpi-cash",financialSnapshot.cashBalance);
   setKpiValue("kpi-rights",currentCalendarMonthRevenue());
   renderShares(revenue);
