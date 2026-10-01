@@ -15,7 +15,7 @@
 <link rel="preload" as="font" type="font/woff2" href="assets/fonts/plus-jakarta-sans-latin-wght-normal.woff2" crossorigin>
 
 <!-- Stable auth boot order. Feature-heavy libraries remain lazy inside kairo-app.js. -->
-<script defer src="assets/kairo-v3.js?v=3.10.0"></script>
+<script defer src="assets/kairo-v3.js?v=3.13.0"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 
@@ -61,8 +61,8 @@
 
 
 
-<link rel="stylesheet" href="assets/kairo.css?v=20.10.148">
-<link rel="stylesheet" href="assets/kairo-v3.css?v=3.12.0">
+<link rel="stylesheet" href="assets/kairo.css?v=20.10.149">
+<link rel="stylesheet" href="assets/kairo-v3.css?v=3.13.0">
 </head>
 
 <body class="auth-locked">
@@ -528,7 +528,7 @@
     </div>
 
     <div class="platform-analytics-grid">
-      <div class="card"><div class="toolbar" style="margin-bottom:8px"><div><div class="card-title">Performa Platform Media Sosial</div><div class="page-sub" id="platform-chart-note">Jumlah transaksi berdasarkan platform.</div></div><div class="platform-period-tabs"><button type="button" class="platform-period-btn" data-platform-period="today">Hari Ini</button><button type="button" class="platform-period-btn" data-platform-period="7">7 Hari</button><button type="button" class="platform-period-btn active" data-platform-period="30">30 Hari</button></div></div><div class="chart-wrap"><canvas id="platformChart"></canvas></div></div>
+      <div class="card"><div class="toolbar" style="margin-bottom:8px"><div><div class="card-title">Performa Platform Media Sosial</div><div class="page-sub" id="platform-chart-note">Jumlah transaksi berdasarkan platform.</div></div></div><div class="chart-wrap"><canvas id="platformChart"></canvas></div></div>
       <div class="card"><div class="card-title">Perkembangan Platform</div><div class="page-sub">Dibanding periode sebelumnya dengan durasi yang sama.</div><div id="platform-summary-list" class="platform-summary-list"></div></div>
     </div>
 
@@ -790,8 +790,7 @@
       <form id="cash-expense-form" class="form-grid">
         <div class="form-group"><label class="label">Tanggal</label><input id="cash-expense-date" class="input" type="date" required></div>
         <div class="form-group"><label class="label">Nominal</label><input id="cash-expense-amount" class="input" type="number" min="1" step="1" required></div>
-        <div class="full form-group"><label class="label" for="cash-expense-note">Catatan Pengeluaran</label><textarea id="cash-expense-note" class="input cash-expense-note-input" rows="3" maxlength="500" autocomplete="off" placeholder="Contoh: iklan Instagram" required></textarea><div class="page-sub" style="margin-top:5px">Tulis kebutuhan/penggunaan kas di sini.</div></div>
-        <div class="full page-sub" id="cash-expense-available" style="margin-top:-4px">Saldo kas tersedia: Rp0</div>
+        <div class="full form-group"><label class="label" for="cash-expense-note">Catatan Pengeluaran</label><textarea id="cash-expense-note" class="input cash-expense-note-input" rows="3" maxlength="500" autocomplete="off" placeholder="Contoh: iklan Instagram" required></textarea></div>
         <div class="full actions"><button class="btn btn-pink" type="submit">Catat Pengeluaran Kas</button></div>
       </form>
       <div class="table-wrap" style="margin-top:14px"><table><thead><tr><th>Tanggal</th><th>Keterangan</th><th>Nominal</th></tr></thead><tbody id="cash-expense-table"></tbody></table></div>
@@ -820,6 +819,7 @@
           <div class="form-group full"><label class="label">Nama Bisnis / Workspace</label><input id="settings-workspace-name" class="input" type="text" maxlength="80" required></div>
           <div class="form-group full"><label class="label">Slogan Dashboard</label><input id="settings-dashboard-slogan" class="input" type="text" maxlength="140" placeholder="Tulis slogan workspace lo"></div>
           <div class="form-group full"><label class="label">Logo URL</label><input id="settings-logo-url" class="input" type="url" placeholder="https://..."></div>
+          <div class="full kairo-layout-colors-head"><div><div class="kairo-layout-colors-title">Tampilan Layout Dashboard</div><div class="page-sub">Warna Utama dipakai tombol, filter tanggal, dan menu aktif di sidebar. Warna Aksen dipakai untuk sorotan dan latar tabel.</div></div><button type="button" id="settings-color-reset" class="btn btn-light">Reset</button></div>
           <div class="form-group"><label class="label">Warna Utama</label><div class="color-field"><input id="settings-primary-color" type="color" value="#696F41"><input id="settings-primary-text" class="input" value="#696F41" maxlength="7"></div></div>
           <div class="form-group"><label class="label">Warna Aksen</label><div class="color-field"><input id="settings-accent-color" type="color" value="#EA97A9"><input id="settings-accent-text" class="input" value="#EA97A9" maxlength="7"></div></div>
           <div class="full" id="settings-branding-lock" style="display:none"><div class="pro-lock">Logo dan slogan tersedia mulai paket PLUS. Warna Utama dan Warna Aksen tetap dapat digunakan di paket BASIC.</div></div>
@@ -1048,6 +1048,6 @@
 
 
 
-<script defer src="assets/kairo-app.js?v=20.10.150"></script>
+<script defer src="assets/kairo-app.js?v=20.10.151"></script>
 </body>
 </html>

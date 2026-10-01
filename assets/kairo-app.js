@@ -317,6 +317,7 @@ async function handleAuthSession(session){
       await db.auth.signOut();
       return;
     }
+    window.kairoDisplayName=session.user.user_metadata?.display_name || session.user.user_metadata?.username || "";
     document.body.classList.remove("auth-locked");
     document.body.classList.add("authenticated");
     document.getElementById("user-email").textContent=session.user.user_metadata?.username || session.user.email || "";
@@ -381,7 +382,6 @@ let cashInjections = [];
 let financialSnapshot = { revenue: 0, payoutTotal: 0, cashEarned: 0, cashInjected: 0, cashSpent: 0, cashBalance: 0, payoutByPartner: {} };
 let dailyChart, packageChart, monthlyRevenueChart, topicChart, platformChart;
 let platformAnalyticsRows=[];
-let platformAnalyticsPeriod="30";
 let monthlyRevenueComparison = {
   currentTotal:0,
   previousTotal:0,
@@ -725,11 +725,19 @@ function appendNewMasterRow(type){
   row.innerHTML=`<div class="form-group"><label class="label">Kode <span style="font-weight:500;color:var(--muted)">(opsional)</span></label><input class="input settings-master-code" maxlength="30" placeholder="${type==='package'?'PKG':type==='addon'?'ADD':'TOP'}"></div><div class="form-group master-name-field"><label class="label">Nama ${escapeHtml(m.label)}</label><input class="input settings-master-name" maxlength="100" placeholder="Nama ${escapeHtml(m.label)}"></div>${m.priced?'<div class="form-group"><label class="label">Harga</label><input class="input settings-master-price" type="number" min="0" step="1000" value="0"></div>':''}<div class="settings-master-actions"><button class="btn btn-green settings-master-create" type="button">Tambah</button><button class="btn btn-light settings-master-cancel" type="button">Batal</button></div>`;
   if(list.querySelector('.empty'))list.innerHTML=''; list.appendChild(row); row.querySelector('.settings-master-code')?.focus();
 }
+// Topics never use a code in Orders; older topic_masters tables may not even have the column.
+// Send code for topics only when filled, and retry once without it if the database rejects it.
+async function writeMasterPayload(m,payload,write){
+  if(!m.priced&&!payload.code)delete payload.code;
+  let res=await write(payload);
+  if(res.error&&!m.priced&&('code' in payload)&&/code/i.test(String(res.error.message||''))){const {code,...rest}=payload;res=await write(rest);}
+  return res;
+}
 async function saveExistingMasterRow(row){
-  try{requireWorkspaceRole(['owner','admin'],'mengubah master data'); const type=row.dataset.masterType,id=row.dataset.masterId,code=row.querySelector('.settings-master-code').value.trim(),name=row.querySelector('.settings-master-name').value.trim(),m=masterTypeMeta(type); if(!name)throw new Error('Nama wajib diisi.'); const payload={code:code||null,name}; if(m.priced){const price=Number(row.querySelector('.settings-master-price').value);if(!Number.isFinite(price)||price<0)throw new Error('Harga tidak valid.');payload.price=price} const {error}=await db.from(m.table).update(payload).eq('workspace_id',requireWorkspaceId()).eq('id',id); if(error)throw error; showToast(`${m.label} berhasil diperbarui.`); await loadMasters();}catch(err){showToast(err.message||'Gagal menyimpan master data.',true)}
+  try{requireWorkspaceRole(['owner','admin'],'mengubah master data'); const type=row.dataset.masterType,id=row.dataset.masterId,code=row.querySelector('.settings-master-code').value.trim(),name=row.querySelector('.settings-master-name').value.trim(),m=masterTypeMeta(type); if(!name)throw new Error('Nama wajib diisi.'); const payload={code:code||null,name}; if(m.priced){const price=Number(row.querySelector('.settings-master-price').value);if(!Number.isFinite(price)||price<0)throw new Error('Harga tidak valid.');payload.price=price} const {error}=await writeMasterPayload(m,payload,data=>db.from(m.table).update(data).eq('workspace_id',requireWorkspaceId()).eq('id',id)); if(error)throw error; showToast(`${m.label} berhasil diperbarui.`); await loadMasters();}catch(err){showToast(err.message||'Gagal menyimpan master data.',true)}
 }
 async function createMasterRow(row){
-  try{requireWorkspaceRole(['owner','admin'],'menambah master data'); const type=row.dataset.masterType,code=row.querySelector('.settings-master-code').value.trim(),name=row.querySelector('.settings-master-name').value.trim(),m=masterTypeMeta(type); if(!name)throw new Error('Nama wajib diisi.'); const payload={workspace_id:requireWorkspaceId(),code:code||null,name,is_active:true}; if(m.priced){const price=Number(row.querySelector('.settings-master-price').value);if(!Number.isFinite(price)||price<0)throw new Error('Harga tidak valid.');payload.price=price} const {error}=await db.from(m.table).insert(payload); if(error)throw error; showToast(`${m.label} berhasil ditambahkan.`); await loadMasters();}catch(err){showToast(err.message||'Gagal menambah master data.',true)}
+  try{requireWorkspaceRole(['owner','admin'],'menambah master data'); const type=row.dataset.masterType,code=row.querySelector('.settings-master-code').value.trim(),name=row.querySelector('.settings-master-name').value.trim(),m=masterTypeMeta(type); if(!name)throw new Error('Nama wajib diisi.'); const payload={workspace_id:requireWorkspaceId(),code:code||null,name,is_active:true}; if(m.priced){const price=Number(row.querySelector('.settings-master-price').value);if(!Number.isFinite(price)||price<0)throw new Error('Harga tidak valid.');payload.price=price} const {error}=await writeMasterPayload(m,payload,data=>db.from(m.table).insert(data)); if(error)throw error; showToast(`${m.label} berhasil ditambahkan.`); await loadMasters();}catch(err){showToast(err.message||'Gagal menambah master data.',true)}
 }
 async function deleteMasterRow(row){
   const type=row.dataset.masterType,id=row.dataset.masterId,name=row.querySelector('.settings-master-name')?.value||'',m=masterTypeMeta(type);
@@ -812,8 +820,8 @@ function monthLabel(date){
 }
 
 async function fetchPlatformAnalytics(){
-  const now=new Date(),start=new Date(now.getFullYear(),now.getMonth(),now.getDate()-59),from=localISODate(start),to=localISODate(now);
-  platformAnalyticsRows=(await allTransactions()).filter(row=>String(row.transaction_date||'')>=from&&String(row.transaction_date||'')<=to);
+  const b=platformBounds();
+  platformAnalyticsRows=(await allTransactions()).filter(row=>String(row.transaction_date||'')>=b.previousStart&&String(row.transaction_date||'')<=b.currentEnd);
 }
 function platformKey(v){const s=String(v||"Other").trim(),n=s.toLowerCase();if(n==="x"||n==="twitter")return "X";if(n.includes("instagram"))return "Instagram";if(n.includes("threads"))return "Threads";if(n.includes("tiktok"))return "TikTok";if(n.includes("whatsapp")||n==="wa")return "WhatsApp";if(n.includes("telegram")||n==="tg")return "Telegram";return s||"Other";}
 function chartBrandColors(){
@@ -828,10 +836,11 @@ function chartBrandColors(){
 function platformChartColor(name,previous=false){const c=chartBrandColors();const i=Math.abs([...String(name||"")].reduce((a,ch)=>a+ch.charCodeAt(0),0))%c.palette.length;return previous?c.alpha(c.palette[i],.28):c.palette[i];}
 function platformChartBorder(name){const c=chartBrandColors();const i=Math.abs([...String(name||"")].reduce((a,ch)=>a+ch.charCodeAt(0),0))%c.palette.length;return c.palette[i];}
 function platformLogo(name){const n=platformKey(name);if(n==="X")return `<span class="platform-logo platform-x"><strong>𝕏</strong></span>`;if(n==="Instagram")return `<span class="platform-logo platform-instagram"><svg viewBox="0 0 24 24"><rect x="3.2" y="3.2" width="17.6" height="17.6" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.5" cy="6.7" r="1.1" fill="currentColor"/></svg></span>`;if(n==="Threads")return `<span class="platform-logo platform-threads"><strong>@</strong></span>`;if(n==="TikTok")return `<span class="platform-logo platform-tiktok"><strong>♪</strong></span>`;if(n==="WhatsApp")return `<span class="platform-logo platform-whatsapp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.5a8 8 0 0 1-11.8 7L4 20l1.5-4.1A8 8 0 1 1 20 11.5Z"/><path d="M9 8.5c.7 2.2 2.3 3.8 4.5 4.5"/></svg></span>`;if(n==="Telegram")return `<span class="platform-logo platform-telegram"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 4 3.8 10.6c-.9.4-.8 1.7.1 1.9l4.4 1.3 1.7 5.1c.3.9 1.5 1 2 .2l2.6-3.3 4.4 3.2c.8.6 1.9.1 2.1-.9L22 5.1c.2-.8-.5-1.4-1-1.1Z"/><path d="m8.4 13.8 8.7-6.2-6.9 7.9"/></svg></span>`;return `<span class="platform-logo platform-other">•</span>`;}
-function platformBounds(period){const now=new Date(),today=new Date(now.getFullYear(),now.getMonth(),now.getDate()),days=period==="today"?1:Number(period||30),cs=new Date(today);cs.setDate(today.getDate()-(days-1));const pe=new Date(cs);pe.setDate(cs.getDate()-1);const ps=new Date(pe);ps.setDate(pe.getDate()-(days-1));return{days,currentStart:localISODate(cs),currentEnd:localISODate(today),previousStart:localISODate(ps),previousEnd:localISODate(pe)};}
+// Platform analytics follow the main date filter (getRange); the comparison is the
+// equally long period right before it. Without a start date the last 30 days are used.
+function platformBounds(){const {from,to}=getRange(),parse=v=>{const [y,m,d]=String(v).split('-').map(Number);return new Date(y,m-1,d)};const end=parse(to||todayISO()),start=from?parse(from):new Date(end.getFullYear(),end.getMonth(),end.getDate()-29),days=Math.max(1,Math.round((end-start)/86400000)+1),pe=new Date(start);pe.setDate(start.getDate()-1);const ps=new Date(pe);ps.setDate(pe.getDate()-(days-1));return{days,currentStart:localISODate(start),currentEnd:localISODate(end),previousStart:localISODate(ps),previousEnd:localISODate(pe)};}
 function countPlatforms(from,to){const c={};platformAnalyticsRows.forEach(x=>{const d=String(x.transaction_date||"");if(d<from||d>to)return;const k=platformKey(x.platform);c[k]=(c[k]||0)+1});return c;}
-function renderPlatformAnalytics(){const canvas=document.getElementById("platformChart"),summary=document.getElementById("platform-summary-list");if(!canvas||!summary)return;const b=platformBounds(platformAnalyticsPeriod),cur=countPlatforms(b.currentStart,b.currentEnd),prev=countPlatforms(b.previousStart,b.previousEnd),names=[...new Set([...Object.keys(cur),...Object.keys(prev)])].sort((a,z)=>(cur[z]||0)-(cur[a]||0));document.querySelectorAll(".platform-period-btn").forEach(x=>x.classList.toggle("active",x.dataset.platformPeriod===platformAnalyticsPeriod));const note=document.getElementById("platform-chart-note");if(note)note.textContent=platformAnalyticsPeriod==="today"?"Jumlah transaksi hari ini.":`Jumlah transaksi ${b.days} hari terakhir.`;if(platformChart)platformChart.destroy();platformChart=new Chart(canvas,{type:"bar",data:{labels:names.length?names:["Belum ada data"],datasets:[{label:"Periode Ini",data:names.length?names.map(n=>cur[n]||0):[0],backgroundColor:names.length?names.map(n=>platformChartColor(n,false)):[chartBrandColors().alpha(chartBrandColors().accent,.20)],borderColor:names.length?names.map(n=>platformChartBorder(n)):[chartBrandColors().accent],borderWidth:1.5,borderRadius:9},{label:"Periode Sebelumnya",data:names.length?names.map(n=>prev[n]||0):[0],backgroundColor:names.length?names.map(n=>platformChartColor(n,true)):[chartBrandColors().alpha(chartBrandColors().primary,.16)],borderColor:names.length?names.map(n=>platformChartBorder(n)):[chartBrandColors().primary],borderWidth:1,borderRadius:9}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:10}}},tooltip:{callbacks:{label:x=>`${x.dataset.label}: ${x.parsed.y} transaksi`}}},scales:{y:{beginAtZero:true,ticks:{precision:0}},x:{grid:{display:false}}}}});if(!names.length){summary.innerHTML=`<div class="empty">Belum ada data.</div>`;return}summary.innerHTML=names.map(n=>{const a=cur[n]||0,p=prev[n]||0;let g="-",cl="platform-growth-flat";if(p>0){const q=(a-p)/p*100;g=`${q>0?"+":""}${q.toLocaleString("id-ID",{maximumFractionDigits:1})}%`;cl=q>0?"platform-growth-up":q<0?"platform-growth-down":"platform-growth-flat"}else if(a>0){g="Baru";cl="platform-growth-up"}return `<div class="platform-summary-row">${platformLogo(n)}<div><div class="platform-summary-name">${escapeHtml(n)}</div><div class="platform-summary-meta">${p} → ${a} transaksi</div></div><div class="platform-summary-value ${cl}">${g}</div></div>`}).join("");}
-document.querySelectorAll(".platform-period-btn").forEach(btn=>btn.addEventListener("click",()=>{platformAnalyticsPeriod=btn.dataset.platformPeriod||"30";renderPlatformAnalytics()}));
+function renderPlatformAnalytics(){const canvas=document.getElementById("platformChart"),summary=document.getElementById("platform-summary-list");if(!canvas||!summary)return;const b=platformBounds(),cur=countPlatforms(b.currentStart,b.currentEnd),prev=countPlatforms(b.previousStart,b.previousEnd),names=[...new Set([...Object.keys(cur),...Object.keys(prev)])].sort((a,z)=>(cur[z]||0)-(cur[a]||0));const note=document.getElementById("platform-chart-note");if(note){const fmt=v=>new Intl.DateTimeFormat("id-ID",{day:"numeric",month:"short",year:"numeric"}).format(new Date(`${v}T00:00:00`));note.textContent=b.days===1?`Jumlah transaksi ${fmt(b.currentStart)} (sesuai filter tanggal).`:`Jumlah transaksi ${fmt(b.currentStart)} – ${fmt(b.currentEnd)} (sesuai filter tanggal).`;}if(platformChart)platformChart.destroy();platformChart=new Chart(canvas,{type:"bar",data:{labels:names.length?names:["Belum ada data"],datasets:[{label:"Periode Ini",data:names.length?names.map(n=>cur[n]||0):[0],backgroundColor:names.length?names.map(n=>platformChartColor(n,false)):[chartBrandColors().alpha(chartBrandColors().accent,.20)],borderColor:names.length?names.map(n=>platformChartBorder(n)):[chartBrandColors().accent],borderWidth:1.5,borderRadius:9},{label:"Periode Sebelumnya",data:names.length?names.map(n=>prev[n]||0):[0],backgroundColor:names.length?names.map(n=>platformChartColor(n,true)):[chartBrandColors().alpha(chartBrandColors().primary,.16)],borderColor:names.length?names.map(n=>platformChartBorder(n)):[chartBrandColors().primary],borderWidth:1,borderRadius:9}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:10}}},tooltip:{callbacks:{label:x=>`${x.dataset.label}: ${x.parsed.y} transaksi`}}},scales:{y:{beginAtZero:true,ticks:{precision:0}},x:{grid:{display:false}}}}});if(!names.length){summary.innerHTML=`<div class="empty">Belum ada data.</div>`;return}summary.innerHTML=names.map(n=>{const a=cur[n]||0,p=prev[n]||0;let g="-",cl="platform-growth-flat";if(p>0){const q=(a-p)/p*100;g=`${q>0?"+":""}${q.toLocaleString("id-ID",{maximumFractionDigits:1})}%`;cl=q>0?"platform-growth-up":q<0?"platform-growth-down":"platform-growth-flat"}else if(a>0){g="Baru";cl="platform-growth-up"}return `<div class="platform-summary-row">${platformLogo(n)}<div><div class="platform-summary-name">${escapeHtml(n)}</div><div class="platform-summary-meta">${p} → ${a} transaksi</div></div><div class="platform-summary-value ${cl}">${g}</div></div>`}).join("");}
 
 async function fetchMonthlyRevenueComparison(){
   const now=new Date();
@@ -1088,7 +1097,9 @@ async function loadPageData(tabName=currentAppPage(),options={}){
     }else if(tabName==='customers'){
       await loadCustomerDirectory();renderCustomerDatabase();
     }else if(tabName==='payout'){
-      await ensureMasters();await Promise.all([fetchPayouts(),fetchFinancialSnapshot()]);renderPayouts();
+      // Profit Sharing (#share-summary) lives on this page: period share follows the date filter
+      // (transactions) and "Sisa hak" follows payouts, so both are reloaded and re-rendered here.
+      await ensureMasters();await Promise.all([fetchTransactions(),fetchPayouts(),fetchFinancialSnapshot()]);renderPayouts();renderShares();
     }else if(tabName==='cash'){
       await Promise.all([fetchCashExpenses(),fetchCashInjections(),fetchFinancialSnapshot()]);renderCashExpenses();
     }else if(tabName==='settings'){
@@ -1599,10 +1610,6 @@ function renderCashExpenses(){
   const cashBalanceEl=document.getElementById("cash-balance");
   cashBalanceEl.textContent=rupiah(financialSnapshot.cashBalance);
   cashBalanceEl.style.color=financialSnapshot.cashBalance<0 ? "#c62828" : "";
-  const expenseAvailableEl=document.getElementById("cash-expense-available");
-  if(expenseAvailableEl){
-    expenseAvailableEl.textContent=`Saldo kas tersedia untuk pengeluaran: ${rupiah(Math.max(0,financialSnapshot.cashBalance))}`;
-  }
   document.getElementById("cash-expense-table").innerHTML=cashExpenses.length ? cashExpenses.map(e=>`<tr><td>${escapeHtml(e.expense_date||"-")}</td><td>${escapeHtml(e.description||"-")}</td><td><strong>${rupiah(e.amount)}</strong></td></tr>`).join("") : `<tr><td colspan="3" class="empty">Belum ada pengeluaran kas pada periode ini.</td></tr>`;
   document.getElementById("cash-injection-table").innerHTML=cashInjections.length ? cashInjections.map(e=>`<tr><td>${escapeHtml(e.injection_date||"-")}</td><td>${escapeHtml(e.source||"-")}</td><td>${escapeHtml(e.description||"-")}</td><td><strong>${rupiah(e.amount)}</strong></td></tr>`).join("") : `<tr><td colspan="4" class="empty">Belum ada pemasukan kas dari luar pendapatan pada periode ini.</td></tr>`;
 }
@@ -3928,7 +3935,12 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
   let transitionTimer=null;
   function apply(mode,{animate=false}={}){
     const dark=mode==='dark';
-    if(animate){
+    // Preferred: one GPU cross-fade of the whole page (View Transitions) - every element
+    // switches together and nothing is animated per element. Older browsers keep the
+    // per-surface colour transition below.
+    const reduceMotion=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    const useViewTransition=animate&&!reduceMotion&&typeof document.startViewTransition==='function';
+    if(animate&&!useViewTransition){
       document.body.classList.add('saas-theme-transition');
       clearTimeout(transitionTimer);
       transitionTimer=setTimeout(()=>document.body.classList.remove('saas-theme-transition'),620);
@@ -3944,7 +3956,8 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
         try{[window.dailyChart,window.packageChart,window.monthlyRevenueChart,window.topicChart,window.platformChart].forEach(c=>c?.update?.())}catch(e){}
       },90);
     };
-    if(animate) requestAnimationFrame(()=>requestAnimationFrame(commit)); else commit();
+    if(useViewTransition) document.startViewTransition(commit);
+    else if(animate) requestAnimationFrame(()=>requestAnimationFrame(commit)); else commit();
   }
   apply(localStorage.getItem(KEY)==='dark'?'dark':'light');
   btn.addEventListener('click',()=>apply(document.body.classList.contains('saas-dark')?'light':'dark',{animate:true}));

@@ -26,6 +26,7 @@ html.kairo-v3{
   --v3-primary:#25b9b0;
   --v3-primary-dark:#168f8a;
   --v3-primary-soft:#e6f8f6;
+  --v3-on-primary:#082f35;
   --v3-sky:#f1f9fb;
   --v3-sky-strong:#b8dfe9;
   --v3-gold:#dfa94a;
@@ -255,6 +256,294 @@ html.kairo-v3 .saas-side-meta {
   }
 }
 
+/* Settings > Workspace & Branding: heading + Reset above the layout colours. */
+html.kairo-v3 .kairo-layout-colors-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 4px;
+  padding-top: 14px;
+  border-top: 1px solid var(--v3-line);
+}
+
+html.kairo-v3 .kairo-layout-colors-title {
+  color: var(--v3-ink);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+html.kairo-v3 .kairo-layout-colors-head .page-sub {
+  margin-top: 3px;
+  font-size: 12px;
+}
+
+html.kairo-v3 .kairo-layout-colors-head .btn {
+  flex: none;
+  min-height: 36px;
+  padding: 0 14px;
+}
+
+/* Settings > Topik: rows have no price column, so they get their own 3-column grid
+   (kairo.css forced the 4-column package grid and stacked the buttons). Actions sit in
+   one row like Package & Harga. */
+html.kairo-v3 #settings .settings-master-row.settings-topic-master-row {
+  grid-template-columns: minmax(110px, .7fr) minmax(240px, 2.5fr) auto !important;
+}
+
+html.kairo-v3 #settings .settings-topic-master-row .settings-master-actions {
+  flex-wrap: nowrap;
+}
+
+@media (max-width: 700px) {
+  html.kairo-v3 #settings .settings-master-row.settings-topic-master-row {
+    grid-template-columns: 1fr 1.4fr !important;
+  }
+
+  html.kairo-v3 #settings .settings-topic-master-row .settings-master-actions {
+    flex-wrap: wrap;
+  }
+}
+
+/* Accent buttons: text colour picked for contrast against the workspace accent. */
+html.kairo-v3 .btn-pink {
+  color: var(--kairo-on-accent, #fff) !important;
+}
+
+/* Dark mode contrast fixes (audited per menu). Light mode is unchanged. */
+html.kairo-v3 body.saas-dark #app-shell .table-wrap {
+  background: var(--v3-surface) !important;
+}
+
+html.kairo-v3 body.saas-dark #app-shell :is(.sh-select-trigger, .sh-select-label, .sh-select-option) {
+  color: var(--v3-ink) !important;
+}
+
+html.kairo-v3 body.saas-dark #app-shell .sh-select-trigger.placeholder,
+html.kairo-v3 body.saas-dark #app-shell .sh-select-trigger.placeholder .sh-select-label {
+  color: var(--v3-muted) !important;
+}
+
+html.kairo-v3 body.saas-dark #app-shell :is(.sh-select-option:hover, .sh-select-option:focus-visible, .sh-select-option.selected) {
+  background: var(--v3-sky) !important;
+  color: var(--v3-ink) !important;
+}
+
+html.kairo-v3 body.saas-dark #app-shell .notice {
+  background: var(--v3-gold-soft) !important;
+  border-color: #6b5826 !important;
+  color: #f1d58c !important;
+}
+
+html.kairo-v3 body.saas-dark #app-shell :is(#tx-total, .total-box, .total-box strong, .customer-selected-note) {
+  color: var(--v3-ink) !important;
+}
+
+html.kairo-v3 body.saas-dark #app-shell .shift-stat-value {
+  color: var(--v3-ink) !important;
+}
+
+html.kairo-v3 body.saas-dark #app-shell .platform-growth-up {
+  color: #7fd6a8 !important;
+}
+
+html.kairo-v3 body.saas-dark #app-shell .platform-growth-down {
+  color: #ff9aa5 !important;
+}
+
+html.kairo-v3 body.saas-dark #app-shell .platform-growth-flat {
+  color: var(--v3-muted) !important;
+}
+
+html.kairo-v3 body.saas-dark #close-shift-btn:not(:disabled) {
+  background: rgba(229, 72, 77, .16) !important;
+  border-color: rgba(229, 72, 77, .42) !important;
+  color: #ffa3ab !important;
+}
+
+html.kairo-v3 body.saas-dark #kairo-v3-dashboard-head small {
+  color: var(--v3-primary);
+}
+
+html.kairo-v3 body.saas-dark #app-shell :is(#saas-workspace-pill, #saas-role-pill) {
+  background: var(--v3-surface-subtle) !important;
+  border-color: var(--v3-line) !important;
+  color: var(--v3-ink) !important;
+}
+
+html.kairo-v3 body.saas-dark #app-shell #saas-plan-pill {
+  background: var(--v3-gold-soft) !important;
+  border-color: #6b5826 !important;
+  color: #f1d58c !important;
+}
+
+html.kairo-v3 body.saas-dark #app-shell #saas-plan-pill :is(strong, small) {
+  color: inherit !important;
+}
+
+html.kairo-v3 body.saas-dark #app-shell #saas-plan-pill small {
+  opacity: .82;
+}
+
+/* Light/dark switch: a short whole-page cross-fade (View Transitions API). */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: .32s;
+  animation-timing-function: cubic-bezier(.2, .7, .2, 1);
+}
+
+/* Header notifications (bell next to the dark-mode toggle). */
+html.kairo-v3 .kairo-notif {
+  position: relative;
+  display: flex;
+}
+
+html.kairo-v3 .kairo-notif-btn {
+  position: relative;
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border: 1px solid var(--v3-line);
+  border-radius: 11px;
+  background: var(--v3-surface);
+  color: var(--v3-ink);
+  cursor: pointer;
+}
+
+html.kairo-v3 .kairo-notif-btn:hover,
+html.kairo-v3 .kairo-notif-btn[aria-expanded="true"] {
+  background: var(--v3-sky);
+}
+
+html.kairo-v3 .kairo-notif-btn svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.9;
+}
+
+html.kairo-v3 .kairo-notif-dot {
+  position: absolute;
+  top: 7px;
+  right: 8px;
+  width: 8px;
+  height: 8px;
+  border: 2px solid var(--v3-surface);
+  border-radius: 50%;
+  background: #e5484d;
+}
+
+html.kairo-v3 .kairo-notif-dot[hidden] {
+  display: none;
+}
+
+html.kairo-v3 .kairo-notif-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 120;
+  width: min(330px, calc(100vw - 24px));
+  padding: 12px;
+  border: 1px solid var(--v3-line);
+  border-radius: var(--v3-r-md);
+  background: var(--v3-surface);
+  box-shadow: 0 18px 44px rgba(13, 30, 45, .18);
+  color: var(--v3-ink);
+}
+
+html.kairo-v3 .kairo-notif-panel[hidden] {
+  display: none;
+}
+
+html.kairo-v3 .kairo-notif-head {
+  display: grid;
+  gap: 2px;
+  padding: 2px 4px 10px;
+  border-bottom: 1px solid var(--v3-line);
+}
+
+html.kairo-v3 .kairo-notif-head strong {
+  font-size: 14px;
+}
+
+html.kairo-v3 .kairo-notif-head span,
+html.kairo-v3 .kairo-notif-empty {
+  color: var(--v3-muted);
+  font-size: 12px;
+}
+
+html.kairo-v3 .kairo-notif-list {
+  display: grid;
+  max-height: 300px;
+  overflow: auto;
+  padding: 6px 0;
+}
+
+html.kairo-v3 .kairo-notif-empty {
+  padding: 14px 4px;
+  text-align: center;
+}
+
+html.kairo-v3 .kairo-notif-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 6px;
+  border-radius: 10px;
+}
+
+html.kairo-v3 .kairo-notif-item + .kairo-notif-item {
+  border-top: 1px solid var(--v3-line);
+}
+
+html.kairo-v3 .kairo-notif-item div {
+  display: grid;
+  min-width: 0;
+}
+
+html.kairo-v3 .kairo-notif-item strong {
+  overflow: hidden;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+html.kairo-v3 .kairo-notif-item span {
+  color: var(--v3-muted);
+  font-size: 11px;
+}
+
+html.kairo-v3 .kairo-notif-item em {
+  flex: none;
+  color: var(--v3-muted);
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 700;
+}
+
+html.kairo-v3 .kairo-notif-item.is-urgent em {
+  color: #e5484d;
+}
+
+html.kairo-v3 .kairo-notif-open {
+  width: 100%;
+  min-height: 36px;
+  margin-top: 4px;
+  border: 1px solid var(--v3-line);
+  border-radius: 10px;
+  background: var(--v3-sky);
+  color: var(--v3-ink);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
 /* Page toolbar: the period filter and Export Excel only apply to Dashboard,
    Performance and Withdraw. Orders, Customer Database, Promo, Petty Cash and
    Settings keep just Refresh. Plan-independent, so it applies to every package. */
@@ -304,9 +593,9 @@ html.kairo-v3 #kairo-v3-dashboard-head {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 28px;
+  gap: 20px;
   margin: 0 0 var(--v3-section-gap);
-  padding: 22px 24px;
+  padding: 16px 22px;
   border: 1px solid var(--v3-line);
   border-radius: var(--v3-r-lg);
   background: var(--v3-sky);
@@ -320,9 +609,9 @@ html.kairo-v3 #kairo-v3-dashboard-head small {
 }
 
 html.kairo-v3 #kairo-v3-dashboard-head h2 {
-  margin: 5px 0 4px;
+  margin: 4px 0 3px;
   color: var(--v3-ink);
-  font-size: clamp(20px, 2.3vw, 26px);
+  font-size: clamp(19px, 2vw, 23px);
   line-height: 1.2;
   letter-spacing: -.035em;
 }
@@ -333,40 +622,36 @@ html.kairo-v3 #kairo-v3-dashboard-head p {
   font-size: 11px;
 }
 
-html.kairo-v3 .v3-quick {
+html.kairo-v3 .kairo-live-clock {
   display: grid;
-  grid-template-columns: repeat(2, minmax(132px, 1fr));
-  gap: 8px;
-}
-
-html.kairo-v3 .v3-quick button {
-  min-height: 38px;
-  padding: 8px 11px;
+  justify-items: end;
+  gap: 2px;
+  min-width: 128px;
+  padding: 8px 14px;
   border: 1px solid var(--v3-line);
   border-radius: var(--v3-r-sm);
   background: var(--v3-surface);
+}
+
+html.kairo-v3 .kairo-live-clock strong {
   color: var(--v3-ink);
-  font: 750 10px/1.25 "Plus Jakarta Sans", Arial, sans-serif;
-  text-align: left;
-  cursor: pointer;
-  transition: border-color .16s ease, box-shadow .16s ease, background .16s ease;
+  font-size: 22px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.02em;
+  line-height: 1.1;
 }
 
-html.kairo-v3 .v3-quick button:first-child {
-  background: var(--v3-primary);
-  border-color: var(--v3-primary);
-  color: #082f35;
+html.kairo-v3 .kairo-live-clock span {
+  color: var(--v3-muted);
+  font-size: 11px;
+  font-weight: 700;
 }
 
-html.kairo-v3 .v3-quick button:hover {
-  border-color: var(--v3-primary);
-  box-shadow: 0 5px 14px rgba(23, 58, 89, .07);
-}
 
-html.kairo-v3 .v3-quick button:focus-visible {
-  outline: 3px solid color-mix(in srgb, var(--v3-primary) 25%, transparent);
-  outline-offset: 2px;
-}
+
+
+
 
 /* Stat cards: icon/context, label, value, secondary information. */
 html.kairo-v3 #dashboard .kpi-grid {
@@ -1113,8 +1398,7 @@ html.kairo-v3 table tbody td {
 }
 
 html.kairo-v3 .btn,
-html.kairo-v3 .period-btn,
-html.kairo-v3 .platform-period-btn {
+html.kairo-v3 .period-btn {
   border-radius: var(--v3-r-sm) !important;
 }
 
@@ -1122,7 +1406,7 @@ html.kairo-v3 .btn-green,
 html.kairo-v3 .period-btn.active {
   background: var(--v3-primary) !important;
   border-color: var(--v3-primary) !important;
-  color: #082f35 !important;
+  color: var(--v3-on-primary) !important;
 }
 
 html.kairo-v3 .btn-gold {
@@ -1228,14 +1512,6 @@ html.kairo-v3 body.saas-dark .seller-history-card {
   html.kairo-v3 {
     --v3-page-gutter: 24px;
   }
-
-  html.kairo-v3 #kairo-v3-dashboard-head {
-    grid-template-columns: 1fr;
-  }
-
-  html.kairo-v3 .v3-quick {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
 }
 
 @media (max-width: 900px) {
@@ -1261,10 +1537,6 @@ html.kairo-v3 body.saas-dark .seller-history-card {
     padding: 19px;
   }
 
-  html.kairo-v3 .v3-quick {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
   html.kairo-v3 #dashboard .kpi-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
@@ -1283,16 +1555,22 @@ html.kairo-v3 body.saas-dark .seller-history-card {
 }
 
 @media (max-width: 520px) {
+  html.kairo-v3 #kairo-v3-dashboard-head {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  html.kairo-v3 .kairo-live-clock {
+    justify-items: start;
+    justify-self: start;
+  }
+
   html.kairo-v3 #dashboard .kpi-grid {
     grid-template-columns: 1fr !important;
   }
 
   html.kairo-v3 #dashboard .kpi {
     min-height: 142px;
-  }
-
-  html.kairo-v3 .v3-quick {
-    width: 100%;
   }
 }
 
