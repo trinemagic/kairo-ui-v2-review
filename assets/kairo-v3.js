@@ -29,6 +29,10 @@
     dialog.classList.remove('is-open');
     document.body.classList.remove('kairo-dialog-open');
     dialog.hidden = true;
+    if (q('#kairo-entry')?.dataset.page === 'masuk' && document.body.classList.contains('auth-locked')) {
+      location.hash = 'home';
+      return;
+    }
     if (restoreFocus && loginReturnFocus instanceof HTMLElement) loginReturnFocus.focus({ preventScroll: true });
   }
 
@@ -68,12 +72,15 @@
     items.forEach(item => observer.observe(item));
   }
 
-  const landingPages = ['home', 'features', 'solutions', 'pricing', 'about'];
+  const landingPages = ['home', 'features', 'solutions', 'pricing', 'about', 'masuk'];
 
   function showLandingPage(root) {
     const hash = location.hash.slice(1);
     const page = landingPages.includes(hash) ? hash : 'home';
+    const wasLogin = root.dataset.page === 'masuk';
     root.dataset.page = page;
+    if (page === 'masuk') openLogin();
+    else if (wasLogin) closeLogin({ restoreFocus: false });
     qa('#kairo-entry-nav .kairo-nav-links a', root).forEach(link => {
       if (link.getAttribute('href') === `#${page}`) link.setAttribute('aria-current', 'page');
       else link.removeAttribute('aria-current');

@@ -750,6 +750,27 @@ html.kairo-v3 .kairo-lp-footer-wrap {
   padding-bottom: 34px;
 }
 
+/* #masuk: direct login link for existing customers, no landing content behind the dialog. */
+html.kairo-v3 #kairo-entry[data-page="masuk"] .kairo-lp-footer-wrap {
+  display: none;
+}
+
+html.kairo-v3 .kairo-login-home {
+  display: none;
+  margin: 12px 0 0;
+  font-size: 11px;
+  text-align: center;
+}
+
+html.kairo-v3 #kairo-entry[data-page="masuk"] .kairo-login-home {
+  display: block;
+}
+
+html.kairo-v3 .kairo-login-home a {
+  color: var(--kairo-entry-muted);
+  font-weight: 700;
+}
+
 html.kairo-v3 .kairo-lp-footer-wrap > .kairo-lp-footer {
   margin-top: 38px;
 }
