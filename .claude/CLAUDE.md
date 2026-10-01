@@ -73,7 +73,7 @@ URL live: `https://trinemagic.github.io/kairo-ui-v2-review/`
 | `assets/kairo-runtime.js` | Lazy loader lama | Tidak dimuat oleh `index.html` saat ini. |
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
-Versi terakhir: `kairo.css?v=20.10.149`, `kairo-v3.css?v=3.14.0`,
+Versi terakhir: `kairo.css?v=20.10.149`, `kairo-v3.css?v=3.14.1`,
 `kairo-v3.js?v=3.14.0`, `kairo-app.js?v=20.10.154`.
 
 **Halaman app** = `main.container > section.section` dengan id:
@@ -105,6 +105,9 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   caption di bawah angka (owner: biar clean). 4 kolom ≥1241px, 2 kolom di bawahnya;
   ≤520px angka pakai lebar penuh kartu supaya tidak patah. Kartu "Paket Terlaris"
   (`kpi-best`) sudah dihapus beserta hitungannya di `renderDashboard()`.
+  Template seller (`body.seller-app-premium`, 5 kartu + Profit): desktop 3 atas + 2
+  lebar bawah (grid 6 kolom), ≤1240px 2 kolom dengan kartu ganjil terakhir selebar penuh.
+  Tes seller: suntik `assets/templates/seller-app-premium.css/js` setelah `bootApp`.
 - **Warna layout:** `kairo-v3.js` memetakan `--brand-primary/--brand-accent` ke token
   v3. Default lama `#696F41/#EA97A9` = "belum diatur" (tetap tampilan KAIRO).
   Reset = `#25B9B0` / `#173A59`.
