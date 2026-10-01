@@ -771,6 +771,25 @@ html.kairo-v3 .kairo-login-home a {
   font-weight: 700;
 }
 
+html.kairo-v3 .kairo-login-remember {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: max-content;
+  margin: 2px 0 14px;
+  color: var(--kairo-delft);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+html.kairo-v3 .kairo-login-remember input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--kairo-turquoise-dark);
+}
+
 html.kairo-v3 .kairo-lp-footer-wrap > .kairo-lp-footer {
   margin-top: 38px;
 }
