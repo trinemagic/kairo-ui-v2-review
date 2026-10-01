@@ -274,10 +274,83 @@
     [120, 600, 1600].forEach(delay => setTimeout(enhanceDashboardFoundation, delay));
   }
 
+  // Riwayat Transaksi: kairo-app.js renders 12 cells per row; kairo-v3.css hides
+  // Qty, Topic, Add On, Tip and Pembayaran, which are shown here instead.
+  const TX_DETAIL_FIELDS = [['Paket', 4], ['Qty', 5], ['Topic', 6], ['Add On', 7], ['Tip', 8], ['Total', 9], ['Pembayaran', 10]];
+  let txDetailReturnFocus = null;
+
+  function txDetailDialog() {
+    let dialog = q('#kairo-tx-detail');
+    if (dialog) return dialog;
+    dialog = document.createElement('div');
+    dialog.id = 'kairo-tx-detail';
+    dialog.className = 'kairo-tx-detail';
+    dialog.setAttribute('role', 'dialog');
+    dialog.setAttribute('aria-modal', 'true');
+    dialog.setAttribute('aria-labelledby', 'kairo-tx-detail-title');
+    dialog.hidden = true;
+    dialog.innerHTML = '<button class="kairo-tx-detail-backdrop" type="button" tabindex="-1" aria-label="Tutup detail transaksi"></button><div class="kairo-tx-detail-card"><button class="kairo-tx-detail-close" type="button" aria-label="Tutup detail transaksi">×</button><h3 id="kairo-tx-detail-title"></h3><p></p><dl></dl></div>';
+    qa('.kairo-tx-detail-backdrop, .kairo-tx-detail-close', dialog).forEach(button => button.addEventListener('click', closeTxDetail));
+    dialog.addEventListener('keydown', event => {
+      if (event.key === 'Escape') { event.preventDefault(); closeTxDetail(); }
+      if (event.key === 'Tab') { event.preventDefault(); q('.kairo-tx-detail-close', dialog)?.focus(); }
+    });
+    document.body.appendChild(dialog);
+    return dialog;
+  }
+
+  function openTxDetail(row, trigger) {
+    const cells = row.children;
+    const text = index => cells[index]?.textContent.replace(/\s+/g, ' ').trim() || '-';
+    const dialog = txDetailDialog();
+    q('h3', dialog).textContent = text(2);
+    q('p', dialog).textContent = `${text(0)} · Start ${text(1)} · ${text(3)}`;
+    const list = q('dl', dialog);
+    list.replaceChildren(...TX_DETAIL_FIELDS.flatMap(([label, index]) => {
+      const term = document.createElement('dt');
+      const value = document.createElement('dd');
+      term.textContent = label;
+      value.textContent = text(index);
+      return [term, value];
+    }));
+    txDetailReturnFocus = trigger;
+    dialog.hidden = false;
+    q('.kairo-tx-detail-close', dialog)?.focus();
+  }
+
+  function closeTxDetail() {
+    const dialog = q('#kairo-tx-detail');
+    if (!dialog || dialog.hidden) return;
+    dialog.hidden = true;
+    if (txDetailReturnFocus?.isConnected) txDetailReturnFocus.focus();
+  }
+
+  function enhanceHistoryRows() {
+    qa('#tx-table-body > tr').forEach(row => {
+      if (row.children.length < 12) return;
+      const actions = q('div', row.children[11]) || row.children[11];
+      if (q('[data-v3-tx-detail]', actions)) return;
+      const packageBadge = q('.badge', row.children[4]);
+      if (packageBadge) packageBadge.title = packageBadge.textContent.trim();
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'kairo-tx-detail-btn';
+      button.dataset.v3TxDetail = '';
+      button.textContent = 'Detail';
+      button.addEventListener('click', () => openTxDetail(row, button));
+      actions.prepend(button);
+    });
+  }
+
   function boot() {
     const landing = q('#kairo-entry');
     if (landing) bindLanding(landing);
     mountDashboardHeader();
+    const historyBody = q('#tx-table-body');
+    if (historyBody) {
+      enhanceHistoryRows();
+      new MutationObserver(enhanceHistoryRows).observe(historyBody, { childList: true });
+    }
     new MutationObserver(() => {
       if (document.body.classList.contains('authenticated')) {
         if (pendingRemember) {
