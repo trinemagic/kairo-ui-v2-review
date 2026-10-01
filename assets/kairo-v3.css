@@ -369,6 +369,84 @@ html.kairo-v3 #dashboard > #seller-dashboard-alert-row {
   margin-top: var(--v3-section-gap) !important;
 }
 
+/* Open Store card: controls + session stats on the left, Riwayat Open Store on the right.
+   Same markup and IDs as before (kairo-app.js keeps updating them); layout only. */
+html.kairo-v3 #dashboard > .shift-card .shift-live {
+  display: none;
+}
+
+html.kairo-v3 #dashboard > .shift-card .shift-top {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 14px;
+}
+
+html.kairo-v3 #dashboard > .shift-card .shift-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+html.kairo-v3 #dashboard > .shift-card .shift-actions .btn {
+  width: 100%;
+  min-height: 40px;
+}
+
+html.kairo-v3 #dashboard > .shift-card .shift-stat {
+  padding: 11px 14px;
+}
+
+html.kairo-v3 #dashboard > .shift-card .shift-stat-label {
+  font-size: 11px;
+}
+
+html.kairo-v3 #dashboard > .shift-card .shift-history-head .card-title {
+  font-size: 15px !important;
+}
+
+/* Transaksi per sesi is not in the new layout; the session count stays in the left stats. */
+html.kairo-v3 #dashboard > .shift-card .shift-history :is(th, td):nth-child(4) {
+  display: none;
+}
+
+html.kairo-v3 #dashboard > .shift-card .shift-history :is(th, td) {
+  text-align: center;
+  white-space: nowrap;
+}
+
+html.kairo-v3 #dashboard > .shift-card .shift-history td.empty {
+  white-space: normal;
+}
+
+@media (min-width: 901px) {
+  html.kairo-v3 #dashboard > .shift-card {
+    display: grid;
+    grid-template-areas:
+      "top history"
+      "stats history";
+    grid-template-columns: minmax(240px, 320px) minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
+    column-gap: 24px;
+    align-items: start;
+  }
+
+  html.kairo-v3 #dashboard > .shift-card .shift-top {
+    grid-area: top;
+  }
+
+  html.kairo-v3 #dashboard > .shift-card .shift-grid {
+    grid-area: stats;
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  html.kairo-v3 #dashboard > .shift-card .shift-history {
+    grid-area: history;
+    align-self: stretch;
+    margin-top: 0;
+  }
+}
+
 /* Riwayat Transaksi: compact 7-column table. Qty, Topic, Add On, Tip and
    Pembayaran stay in the DOM (kairo-app.js renders 12 cells) and move to the
    Detail dialog opened from the Aksi column (see kairo-v3.js). */
