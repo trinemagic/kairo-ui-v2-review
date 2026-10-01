@@ -73,8 +73,8 @@ URL live: `https://trinemagic.github.io/kairo-ui-v2-review/`
 | `assets/kairo-runtime.js` | Lazy loader lama | Tidak dimuat oleh `index.html` saat ini. |
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
-Versi terakhir: `kairo.css?v=20.10.149`, `kairo-v3.css?v=3.13.1`,
-`kairo-v3.js?v=3.13.0`, `kairo-app.js?v=20.10.153`.
+Versi terakhir: `kairo.css?v=20.10.149`, `kairo-v3.css?v=3.14.0`,
+`kairo-v3.js?v=3.14.0`, `kairo-app.js?v=20.10.154`.
 
 **Halaman app** = `main.container > section.section` dengan id:
 `dashboard`, `performance`, `input` (Orders), `customers`, `promo` (dibuat via JS),
@@ -101,6 +101,10 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
 - **Toolbar:** Orders/Customers/Promo/Petty Cash/Settings hanya tombol Refresh (CSS `:has`).
 - **Dashboard:** "Halo, {display_name}!" (`window.kairoDisplayName`), jam real-time,
   quick access sudah dihapus.
+- **Kartu statistik Dashboard (compact):** ikon kiri + label & angka bertumpuk, tanpa
+  caption di bawah angka (owner: biar clean). 4 kolom ≥1241px, 2 kolom di bawahnya;
+  ≤520px angka pakai lebar penuh kartu supaya tidak patah. Kartu "Paket Terlaris"
+  (`kpi-best`) sudah dihapus beserta hitungannya di `renderDashboard()`.
 - **Warna layout:** `kairo-v3.js` memetakan `--brand-primary/--brand-accent` ke token
   v3. Default lama `#696F41/#EA97A9` = "belum diatur" (tetap tampilan KAIRO).
   Reset = `#25B9B0` / `#173A59`.
