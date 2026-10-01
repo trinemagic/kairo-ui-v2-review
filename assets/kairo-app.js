@@ -3935,7 +3935,12 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
   let transitionTimer=null;
   function apply(mode,{animate=false}={}){
     const dark=mode==='dark';
-    if(animate){
+    // Preferred: one GPU cross-fade of the whole page (View Transitions) - every element
+    // switches together and nothing is animated per element. Older browsers keep the
+    // per-surface colour transition below.
+    const reduceMotion=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    const useViewTransition=animate&&!reduceMotion&&typeof document.startViewTransition==='function';
+    if(animate&&!useViewTransition){
       document.body.classList.add('saas-theme-transition');
       clearTimeout(transitionTimer);
       transitionTimer=setTimeout(()=>document.body.classList.remove('saas-theme-transition'),620);
@@ -3951,7 +3956,8 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
         try{[window.dailyChart,window.packageChart,window.monthlyRevenueChart,window.topicChart,window.platformChart].forEach(c=>c?.update?.())}catch(e){}
       },90);
     };
-    if(animate) requestAnimationFrame(()=>requestAnimationFrame(commit)); else commit();
+    if(useViewTransition) document.startViewTransition(commit);
+    else if(animate) requestAnimationFrame(()=>requestAnimationFrame(commit)); else commit();
   }
   apply(localStorage.getItem(KEY)==='dark'?'dark':'light');
   btn.addEventListener('click',()=>apply(document.body.classList.contains('saas-dark')?'light':'dark',{animate:true}));

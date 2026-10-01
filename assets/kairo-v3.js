@@ -474,7 +474,7 @@
   // The legacy defaults count as "not customised" and keep the KAIRO identity.
   const KAIRO_IDENTITY = { primary: '#25B9B0', accent: '#173A59' };
   const LEGACY_BRAND = ['#696F41', '#EA97A9'];
-  const LAYOUT_TOKENS = ['--v3-primary', '--v3-primary-dark', '--v3-primary-soft', '--v3-on-primary', '--v3-sky', '--v3-sky-strong'];
+  const LAYOUT_TOKENS = ['--v3-primary', '--v3-primary-dark', '--v3-primary-soft', '--v3-on-primary', '--v3-sky', '--v3-sky-strong', '--kairo-on-accent'];
 
   function brandHex(name) {
     const value = document.documentElement.style.getPropertyValue(name).trim().toUpperCase();
@@ -502,6 +502,9 @@
       next['--v3-sky'] = `color-mix(in srgb, ${accent} 7%, #fff)`;
       next['--v3-sky-strong'] = `color-mix(in srgb, ${accent} 30%, #fff)`;
     }
+    // Text on accent-coloured buttons (.btn-pink) for any accent, legacy pink included.
+    const rawAccent = document.documentElement.style.getPropertyValue('--brand-accent').trim();
+    if (/^#[0-9a-f]{6}$/i.test(rawAccent)) next['--kairo-on-accent'] = readableOn(rawAccent.toUpperCase());
     LAYOUT_TOKENS.forEach(token => {
       const value = next[token] || '';
       if (root.style.getPropertyValue(token).trim() === value) return;
@@ -524,17 +527,126 @@
     });
   }
 
+  // Notifications: orders still "On Progress" 5+ minutes after Start Reading (last 24h).
+  // Reads the app's cached transactions (kept fresh by its realtime sync); no extra queries.
+  const NOTIFY_AFTER_MIN = 5;
+  const NOTIFY_URGENT_MIN = 30;
+  const NOTIFY_WINDOW_H = 24;
+  let notifyItems = [];
+
+  function notifySeenKey() {
+    const wid = typeof activeWorkspaceId !== 'undefined' ? activeWorkspaceId : '';
+    return `kairo_notif_seen_v1_${wid || 'default'}`;
+  }
+
+  function notifySeen() {
+    try { return new Set(JSON.parse(localStorage.getItem(notifySeenKey()) || '[]')); } catch (_) { return new Set(); }
+  }
+
+  function notifyStage(item) { return `${item.id}:${item.urgent ? 'u' : 'n'}`; }
+
+  async function collectNotifications() {
+    if (!document.body.classList.contains('authenticated') || typeof allTransactions !== 'function') return [];
+    let rows = [];
+    try { rows = await allTransactions(); } catch (_) { return notifyItems; }
+    const now = Date.now();
+    return rows.filter(tx => (tx.reading_status || 'done') !== 'done' && tx.reading_started_at)
+      .map(tx => ({ tx, minutes: Math.floor((now - new Date(tx.reading_started_at).getTime()) / 60000) }))
+      .filter(({ minutes }) => minutes >= NOTIFY_AFTER_MIN && minutes <= NOTIFY_WINDOW_H * 60)
+      .sort((a, b) => b.minutes - a.minutes)
+      .map(({ tx, minutes }) => ({
+        id: String(tx.id),
+        name: tx.customer_name || '-',
+        pkg: packageCodes(tx) || tx.package_code || '-',
+        minutes,
+        urgent: minutes >= NOTIFY_URGENT_MIN
+      }));
+  }
+
+  function notifyAge(minutes) {
+    if (minutes < 60) return `${minutes} menit`;
+    const h = Math.floor(minutes / 60);
+    return `${h} jam ${minutes % 60} menit`;
+  }
+
+  function renderNotifications() {
+    const btn = q('#kairo-notif-btn');
+    if (!btn) return;
+    const seen = notifySeen();
+    const unseen = notifyItems.some(item => !seen.has(notifyStage(item)));
+    q('.kairo-notif-dot', btn).hidden = !unseen;
+    btn.setAttribute('aria-label', notifyItems.length ? `Notifikasi: ${notifyItems.length} order belum tuntas` : 'Notifikasi');
+    const list = q('#kairo-notif-list');
+    if (!list) return;
+    if (!notifyItems.length) {
+      list.innerHTML = '<div class="kairo-notif-empty">Semua order sudah ditandai selesai.</div>';
+      return;
+    }
+    list.innerHTML = notifyItems.map(item => `<div class="kairo-notif-item${item.urgent ? ' is-urgent' : ''}"><div><strong>${escapeHtml(item.name)}</strong><span>${escapeHtml(item.pkg)}</span></div><em>${item.urgent ? 'Lewat 30 menit · ' : ''}${escapeHtml(notifyAge(item.minutes))}</em></div>`).join('');
+  }
+
+  let notifyRefreshTimer = null;
+
+  async function refreshNotifications() {
+    // Keep the bell right next to the dark-mode toggle (the auto-lock control is inserted later).
+    const theme = q('#saas-theme-toggle');
+    const wrap = q('.kairo-notif');
+    if (theme && wrap && theme.previousElementSibling !== wrap) theme.before(wrap);
+    notifyItems = await collectNotifications();
+    renderNotifications();
+  }
+
+  function scheduleNotificationRefresh() {
+    clearTimeout(notifyRefreshTimer);
+    notifyRefreshTimer = setTimeout(refreshNotifications, 300);
+  }
+
+  function markNotificationsSeen() {
+    try { localStorage.setItem(notifySeenKey(), JSON.stringify(notifyItems.map(notifyStage))); } catch (_) {}
+    renderNotifications();
+  }
+
+  function toggleNotifications(open) {
+    const panel = q('#kairo-notif-panel');
+    const btn = q('#kairo-notif-btn');
+    if (!panel || !btn) return;
+    const next = typeof open === 'boolean' ? open : panel.hidden;
+    panel.hidden = !next;
+    btn.setAttribute('aria-expanded', String(next));
+    if (next) refreshNotifications().then(markNotificationsSeen);
+  }
+
+  function mountNotifications() {
+    const theme = q('#saas-theme-toggle');
+    if (!theme || q('#kairo-notif-btn')) return;
+    const wrap = document.createElement('div');
+    wrap.className = 'kairo-notif';
+    wrap.innerHTML = '<button type="button" id="kairo-notif-btn" class="kairo-notif-btn" aria-haspopup="true" aria-expanded="false" aria-label="Notifikasi" title="Notifikasi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9a6 6 0 0 1 12 0c0 6 2.5 7.5 2.5 7.5h-17S6 15 6 9Z"/><path d="M10 19.5a2.2 2.2 0 0 0 4 0"/></svg><span class="kairo-notif-dot" hidden></span></button><div class="kairo-notif-panel" id="kairo-notif-panel" role="dialog" aria-label="Notifikasi order" hidden><div class="kairo-notif-head"><strong>Order belum tuntas</strong><span>Lebih dari 5 menit sejak Start Reading</span></div><div class="kairo-notif-list" id="kairo-notif-list"></div><button type="button" class="kairo-notif-open">Lihat Riwayat Transaksi</button></div>';
+    theme.before(wrap);
+    q('#kairo-notif-btn', wrap).addEventListener('click', event => { event.stopPropagation(); toggleNotifications(); });
+    q('.kairo-notif-open', wrap).addEventListener('click', () => {
+      toggleNotifications(false);
+      q('#saas-sidebar .tab[data-tab="dashboard"], .v19-nav .tab[data-tab="dashboard"]')?.click();
+      setTimeout(() => q('#transaction-history-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 250);
+    });
+    document.addEventListener('click', event => { if (!wrap.contains(event.target)) toggleNotifications(false); });
+    document.addEventListener('keydown', event => { if (event.key === 'Escape') toggleNotifications(false); });
+    refreshNotifications();
+    setInterval(refreshNotifications, 30000);
+  }
+
   function boot() {
     const landing = q('#kairo-entry');
     if (landing) bindLanding(landing);
     mountDashboardHeader();
+    mountNotifications();
     syncLayoutColors();
     new MutationObserver(syncLayoutColors).observe(document.documentElement, { attributes: true, attributeFilter: ['style'] });
     bindLayoutColorReset();
     const historyBody = q('#tx-table-body');
     if (historyBody) {
       enhanceHistoryRows();
-      new MutationObserver(enhanceHistoryRows).observe(historyBody, { childList: true });
+      new MutationObserver(() => { enhanceHistoryRows(); scheduleNotificationRefresh(); }).observe(historyBody, { childList: true });
     }
     new MutationObserver(() => {
       if (document.body.classList.contains('authenticated')) {
@@ -544,6 +656,8 @@
         }
         closeLogin({ restoreFocus: false });
         mountDashboardHeader();
+        mountNotifications();
+        scheduleNotificationRefresh();
       } else if (document.body.classList.contains('auth-locked')) {
         applyRememberedUsername();
       }

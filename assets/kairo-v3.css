@@ -305,6 +305,245 @@ html.kairo-v3 #settings .settings-topic-master-row .settings-master-actions {
   }
 }
 
+/* Accent buttons: text colour picked for contrast against the workspace accent. */
+html.kairo-v3 .btn-pink {
+  color: var(--kairo-on-accent, #fff) !important;
+}
+
+/* Dark mode contrast fixes (audited per menu). Light mode is unchanged. */
+html.kairo-v3 body.saas-dark #app-shell .table-wrap {
+  background: var(--v3-surface) !important;
+}
+
+html.kairo-v3 body.saas-dark #app-shell :is(.sh-select-trigger, .sh-select-label, .sh-select-option) {
+  color: var(--v3-ink) !important;
+}
+
+html.kairo-v3 body.saas-dark #app-shell .sh-select-trigger.placeholder,
+html.kairo-v3 body.saas-dark #app-shell .sh-select-trigger.placeholder .sh-select-label {
+  color: var(--v3-muted) !important;
+}
+
+html.kairo-v3 body.saas-dark #app-shell :is(.sh-select-option:hover, .sh-select-option:focus-visible, .sh-select-option.selected) {
+  background: var(--v3-sky) !important;
+  color: var(--v3-ink) !important;
+}
+
+html.kairo-v3 body.saas-dark #app-shell .notice {
+  background: var(--v3-gold-soft) !important;
+  border-color: #6b5826 !important;
+  color: #f1d58c !important;
+}
+
+html.kairo-v3 body.saas-dark #app-shell :is(#tx-total, .total-box, .total-box strong, .customer-selected-note) {
+  color: var(--v3-ink) !important;
+}
+
+html.kairo-v3 body.saas-dark #app-shell .shift-stat-value {
+  color: var(--v3-ink) !important;
+}
+
+html.kairo-v3 body.saas-dark #app-shell .platform-growth-up {
+  color: #7fd6a8 !important;
+}
+
+html.kairo-v3 body.saas-dark #app-shell .platform-growth-down {
+  color: #ff9aa5 !important;
+}
+
+html.kairo-v3 body.saas-dark #app-shell .platform-growth-flat {
+  color: var(--v3-muted) !important;
+}
+
+html.kairo-v3 body.saas-dark #close-shift-btn:not(:disabled) {
+  background: rgba(229, 72, 77, .16) !important;
+  border-color: rgba(229, 72, 77, .42) !important;
+  color: #ffa3ab !important;
+}
+
+html.kairo-v3 body.saas-dark #kairo-v3-dashboard-head small {
+  color: var(--v3-primary);
+}
+
+html.kairo-v3 body.saas-dark #app-shell :is(#saas-workspace-pill, #saas-role-pill) {
+  background: var(--v3-surface-subtle) !important;
+  border-color: var(--v3-line) !important;
+  color: var(--v3-ink) !important;
+}
+
+html.kairo-v3 body.saas-dark #app-shell #saas-plan-pill {
+  background: var(--v3-gold-soft) !important;
+  border-color: #6b5826 !important;
+  color: #f1d58c !important;
+}
+
+html.kairo-v3 body.saas-dark #app-shell #saas-plan-pill :is(strong, small) {
+  color: inherit !important;
+}
+
+html.kairo-v3 body.saas-dark #app-shell #saas-plan-pill small {
+  opacity: .82;
+}
+
+/* Light/dark switch: a short whole-page cross-fade (View Transitions API). */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: .32s;
+  animation-timing-function: cubic-bezier(.2, .7, .2, 1);
+}
+
+/* Header notifications (bell next to the dark-mode toggle). */
+html.kairo-v3 .kairo-notif {
+  position: relative;
+  display: flex;
+}
+
+html.kairo-v3 .kairo-notif-btn {
+  position: relative;
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border: 1px solid var(--v3-line);
+  border-radius: 11px;
+  background: var(--v3-surface);
+  color: var(--v3-ink);
+  cursor: pointer;
+}
+
+html.kairo-v3 .kairo-notif-btn:hover,
+html.kairo-v3 .kairo-notif-btn[aria-expanded="true"] {
+  background: var(--v3-sky);
+}
+
+html.kairo-v3 .kairo-notif-btn svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.9;
+}
+
+html.kairo-v3 .kairo-notif-dot {
+  position: absolute;
+  top: 7px;
+  right: 8px;
+  width: 8px;
+  height: 8px;
+  border: 2px solid var(--v3-surface);
+  border-radius: 50%;
+  background: #e5484d;
+}
+
+html.kairo-v3 .kairo-notif-dot[hidden] {
+  display: none;
+}
+
+html.kairo-v3 .kairo-notif-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 120;
+  width: min(330px, calc(100vw - 24px));
+  padding: 12px;
+  border: 1px solid var(--v3-line);
+  border-radius: var(--v3-r-md);
+  background: var(--v3-surface);
+  box-shadow: 0 18px 44px rgba(13, 30, 45, .18);
+  color: var(--v3-ink);
+}
+
+html.kairo-v3 .kairo-notif-panel[hidden] {
+  display: none;
+}
+
+html.kairo-v3 .kairo-notif-head {
+  display: grid;
+  gap: 2px;
+  padding: 2px 4px 10px;
+  border-bottom: 1px solid var(--v3-line);
+}
+
+html.kairo-v3 .kairo-notif-head strong {
+  font-size: 14px;
+}
+
+html.kairo-v3 .kairo-notif-head span,
+html.kairo-v3 .kairo-notif-empty {
+  color: var(--v3-muted);
+  font-size: 12px;
+}
+
+html.kairo-v3 .kairo-notif-list {
+  display: grid;
+  max-height: 300px;
+  overflow: auto;
+  padding: 6px 0;
+}
+
+html.kairo-v3 .kairo-notif-empty {
+  padding: 14px 4px;
+  text-align: center;
+}
+
+html.kairo-v3 .kairo-notif-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 6px;
+  border-radius: 10px;
+}
+
+html.kairo-v3 .kairo-notif-item + .kairo-notif-item {
+  border-top: 1px solid var(--v3-line);
+}
+
+html.kairo-v3 .kairo-notif-item div {
+  display: grid;
+  min-width: 0;
+}
+
+html.kairo-v3 .kairo-notif-item strong {
+  overflow: hidden;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+html.kairo-v3 .kairo-notif-item span {
+  color: var(--v3-muted);
+  font-size: 11px;
+}
+
+html.kairo-v3 .kairo-notif-item em {
+  flex: none;
+  color: var(--v3-muted);
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 700;
+}
+
+html.kairo-v3 .kairo-notif-item.is-urgent em {
+  color: #e5484d;
+}
+
+html.kairo-v3 .kairo-notif-open {
+  width: 100%;
+  min-height: 36px;
+  margin-top: 4px;
+  border: 1px solid var(--v3-line);
+  border-radius: 10px;
+  background: var(--v3-sky);
+  color: var(--v3-ink);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
 /* Page toolbar: the period filter and Export Excel only apply to Dashboard,
    Performance and Withdraw. Orders, Customer Database, Promo, Petty Cash and
    Settings keep just Refresh. Plan-independent, so it applies to every package. */
