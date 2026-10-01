@@ -1159,8 +1159,7 @@ html.kairo-v3 table tbody td {
 }
 
 html.kairo-v3 .btn,
-html.kairo-v3 .period-btn,
-html.kairo-v3 .platform-period-btn {
+html.kairo-v3 .period-btn {
   border-radius: var(--v3-r-sm) !important;
 }
 
