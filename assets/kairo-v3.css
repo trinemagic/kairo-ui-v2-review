@@ -164,6 +164,104 @@ html.kairo-v3 .saas-side-meta {
   box-shadow: none !important;
 }
 
+/* Minimized sidebar (desktop): a 76px rail where every icon keeps the exact x
+   position it has when expanded, so expand/minimize only animates the rail width
+   and fades the labels instead of jumping. */
+@media (min-width: 901px) {
+  html.kairo-v3 {
+    --sidebar-mini: 96px;
+    --kairo-rail-ease: cubic-bezier(.2, .7, .2, 1);
+  }
+
+  html.kairo-v3 #saas-sidebar {
+    overflow: hidden;
+    transition: width .26s var(--kairo-rail-ease) !important;
+  }
+
+  html.kairo-v3 #app-shell main.container {
+    transition: margin-left .26s var(--kairo-rail-ease) !important;
+  }
+
+  html.kairo-v3 #app-shell .header {
+    transition: left .26s var(--kairo-rail-ease), width .26s var(--kairo-rail-ease) !important;
+  }
+
+  html.kairo-v3 body.saas-sidebar-collapsed #saas-sidebar {
+    width: calc(var(--sidebar-mini) - 20px);
+  }
+
+  html.kairo-v3 .saas-sidebar-nav .tab,
+  html.kairo-v3 .saas-settings-side-btn {
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  /* Labels fade and collapse their width instead of display:none. */
+  html.kairo-v3 #saas-sidebar :is(.saas-nav-label, .saas-side-brand-copy) {
+    max-width: 170px;
+    opacity: 1;
+    transition: opacity .18s ease .08s, max-width .26s var(--kairo-rail-ease);
+  }
+
+  html.kairo-v3 body.saas-sidebar-collapsed #saas-sidebar .saas-nav-label {
+    display: inline-block;
+  }
+
+  html.kairo-v3 body.saas-sidebar-collapsed #saas-sidebar .saas-side-brand-copy {
+    display: block;
+  }
+
+  html.kairo-v3 body.saas-sidebar-collapsed #saas-sidebar :is(.saas-nav-label, .saas-side-brand-copy) {
+    max-width: 0;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .1s ease, max-width .26s var(--kairo-rail-ease);
+  }
+
+  html.kairo-v3 body.saas-sidebar-collapsed #saas-sidebar .saas-side-brand {
+    padding: 4px 7px 10px;
+  }
+
+  html.kairo-v3 body.saas-sidebar-collapsed #saas-sidebar .saas-sidebar-nav {
+    padding-right: 0;
+  }
+
+  /* Same padding as expanded, fixed rail-sized box: icon stays put, nothing is clipped. */
+  html.kairo-v3 body.saas-sidebar-collapsed #saas-sidebar :is(.saas-sidebar-nav .tab, .saas-settings-side-btn) {
+    width: 52px;
+    min-width: 52px;
+    padding: 11px 12px;
+    justify-content: flex-start;
+  }
+
+  html.kairo-v3 body.saas-sidebar-collapsed #saas-sidebar .kairo-feedback-link {
+    width: 52px !important;
+    min-width: 52px !important;
+    height: 38px !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  html.kairo-v3 body.saas-sidebar-collapsed #saas-sidebar .saas-collapse-btn {
+    width: 52px;
+  }
+}
+
+@media (min-width: 901px) and (prefers-reduced-motion: reduce) {
+  html.kairo-v3 :is(#saas-sidebar, #app-shell main.container, #app-shell .header),
+  html.kairo-v3 #saas-sidebar :is(.saas-nav-label, .saas-side-brand-copy) {
+    transition: none !important;
+  }
+}
+
+/* Page toolbar: the period filter and Export Excel only apply to Dashboard,
+   Performance and Withdraw. Orders, Customer Database, Promo, Petty Cash and
+   Settings keep just Refresh. Plan-independent, so it applies to every package. */
+html.kairo-v3 #app-shell main.container:has(> section.section.active:is(#input, #customers, #promo, #cash, #settings)) > .toolbar :is(#period-group, #custom-range, .btn[onclick^="exportExcel"]) {
+  display: none !important;
+}
+
 html.kairo-v3 .saas-side-dot {
   background: var(--v3-primary) !important;
 }
