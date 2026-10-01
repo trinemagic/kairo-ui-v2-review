@@ -68,7 +68,32 @@
     items.forEach(item => observer.observe(item));
   }
 
+  const landingPages = ['home', 'features', 'solutions', 'pricing', 'about'];
+
+  function showLandingPage(root) {
+    const hash = location.hash.slice(1);
+    const page = landingPages.includes(hash) ? hash : 'home';
+    root.dataset.page = page;
+    qa('#kairo-entry-nav .kairo-nav-links a', root).forEach(link => {
+      if (link.getAttribute('href') === `#${page}`) link.setAttribute('aria-current', 'page');
+      else link.removeAttribute('aria-current');
+    });
+    window.scrollTo(0, 0);
+  }
+
+  function bindLandingPages(root) {
+    showLandingPage(root);
+    window.addEventListener('hashchange', () => {
+      if (document.body.classList.contains('auth-locked')) showLandingPage(root);
+    });
+    qa('[data-kairo-top]', root).forEach(link => link.addEventListener('click', event => {
+      event.preventDefault();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }));
+  }
+
   function bindLanding(root) {
+    bindLandingPages(root);
     qa('[data-v3-login]', root).forEach(button => button.addEventListener('click', openLogin));
     qa('[data-v3-signup]', root).forEach(button => button.addEventListener('click', openSignup));
     qa('[data-login-close]', root).forEach(button => button.addEventListener('click', () => closeLogin()));

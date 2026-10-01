@@ -18,7 +18,7 @@
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap"></noscript>
 
 <!-- Stable auth boot order. Feature-heavy libraries remain lazy inside kairo-app.js. -->
-<script defer src="assets/kairo-v3.js?v=3.5.0"></script>
+<script defer src="assets/kairo-v3.js?v=3.6.0"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 
@@ -65,7 +65,7 @@
 
 
 <link rel="stylesheet" href="assets/kairo.css?v=20.10.147">
-<link rel="stylesheet" href="assets/kairo-v3.css?v=3.5.1">
+<link rel="stylesheet" href="assets/kairo-v3.css?v=3.6.0">
 </head>
 
 <body class="auth-locked">
@@ -316,13 +316,16 @@
           <article data-kairo-reveal><span>07</span><div><h3>Berapa harga paket Pro?</h3><p>Harga dan rincian paket belum dipublikasikan di landing page sampai keputusan final tersedia.</p></div></article>
           <article data-kairo-reveal><span>08</span><div><h3>Bagaimana cara mulai?</h3><p>Pilih “Coba KAIRO Gratis”, buat akun, lalu lanjutkan ke workspace tanpa mengubah alur auth yang sudah ada.</p></div></article>
         </div>
-        <footer class="kairo-lp-footer">
-          <a class="kairo-entry-brand" href="#home" aria-label="KAIRO Workspaces — kembali ke awal"><img src="assets/kairo-mark.svg" alt="" width="32" height="32"><span><strong>KAIRO</strong><small>WORKSPACES</small></span></a>
-          <p>Workspace yang lebih rapi untuk bisnis yang terus bergerak.</p>
-          <a href="#home">Kembali ke atas ↑</a>
-        </footer>
       </div>
     </section>
+
+    <div class="kairo-entry-container kairo-lp-footer-wrap">
+      <footer class="kairo-lp-footer">
+        <a class="kairo-entry-brand" href="#home" aria-label="KAIRO Workspaces — kembali ke awal"><img src="assets/kairo-mark.svg" alt="" width="32" height="32"><span><strong>KAIRO</strong><small>WORKSPACES</small></span></a>
+        <p>Workspace yang lebih rapi untuk bisnis yang terus bergerak.</p>
+        <a href="#home" data-kairo-top>Kembali ke atas ↑</a>
+      </footer>
+    </div>
   </main>
 
   <div id="kairo-login-dialog" class="kairo-login-dialog" role="dialog" aria-modal="true" aria-labelledby="kairo-login-title" hidden>
