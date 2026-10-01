@@ -302,6 +302,7 @@
   function openTxDetail(row, trigger) {
     const cells = row.children;
     const text = index => cells[index]?.textContent.replace(/\s+/g, ' ').trim() || '-';
+    const packageBadge = q('.badge', cells[4]);
     const dialog = txDetailDialog();
     q('h3', dialog).textContent = text(2);
     q('p', dialog).textContent = `${text(0)} · Start ${text(1)} · ${text(3)}`;
@@ -310,7 +311,7 @@
       const term = document.createElement('dt');
       const value = document.createElement('dd');
       term.textContent = label;
-      value.textContent = text(index);
+      value.textContent = index === 4 && packageBadge?.dataset.fullName ? packageBadge.dataset.fullName : text(index);
       return [term, value];
     }));
     txDetailReturnFocus = trigger;
@@ -325,13 +326,121 @@
     if (txDetailReturnFocus?.isConnected) txDetailReturnFocus.focus();
   }
 
+  function historyTransaction(row) {
+    const onclick = q('button[onclick*="openSavedReceipt"]', row)?.getAttribute('onclick') || '';
+    const id = onclick.match(/openSavedReceipt\('([^']*)'\)/)?.[1];
+    // historyTransactions is a top-level `let` in kairo-app.js (shared global scope).
+    const rows = typeof historyTransactions !== 'undefined' && Array.isArray(historyTransactions) ? historyTransactions : [];
+    return id ? rows.find(tx => String(tx.id) === id) : null;
+  }
+
+  // Show package codes (e.g. "TR3 × 1") instead of full names to keep the column narrow.
+  function packageCodes(tx) {
+    const items = Array.isArray(tx?.order_items) && tx.order_items.length ? tx.order_items : null;
+    if (items) return items.map(item => `${item.code || item.name || '-'} × ${Number(item.qty || 1)}`).join(', ');
+    if (tx?.package_code) return `${tx.package_code} × ${Number(tx.package_qty || 1)}`;
+    return '';
+  }
+
+  // One "Aksi" menu holds Struk and Hapus / Cancel; it clicks the original
+  // kairo-app.js buttons (kept hidden in the row) so their logic is unchanged.
+  let txMenuTrigger = null;
+
+  function txActionMenu() {
+    let menu = q('#kairo-tx-menu');
+    if (menu) return menu;
+    menu = document.createElement('div');
+    menu.id = 'kairo-tx-menu';
+    menu.className = 'kairo-tx-menu';
+    menu.setAttribute('role', 'menu');
+    menu.hidden = true;
+    menu.addEventListener('keydown', event => {
+      const items = qa('button', menu);
+      const index = items.indexOf(document.activeElement);
+      if (event.key === 'Escape') { event.preventDefault(); closeTxMenu(true); }
+      else if (event.key === 'ArrowDown') { event.preventDefault(); items[(index + 1) % items.length]?.focus(); }
+      else if (event.key === 'ArrowUp') { event.preventDefault(); items[(index - 1 + items.length) % items.length]?.focus(); }
+      else if (event.key === 'Tab') closeTxMenu(false);
+    });
+    document.body.appendChild(menu);
+    document.addEventListener('click', event => {
+      if (menu.hidden || menu.contains(event.target) || event.target.closest('[data-v3-tx-menu]')) return;
+      closeTxMenu(false);
+    }, true);
+    window.addEventListener('resize', () => closeTxMenu(false));
+    window.addEventListener('scroll', () => closeTxMenu(false), { passive: true });
+    q('#transaction-history-card .history-table-wrap')?.addEventListener('scroll', () => closeTxMenu(false), { passive: true });
+    return menu;
+  }
+
+  function openTxMenu(trigger, actions) {
+    const menu = txActionMenu();
+    if (!menu.hidden && txMenuTrigger === trigger) { closeTxMenu(true); return; }
+    closeTxMenu(false);
+    menu.replaceChildren(...actions.map(({ label, target, danger }) => {
+      const item = document.createElement('button');
+      item.type = 'button';
+      item.setAttribute('role', 'menuitem');
+      item.textContent = label;
+      if (danger) item.classList.add('is-danger');
+      item.addEventListener('click', () => { closeTxMenu(false); target.click(); });
+      return item;
+    }));
+    menu.hidden = false;
+    const rect = trigger.getBoundingClientRect();
+    const width = menu.offsetWidth;
+    const height = menu.offsetHeight;
+    const left = Math.max(8, Math.min(rect.right - width, window.innerWidth - width - 8));
+    const below = rect.bottom + 6 + height <= window.innerHeight - 8;
+    menu.style.left = `${left}px`;
+    menu.style.top = `${below ? rect.bottom + 6 : Math.max(8, rect.top - height - 6)}px`;
+    txMenuTrigger = trigger;
+    trigger.setAttribute('aria-expanded', 'true');
+    q('button', menu)?.focus({ preventScroll: true });
+  }
+
+  function closeTxMenu(restoreFocus) {
+    const menu = q('#kairo-tx-menu');
+    if (!menu || menu.hidden) return;
+    menu.hidden = true;
+    txMenuTrigger?.setAttribute('aria-expanded', 'false');
+    if (restoreFocus && txMenuTrigger?.isConnected) txMenuTrigger.focus();
+    txMenuTrigger = null;
+  }
+
   function enhanceHistoryRows() {
     qa('#tx-table-body > tr').forEach(row => {
       if (row.children.length < 12) return;
       const actions = q('div', row.children[11]) || row.children[11];
       if (q('[data-v3-tx-detail]', actions)) return;
       const packageBadge = q('.badge', row.children[4]);
-      if (packageBadge) packageBadge.title = packageBadge.textContent.trim();
+      if (packageBadge) {
+        const fullName = packageBadge.textContent.trim();
+        const codes = packageCodes(historyTransaction(row));
+        packageBadge.dataset.fullName = fullName;
+        packageBadge.title = fullName;
+        if (codes) packageBadge.textContent = codes;
+      }
+
+      const receipt = q('button[onclick*="openSavedReceipt"]', actions);
+      const cancel = q('.tx-delete-btn', actions);
+      const menuActions = [
+        receipt && { label: 'Struk', target: receipt },
+        cancel && { label: 'Hapus / Cancel', target: cancel, danger: true }
+      ].filter(Boolean);
+      if (menuActions.length) {
+        menuActions.forEach(action => action.target.classList.add('kairo-tx-original-action'));
+        const menuButton = document.createElement('button');
+        menuButton.type = 'button';
+        menuButton.className = 'kairo-tx-menu-btn';
+        menuButton.dataset.v3TxMenu = '';
+        menuButton.setAttribute('aria-haspopup', 'menu');
+        menuButton.setAttribute('aria-expanded', 'false');
+        menuButton.innerHTML = 'Aksi <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
+        menuButton.addEventListener('click', () => openTxMenu(menuButton, menuActions));
+        actions.prepend(menuButton);
+      }
+
       const button = document.createElement('button');
       button.type = 'button';
       button.className = 'kairo-tx-detail-btn';
