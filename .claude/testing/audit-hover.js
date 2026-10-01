@@ -1,13 +1,15 @@
 // Dark-mode hover audit: hovers the first data row of every visible table on the given menus
 // and reports the lowest text/background contrast in that row.   node audit-hover.js [tag]
 const { chromium, bootApp } = require('./boot.js');
-const SEED = require('./seed.js');
+// SELLER=1 audits the Seller App Premium template with seller data.
+const SELLER = !!process.env.SELLER;
+const SEED = require(SELLER ? './seed-seller.js' : './seed.js');
 const fs = require('fs'); const path = require('path');
 const OUT = path.join(__dirname, 'out'); fs.mkdirSync(OUT, { recursive: true });
 const tag = process.argv[2] || 'hover';
 (async () => {
   const b = await chromium.launch();
-  const p = await bootApp(b, { seed: SEED });
+  const p = await bootApp(b, { seed: SEED, template: SELLER ? 'seller' : '' });
   await p.evaluate(() => { if (!document.body.classList.contains('saas-dark')) document.getElementById('saas-theme-toggle').click(); });
   await p.waitForTimeout(700);
   const res = {};

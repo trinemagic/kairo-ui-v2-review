@@ -73,7 +73,7 @@ URL live: `https://trinemagic.github.io/kairo-ui-v2-review/`
 | `assets/kairo-runtime.js` | Lazy loader lama | Tidak dimuat oleh `index.html` saat ini. |
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
-Versi terakhir: `kairo.css?v=20.10.149`, `kairo-v3.css?v=3.14.1`,
+Versi terakhir: `kairo.css?v=20.10.149`, `kairo-v3.css?v=3.14.2`,
 `kairo-v3.js?v=3.14.0`, `kairo-app.js?v=20.10.154`.
 
 **Halaman app** = `main.container > section.section` dengan id:
@@ -107,13 +107,16 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   (`kpi-best`) sudah dihapus beserta hitungannya di `renderDashboard()`.
   Template seller (`body.seller-app-premium`, 5 kartu + Profit): desktop 3 atas + 2
   lebar bawah (grid 6 kolom), ≤1240px 2 kolom dengan kartu ganjil terakhir selebar penuh.
-  Tes seller: suntik `assets/templates/seller-app-premium.css/js` setelah `bootApp`.
+  Tes seller: `bootApp(b,{template:'seller', seed:require('./seed-seller.js')})`.
 - **Warna layout:** `kairo-v3.js` memetakan `--brand-primary/--brand-accent` ke token
   v3. Default lama `#696F41/#EA97A9` = "belum diatur" (tetap tampilan KAIRO).
   Reset = `#25B9B0` / `#173A59`.
 - **Notifikasi** (lonceng di samping dark mode): order On Progress ≥5 menit
   (24 jam terakhir), ≥30 menit merah. Seen: `kairo_notif_seen_v1_<workspace>`.
-- **Dark mode:** sudah diaudit 0 temuan kontras; transisi tema pakai View Transitions.
+- **Dark mode:** sudah diaudit 0 temuan kontras (juga template seller: menu, keranjang Orders,
+  Settings › Produk, dialog riwayat customer, hover); transisi tema pakai View Transitions.
+  Warna status seller di dark (badge expired/H-x/Aktif, "Sisa Rp…", Tersinkron) di-override
+  di `kairo-v3.css`; tombol teal seller pakai teks `--v3-on-primary` seperti `.btn-green`.
 - **Performance:** semua mengikuti filter tanggal utama (`getRange()`).
 - **Orders:** setelah simpan berhasil, form kosong total termasuk Platform & Metode
   Pembayaran (owner: user wajib pilih ulang tiap order). `tx-payment` punya opsi
@@ -160,6 +163,8 @@ cd .claude/testing && node example.js                                # lihat REA
   (jangan `playwright install`). Tidak ada WebKit → **Safari tidak bisa diuji**.
 - Chart.js untuk halaman Performance: `npm pack chart.js@4` lalu route
   `**/npm/chart.js` ke `package/dist/chart.umd.min.js` (registry npm bisa diakses).
+- Template seller: `SELLER=1 node audit-contrast.js …` / `SELLER=1 node audit-hover.js`, plus
+  `node audit-seller.js [dark|light]` (keranjang Orders, Settings › Produk, dialog customer, hover).
 - `audit-contrast.js` = audit kontras WCAG per menu (dark/light);
   `audit-hover.js` = kontras baris tabel saat di-hover (dark);
   `test-order-form.js` = alur simpan penjualan Orders.
