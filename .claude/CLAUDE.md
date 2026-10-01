@@ -74,7 +74,7 @@ URL live: `https://trinemagic.github.io/kairo-ui-v2-review/`
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
 Versi terakhir: `kairo.css?v=20.10.149`, `kairo-v3.css?v=3.13.1`,
-`kairo-v3.js?v=3.13.0`, `kairo-app.js?v=20.10.152`.
+`kairo-v3.js?v=3.13.0`, `kairo-app.js?v=20.10.153`.
 
 **Halaman app** = `main.container > section.section` dengan id:
 `dashboard`, `performance`, `input` (Orders), `customers`, `promo` (dibuat via JS),
@@ -108,8 +108,9 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   (24 jam terakhir), ≥30 menit merah. Seen: `kairo_notif_seen_v1_<workspace>`.
 - **Dark mode:** sudah diaudit 0 temuan kontras; transisi tema pakai View Transitions.
 - **Performance:** semua mengikuti filter tanggal utama (`getRange()`).
-- **Orders:** setelah simpan berhasil, Platform & Metode Pembayaran tetap terpilih
-  (`resetTxForm({keepChannel:true})`); tombol Reset manual mengosongkan semua.
+- **Orders:** setelah simpan berhasil, form kosong total termasuk Platform & Metode
+  Pembayaran (owner: user wajib pilih ulang tiap order). `tx-payment` punya opsi
+  kosong "-- Pilih Metode Pembayaran --" + `required`, jadi tidak jatuh ke QRIS.
 - **Dark mode hover tabel:** sorotan gelap solid (`--v3-sky`) — jangan biarkan
   `tr:hover` dari `kairo.css` (latar hampir putih) tembus.
 

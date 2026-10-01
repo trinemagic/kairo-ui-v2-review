@@ -2047,7 +2047,7 @@ document.getElementById("confirm-save").addEventListener("click",async()=>{
     const savedName=pendingTransactionPayload.customer_name;
     closeReceiptPreview();
     pendingTransactionPayload=null;
-    resetTxForm({keepChannel:true});
+    resetTxForm();
     selectedCustomerId=null;
     const hiddenCustomerId=document.getElementById("tx-customer-id");
     if(hiddenCustomerId) hiddenCustomerId.value="";
@@ -2239,7 +2239,7 @@ document.getElementById("cash-injection-form").addEventListener("submit",async e
   }
 });
 
-function resetTxForm({keepChannel=false}={}){
+function resetTxForm(){
   selectedCustomerId=null;
   const hiddenCustomerId=document.getElementById("tx-customer-id");
   if(hiddenCustomerId) hiddenCustomerId.value="";
@@ -2247,11 +2247,8 @@ function resetTxForm({keepChannel=false}={}){
   if(customerPop){customerPop.classList.remove("show");customerPop.innerHTML="";}
   const customerNote=document.getElementById("customer-selected-note");
   if(customerNote){customerNote.classList.remove("show");customerNote.textContent="";}
-  // After a saved sale the platform and payment method usually stay the same for the next one,
-  // so they are kept; the manual Reset button (no option) still clears everything.
-  const keep=keepChannel?["tx-platform","tx-payment"].map(id=>[document.getElementById(id),document.getElementById(id)?.value||""]):[];
+  // Platform and payment method are cleared too, so every new sale has to pick them again.
   document.getElementById("tx-form").reset();
-  keep.forEach(([el,value])=>{if(el&&value)el.value=value;});
   // form.reset() fires no change event: refresh the custom select labels so they match the values.
   document.querySelectorAll("#tx-form select").forEach(el=>el.dispatchEvent(new Event("change",{bubbles:true})));
   document.getElementById("tx-date").value=todayISO();
