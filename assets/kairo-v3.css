@@ -694,6 +694,19 @@ html.kairo-v3 body.auth-locked #kairo-entry {
   display: block;
 }
 
+/* Restore landing content hidden by kairo.css auth-locked header/main rule. */
+html.kairo-v3 body.auth-locked #kairo-entry main.kairo-landing-main {
+  display: block !important;
+}
+
+html.kairo-v3 body.auth-locked #kairo-entry .kairo-lp-section-head {
+  display: block !important;
+}
+
+html.kairo-v3 body.auth-locked #kairo-entry .kairo-lp-dash-main > header {
+  display: flex !important;
+}
+
 html.kairo-v3 body.kairo-dialog-open {
   overflow: hidden;
 }
