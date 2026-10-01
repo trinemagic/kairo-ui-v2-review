@@ -371,21 +371,28 @@ html.kairo-v3 #dashboard > #seller-dashboard-alert-row {
 
 /* Open Store card: controls + session stats on the left, Riwayat Open Store on the right.
    Same markup and IDs as before (kairo-app.js keeps updating them); layout only. */
+/* Plain block (not the column flex-wrap from kairo.css): Safari stretched the
+   buttons behind the stats with the flex version. */
 html.kairo-v3 #dashboard > .shift-card .shift-top {
-  flex-direction: column;
-  align-items: stretch;
-  gap: 14px;
+  display: block;
+  align-self: start;
 }
 
 html.kairo-v3 #dashboard > .shift-card .shift-actions {
   display: grid;
+  width: 100%;
+  margin-top: 14px;
   grid-template-columns: 1fr 1fr;
+  align-items: start;
   gap: 8px;
 }
 
 html.kairo-v3 #dashboard > .shift-card .shift-actions .btn {
   width: 100%;
-  min-height: 40px;
+  height: 40px;
+  min-height: 0;
+  margin: 0;
+  align-self: start;
 }
 
 html.kairo-v3 #dashboard > .shift-card .shift-stat {
@@ -412,28 +419,30 @@ html.kairo-v3 #dashboard > .shift-card .shift-history td.empty {
 @media (min-width: 901px) {
   html.kairo-v3 #dashboard > .shift-card {
     display: grid;
-    grid-template-areas:
-      "top history"
-      "stats history";
     grid-template-columns: minmax(240px, 320px) minmax(0, 1fr);
     grid-template-rows: auto 1fr;
     column-gap: 24px;
     align-items: start;
   }
 
+  /* Explicit lines: left column = controls (row 1) then stats (row 2); history spans both. */
   html.kairo-v3 #dashboard > .shift-card .shift-top {
-    grid-area: top;
+    grid-column: 1;
+    grid-row: 1;
   }
 
   html.kairo-v3 #dashboard > .shift-card .shift-grid {
-    grid-area: stats;
+    grid-column: 1;
+    grid-row: 2;
+    align-self: start;
     grid-template-columns: 1fr;
     gap: 8px;
   }
 
   html.kairo-v3 #dashboard > .shift-card .shift-history {
-    grid-area: history;
-    align-self: stretch;
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    align-self: start;
     margin-top: 0;
   }
 }
