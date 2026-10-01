@@ -460,18 +460,134 @@ html.kairo-v3 #transaction-history-card .history-table-wrap td.empty {
   text-align: center;
 }
 
+/* Mobile: each history row becomes a card.
+   name ......... total
+   date · start   status
+   paket
+   [Detail] [Struk] [Hapus / Cancel] */
 @media (max-width: 700px) {
+  html.kairo-v3 #transaction-history-card .history-table-wrap {
+    max-height: none;
+    overflow: visible;
+    border: 0;
+    background: transparent !important;
+  }
+
   html.kairo-v3 #transaction-history-card .history-table-wrap table {
-    min-width: 640px;
+    display: block;
+    min-width: 0;
   }
 
-  html.kairo-v3 #transaction-history-card .history-table-wrap td,
-  html.kairo-v3 #dashboard #transaction-history-card .history-table-wrap thead th {
-    padding: 9px 10px;
+  html.kairo-v3 #transaction-history-card .history-table-wrap thead {
+    display: none;
   }
 
-  html.kairo-v3 #transaction-history-card .history-table-wrap td:nth-child(5) .badge {
-    max-width: 150px;
+  html.kairo-v3 #transaction-history-card .history-table-wrap tbody {
+    display: grid;
+    gap: 10px;
+  }
+
+  html.kairo-v3 #transaction-history-card .history-table-wrap tbody tr {
+    display: grid;
+    padding: 12px 14px;
+    border: 1px solid var(--v3-line);
+    border-radius: var(--v3-r-sm);
+    background: var(--v3-surface);
+    grid-template-areas:
+      "name name total"
+      "date start status"
+      "paket paket paket"
+      "aksi aksi aksi";
+    grid-template-columns: max-content minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 6px;
+    row-gap: 6px;
+  }
+
+  html.kairo-v3 #transaction-history-card .history-table-wrap tbody tr:hover td {
+    background: transparent;
+  }
+
+  html.kairo-v3 body #dashboard #transaction-history-card .history-table-wrap tbody td {
+    display: block;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  /* Beats kairo.css zebra rows (tr:nth-child(2n) td) so cards keep one surface. */
+  html.kairo-v3 body #dashboard #transaction-history-card .history-table-wrap tbody tr:nth-child(n) td {
+    background: transparent !important;
+  }
+
+  html.kairo-v3 body #dashboard #transaction-history-card .history-table-wrap tbody td:is(:nth-child(6), :nth-child(7), :nth-child(8), :nth-child(9), :nth-child(11)) {
+    display: none;
+  }
+
+  html.kairo-v3 #transaction-history-card .history-table-wrap tbody td:nth-child(1) {
+    grid-area: date;
+    color: var(--v3-muted);
+    font-size: 12px;
+  }
+
+  html.kairo-v3 #transaction-history-card .history-table-wrap tbody td:nth-child(2) {
+    grid-area: start;
+    color: var(--v3-muted);
+    font-size: 12px;
+  }
+
+  html.kairo-v3 #transaction-history-card .history-table-wrap tbody td:nth-child(2)::before {
+    content: "· ";
+  }
+
+  html.kairo-v3 #transaction-history-card .history-table-wrap tbody td:nth-child(3) {
+    grid-area: name;
+    overflow: hidden;
+    font-size: 14px;
+    font-weight: 750;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  html.kairo-v3 #transaction-history-card .history-table-wrap tbody td:nth-child(4) {
+    grid-area: status;
+    justify-self: end;
+  }
+
+  html.kairo-v3 #transaction-history-card .history-table-wrap tbody td:nth-child(5) {
+    grid-area: paket;
+  }
+
+  html.kairo-v3 #transaction-history-card .history-table-wrap tbody td:nth-child(5) .badge {
+    max-width: 100%;
+  }
+
+  html.kairo-v3 #dashboard #transaction-history-card .history-table-wrap tbody td:nth-child(10) {
+    grid-area: total;
+    justify-self: end;
+    font-size: 14px;
+  }
+
+  html.kairo-v3 #dashboard #transaction-history-card .history-table-wrap tbody td:nth-child(12) {
+    width: auto;
+    grid-area: aksi;
+    margin-top: 4px;
+    padding-top: 10px;
+    border-top: 1px solid var(--v3-line);
+  }
+
+  html.kairo-v3 #transaction-history-card .history-table-wrap td:nth-child(12) > div {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr 1.4fr;
+  }
+
+  html.kairo-v3 #transaction-history-card .history-table-wrap td:nth-child(12) button {
+    min-height: 34px;
+  }
+
+  html.kairo-v3 body #dashboard #transaction-history-card .history-table-wrap tbody td.empty {
+    grid-column: 1 / -1;
+    padding: 10px 0;
   }
 }
 
