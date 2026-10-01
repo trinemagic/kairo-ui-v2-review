@@ -535,9 +535,6 @@ table,
 /* V20.0 — Omzet per Shift */
 .shift-card{margin-bottom:18px}
 .shift-top{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap}
-.shift-live{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:800}
-.shift-dot{width:9px;height:9px;border-radius:50%;background:#aaa;box-shadow:0 0 0 4px rgba(0,0,0,.03)}
-.shift-dot.open{background:#68714C;box-shadow:0 0 0 4px rgba(104,113,76,.12)}
 .shift-actions{display:flex;gap:8px;flex-wrap:wrap}
 .shift-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:14px}
 .shift-stat{padding:12px;border-radius:14px;background:rgba(255,250,248,.58);border:1px solid rgba(115,76,88,.08)}
@@ -1484,7 +1481,6 @@ body.authenticated{
 #app-shell .customer-sort-btn:hover{color:var(--brand-accent)!important}
 
 /* Shift area. */
-#app-shell .shift-dot.open{background:var(--brand-primary)!important;box-shadow:0 0 0 4px color-mix(in srgb,var(--brand-primary) 14%,transparent)!important}
 #app-shell .shift-stat{background:color-mix(in srgb,var(--brand-blend) 4%,#fff)!important;border-color:color-mix(in srgb,var(--brand-blend) 11%,#fff)!important}
 #app-shell .shift-badge.closed{background:color-mix(in srgb,var(--brand-blend) 8%,#fff)!important;color:color-mix(in srgb,var(--brand-blend) 56%,var(--ink))!important}
 
