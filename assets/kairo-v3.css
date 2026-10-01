@@ -50,7 +50,7 @@ html.kairo-v3{
   --v3-shadow-hover:0 12px 30px rgba(23,58,89,.085);
 }
 html.kairo-v3 body{font-family:"Plus Jakarta Sans",Arial,sans-serif;color:var(--v3-ink)}
-html.kairo-v3 #kairo-mobile-quick-sheet{display:none}
+html.kairo-v3 #kairo-mobile-notif-sheet{display:none}
 
 /* Public landing/auth moved to the isolated KAIRO UI v3.3 source below. */
 
@@ -551,6 +551,10 @@ html.kairo-v3 .kairo-notif-item.is-urgent em {
   color: #e5484d;
 }
 
+html.kairo-v3 body.saas-dark .kairo-notif-item.is-urgent em {
+  color: #ff7d82;
+}
+
 html.kairo-v3 .kairo-notif-open {
   width: 100%;
   min-height: 36px;
@@ -570,6 +574,38 @@ html.kairo-v3 .kairo-notif-open {
    Settings keep just Refresh. Plan-independent, so it applies to every package. */
 html.kairo-v3 #app-shell main.container:has(> section.section.active:is(#input, #customers, #promo, #cash, #settings)) > .toolbar :is(#period-group, #custom-range, .btn[onclick^="exportExcel"]) {
   display: none !important;
+}
+
+/* Refresh / Export Excel: SVG icons instead of glyphs (iOS draws ⬇ as an emoji). */
+html.kairo-v3 #app-shell main.container > .toolbar .btn:is(.kairo-refresh-btn, [onclick^="exportExcel"]) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+
+html.kairo-v3 .kairo-btn-icon {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.1;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+html.kairo-v3 .kairo-refresh-btn.is-refreshing {
+  cursor: progress;
+  opacity: .8;
+}
+
+html.kairo-v3 .kairo-refresh-btn.is-refreshing .kairo-btn-icon {
+  animation: kairo-spin .8s linear infinite;
+}
+
+@keyframes kairo-spin {
+  to { transform: rotate(360deg); }
 }
 
 html.kairo-v3 .saas-side-dot {
@@ -1723,7 +1759,8 @@ html.kairo-v3 body.saas-dark .customer-contact-item strong {
 }
 
 @media (max-width: 900px) {
-  html.kairo-v3 #kairo-mobile-quick-sheet {
+  /* Notifications sheet (bottom nav, 4th button): opens like the More sheet. */
+  html.kairo-v3 #kairo-mobile-notif-sheet {
     display: block;
     position: fixed;
     inset: 0;
@@ -1732,61 +1769,109 @@ html.kairo-v3 body.saas-dark .customer-contact-item strong {
     visibility: hidden;
   }
 
-  html.kairo-v3 #kairo-mobile-quick-sheet.open {
+  html.kairo-v3 #kairo-mobile-notif-sheet.open {
     pointer-events: auto;
     visibility: visible;
   }
 
-  html.kairo-v3 #kairo-mobile-quick-sheet.open .kairo-mobile-more-backdrop {
+  html.kairo-v3 #kairo-mobile-notif-sheet.open .kairo-mobile-more-backdrop {
     opacity: 1;
   }
 
-  html.kairo-v3 #kairo-mobile-quick-sheet.open .kairo-mobile-more-panel {
+  html.kairo-v3 #kairo-mobile-notif-sheet.open .kairo-mobile-more-panel {
     transform: none;
     opacity: 1;
   }
 
-  html.kairo-v3 .kairo-mobile-quick-grid {
-    display: grid;
+  html.kairo-v3 .kairo-mobile-notif-panel .kairo-notif-list {
+    max-height: min(52vh, 420px);
+    overflow-y: auto;
+    margin-bottom: 8px;
+  }
+
+  html.kairo-v3 .kairo-mobile-notif-panel .kairo-notif-open {
+    min-height: 42px;
+  }
+
+  /* The centre Orders button keeps its gradient when Orders is the open page
+     (kairo.css paints every active nav button with a pale fill). */
+  html.kairo-v3 #saas-mobile-bottom .kairo-mobile-orders-main.active {
+    background: linear-gradient(155deg, color-mix(in srgb, var(--brand-accent) 92%, #fff), var(--brand-primary)) !important;
+    color: #fff !important;
+  }
+
+  html.kairo-v3 .kairo-mobile-notif-icon {
+    position: relative;
+  }
+
+  html.kairo-v3 .kairo-mobile-notif-icon .kairo-notif-dot {
+    top: -2px;
+    right: -3px;
+    border-color: var(--v3-surface);
+  }
+
+  /* Toolbar: period filter, custom dates, Refresh and Export share one height and type size. */
+  html.kairo-v3 #app-shell main.container > .toolbar .filters {
+    display: grid !important;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 9px;
+    gap: 8px !important;
+    width: 100%;
   }
 
-  html.kairo-v3 .kairo-mobile-quick-item {
-    display: flex;
-    min-height: 64px;
+  html.kairo-v3 #app-shell main.container > .toolbar #period-group {
+    display: grid !important;
+    grid-column: 1 / -1;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px !important;
+    width: 100%;
+  }
+
+  html.kairo-v3 #app-shell main.container > .toolbar #custom-range.show {
+    display: grid !important;
+    grid-column: 1 / -1;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    gap: 8px;
     align-items: center;
-    gap: 10px;
-    padding: 12px;
-    border: 1px solid var(--v3-line);
-    border-radius: 15px;
-    background: var(--v3-sky);
-    color: var(--v3-ink);
-    text-align: left;
   }
 
-  html.kairo-v3 .kairo-mobile-quick-item span {
-    display: grid;
-    width: 34px;
-    height: 34px;
-    place-items: center;
-    border-radius: 11px;
-    background: var(--v3-surface);
-    color: var(--v3-primary);
+  html.kairo-v3 #app-shell main.container > .toolbar :is(.period-btn, .btn, #custom-range .control) {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    height: 42px !important;
+    min-height: 42px !important;
+    margin: 0 !important;
+    padding: 0 8px !important;
+    border-radius: 12px !important;
+    font-size: 12px !important;
+    font-weight: 750 !important;
+    line-height: 1.15 !important;
+    white-space: normal;
+    text-align: center;
   }
 
-  html.kairo-v3 .kairo-mobile-quick-item svg {
-    width: 20px;
-    height: 20px;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.8;
-    stroke-linecap: round;
-    stroke-linejoin: round;
+  html.kairo-v3 #app-shell main.container > .toolbar .btn {
+    font-size: 13px !important;
   }
 
-  html.kairo-v3 .kairo-mobile-quick-item strong {
-    font-size: 10px;
+  /* Pages where Refresh is alone get a full-width button. */
+  html.kairo-v3 #app-shell main.container:has(> section.section.active:is(#input, #customers, #promo, #cash, #settings)) > .toolbar .kairo-refresh-btn,
+  html.kairo-v3 body.kairo-mobile-history #app-shell main.container > .toolbar .kairo-refresh-btn {
+    grid-column: 1 / -1;
+  }
+
+  /* History (bottom nav): the Dashboard page showing only the transaction history,
+     which in turn is left out of the mobile Dashboard. */
+  html.kairo-v3 body:not(.kairo-mobile-history) #dashboard > :is(#transaction-history-card, #seller-dashboard-history-card) {
+    display: none !important;
+  }
+
+  html.kairo-v3 body.kairo-mobile-history #dashboard > :not(#transaction-history-card, #seller-dashboard-history-card) {
+    display: none !important;
+  }
+
+  html.kairo-v3 body.kairo-mobile-history #app-shell main.container > .toolbar :is(#period-group, #custom-range, .btn[onclick^="exportExcel"]) {
+    display: none !important;
   }
 }
 

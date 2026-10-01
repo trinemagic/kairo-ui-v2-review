@@ -236,15 +236,18 @@
 
   // Real-time clock in the dashboard greeting card, in the device's own time zone.
   let liveClockTimer = null;
+  const clockFormat = new Intl.DateTimeFormat('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+  const zoneFormat = new Intl.DateTimeFormat('id-ID', { timeZoneName: 'short' });
 
   function tickLiveClock() {
     const time = q('[data-kairo-clock-time]');
-    if (!time || document.hidden) return;
+    // Only tick while the clock is on screen (Dashboard open, not the mobile History view).
+    if (!time || document.hidden || time.offsetParent === null) return;
     const now = new Date();
-    time.textContent = new Intl.DateTimeFormat('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).format(now);
+    time.textContent = clockFormat.format(now);
     const zone = q('[data-kairo-clock-zone]');
-    if (zone) {
-      const part = new Intl.DateTimeFormat('id-ID', { timeZoneName: 'short' }).formatToParts(now).find(item => item.type === 'timeZoneName');
+    if (zone && !zone.textContent) {
+      const part = zoneFormat.formatToParts(now).find(item => item.type === 'timeZoneName');
       zone.textContent = part?.value || Intl.DateTimeFormat().resolvedOptions().timeZone || '';
     }
   }
@@ -267,10 +270,17 @@
     }
     const date = new Intl.DateTimeFormat('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(new Date());
     const name = String(window.kairoDisplayName || '').trim();
-    header.innerHTML = `<div><small>WORKSPACE HARI INI</small><h2>${name ? `Halo, ${escapeHtml(name)}!` : 'Halo!'}</h2><p>${escapeHtml(workspaceName())} · ${escapeHtml(date)}</p></div><div class="kairo-live-clock"><strong data-kairo-clock-time></strong><span data-kairo-clock-zone></span></div>`;
-    tickLiveClock();
+    // Rebuild only when the greeting, workspace or date changed: this runs on every body class
+    // change (sheets, theme, History), and rewriting it each time forced needless re-layouts.
+    const key = `${name}|${workspaceName()}|${date}`;
+    if (header.dataset.kairoKey !== key) {
+      header.dataset.kairoKey = key;
+      header.innerHTML = `<div><small>WORKSPACE HARI INI</small><h2>${name ? `Halo, ${escapeHtml(name)}!` : 'Halo!'}</h2><p>${escapeHtml(workspaceName())} · ${escapeHtml(date)}</p></div><div class="kairo-live-clock"><strong data-kairo-clock-time></strong><span data-kairo-clock-zone></span></div>`;
+      tickLiveClock();
+    }
     startLiveClock();
     enhanceDashboardFoundation();
+    // Late cards (e.g. the seller Profit card) are decorated by these cheap follow-up passes.
     [120, 600, 1600].forEach(delay => setTimeout(enhanceDashboardFoundation, delay));
   }
 
@@ -551,21 +561,27 @@
     return `${h} jam ${minutes % 60} menit`;
   }
 
+  // Renders into the desktop bell (#kairo-notif-btn/#kairo-notif-list) and the mobile
+  // bottom-nav button + sheet (#kairo-mobile-notif-btn/#kairo-mobile-notif-list) alike.
   function renderNotifications() {
-    const btn = q('#kairo-notif-btn');
-    if (!btn) return;
     const seen = notifySeen();
     const unseen = notifyItems.some(item => !seen.has(notifyStage(item)));
-    q('.kairo-notif-dot', btn).hidden = !unseen;
-    btn.setAttribute('aria-label', notifyItems.length ? `Notifikasi: ${notifyItems.length} order belum tuntas` : 'Notifikasi');
-    const list = q('#kairo-notif-list');
-    if (!list) return;
-    if (!notifyItems.length) {
-      list.innerHTML = '<div class="kairo-notif-empty">Semua order sudah ditandai selesai.</div>';
-      return;
-    }
-    list.innerHTML = notifyItems.map(item => `<div class="kairo-notif-item${item.urgent ? ' is-urgent' : ''}"><div><strong>${escapeHtml(item.name)}</strong><span>${escapeHtml(item.pkg)}</span></div><em>${item.urgent ? 'Lewat 30 menit · ' : ''}${escapeHtml(notifyAge(item.minutes))}</em></div>`).join('');
+    const label = notifyItems.length ? `Notifikasi: ${notifyItems.length} order belum tuntas` : 'Notifikasi';
+    qa('#kairo-notif-btn, #kairo-mobile-notif-btn').forEach(btn => {
+      const dot = q('.kairo-notif-dot', btn);
+      if (dot) dot.hidden = !unseen;
+      btn.setAttribute('aria-label', label);
+    });
+    const html = notifyItems.length
+      ? notifyItems.map(item => `<div class="kairo-notif-item${item.urgent ? ' is-urgent' : ''}"><div><strong>${escapeHtml(item.name)}</strong><span>${escapeHtml(item.pkg)}</span></div><em>${item.urgent ? 'Lewat 30 menit · ' : ''}${escapeHtml(notifyAge(item.minutes))}</em></div>`).join('')
+      : '<div class="kairo-notif-empty">Semua order sudah ditandai selesai.</div>';
+    qa('#kairo-notif-list, #kairo-mobile-notif-list').forEach(list => { if (list.innerHTML !== html) list.innerHTML = html; });
   }
+
+  window.kairoNotifications = {
+    render: renderNotifications,
+    open: () => refreshNotifications().then(markNotificationsSeen)
+  };
 
   let notifyRefreshTimer = null;
 
@@ -608,13 +624,15 @@
     q('#kairo-notif-btn', wrap).addEventListener('click', event => { event.stopPropagation(); toggleNotifications(); });
     q('.kairo-notif-open', wrap).addEventListener('click', () => {
       toggleNotifications(false);
+      if (window.innerWidth <= 900 && typeof window.kairoOpenMobileHistory === 'function') return window.kairoOpenMobileHistory();
       q('#saas-sidebar .tab[data-tab="dashboard"], .v19-nav .tab[data-tab="dashboard"]')?.click();
       setTimeout(() => q('#transaction-history-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 250);
     });
     document.addEventListener('click', event => { if (!wrap.contains(event.target)) toggleNotifications(false); });
     document.addEventListener('keydown', event => { if (event.key === 'Escape') toggleNotifications(false); });
     refreshNotifications();
-    setInterval(refreshNotifications, 30000);
+    setInterval(() => { if (!document.hidden) refreshNotifications(); }, 30000);
+    document.addEventListener('kairo:refreshed', scheduleNotificationRefresh);
   }
 
   function boot() {
