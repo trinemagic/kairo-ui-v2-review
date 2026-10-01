@@ -1578,6 +1578,59 @@ html.kairo-v3 body.saas-dark .seller-history-card {
   border-color: var(--v3-line) !important;
 }
 
+/* Seller App Premium, dark mode: status colours lifted so they pass WCAG AA on the dark cards. */
+html.kairo-v3 body.saas-dark .seller-expiry-badge.is-active,
+html.kairo-v3 body.saas-dark .seller-history-expiry.is-active {
+  color: #6fd9bd;
+}
+
+html.kairo-v3 body.saas-dark .seller-expiry-badge.is-soon,
+html.kairo-v3 body.saas-dark .seller-history-expiry.is-soon {
+  color: #e7c77f;
+}
+
+html.kairo-v3 body.saas-dark .seller-expiry-badge.is-urgent,
+html.kairo-v3 body.saas-dark .seller-history-expiry.is-urgent {
+  color: #f4a77c;
+}
+
+html.kairo-v3 body.saas-dark .seller-expiry-badge.is-expired,
+html.kairo-v3 body.saas-dark .seller-history-expiry.is-expired,
+html.kairo-v3 body.saas-dark .seller-outstanding-money strong {
+  color: #f59aa2;
+}
+
+html.kairo-v3 body.saas-dark .seller-settings-db-status {
+  background: color-mix(in srgb, var(--v3-primary) 16%, transparent);
+  color: #7fe0d9;
+}
+
+/* Seller primary buttons use the same dark ink on teal as .btn-green (white on teal is ~2.4:1). */
+html.kairo-v3 body.seller-app-premium .seller-choice.active,
+html.kairo-v3 body.seller-app-premium .seller-selection button,
+html.kairo-v3 body.seller-app-premium .seller-save-btn,
+html.kairo-v3 body.seller-app-premium .seller-add-product-btn,
+html.kairo-v3 body.seller-app-premium .seller-add-product-save,
+html.kairo-v3 body.seller-app-premium .seller-setting-save,
+html.kairo-v3 body.seller-app-premium .seller-settings-category-tabs button.active {
+  color: var(--v3-on-primary);
+}
+
+/* Customer history dialog: kairo.css darkens the stat boxes but left the contact boxes white;
+   give them the same dark box as the stats beneath them. */
+html.kairo-v3 body.saas-dark .customer-contact-item {
+  background: #292e35 !important;
+  border-color: #3e4651 !important;
+}
+
+html.kairo-v3 body.saas-dark .customer-contact-item span {
+  color: #cdd5df;
+}
+
+html.kairo-v3 body.saas-dark .customer-contact-item strong {
+  color: #fff;
+}
+
 @media (max-width: 1120px) {
   html.kairo-v3 {
     --v3-page-gutter: 24px;
