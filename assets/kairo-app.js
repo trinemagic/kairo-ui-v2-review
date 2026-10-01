@@ -899,7 +899,10 @@ function renderShiftDashboard(){
   document.getElementById("shift-current-count").textContent=stats.count.toLocaleString("id-ID");
   document.getElementById("shift-opened-at").textContent=currentShift?formatDateTimeID(currentShift.opened_at):"-";
   document.getElementById("shift-duration").textContent=currentShift?formatDurationBetween(currentShift.opened_at):"-";
-  openBtn.disabled=!!currentShift; closeBtn.disabled=!currentShift;
+  // Plan lock and session state decided together, so a lock applied before the plan loaded never sticks.
+  const storeAllowed=canUseFeature('open_close_store');
+  openBtn.disabled=!storeAllowed||!!currentShift; closeBtn.disabled=!storeAllowed||!currentShift;
+  [openBtn,closeBtn].forEach(b=>{b.title=storeAllowed?'':'Open / Close Store tersedia mulai paket PLUS.';});
 
   // Minimized: only today's sessions (opened today) plus a session that is still open.
   const today=todayISO();
@@ -4161,7 +4164,8 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
    // Customer DB BASIC lock.
    document.querySelectorAll('[data-tab="customers"],.saas-mobile-nav-btn[data-mobile-tab="customers"]').forEach(b=>b.classList.toggle('entitlement-locked',!canUseFeature('customer_database')));
    // Open/Close buttons BASIC lock.
-   ['open-shift-btn','close-shift-btn'].forEach(id=>{const b=document.getElementById(id);if(b&&!canUseFeature('open_close_store')){b.disabled=true;b.title='Open / Close Store tersedia mulai paket PLUS.';}});
+   // Re-evaluated on every decorate: unlocks again once the real plan (e.g. PRO) is loaded.
+   ['open-shift-btn','close-shift-btn'].forEach(id=>{const b=document.getElementById(id);if(!b)return;const allowed=canUseFeature('open_close_store');b.title=allowed?'':'Open / Close Store tersedia mulai paket PLUS.';b.disabled=!allowed||(id==='open-shift-btn'?!!currentShift:!currentShift);});
  }
  // Capture guards, centralized around entitlement keys.
  document.addEventListener('click',e=>{
