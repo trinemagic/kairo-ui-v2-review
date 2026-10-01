@@ -369,6 +369,213 @@ html.kairo-v3 #dashboard > #seller-dashboard-alert-row {
   margin-top: var(--v3-section-gap) !important;
 }
 
+/* Riwayat Transaksi: compact 7-column table. Qty, Topic, Add On, Tip and
+   Pembayaran stay in the DOM (kairo-app.js renders 12 cells) and move to the
+   Detail dialog opened from the Aksi column (see kairo-v3.js). */
+html.kairo-v3 #transaction-history-card .history-table-wrap table {
+  width: 100%;
+  min-width: 720px;
+}
+
+html.kairo-v3 #transaction-history-card .history-table-wrap :is(th, td):is(:nth-child(6), :nth-child(7), :nth-child(8), :nth-child(9), :nth-child(11)) {
+  display: none;
+}
+
+html.kairo-v3 #dashboard #transaction-history-card .history-table-wrap thead th {
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--v3-line);
+  background: var(--v3-surface-subtle) !important;
+  color: var(--v3-muted);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+html.kairo-v3 #transaction-history-card .history-table-wrap td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--v3-line);
+  color: var(--v3-ink);
+  font-size: 13px;
+  line-height: 1.4;
+  vertical-align: middle;
+}
+
+html.kairo-v3 #transaction-history-card .history-table-wrap td:nth-child(1),
+html.kairo-v3 #transaction-history-card .history-table-wrap td:nth-child(2) {
+  white-space: nowrap;
+}
+
+html.kairo-v3 #transaction-history-card .history-table-wrap td:nth-child(3) {
+  font-weight: 650;
+}
+
+html.kairo-v3 #transaction-history-card .history-table-wrap td:nth-child(5) .badge {
+  display: inline-block;
+  max-width: 180px;
+  overflow: hidden;
+  font-size: 11px;
+  line-height: 1.45;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+html.kairo-v3 #dashboard #transaction-history-card .history-table-wrap :is(th, td):nth-child(10) {
+  text-align: right;
+  white-space: nowrap;
+}
+
+html.kairo-v3 #dashboard #transaction-history-card .history-table-wrap :is(th, td):nth-child(12) {
+  width: 1%;
+  text-align: right;
+  white-space: nowrap;
+}
+
+html.kairo-v3 #transaction-history-card .history-table-wrap td:nth-child(12) > div {
+  flex-wrap: nowrap !important;
+  justify-content: flex-end;
+  gap: 6px !important;
+}
+
+html.kairo-v3 #transaction-history-card .history-table-wrap td:nth-child(12) button {
+  min-height: 30px;
+  padding: 0 10px !important;
+  border-radius: 9px;
+  font-size: 12px !important;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+html.kairo-v3 #transaction-history-card .history-table-wrap tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+html.kairo-v3 #transaction-history-card .history-table-wrap tbody tr:hover td {
+  background: var(--v3-sky);
+}
+
+html.kairo-v3 #transaction-history-card .history-table-wrap td.empty {
+  padding: 22px 14px;
+  color: var(--v3-muted);
+  text-align: center;
+}
+
+@media (max-width: 700px) {
+  html.kairo-v3 #transaction-history-card .history-table-wrap table {
+    min-width: 640px;
+  }
+
+  html.kairo-v3 #transaction-history-card .history-table-wrap td,
+  html.kairo-v3 #dashboard #transaction-history-card .history-table-wrap thead th {
+    padding: 9px 10px;
+  }
+
+  html.kairo-v3 #transaction-history-card .history-table-wrap td:nth-child(5) .badge {
+    max-width: 150px;
+  }
+}
+
+html.kairo-v3 .kairo-tx-detail-btn {
+  border: 1px solid var(--v3-line);
+  background: var(--v3-surface);
+  color: var(--v3-ink);
+  cursor: pointer;
+}
+
+html.kairo-v3 .kairo-tx-detail-btn:hover {
+  border-color: var(--v3-sky-strong);
+  background: var(--v3-sky);
+}
+
+/* Detail dialog for a history row. */
+html.kairo-v3 .kairo-tx-detail {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  display: grid;
+  padding: 16px;
+  place-items: center;
+}
+
+html.kairo-v3 .kairo-tx-detail[hidden] {
+  display: none;
+}
+
+html.kairo-v3 .kairo-tx-detail-backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgba(13, 30, 45, .48);
+  cursor: default;
+}
+
+html.kairo-v3 .kairo-tx-detail-card {
+  position: relative;
+  width: min(100%, 440px);
+  max-height: calc(100vh - 32px);
+  overflow: auto;
+  padding: 22px;
+  border: 1px solid var(--v3-line);
+  border-radius: var(--v3-r-lg);
+  background: var(--v3-surface);
+  box-shadow: 0 24px 64px rgba(13, 30, 45, .22);
+  color: var(--v3-ink);
+}
+
+html.kairo-v3 .kairo-tx-detail-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--v3-line);
+  border-radius: 9px;
+  background: var(--v3-surface);
+  color: var(--v3-ink);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+html.kairo-v3 .kairo-tx-detail-card h3 {
+  margin: 0 40px 4px 0;
+  font-size: 17px;
+  font-weight: 800;
+}
+
+html.kairo-v3 .kairo-tx-detail-card > p {
+  margin: 0 0 16px;
+  color: var(--v3-muted);
+  font-size: 13px;
+}
+
+html.kairo-v3 .kairo-tx-detail-card dl {
+  display: grid;
+  margin: 0;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 0;
+}
+
+html.kairo-v3 .kairo-tx-detail-card :is(dt, dd) {
+  margin: 0;
+  padding: 9px 0;
+  border-top: 1px solid var(--v3-line);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+html.kairo-v3 .kairo-tx-detail-card dt {
+  padding-right: 18px;
+  color: var(--v3-muted);
+  font-weight: 600;
+}
+
+html.kairo-v3 .kairo-tx-detail-card dd {
+  font-weight: 650;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
 html.kairo-v3 #dashboard .seller-dashboard-alert-row {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--v3-card-gap);
