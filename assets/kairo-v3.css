@@ -995,7 +995,6 @@ html.kairo-v3 .kairo-lp-hero-copy {
   min-width: 0;
 }
 
-html.kairo-v3 .kairo-announcement,
 html.kairo-v3 .kairo-lp-eyebrow {
   display: inline-flex;
   align-items: center;
@@ -1010,11 +1009,6 @@ html.kairo-v3 .kairo-lp-eyebrow {
   font-size: 10px;
   font-weight: 800;
   letter-spacing: .02em;
-}
-
-html.kairo-v3 .kairo-announcement svg {
-  width: 14px;
-  height: 14px;
 }
 
 html.kairo-v3 .kairo-lp-hero h1 {
