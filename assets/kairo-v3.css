@@ -682,6 +682,21 @@ html.kairo-v3 #dashboard .kpi-grid {
   margin-bottom: var(--v3-section-gap);
 }
 
+/* Seller template adds a Profit card (5 cards): three on top, two wider below. */
+@media (min-width: 1241px) {
+  html.kairo-v3 body.seller-app-premium #dashboard .kpi-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+  }
+
+  html.kairo-v3 body.seller-app-premium #dashboard .kpi-grid > .kpi {
+    grid-column: span 2;
+  }
+
+  html.kairo-v3 body.seller-app-premium #dashboard .kpi-grid > .kpi:nth-child(n + 4) {
+    grid-column: span 3;
+  }
+}
+
 html.kairo-v3 #dashboard .kpi {
   display: grid;
   grid-template-columns: 40px minmax(0, 1fr);
@@ -1573,6 +1588,11 @@ html.kairo-v3 body.saas-dark .seller-history-card {
 @media (max-width: 1240px) {
   html.kairo-v3 #dashboard .kpi-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  /* An odd last card (seller: 5 cards) takes the full row instead of sitting alone. */
+  html.kairo-v3 #dashboard .kpi-grid > .kpi:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
   }
 }
 
