@@ -1,4 +1,4 @@
-// Orders: after a saved sale, platform + payment method stay selected; manual Reset clears them.
+// Orders: after a saved sale, platform + payment method are cleared too; submitting without them is blocked.
 const { chromium, bootApp } = require('./boot.js');
 const SEED = require('./seed.js');
 (async () => {
@@ -29,6 +29,14 @@ const SEED = require('./seed.js');
   await p.evaluate(() => document.querySelector('#tx-form button[onclick="resetTxForm()"]').click());
   await p.waitForTimeout(300);
   console.log('after Reset ', JSON.stringify(await state()));
+  // Fill everything except platform/payment: the form must refuse to submit.
+  await p.evaluate(() => {
+    document.getElementById('tx-customer').value = 'Pelanggan Dua';
+    const pk = document.querySelector('.package-check'); pk.checked = true; pk.dispatchEvent(new Event('change', { bubbles: true }));
+    const tp = document.querySelector('.topic-check'); tp.checked = true; tp.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+  console.log('form valid without platform/payment:', await p.evaluate(() => document.getElementById('tx-form').checkValidity()),
+    '| invalid:', JSON.stringify(await p.evaluate(() => [...document.querySelectorAll('#tx-form :invalid')].map(e => e.id))));
   console.log('errors', JSON.stringify(p.errs));
   await b.close();
 })();
