@@ -707,6 +707,36 @@ html.kairo-v3 body.auth-locked #kairo-entry .kairo-lp-dash-main > header {
   display: flex !important;
 }
 
+/* Landing pages: Home, Features, Solutions, Pricing, About (hash-based, see kairo-v3.js). */
+html.kairo-v3 #kairo-entry[data-page] .kairo-landing-main > section {
+  display: none;
+}
+
+html.kairo-v3 #kairo-entry[data-page="home"] .kairo-landing-main > :is(#home, .kairo-lp-cta, #faq),
+html.kairo-v3 #kairo-entry[data-page="features"] .kairo-landing-main > :is(#features, .kairo-lp-cta),
+html.kairo-v3 #kairo-entry[data-page="solutions"] .kairo-landing-main > :is(#solutions, .kairo-lp-cta),
+html.kairo-v3 #kairo-entry[data-page="pricing"] .kairo-landing-main > :is(#pricing, .kairo-lp-cta),
+html.kairo-v3 #kairo-entry[data-page="about"] .kairo-landing-main > :is(#about, .kairo-lp-cta) {
+  display: block;
+}
+
+html.kairo-v3 .kairo-lp-footer-wrap {
+  padding-bottom: 34px;
+}
+
+html.kairo-v3 .kairo-lp-footer-wrap > .kairo-lp-footer {
+  margin-top: 38px;
+}
+
+html.kairo-v3 .kairo-nav-links a[aria-current="page"] {
+  color: var(--kairo-delft);
+}
+
+html.kairo-v3 .kairo-nav-links a[aria-current="page"]::after {
+  opacity: 1;
+  transform: scaleX(1);
+}
+
 html.kairo-v3 body.kairo-dialog-open {
   overflow: hidden;
 }
@@ -981,7 +1011,7 @@ html.kairo-v3 .kairo-lp-hero-copy > p {
   max-width: 610px;
   margin: 0;
   color: var(--kairo-entry-muted);
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1.75;
 }
 
@@ -1477,7 +1507,7 @@ html.kairo-v3 .kairo-lp-cta-panel p {
   max-width: 650px;
   margin: 15px 0 0;
   color: var(--kairo-entry-muted);
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.72;
 }
 
@@ -1547,7 +1577,7 @@ html.kairo-v3 .kairo-lp-feature-list h3 {
 html.kairo-v3 .kairo-lp-feature-list p {
   margin: 0;
   color: var(--kairo-entry-muted);
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.6;
 }
 
@@ -1649,7 +1679,7 @@ html.kairo-v3 .kairo-lp-flow strong {
 
 html.kairo-v3 .kairo-lp-flow small {
   color: var(--kairo-entry-muted);
-  font-size: 9px;
+  font-size: 10px;
 }
 
 html.kairo-v3 .kairo-lp-flow > b {
@@ -1704,7 +1734,7 @@ html.kairo-v3 .kairo-lp-about-copy li strong {
 
 html.kairo-v3 .kairo-lp-about-copy li small {
   color: var(--kairo-entry-muted);
-  font-size: 11px;
+  font-size: 12.5px;
   line-height: 1.55;
 }
 
@@ -1822,7 +1852,7 @@ html.kairo-v3 .kairo-lp-compare-card li strong {
 
 html.kairo-v3 .kairo-lp-compare-card li small {
   color: var(--kairo-entry-muted);
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.55;
 }
 
@@ -1892,7 +1922,7 @@ html.kairo-v3 .kairo-lp-price-card.is-featured > strong {
 html.kairo-v3 .kairo-lp-price-card > p {
   margin: 13px 0 0;
   color: var(--kairo-entry-muted);
-  font-size: 12px;
+  font-size: 13.5px;
   line-height: 1.65;
 }
 
@@ -2045,7 +2075,7 @@ html.kairo-v3 .kairo-lp-faq-grid h3 {
 html.kairo-v3 .kairo-lp-faq-grid p {
   margin: 4px 0 0;
   color: var(--kairo-entry-muted);
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.62;
 }
 
@@ -2062,7 +2092,7 @@ html.kairo-v3 .kairo-lp-footer {
 html.kairo-v3 .kairo-lp-footer p {
   margin: 0;
   color: var(--kairo-entry-muted);
-  font-size: 9px;
+  font-size: 11px;
   text-align: center;
 }
 
@@ -2438,7 +2468,7 @@ html.kairo-v3 .kairo-entry :focus-visible {
   }
 
   html.kairo-v3 .kairo-lp-hero-copy > p {
-    font-size: 14px;
+    font-size: 15px;
     line-height: 1.65;
   }
 
