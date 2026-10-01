@@ -1088,7 +1088,9 @@ async function loadPageData(tabName=currentAppPage(),options={}){
     }else if(tabName==='customers'){
       await loadCustomerDirectory();renderCustomerDatabase();
     }else if(tabName==='payout'){
-      await ensureMasters();await Promise.all([fetchPayouts(),fetchFinancialSnapshot()]);renderPayouts();
+      // Profit Sharing (#share-summary) lives on this page: period share follows the date filter
+      // (transactions) and "Sisa hak" follows payouts, so both are reloaded and re-rendered here.
+      await ensureMasters();await Promise.all([fetchTransactions(),fetchPayouts(),fetchFinancialSnapshot()]);renderPayouts();renderShares();
     }else if(tabName==='cash'){
       await Promise.all([fetchCashExpenses(),fetchCashInjections(),fetchFinancialSnapshot()]);renderCashExpenses();
     }else if(tabName==='settings'){
@@ -1599,10 +1601,6 @@ function renderCashExpenses(){
   const cashBalanceEl=document.getElementById("cash-balance");
   cashBalanceEl.textContent=rupiah(financialSnapshot.cashBalance);
   cashBalanceEl.style.color=financialSnapshot.cashBalance<0 ? "#c62828" : "";
-  const expenseAvailableEl=document.getElementById("cash-expense-available");
-  if(expenseAvailableEl){
-    expenseAvailableEl.textContent=`Saldo kas tersedia untuk pengeluaran: ${rupiah(Math.max(0,financialSnapshot.cashBalance))}`;
-  }
   document.getElementById("cash-expense-table").innerHTML=cashExpenses.length ? cashExpenses.map(e=>`<tr><td>${escapeHtml(e.expense_date||"-")}</td><td>${escapeHtml(e.description||"-")}</td><td><strong>${rupiah(e.amount)}</strong></td></tr>`).join("") : `<tr><td colspan="3" class="empty">Belum ada pengeluaran kas pada periode ini.</td></tr>`;
   document.getElementById("cash-injection-table").innerHTML=cashInjections.length ? cashInjections.map(e=>`<tr><td>${escapeHtml(e.injection_date||"-")}</td><td>${escapeHtml(e.source||"-")}</td><td>${escapeHtml(e.description||"-")}</td><td><strong>${rupiah(e.amount)}</strong></td></tr>`).join("") : `<tr><td colspan="4" class="empty">Belum ada pemasukan kas dari luar pendapatan pada periode ini.</td></tr>`;
 }
