@@ -420,21 +420,33 @@ html.kairo-v3 #transaction-history-card .history-table-wrap td:nth-child(5) .bad
   white-space: nowrap;
 }
 
+/* Every visible column is centred, header and content alike. */
+html.kairo-v3 #dashboard #transaction-history-card .history-table-wrap :is(thead th, tbody td) {
+  text-align: center;
+}
+
+html.kairo-v3 #transaction-history-card .history-table-wrap .reading-status-wrap {
+  justify-content: center;
+}
+
 html.kairo-v3 #dashboard #transaction-history-card .history-table-wrap :is(th, td):nth-child(10) {
-  text-align: right;
   white-space: nowrap;
 }
 
 html.kairo-v3 #dashboard #transaction-history-card .history-table-wrap :is(th, td):nth-child(12) {
   width: 1%;
-  text-align: right;
   white-space: nowrap;
 }
 
 html.kairo-v3 #transaction-history-card .history-table-wrap td:nth-child(12) > div {
   flex-wrap: nowrap !important;
-  justify-content: flex-end;
+  justify-content: center;
   gap: 6px !important;
+}
+
+/* Original Struk / Hapus buttons stay in the row for kairo-app.js; the Aksi menu clicks them. */
+html.kairo-v3 #transaction-history-card .history-table-wrap .kairo-tx-original-action {
+  display: none !important;
 }
 
 html.kairo-v3 #transaction-history-card .history-table-wrap td:nth-child(12) button {
@@ -513,6 +525,7 @@ html.kairo-v3 #transaction-history-card .history-table-wrap td.empty {
     min-width: 0;
     padding: 0;
     border: 0;
+    text-align: left;
   }
 
   /* Beats kairo.css zebra rows (tr:nth-child(2n) td) so cards keep one surface. */
@@ -562,10 +575,11 @@ html.kairo-v3 #transaction-history-card .history-table-wrap td.empty {
     max-width: 100%;
   }
 
-  html.kairo-v3 #dashboard #transaction-history-card .history-table-wrap tbody td:nth-child(10) {
+  html.kairo-v3 body #dashboard #transaction-history-card .history-table-wrap tbody td:nth-child(10) {
     grid-area: total;
     justify-self: end;
     font-size: 14px;
+    text-align: right;
   }
 
   html.kairo-v3 #dashboard #transaction-history-card .history-table-wrap tbody td:nth-child(12) {
@@ -578,7 +592,7 @@ html.kairo-v3 #transaction-history-card .history-table-wrap td.empty {
 
   html.kairo-v3 #transaction-history-card .history-table-wrap td:nth-child(12) > div {
     display: grid !important;
-    grid-template-columns: 1fr 1fr 1.4fr;
+    grid-template-columns: 1fr 1fr;
   }
 
   html.kairo-v3 #transaction-history-card .history-table-wrap td:nth-child(12) button {
@@ -591,16 +605,72 @@ html.kairo-v3 #transaction-history-card .history-table-wrap td.empty {
   }
 }
 
-html.kairo-v3 .kairo-tx-detail-btn {
+html.kairo-v3 :is(.kairo-tx-detail-btn, .kairo-tx-menu-btn) {
   border: 1px solid var(--v3-line);
   background: var(--v3-surface);
   color: var(--v3-ink);
   cursor: pointer;
 }
 
-html.kairo-v3 .kairo-tx-detail-btn:hover {
+html.kairo-v3 :is(.kairo-tx-detail-btn, .kairo-tx-menu-btn):hover,
+html.kairo-v3 .kairo-tx-menu-btn[aria-expanded="true"] {
   border-color: var(--v3-sky-strong);
   background: var(--v3-sky);
+}
+
+html.kairo-v3 .kairo-tx-menu-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+html.kairo-v3 .kairo-tx-menu-btn svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+html.kairo-v3 .kairo-tx-menu {
+  position: fixed;
+  z-index: 100001;
+  display: grid;
+  min-width: 170px;
+  padding: 6px;
+  border: 1px solid var(--v3-line);
+  border-radius: var(--v3-r-sm);
+  background: var(--v3-surface);
+  box-shadow: 0 16px 40px rgba(13, 30, 45, .18);
+}
+
+html.kairo-v3 .kairo-tx-menu[hidden] {
+  display: none;
+}
+
+html.kairo-v3 .kairo-tx-menu button {
+  padding: 9px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--v3-ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+html.kairo-v3 .kairo-tx-menu button:is(:hover, :focus-visible) {
+  background: var(--v3-sky);
+  outline: none;
+}
+
+html.kairo-v3 .kairo-tx-menu button.is-danger {
+  color: var(--v3-danger);
 }
 
 /* Detail dialog for a history row. */
