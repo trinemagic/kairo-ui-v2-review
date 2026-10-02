@@ -4626,6 +4626,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
   ['Akun','1 akun','Owner + Member','Sesuai kebutuhan'],
   ['Penyesuaian & pendampingan setup',0,0,1]
  ];
+ const VISIBLE_ROWS=6; // the rest of the comparison opens with "Lihat semua fitur"
  const esc=v=>String(v).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
  function cell(v,plan){
    const body=v===1?`<span class="kairo-pp-yes" aria-label="Termasuk">${TICK}</span>`:v===0?`<span class="kairo-pp-no" aria-label="Tidak termasuk">${DASH}</span>`:`<span class="kairo-pp-note">${esc(v)}</span>`;
@@ -4634,8 +4635,9 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
  function markup(selected){
    const cards=PLANS.map(p=>`<button type="button" class="kairo-pp-card${p.badge?' is-featured':''}" data-kairo-plan="${p.id}" aria-pressed="${p.id===selected}">${p.badge?`<span class="kairo-pp-badge">${p.badge}</span>`:''}<span class="kairo-pp-check" aria-hidden="true">${TICK}</span><span class="kairo-pp-name">${p.name}</span><strong class="kairo-pp-price">${p.price}</strong><span class="kairo-pp-copy">${p.copy}</span><ul class="kairo-pp-points">${p.points.map(x=>`<li>${TICK}<span>${esc(x)}</span></li>`).join('')}</ul><span class="kairo-pp-foot">${p.foot}</span></button>`).join('');
    const head=PLANS.map(p=>`<th scope="col" data-plan-column="${p.id}">${p.name}</th>`).join('');
-   const rows=ROWS.map(r=>`<tr><th scope="row">${esc(r[0])}</th>${cell(r[1],'basic')}${cell(r[2],'pro')}${cell(r[3],'custom')}</tr>`).join('');
-   return `<div class="kairo-pp-grid" role="group" aria-label="Pilih paket">${cards}</div><details class="kairo-pp-compare"><summary><span>Bandingkan semua fitur</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="kairo-pp-included"><strong>Sudah termasuk di semua paket</strong><ul>${INCLUDED.map(x=>`<li>${TICK}<span>${esc(x)}</span></li>`).join('')}</ul></div><div class="kairo-pp-table-wrap"><table class="kairo-pp-table"><thead><tr><th scope="col">Fitur</th>${head}</tr></thead><tbody>${rows}</tbody></table></div></details>`;
+   const more=ROWS.length-VISIBLE_ROWS;
+   const rows=ROWS.map((r,i)=>`<tr${i>=VISIBLE_ROWS?' class="is-extra"':''}><th scope="row">${esc(r[0])}</th>${cell(r[1],'basic')}${cell(r[2],'pro')}${cell(r[3],'custom')}</tr>`).join('');
+   return `<div class="kairo-pp-grid" role="group" aria-label="Pilih paket">${cards}</div><div class="kairo-pp-compare"><div class="kairo-pp-compare-title">Bandingkan paket</div><div class="kairo-pp-table-wrap"><table class="kairo-pp-table"><thead><tr><th scope="col">Fitur</th>${head}</tr></thead><tbody>${rows}</tbody></table></div><div class="kairo-pp-included" id="kairo-pp-included"><strong>Sudah termasuk di semua paket</strong><ul>${INCLUDED.map(x=>`<li>${TICK}<span>${esc(x)}</span></li>`).join('')}</ul></div><button type="button" class="kairo-pp-more" aria-expanded="false" aria-controls="kairo-pp-included" data-more="Lihat semua fitur (${more} lagi)"><span>Lihat semua fitur (${more} lagi)</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button></div>`;
  }
  function paint(root,plan){
    root.querySelectorAll('[data-kairo-plan]').forEach(h=>{const on=h.dataset.kairoPlan===plan;h.classList.toggle('selected',on);h.setAttribute('aria-pressed',String(on))});
@@ -4647,6 +4649,8 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
    if(!root||!hidden||root.dataset.ready==='1')return;
    const selected=hidden.value||'basic';
    root.dataset.ready='1';root.innerHTML=markup(selected);paint(root,selected);
+   const more=root.querySelector('.kairo-pp-more');
+   more?.addEventListener('click',()=>{const open=root.querySelector('.kairo-pp-compare').classList.toggle('is-open');more.setAttribute('aria-expanded',String(open));more.querySelector('span').textContent=open?'Tutup perbandingan':more.dataset.more});
    root.querySelectorAll('[data-kairo-plan]').forEach(h=>h.addEventListener('click',()=>{
       hidden.value=h.dataset.kairoPlan;paint(root,h.dataset.kairoPlan);
       const b=document.getElementById('kairo-signup-submit');if(b)b.textContent=hidden.value==='basic'?'Buat Akun':'Buat Akun dan Konfirmasi ke WA';

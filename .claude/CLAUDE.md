@@ -73,8 +73,8 @@ URL live: `https://trinemagic.github.io/kairo-ui-v2-review/`
 | `assets/kairo-runtime.js` | Lazy loader lama | Tidak dimuat oleh `index.html` saat ini. |
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
-Versi terakhir: `kairo.css?v=20.10.153`, `kairo-v3.css?v=3.20.0`,
-`kairo-v3.js?v=3.17.0`, `kairo-app.js?v=20.10.163`.
+Versi terakhir: `kairo.css?v=20.10.153`, `kairo-v3.css?v=3.20.1`,
+`kairo-v3.js?v=3.17.0`, `kairo-app.js?v=20.10.164`.
 
 **Halaman app** = `main.container > section.section` dengan id:
 `dashboard`, `performance`, `input` (Orders), `customers`, `promo` (dibuat via JS),
@@ -102,8 +102,10 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   Entitlement DB dibaca dari baris `plan='basic'|'pro'` (baris `plus` tidak dipakai lagi).
 - **Halaman Daftar (`#kairo-account-page`):** latar terang gaya landing. Pilih paket = 3 kartu
   `.kairo-pp-card` (Gratis putih / Pro delft + badge gold / Custom putih, `[data-kairo-plan]`,
-  centang saat dipilih) + `<details>` "Bandingkan semua fitur" (daftar "Sudah termasuk di semua
-  paket" + tabel hanya fitur pembeda). Data `PLANS/INCLUDED/ROWS` di blok plan-compare
+  centang saat dipilih) + "Bandingkan paket": tabel fitur pembeda, 6 baris dulu (`VISIBLE_ROWS`),
+  tombol tengah "Lihat semua fitur" membuka sisa baris + "Sudah termasuk di semua paket" (owner:
+  jangan menuhin layar). HP: kartu paket yang tidak dipilih cuma nama+harga+1 baris, poin hanya di
+  kartu terpilih; Jenis Usaha jadi baris ringkas. Data `PLANS/INCLUDED/ROWS` di blok plan-compare
   kairo-app.js harus sesuai `FEATURE_MIN_PLAN` (jangan tulis fitur yang belum ada). Nilai
   terpilih tetap di `#kairo-selected-plan`. Tabel compare lama & latar gelap sudah dihapus.
 - **Autofill Orders di HP:** dulu menu muncul di luar layar (transform sisa animasi `sectionIn`
