@@ -254,7 +254,8 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   error aplikasi user, kapasitas server), **Request Custom** (papan Pending/On progress/Success + checklist per poin;
   status request dihitung SQL dari poinnya), **Kapasitas Server** (ukuran DB vs batas paket — pilihan batas disimpan
   `kairo_admin_db_limit_mb` di localStorage, koneksi, cache hit, waktu respons, tabel terbesar; CPU/RAM/bandwidth hanya
-  di laporan Supabase). SQL: `.claude/sql/2026-10-admin-panel-v2.sql` (diuji di Postgres lokal dengan skema tiruan).
+  di laporan Supabase). SQL: `.claude/sql/2026-10-admin-panel-v2.sql` (**sudah dijalankan owner Okt 2026**, sukses).
+  SQL panjang: kirim sebagai file + link raw GitHub, bukan blok kode di chat (owner: tampilan chat pecah).
 - **Laporan error user** (kairo-app.js, di atas `showToast`): `reportClientError()` mengirim pesan error script
   (file sendiri saja) + toast merah "Gagal" (bukan pesan kunci paket) ke RPC `report_client_error` beserta
   baris/kolom, stack trace (toast: stack pemanggil `showToast`) dan versi `kairo-app.js?v=`; maks 10/sesi, tanpa data
