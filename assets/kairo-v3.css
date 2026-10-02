@@ -2503,22 +2503,6 @@ html.kairo-v3 .kairo-lp-hero-copy {
   min-width: 0;
 }
 
-html.kairo-v3 .kairo-lp-eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  width: max-content;
-  max-width: 100%;
-  padding: 7px 12px;
-  border: 1px solid rgba(223, 169, 74, .32);
-  border-radius: 999px;
-  background: var(--kairo-gold-050);
-  color: #75571b;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: .02em;
-}
-
 html.kairo-v3 .kairo-lp-hero h1 {
   max-width: 660px;
   margin: 22px 0 19px;
@@ -3014,14 +2998,10 @@ html.kairo-v3 .kairo-lp-section-head-center {
   text-align: center;
 }
 
-html.kairo-v3 .kairo-lp-section-head-center .kairo-lp-eyebrow {
-  margin-inline: auto;
-}
-
 html.kairo-v3 .kairo-lp-section-head h2,
 html.kairo-v3 .kairo-lp-about-copy h2,
 html.kairo-v3 .kairo-lp-cta-panel h2 {
-  margin: 15px 0 0;
+  margin: 0;
   color: var(--kairo-delft);
   font-size: clamp(30px, 4.1vw, 48px);
   font-weight: 800;
@@ -3557,12 +3537,6 @@ html.kairo-v3 .kairo-lp-cta-panel::after {
 html.kairo-v3 .kairo-lp-cta-panel > * {
   position: relative;
   z-index: 1;
-}
-
-html.kairo-v3 .kairo-lp-cta-panel .kairo-lp-eyebrow {
-  border-color: rgba(223, 169, 74, .22);
-  background: rgba(255, 245, 215, .11);
-  color: #f3d68d;
 }
 
 html.kairo-v3 .kairo-lp-cta-panel h2 {
@@ -4432,7 +4406,7 @@ html.kairo-v3 .kairo-lp-shot {
 }
 html.kairo-v3 .kairo-lp-shot img { display: block; width: 100%; height: auto; border-radius: 14px; background: var(--kairo-white); }
 html.kairo-v3 .kairo-lp-shot.is-tall { justify-self: center; width: min(420px, 100%); }
-html.kairo-v3 .kairo-lp-showcase-copy h3 { margin: 12px 0 0; color: var(--kairo-delft); font-size: clamp(22px, 2.4vw, 30px); line-height: 1.2; letter-spacing: -.03em; }
+html.kairo-v3 .kairo-lp-showcase-copy h3 { margin: 0; color: var(--kairo-delft); font-size: clamp(22px, 2.4vw, 30px); line-height: 1.2; letter-spacing: -.03em; }
 html.kairo-v3 .kairo-lp-showcase-copy > p { margin: 12px 0 0; color: var(--kairo-entry-muted); font-size: 15px; line-height: 1.7; }
 html.kairo-v3 .kairo-lp-showcase-copy .kairo-lp-price-list { margin: 18px 0 0; }
 html.kairo-v3 .kairo-lp-more-features { margin-top: clamp(56px, 7vw, 88px); padding-top: 32px; border-top: 1px solid var(--kairo-entry-line); }

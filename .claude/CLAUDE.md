@@ -80,7 +80,7 @@ URL live: `https://trinemagic.github.io/kairo-ui-v2-review/`
 | `assets/kairo-runtime.js` | Lazy loader lama | Tidak dimuat oleh `index.html` saat ini. |
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
-Versi terakhir: `kairo.css?v=20.10.154`, `kairo-v3.css?v=3.22.0`,
+Versi terakhir: `kairo.css?v=20.10.154`, `kairo-v3.css?v=3.22.1`,
 `kairo-v3.js?v=3.18.0`, `kairo-app.js?v=20.10.167`.
 
 **Halaman app** = `main.container > section.section` dengan id:
@@ -101,7 +101,8 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   dipotong sebelum field Topik) + "Fitur lainnya"; label `.kairo-lp-pro-tag`
   untuk fitur Pro. Meta SEO/Open Graph + favicon di `<head>`; gambar preview link
   `assets/og/kairo-og.jpg` (1200×630), URL absolut github.io (ganti bila pindah domain).
-  `#masuk` = langsung form login. Badge "kini hadir…" sudah dihapus (owner: jangan
+  Badge kuning kecil di atas judul section (`.kairo-lp-eyebrow`) sudah dihapus semua (owner) — jangan
+  ditambah lagi. `#masuk` = langsung form login. Badge "kini hadir…" sudah dihapus (owner: jangan
   wording khas AI).
   Copy landing ditulis untuk pelanggan: **jangan** ada catatan internal/teknis (Supabase,
   tenant, auth, "belum final"). Pricing Gratis (Rp0) / Pro / Custom dengan daftar fitur; tombol
