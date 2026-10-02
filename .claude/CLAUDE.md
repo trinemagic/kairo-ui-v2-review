@@ -260,7 +260,7 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   bila ada template baru**): Seller App Premium (`digital_subscription`, tampilan khusus), Jasa Online
   (`service_consultation`, tampilan dasar), Online Shop & Digital Product (belum ada tampilan khusus → user melihat
   tampilan Jasa Online). Jumlah workspace/Pro/aktif per template dari `business_template` di
-  `platform_admin_workspace_activity` (SQL `.claude/sql/2026-10-admin-templates.sql`). Preview dashboard
+  `platform_admin_workspace_activity` (SQL `.claude/sql/2026-10-admin-templates.sql`, **sudah dijalankan owner Okt 2026**). Preview dashboard
   `admin/previews/*.webp` dibuat ulang dengan `.claude/testing/shoot-templates.js`. Cache admin `?v=1.3.0`.
 - **Laporan error user** (kairo-app.js, di atas `showToast`): `reportClientError()` mengirim pesan error script
   (file sendiri saja) + toast merah "Gagal" (bukan pesan kunci paket) ke RPC `report_client_error` beserta
