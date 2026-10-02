@@ -80,7 +80,7 @@ URL live: `https://trinemagic.github.io/kairo-ui-v2-review/`
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
 Versi terakhir: `kairo.css?v=20.10.156`, `kairo-v3.css?v=3.23.0`,
-`kairo-v3.js?v=3.19.0`, `kairo-app.js?v=20.10.169`; template seller dimuat dari kairo-app.js
+`kairo-v3.js?v=3.19.0`, `kairo-app.js?v=20.10.170`; template seller dimuat dari kairo-app.js
 (`seller-app-premium.js?v=20.10.148`, `.css?v=20.10.150`) — naikkan juga bila file template diubah.
 
 **Halaman app** = `main.container > section.section` dengan id:
@@ -234,17 +234,30 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   `#signup-form`), carousel paket, `kairo-runtime.js`, file sampah `app-logos/.../a`.
 - **Tombol "KAIRO Admin"** (`ensureKairoAppSwitcher()`): hanya di workspace Trine Magic
   (`TRINE_MAGIC_WORKSPACE_ID`, atau nama "Trine Magic" + `is_platform_admin`). Desktop: di bawah
-  Settings di sidebar (`#kairo-app-switcher`); HP: menu More (`#kairo-admin-more-item`). Klik → cek
-  `admin/` (HEAD); kalau belum ada → toast "Admin panel KAIRO sedang disiapkan", kalau ada → tab baru.
-  Owner: nanti jadi admin panel KAIRO Workspaces (tampilannya akan diubah).
+  Settings di sidebar (`#kairo-app-switcher`); HP: menu More (`#kairo-admin-more-item`). Klik → buka `admin/`
+  di tab baru (langsung, supaya tidak diblokir pop-up blocker Safari).
 - **Admin panel (`admin/`)**: `index.html` + `admin.css` + `admin.js` (tanpa build). Gaya diadaptasi dari template
   Light Blue (flatlogic) dengan palet KAIRO, dark saja: sidebar bergrup (drawer di HP), topbar (cari workspace,
   refresh, keluar), widget kaca. Logika & RPC `platform_admin_*` sama persis dengan admin lama di repo
-  `trinemagic/trine-magic-dashboard/admin` (yang lama tidak diubah). Login username → `get_login_email` →
-  `is_platform_admin`; `persistSession:false` (keluar = reload, di admin memang begitu). Paket tampil Gratis/Pro
+  `trinemagic/trine-magic-dashboard/admin` (yang lama tidak diubah). Tombol keluar = tutup tab admin. Paket tampil Gratis/Pro
   (`plus` dll dihitung Pro; pilihan paket di modal hanya basic/pro; harga `plus` disembunyikan). Tabel jadi kartu di
   ≤640px (label kolom otomatis dari `thead`, `labelCells()`). Tes: stub `window.supabase` + data contoh di
-  scratchpad (route `**/supabase-js@2*` dan `**/chart.umd.min.js`). Cache `admin.css?v=1.0.0`, `admin.js?v=1.0.0`.
+  scratchpad (route `**/supabase-js@2*` dan `**/chart.umd.min.js`). Cache `admin.css?v=1.1.0`, `admin.js?v=1.1.0`.
+  **Akses (owner Okt 2026): tanpa form login.** admin/ hanya jalan bila dibuka dari tombol KAIRO Admin di dashboard
+  Trine Magic: `openKairoAdmin()` membuka tab (tanpa `noopener`), admin minta token lewat `postMessage`
+  (`kairo-admin-token-request` → `kairo-admin-token`, cek origin + window yang dibuka), dashboard hanya menjawab bila
+  `activePlatformAdmin && isKairoAdminWorkspace()`. Admin memakai opsi supabase-js `accessToken` (tidak pegang refresh
+  token → tidak bentrok rotasi sesi dashboard). Buka langsung / dashboard logout → layar terkunci. Kode tetap terlihat di
+  repo publik (tidak ada rahasia di dalamnya); data dilindungi `is_platform_admin` di setiap fungsi SQL.
+  Menu v2: **Perlu Perhatian** (deteksi otomatis di `computeIssues()`: telat bayar, Pro habis/hampir habis tanpa
+  follow-up, belum pernah transaksi >3 hari, tidak ada transaksi 14+ hari, daftar Custom belum dicatat, pending >3 hari,
+  error aplikasi user, kapasitas server), **Request Custom** (papan Pending/On progress/Success + checklist per poin;
+  status request dihitung SQL dari poinnya), **Kapasitas Server** (ukuran DB vs batas paket — pilihan batas disimpan
+  `kairo_admin_db_limit_mb` di localStorage, koneksi, cache hit, waktu respons, tabel terbesar; CPU/RAM/bandwidth hanya
+  di laporan Supabase). SQL: `.claude/sql/2026-10-admin-panel-v2.sql` (diuji di Postgres lokal dengan skema tiruan).
+- **Laporan error user** (kairo-app.js, di atas `showToast`): `reportClientError()` mengirim pesan error script
+  (file sendiri saja) + toast merah "Gagal" (bukan pesan kunci paket) ke RPC `report_client_error`; maks 10/sesi,
+  tanpa data form. Sebelum SQL v2 dijalankan, panggilan gagal diam-diam.
 
 ## 4. Jebakan yang sudah pernah terjadi
 

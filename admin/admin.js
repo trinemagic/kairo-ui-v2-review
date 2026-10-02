@@ -3,13 +3,41 @@
 'use strict';
 const SUPABASE_URL='https://sbjmvsiwngmfxfktxbgr.supabase.co';
 const SUPABASE_KEY='sb_publishable_cylO3B4mLWoohXAWlI0R1A_uanf1qYM';
-const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:false,autoRefreshToken:true,detectSessionInUrl:false}});
+
+/* Akses: tidak ada form login. Halaman ini hanya bekerja bila dibuka lewat tombol "KAIRO Admin" di
+   dashboard Trine Magic; tab dashboard itulah yang memberi token sesi (lihat openKairoAdmin di
+   assets/kairo-app.js). Token diminta ulang saat hampir kedaluwarsa, jadi bila dashboard ditutup atau
+   logout, admin ikut terkunci. Server tetap memeriksa is_platform_admin di setiap fungsi. */
+let session=null;
+function requestToken(){
+  return new Promise((resolve,reject)=>{
+    const op=window.opener;
+    if(!op||op.closed)return reject(new Error('no-opener'));
+    const timer=setTimeout(()=>{window.removeEventListener('message',onMsg);reject(new Error('no-session'));},5000);
+    function onMsg(e){
+      if(e.origin!==location.origin||e.source!==op||e.data?.type!=='kairo-admin-token')return;
+      clearTimeout(timer);window.removeEventListener('message',onMsg);
+      e.data.token?resolve({token:e.data.token,exp:Number(e.data.exp)||0}):reject(new Error('no-session'));
+    }
+    window.addEventListener('message',onMsg);
+    op.postMessage({type:'kairo-admin-token-request'},location.origin);
+  });
+}
+async function accessToken(){
+  if(session&&session.exp*1000-Date.now()>60e3)return session.token;
+  try{session=await requestToken();return session.token;}
+  catch(e){session=null;gate(e.message==='no-opener'?'no-opener':'no-session');throw e;}
+}
+const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{accessToken,auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
 
 let activeFilter='all',all=[],sales=[],expenses=[],renewals=[],planPerf=[],analytics={},crm=[],followups=[],platformSettings={},activity=[],business={},overview={};
 let selected=null,selectedCrm=null,revenueChart=null;
+let serverHealth=null,serverLatency=null,wsActivity=[],clientErrors=[],customReqs=[],customEditing=null,issues=[],issueFilter='all';
+const needSql={};
 
 const PAGES={
   overview:['Overview','Ringkasan platform KAIRO Workspaces'],
+  issues:['Perlu Perhatian','Masalah yang terdeteksi otomatis dari data & aplikasi user'],
   workspaces:['Workspaces','Paket, masa aktif, dan status setiap workspace'],
   sales:['Penjualan','Catat dan pantau pembayaran paket'],
   renewals:['Renewal','Workspace yang masa aktifnya segera habis'],
@@ -17,6 +45,8 @@ const PAGES={
   expenses:['Pengeluaran','Biaya operasional dan laba bersih'],
   analytics:['Analitik','Performa paket dan subscription'],
   crm:['CRM & Follow-up','Kontak customer dan tindak lanjut'],
+  custom:['Request Custom','Permintaan customer paket Pro custom + checklist pengerjaan'],
+  server:['Kapasitas Server','Pemakaian database & beban server KAIRO'],
   settings:['Pengaturan','Target revenue, peringatan, dan backup'],
   activity:['Log Aktivitas','Riwayat perubahan oleh admin']
 };
@@ -46,12 +76,25 @@ function toast(msg,isError){const t=$('toast');t.textContent=msg;t.classList.tog
 function remain(v){if(!v)return'—';const d=Math.ceil((+new Date(v)-Date.now())/864e5);return d<0?`${Math.abs(d)} hari lewat`:d===0?'Hari ini':`${d} hari`;}
 function remainClass(v){if(!v)return'';const d=Math.ceil((+new Date(v)-Date.now())/864e5);return d<0?'t-danger':d<=7?'t-warn':'';}
 
-/* Login */
-async function usernameEmail(u){const {data,error}=await db.rpc('get_login_email',{p_username:u.trim().toLowerCase()});if(error)throw error;return typeof data==='string'?data:data?.email;}
-async function enter(){
+/* Gerbang */
+const GATE={
+  'no-opener':['Buka dari dashboard Trine Magic','Admin panel hanya bisa dibuka lewat tombol <b>KAIRO Admin</b> di menu dashboard workspace Trine Magic.'],
+  'no-session':['Sesi dashboard tidak ditemukan','Pastikan tab dashboard Trine Magic masih terbuka dan sudah login, lalu buka lagi lewat tombol <b>KAIRO Admin</b>.'],
+  'denied':['Akses ditolak','Akun ini tidak memiliki akses admin platform KAIRO.']
+};
+function gate(kind){
+  const g=GATE[kind]||GATE['no-session'];
+  $('gateBody').innerHTML=`<svg><use href="#i-lock"/></svg><b>${g[0]}</b><p>${g[1]}</p>`;
+  document.querySelectorAll('.modal-backdrop').forEach(m=>m.classList.add('hidden'));
+  $('shell').classList.add('hidden');$('gate').classList.remove('hidden');
+  clearInterval(serverTimer);
+}
+async function boot(){
+  if(!window.opener)return gate('no-opener');
+  try{await accessToken();}catch(_e){return;}
   const {data,error}=await db.rpc('is_platform_admin');
-  if(error||!data){await db.auth.signOut();throw new Error('Akun ini tidak memiliki akses KAIRO Admin.');}
-  $('login').classList.add('hidden');$('shell').classList.remove('hidden');
+  if(error||!data)return gate('denied');
+  $('gate').classList.add('hidden');$('shell').classList.remove('hidden');
   const initial=(location.hash||'').replace('#','');
   activatePage(PAGES[initial]?initial:'overview');
   await load();stampRefresh();
@@ -64,15 +107,26 @@ async function load(){
   const failed=calls.map((c,i)=>c.error?specs[i][0]:null).filter(Boolean);
   const [o,w,a,b,s,series,prices,ex,an,pp,rq,cr,fu,ps]=calls.map(x=>x.error?null:x.data);
   overview=o||{};all=w||[];activity=a||[];business=b||{};sales=s||[];expenses=ex||[];analytics=an||{};planPerf=pp||[];renewals=rq||[];crm=cr||[];followups=fu||[];platformSettings=ps||{};
-  renderOverview(series||[]);renderWorkspaces();renderSales();renderActivity();renderPrices(prices||[]);fillWorkspaceSelect();renderExpenses();renderAnalytics();renderRenewals();renderCrm();renderFollowups();renderPlatformSettings();fillFollowWorkspace();renderNavCounts();
+  await loadExtras();
+  renderOverview(series||[]);renderWorkspaces();renderSales();renderActivity();renderPrices(prices||[]);fillWorkspaceSelect();renderExpenses();renderAnalytics();renderRenewals();renderCrm();renderFollowups();renderPlatformSettings();fillFollowWorkspace();renderCustom();renderServer();renderIssues();renderNavCounts();
   if(failed.length)toast(`Sebagian data gagal dimuat (${failed.length}): ${failed[0]}`,true);
 }
 
+/* Fitur v2 (butuh SQL admin panel v2). Gagal = tampilkan catatan, bukan error merah. */
+async function loadServer(){
+  const t0=performance.now(),r=await db.rpc('platform_admin_server_health').then(x=>x,e=>({error:e}));
+  needSql.server=!!r.error;serverHealth=r.error?null:r.data;serverLatency=r.error?null:Math.round(performance.now()-t0);
+}
+async function loadExtras(){
+  const [act,errs,cu]=await Promise.all([db.rpc('platform_admin_workspace_activity'),db.rpc('platform_admin_client_errors',{p_hours:72}),db.rpc('platform_admin_custom_requests'),loadServer()].map(p=>Promise.resolve(p).then(x=>x||{},e=>({error:e}))));
+  needSql.activity=!!act.error;needSql.errors=!!errs.error;needSql.custom=!!cu.error;
+  wsActivity=act.data||[];clientErrors=errs.data||[];customReqs=cu.data||[];
+}
 function renderOverview(series){
   const free=Number(overview.basic||0),pro=Number(overview.plus||0)+Number(overview.pro||0),total=Number(overview.total_workspaces??free+pro);
   setText('total',total);setText('active',overview.active_workspaces??0);setText('basic',free);setText('pro',pro);
   setText('revMonth',money(business.revenue_month));setText('salesMonth',business.sales_month??0);setText('renew30',business.renewals_30??0);
-  setText('pendingAmount',money(business.pending_amount));setText('pendingB',money(business.pending_amount));setText('revAllB',money(business.revenue_all));
+  setText('pendingAmount',money(business.pending_amount));setText('pendingB',money(business.pending_amount));
   setText('revAll',money(business.revenue_all));setText('revMonth2',money(business.revenue_month));setText('pending2',money(business.pending_amount));setText('salesMonth2',business.sales_month??0);setText('renew302',business.renewals_30??0);
   const now=Date.now(),d7=now+7*864e5,ar=all.filter(x=>['active','trialing'].includes(String(x.subscription_status||'').toLowerCase()));
   const exp7=ar.filter(x=>x.valid_until&&+new Date(x.valid_until)>=now&&+new Date(x.valid_until)<=d7).length;
@@ -104,6 +158,8 @@ function renderNavCounts(){
   setText('navWs',all.length||'');
   setText('navRenew',renewals.filter(x=>Number(x.days_left)<=7).length||'');
   setText('navFollow',followups.filter(x=>x.status==='open'&&x.due_date<=today).length||'');
+  setText('navIssues',issues.filter(x=>x.sev==='high').length||'');
+  setText('navCustom',customReqs.filter(x=>x.status!=='success').length||'');
 }
 
 function renderChart(series){
@@ -210,7 +266,7 @@ async function setFollowStatus(id,status){
   if(error)return toast(error.message,true);toast('Follow-up diperbarui');await load();
 }
 function fillFollowWorkspace(){$('fWorkspace').innerHTML=all.map(x=>`<option value="${esc(x.workspace_id)}">${esc(x.workspace_name)}</option>`).join('');}
-function openFollow(){$('fDate').value=todayISO();$('fTitle').value='';$('fNotes').value='';$('fError').textContent='';openModal('followModal');}
+function openFollow(wsId,title){$('fDate').value=todayISO();if(typeof wsId==='string'&&wsId)$('fWorkspace').value=wsId;$('fTitle').value=typeof title==='string'?title:'';$('fNotes').value='';$('fError').textContent='';openModal('followModal');}
 async function saveFollow(){
   try{const {error}=await db.rpc('platform_admin_create_followup',{p_workspace_id:$('fWorkspace').value,p_due_date:$('fDate').value,p_priority:$('fPriority').value,p_title:$('fTitle').value,p_notes:$('fNotes').value});
     if(error)throw error;closeModal('followModal');toast('Follow-up dibuat');await load();
@@ -285,6 +341,153 @@ async function saveSale(){
   }catch(e){$('sError').textContent=e.message;}
 }
 
+/* ── Perlu Perhatian: deteksi otomatis ── */
+const SEV={high:['Tinggi','b-danger',0],med:['Sedang','b-warn',1],low:['Rendah','b-info',2]};
+const DAY=864e5;
+function computeIssues(){
+  const out=[],now=Date.now(),today=todayISO(),act=Object.fromEntries(wsActivity.map(a=>[a.workspace_id,a]));
+  const openFollow=new Set(followups.filter(f=>f.status==='open').map(f=>f.workspace_name));
+  const customWs=new Set(customReqs.map(r=>r.workspace_id).filter(Boolean));
+  const add=(sev,title,ws,detail,since,action)=>out.push({sev,title,ws,detail,since,action});
+  all.forEach(w=>{
+    const ss=String(w.subscription_status||'').toLowerCase(),wst=String(w.workspace_status||'').toLowerCase(),until=w.valid_until?+new Date(w.valid_until):null,pro=planKey(w.plan)==='pro';
+    const manage={label:'Kelola',run:()=>openWorkspace(w.workspace_id)};
+    if(ss==='past_due')add('high','Pembayaran telat',w,'Subscription berstatus telat bayar',w.valid_until,manage);
+    else if(pro&&until&&until<now&&['active','trialing'].includes(ss))add('high','Masa aktif Pro sudah habis',w,`Habis ${remain(w.valid_until)}, status masih aktif`,w.valid_until,manage);
+    else if(pro&&until&&until>=now&&until<=now+7*DAY&&!openFollow.has(w.workspace_name))add('med','Pro hampir habis, belum di-follow-up',w,`Sisa ${remain(w.valid_until)}`,null,{label:'Follow-up',run:()=>openFollow(w.workspace_id,'Ingatkan perpanjangan Pro')});
+    if(wst==='suspended')add('low','Workspace di-suspend',w,'Owner tidak bisa memakai workspace',null,manage);
+    const a=act[w.workspace_id];
+    if(a&&wst==='active'){
+      const created=a.workspace_created_at?+new Date(a.workspace_created_at):null,last=a.last_tx_at?+new Date(a.last_tx_at):null;
+      if(!last&&created&&created<now-3*DAY)add('med','Belum pernah mencatat transaksi',w,`Daftar ${Math.floor((now-created)/DAY)} hari lalu — mungkin bingung memulai`,a.workspace_created_at,{label:'Follow-up',run:()=>openFollow(w.workspace_id,'Bantu mulai catat transaksi pertama')});
+      else if(last&&last<now-14*DAY)add(pro?'med':'low','Tidak ada transaksi 14+ hari',w,`Transaksi terakhir ${dateID(a.last_tx_at)}`,a.last_tx_at,{label:'Follow-up',run:()=>openFollow(w.workspace_id,'Cek kenapa berhenti mencatat')});
+      if(a.requested_variant==='custom'&&!customWs.has(w.workspace_id))add('med','Daftar paket Custom, request belum dicatat',w,a.owner_phone?`WA ${a.owner_phone}`:'Hubungi owner untuk detail kebutuhan',a.workspace_created_at,{label:'Catat',run:()=>openCustom(null,{workspace_id:w.workspace_id,customer_name:w.owner_username||'',contact:a.owner_phone||''})});
+    }
+  });
+  sales.filter(x=>x.payment_status==='pending'&&+new Date(x.created_at||x.paid_at)<now-3*DAY).forEach(x=>add('med','Pembayaran pending lebih dari 3 hari',{workspace_name:x.workspace_name},`${money(x.amount)} · ${x.customer_name||'—'}`,x.created_at||x.paid_at,{label:'Lihat',run:()=>activatePage('sales')}));
+  clientErrors.filter(e=>+new Date(e.last_seen)>now-DAY).forEach(e=>add(Number(e.occurrences)>=5||Number(e.users)>=3?'high':'med','Error aplikasi di sisi user',{workspace_name:(e.workspace_names||[]).join(', ')||'—'},`${String(e.message).slice(0,90)} · ${e.occurrences}× / ${e.users} user`,e.first_seen,{label:'Detail',run:()=>{$('errorRows').scrollIntoView({behavior:'smooth',block:'center'});}}));
+  const srv=serverState();srv.reasons.forEach(r=>add(r.sev,r.title,{workspace_name:'Server KAIRO'},r.detail,null,{label:'Lihat',run:()=>activatePage('server')}));
+  return out.sort((a,b)=>SEV[a.sev][2]-SEV[b.sev][2]||String(b.since||'').localeCompare(String(a.since||'')));
+}
+function renderIssues(){
+  issues=computeIssues();
+  const c=k=>issues.filter(x=>x.sev===k).length;
+  setText('issHigh',c('high'));setText('issMed',c('med'));setText('issLow',c('low'));
+  setText('issueCount',c('high')+c('med'));
+  $('issuesNeedSql').classList.toggle('hidden',!(needSql.activity||needSql.errors));
+  const rows=issues.filter(x=>issueFilter==='all'||x.sev===issueFilter);
+  $('issueRows').innerHTML=rows.map((x,i)=>`<tr><td><span class="issue-title ${x.sev}"><svg><use href="#i-alert"/></svg>${esc(x.title)}</span></td><td><span class="badge ${SEV[x.sev][1]}">${SEV[x.sev][0]}</span></td><td>${esc(x.ws?.workspace_name||'—')}</td><td>${esc(x.detail)}</td><td>${x.since?dateID(x.since):'—'}</td><td class="num">${x.action?`<button class="table-btn issueAct" data-i="${i}">${esc(x.action.label)}</button>`:''}</td></tr>`).join('');
+  $('issueEmpty').classList.toggle('hidden',rows.length>0);
+  $('issueRows').querySelectorAll('.issueAct').forEach(b=>b.onclick=()=>rows[+b.dataset.i].action.run());
+  $('errorRows').innerHTML=clientErrors.map(e=>`<tr><td class="err-msg">${esc(e.message)}${e.source?`<br><small>${esc(e.source)}${e.line?':'+esc(e.line):''}</small>`:''}</td><td>${esc(e.page||'—')}</td><td class="num"><b>${esc(e.occurrences)}</b></td><td class="num">${esc(e.users)}</td><td>${esc((e.workspace_names||[]).join(', ')||'—')}</td><td>${e.last_seen?new Date(e.last_seen).toLocaleString('id-ID',{dateStyle:'medium',timeStyle:'short'}):'—'}</td></tr>`).join('');
+  $('errorEmpty').textContent=needSql.errors?'Aktif setelah SQL admin panel v2 dijalankan.':'Belum ada error yang dilaporkan.';
+  $('errorEmpty').classList.toggle('hidden',clientErrors.length>0);
+  renderNavCounts();
+}
+
+/* ── Kapasitas Server ── */
+let serverTimer=null;
+const fmtBytes=b=>{b=Number(b||0);const u=['B','KB','MB','GB'];let i=0;while(b>=1024&&i<u.length-1){b/=1024;i++;}return (i>1?b.toFixed(1):Math.round(b))+' '+u[i];};
+function serverLimitMB(){let v=500;try{v=+localStorage.getItem('kairo_admin_db_limit_mb')||500;}catch(_e){}return v;}
+function serverState(){
+  const h=serverHealth,reasons=[];
+  if(!h)return{level:'unknown',reasons,dbPct:null,connPct:null};
+  const dbPct=Number(h.db_size_bytes||0)/(serverLimitMB()*1048576)*100,connPct=h.max_connections?Number(h.connections_total||0)/h.max_connections*100:0;
+  if(dbPct>=90)reasons.push({sev:'high',title:'Database hampir penuh',detail:`${dbPct.toFixed(0)}% dari batas paket terpakai`});
+  else if(dbPct>=75)reasons.push({sev:'med',title:'Database mulai penuh',detail:`${dbPct.toFixed(0)}% dari batas paket terpakai`});
+  if(connPct>=85)reasons.push({sev:'high',title:'Koneksi database hampir habis',detail:`${h.connections_total}/${h.max_connections} koneksi`});
+  else if(connPct>=65)reasons.push({sev:'med',title:'Koneksi database ramai',detail:`${h.connections_total}/${h.max_connections} koneksi`});
+  if(serverLatency>=2500)reasons.push({sev:'med',title:'Server lambat merespons',detail:`${serverLatency} ms dari browser admin`});
+  if(h.cache_hit_pct!=null&&Number(h.cache_hit_pct)<95)reasons.push({sev:'low',title:'Cache database rendah',detail:`Cache hit ${h.cache_hit_pct}% (ideal ≥ 99%)`});
+  const level=reasons.some(r=>r.sev==='high')?'danger':reasons.some(r=>r.sev==='med')?'warn':'ok';
+  return{level,reasons,dbPct,connPct};
+}
+function bar(id,pct){const el=$(id);if(!el)return;el.style.width=Math.min(100,pct||0)+'%';el.className=pct>=85?'danger':pct>=65?'warn':'ok';}
+function renderServer(){
+  const h=serverHealth,st=serverState();
+  $('serverNeedSql').classList.toggle('hidden',!needSql.server);
+  const B={ok:['Aman','b-ok','Server dalam kondisi aman','Kapasitas database dan koneksi masih longgar.'],warn:['Perlu dipantau','b-warn','Ada yang perlu dipantau',''],danger:['Kritis','b-danger','Kapasitas server kritis',''],unknown:['Belum ada data','b-mute','Status server','Data kapasitas belum tersedia.']}[st.level];
+  $('srvBadge').className='badge '+B[1];$('srvBadge').textContent=B[0];setText('srvHeadline',B[2]);
+  setText('srvSummary',st.reasons.length?st.reasons.map(r=>r.title+' ('+r.detail+')').join(' · '):B[3]);
+  const dot=$('navServer');dot.className='nav-dot'+(st.level==='unknown'?'':' '+st.level);dot.title=B[0];
+  setText('srvChecked',h?.checked_at?new Date(h.checked_at).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}):'—');
+  setText('srvDb',h?fmtBytes(h.db_size_bytes):'—');setText('srvDbOf',`dari ${fmtBytes(serverLimitMB()*1048576)}`);setText('srvDbPct',st.dbPct!=null?st.dbPct.toFixed(1)+'%':'—');bar('srvDbBar',st.dbPct);
+  setText('dbPctMini',st.dbPct!=null?st.dbPct.toFixed(1)+'%':'—');
+  setText('srvConn',h?`${h.connections_total}`:'—');setText('srvConnOf',h?`aktif ${h.connections_active} · maks ${h.max_connections}`:'—');setText('srvConnPct',st.connPct!=null?st.connPct.toFixed(0)+'%':'—');bar('srvConnBar',st.connPct);
+  setText('srvLatency',serverLatency!=null?serverLatency+' ms':'—');setText('srvCache',h?.cache_hit_pct!=null?h.cache_hit_pct+'%':'—');
+  setText('srvUsers',h?.auth_users??'—');setText('srvActive',h?.active_users_24h??'—');setText('srvTx',h?.transactions_24h??'—');
+  setText('srvErrors',needSql.errors?'—':clientErrors.reduce((a,e)=>a+Number(e.occurrences||0),0));
+  $('srvPlan').value=String(serverLimitMB());
+  $('srvTables').innerHTML=(h?.top_tables||[]).map(t=>`<tr><td><b>${esc(t.name)}</b></td><td class="num">${Number(t.rows||0).toLocaleString('id-ID')}</td><td class="num">${fmtBytes(t.bytes)}</td></tr>`).join('')||'<tr><td colspan="3" class="empty">—</td></tr>';
+}
+async function pollServer(){
+  if(document.hidden||$('shell').classList.contains('hidden'))return;
+  await loadServer();renderServer();renderIssues();
+}
+
+/* ── Request Custom ── */
+const CU={pending:'Pending',on_progress:'On progress',success:'Success'};
+function itemsOf(r){return Array.isArray(r.items)?r.items:[];}
+function renderCustom(){
+  $('customNeedSql').classList.toggle('hidden',!needSql.custom);
+  const c=k=>customReqs.filter(r=>r.status===k).length;
+  setText('cuTotal',customReqs.length);setText('cuPending',c('pending'));setText('cuProgress',c('on_progress'));setText('cuSuccess',c('success'));
+  const have=new Set(customReqs.map(r=>r.workspace_id).filter(Boolean)),byId=Object.fromEntries(all.map(w=>[w.workspace_id,w]));
+  const leads=wsActivity.filter(a=>a.requested_variant==='custom'&&!have.has(a.workspace_id)&&byId[a.workspace_id]);
+  $('customLeads').classList.toggle('hidden',!leads.length);
+  $('customLeadList').innerHTML=leads.map(a=>{const w=byId[a.workspace_id];return `<li><div><b>${esc(w.workspace_name)}</b><small>${esc(w.owner_username||'')}${a.owner_phone?' · WA '+esc(a.owner_phone):''} · daftar ${dateID(a.workspace_created_at)}</small></div><button class="btn btn-ghost leadAdd" data-id="${esc(w.workspace_id)}"><svg><use href="#i-plus"/></svg>Catat</button></li>`;}).join('');
+  $('customLeadList').querySelectorAll('.leadAdd').forEach(b=>b.onclick=()=>{const w=byId[b.dataset.id],a=wsActivity.find(x=>x.workspace_id===b.dataset.id);openCustom(null,{workspace_id:w.workspace_id,customer_name:w.owner_username||'',contact:a?.owner_phone||''});});
+  const q=$('customSearch').value.trim().toLowerCase(),today=todayISO();
+  const list=customReqs.filter(r=>!q||`${r.title} ${r.workspace_name||''} ${r.customer_name||''} ${r.detail||''}`.toLowerCase().includes(q));
+  const col={pending:'boardPending',on_progress:'boardProgress',success:'boardSuccess'},cnt={pending:'colPending',on_progress:'colProgress',success:'colSuccess'};
+  Object.keys(col).forEach(k=>{
+    const rows=list.filter(r=>r.status===k);setText(cnt[k],rows.length);
+    $(col[k]).innerHTML=rows.length?rows.map(r=>{const it=itemsOf(r),done=it.filter(i=>i.status==='success').length,pct=it.length?done/it.length*100:(k==='success'?100:0),late=r.due_date&&r.due_date<today&&k!=='success';
+      return `<button class="req-card" data-id="${esc(r.id)}"><b>${esc(r.title)}</b><small>${esc(r.workspace_name||r.customer_name||'Tanpa workspace')}</small><div class="progress"><i class="${k==='success'?'ok':pct?'warn':''}" style="width:${pct}%"></i></div><div class="req-meta"><span>${it.length?`${done}/${it.length} poin`:'Belum ada checklist'}</span><span class="${late?'t-danger':''}">${r.due_date?(late?'Telat · ':'Target ')+dayID(r.due_date):''}</span></div></button>`;}).join(''):'<p class="board-empty">Kosong</p>';
+  });
+  document.querySelectorAll('.req-card').forEach(b=>b.onclick=()=>openCustom(+b.dataset.id));
+}
+function fillCustomWorkspace(){$('cuWorkspace').innerHTML='<option value="">— Belum punya workspace —</option>'+all.map(x=>`<option value="${esc(x.workspace_id)}">${esc(x.workspace_name)}</option>`).join('');}
+function openCustom(id,preset){
+  if(needSql.custom)return toast('Menu Request Custom aktif setelah SQL admin panel v2 dijalankan.',true);
+  customEditing=id?customReqs.find(r=>r.id===id)||null:null;
+  const r=customEditing||Object.assign({workspace_id:'',customer_name:'',contact:'',title:'',detail:'',price:'',start_date:todayISO(),due_date:''},preset||{});
+  fillCustomWorkspace();
+  $('cuWorkspace').value=r.workspace_id||'';$('cuCustomer').value=r.customer_name||'';$('cuContact').value=r.contact||'';$('cuPrice').value=r.price||'';
+  $('cuName').value=r.title||'';$('cuDetail').value=r.detail||'';$('cuStart').value=r.start_date||'';$('cuDue').value=r.due_date||'';
+  setText('cuTitle',customEditing?customEditing.title:'Request Custom Baru');$('cuError').textContent='';
+  renderChecklist();openModal('customModal');
+}
+function renderChecklist(){
+  const r=customEditing;
+  $('cuChecklist').classList.toggle('hidden',!r);$('cuSaveFirst').classList.toggle('hidden',!!r);$('deleteCustom').classList.toggle('hidden',!r);
+  setText('cuSub',r?`Status: ${CU[r.status]||r.status}${r.workspace_name?' · '+r.workspace_name:''}`:'Catat permintaan customer paket Pro custom.');
+  if(!r)return;
+  const it=itemsOf(r),done=it.filter(i=>i.status==='success').length;
+  setText('cuProgressText',it.length?`${done} dari ${it.length} selesai`:'Belum ada poin');
+  bar('cuProgressBar',it.length?done/it.length*100:0);$('cuProgressBar').className=done&&done===it.length?'ok':'';
+  $('cuItems').innerHTML=it.map(i=>`<li class="is-${esc(i.status)}"><span>${esc(i.label)}</span><div class="seg" role="group" aria-label="Status ${esc(i.label)}">${Object.keys(CU).map(k=>`<button type="button" data-item="${esc(i.id)}" data-s="${k}" class="${i.status===k?'on':''}" aria-pressed="${i.status===k}">${CU[k]}</button>`).join('')}</div><button type="button" class="icon-x" data-del="${esc(i.id)}" aria-label="Hapus poin ${esc(i.label)}"><svg><use href="#i-x"/></svg></button></li>`).join('');
+  $('cuItems').querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>customRpc('platform_admin_save_custom_item',{p_id:+b.dataset.item,p_request_id:null,p_label:null,p_status:b.dataset.s,p_note:null}));
+  $('cuItems').querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>customRpc('platform_admin_delete_custom_item',{p_id:+b.dataset.del}));
+}
+async function reloadCustom(){
+  const r=await db.rpc('platform_admin_custom_requests');
+  if(r.error)return toast(r.error.message,true);
+  customReqs=r.data||[];
+  if(customEditing)customEditing=customReqs.find(x=>x.id===customEditing.id)||null;
+  renderCustom();renderChecklist();renderIssues();
+}
+async function customRpc(fn,args,msg){
+  const {data,error}=await db.rpc(fn,args);
+  if(error){$('cuError').textContent=error.message;return null;}
+  $('cuError').textContent='';await reloadCustom();if(msg)toast(msg);return data??true;
+}
+async function saveCustom(){
+  const isNew=!customEditing;
+  const id=await customRpc('platform_admin_save_custom_request',{p_id:customEditing?.id??null,p_workspace_id:$('cuWorkspace').value||null,p_customer_name:$('cuCustomer').value,p_contact:$('cuContact').value,p_title:$('cuName').value,p_detail:$('cuDetail').value,p_price:+$('cuPrice').value||0,p_status:customEditing?.status||'pending',p_start_date:$('cuStart').value||null,p_due_date:$('cuDue').value||null},'Request disimpan');
+  if(id&&isNew){customEditing=customReqs.find(r=>r.id===id)||null;setText('cuTitle',customEditing?.title||'Request Custom');renderChecklist();$('cuNewItem').focus();}
+}
+
 /* Label kolom untuk tampilan kartu di HP */
 function labelCells(tbody){const t=tbody.closest('table'),heads=t?[...t.querySelectorAll('thead th')].map(th=>th.textContent.trim()):[];tbody.querySelectorAll('tr').forEach(tr=>[...tr.children].forEach((td,i)=>{if(!td.hasAttribute('colspan'))td.setAttribute('data-label',heads[i]||'');}));}
 document.querySelectorAll('.table-wrap tbody').forEach(tb=>new MutationObserver(()=>labelCells(tb)).observe(tb,{childList:true}));
@@ -306,15 +509,6 @@ function activatePage(page){
 }
 function stampRefresh(){setText('lastRefresh',new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}));}
 
-$('form').onsubmit=async e=>{
-  e.preventDefault();$('error').textContent='';
-  const btn=e.target.querySelector('button[type=submit]');btn.disabled=true;
-  try{const email=await usernameEmail($('username').value);if(!email)throw new Error('Username atau password salah.');
-    const {error}=await db.auth.signInWithPassword({email,password:$('password').value});
-    if(error)throw new Error('Username atau password salah.');
-    await enter();
-  }catch(err){$('error').textContent=err.message;}finally{btn.disabled=false;}
-};
 document.querySelectorAll('.nav-item[data-page]').forEach(b=>b.onclick=()=>activatePage(b.dataset.page));
 document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>activatePage(b.dataset.go));
 $('menuBtn').onclick=()=>setNav(!$('shell').classList.contains('nav-open'));
@@ -323,7 +517,7 @@ $('search').oninput=()=>{$('topSearch').value=$('search').value;renderWorkspaces
 $('topSearch').oninput=()=>{$('search').value=$('topSearch').value;if(activeFilter!=='all')document.querySelector('.filter[data-filter="all"]').click();activatePage('workspaces');renderWorkspaces();$('topSearch').focus();};
 document.querySelectorAll('.filter').forEach(b=>b.onclick=()=>{document.querySelectorAll('.filter').forEach(x=>x.classList.toggle('active',x===b));activeFilter=b.dataset.filter;renderWorkspaces();});
 $('refresh').onclick=async()=>{const b=$('refresh');b.classList.add('spin');try{await load();stampRefresh();toast('Data diperbarui');}catch(e){toast(e.message,true);}finally{b.classList.remove('spin');}};
-$('logout').onclick=async()=>{await db.auth.signOut();location.reload();};
+$('logout').onclick=()=>{window.close();setTimeout(()=>{location.href='../';},150);};
 document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>closeModal(b.dataset.close));
 document.querySelectorAll('.modal-backdrop').forEach(m=>m.addEventListener('mousedown',e=>{if(e.target===m)closeModal(m.id);}));
 document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;const open=[...document.querySelectorAll('.modal-backdrop:not(.hidden)')].pop();if(open)closeModal(open.id);else setNav(false);});
@@ -338,7 +532,14 @@ $('exportSales').onclick=$('exportSales2').onclick=()=>csv('kairo-sales.csv',sal
 $('exportWorkspaces').onclick=$('exportWorkspaces2').onclick=()=>csv('kairo-workspaces.csv',all);
 $('exportRenewals').onclick=()=>csv('kairo-renewals.csv',renewals);
 $('crmSearch').oninput=renderCrm;$('followFilter').onchange=renderFollowups;
-$('newFollow').onclick=openFollow;$('saveFollow').onclick=saveFollow;
+$('newFollow').onclick=()=>openFollow();$('saveFollow').onclick=saveFollow;
 $('saveCrm').onclick=()=>saveCrm(false);$('markContacted').onclick=()=>saveCrm(true);
-$('saveSettings').onclick=savePlatformSettings;$('fullBackup').onclick=fullBackup;
+$('saveSettings').onclick=savePlatformSettings;
+document.querySelectorAll('.issFilter').forEach(b=>b.onclick=()=>{document.querySelectorAll('.issFilter').forEach(x=>x.classList.toggle('active',x===b));issueFilter=b.dataset.sev;renderIssues();});
+$('customSearch').oninput=renderCustom;$('newCustom').onclick=()=>openCustom(null);$('saveCustom').onclick=saveCustom;
+$('deleteCustom').onclick=async()=>{if(!customEditing||!confirm(`Hapus request "${customEditing.title}" beserta checklist-nya?`))return;const ok=await customRpc('platform_admin_delete_custom_request',{p_id:customEditing.id},'Request dihapus');if(ok!==null){customEditing=null;closeModal('customModal');}};
+$('cuAddItem').onsubmit=async e=>{e.preventDefault();const v=$('cuNewItem').value.trim();if(!v||!customEditing)return;const id=await customRpc('platform_admin_save_custom_item',{p_id:null,p_request_id:customEditing.id,p_label:v,p_status:'pending',p_note:null});if(id){$('cuNewItem').value='';$('cuNewItem').focus();}};
+$('srvPlan').onchange=()=>{try{localStorage.setItem('kairo_admin_db_limit_mb',$('srvPlan').value);}catch(_e){}renderServer();renderIssues();};
+serverTimer=setInterval(()=>{if(!$('shell').classList.contains('hidden')&&!document.querySelector('.page[data-page="server"]').hidden)pollServer();},60e3);
+boot();$('fullBackup').onclick=fullBackup;
 })();

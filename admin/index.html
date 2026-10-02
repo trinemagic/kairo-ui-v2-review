@@ -7,10 +7,10 @@
 <meta name="color-scheme" content="dark">
 <title>KAIRO Admin</title>
 <link rel="icon" type="image/svg+xml" href="../assets/kairo-mark.svg">
-<link rel="stylesheet" href="admin.css?v=1.0.0">
+<link rel="stylesheet" href="admin.css?v=1.1.0">
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
-<script defer src="admin.js?v=1.0.0"></script>
+<script defer src="admin.js?v=1.1.0"></script>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -31,19 +31,21 @@
   <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
   <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></symbol>
   <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3 2 20h20Z"/><path d="M12 10v4M12 17.5v.01"/></symbol>
+  <symbol id="i-server" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M7 7.5h.01M7 16.5h.01M11 7.5h6M11 16.5h6"/></symbol>
+  <symbol id="i-clip" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M9 11l2 2 4-4M9 17h6"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
   <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4.5 4.5L19 7"/></symbol>
 </svg>
 
-<!-- Login -->
-<section id="login" class="login">
-  <form id="form" class="login-card" autocomplete="on">
+<!-- Gerbang: admin hanya terbuka dari dashboard Trine Magic (tanpa form login) -->
+<section id="gate" class="login">
+  <div class="login-card">
     <div class="login-brand"><img src="../assets/kairo-mark.svg" alt="" width="40" height="40"><div><b>KAIRO Admin</b><span>Panel pengelola KAIRO Workspaces</span></div></div>
-    <label class="field"><span>Username</span><input id="username" autocomplete="username" required></label>
-    <label class="field"><span>Password</span><input id="password" type="password" autocomplete="current-password" required></label>
-    <button class="btn btn-primary btn-block" type="submit">Masuk</button>
-    <div id="error" class="err" role="alert"></div>
-    <a class="login-back" href="../">← Kembali ke KAIRO Workspaces</a>
-  </form>
+    <div id="gateBody" class="gate-body"><span class="gate-spin" aria-hidden="true"></span><p>Menghubungkan ke dashboard…</p></div>
+    <a class="btn btn-ghost btn-block" href="../">Buka KAIRO Workspaces</a>
+  </div>
 </section>
 
 <!-- App -->
@@ -53,6 +55,7 @@
     <nav class="side-nav">
       <p class="side-label">Ringkasan</p>
       <button class="nav-item" data-page="overview"><svg><use href="#i-home"/></svg><span>Overview</span></button>
+      <button class="nav-item" data-page="issues"><svg><use href="#i-alert"/></svg><span>Perlu Perhatian</span><em id="navIssues" class="nav-count is-danger"></em></button>
       <p class="side-label">Bisnis</p>
       <button class="nav-item" data-page="workspaces"><svg><use href="#i-grid"/></svg><span>Workspaces</span><em id="navWs" class="nav-count"></em></button>
       <button class="nav-item" data-page="sales"><svg><use href="#i-cart"/></svg><span>Penjualan</span></button>
@@ -63,7 +66,9 @@
       <button class="nav-item" data-page="analytics"><svg><use href="#i-chart"/></svg><span>Analitik</span></button>
       <p class="side-label">Customer</p>
       <button class="nav-item" data-page="crm"><svg><use href="#i-users"/></svg><span>CRM &amp; Follow-up</span><em id="navFollow" class="nav-count is-danger"></em></button>
+      <button class="nav-item" data-page="custom"><svg><use href="#i-clip"/></svg><span>Request Custom</span><em id="navCustom" class="nav-count is-warn"></em></button>
       <p class="side-label">Sistem</p>
+      <button class="nav-item" data-page="server"><svg><use href="#i-server"/></svg><span>Kapasitas Server</span><em id="navServer" class="nav-dot"></em></button>
       <button class="nav-item" data-page="settings"><svg><use href="#i-gear"/></svg><span>Pengaturan</span></button>
       <button class="nav-item" data-page="activity"><svg><use href="#i-list"/></svg><span>Log Aktivitas</span></button>
     </nav>
@@ -81,7 +86,7 @@
       <div class="top-actions">
         <span class="top-refresh">Diperbarui <b id="lastRefresh">—</b></span>
         <button id="refresh" class="icon-btn" type="button" aria-label="Refresh data" title="Refresh data"><svg><use href="#i-refresh"/></svg></button>
-        <button id="logout" class="icon-btn" type="button" aria-label="Keluar" title="Keluar"><svg><use href="#i-out"/></svg></button>
+        <button id="logout" class="icon-btn" type="button" aria-label="Tutup admin" title="Tutup admin"><svg><use href="#i-out"/></svg></button>
       </div>
     </header>
 
@@ -104,15 +109,42 @@
         <div class="row-3">
           <div class="widget"><div class="w-head"><h2>Kesehatan Platform</h2></div>
             <ul class="health">
+              <li><button class="link-row" data-go="issues"><span>Masalah perlu dicek</span><b id="issueCount">—</b></button></li>
+              <li><button class="link-row" data-go="server"><span>Database terpakai</span><b id="dbPctMini">—</b></button></li>
               <li><span>Subscription bermasalah</span><b id="issues">—</b></li>
               <li><span>Habis ≤ 7 hari</span><b id="exp7b">—</b></li>
               <li><span>Tagihan pending</span><b id="pendingB">—</b></li>
-              <li><span>Revenue total</span><b id="revAllB">—</b></li>
             </ul></div>
           <div class="widget"><div class="w-head"><h2>Follow-up</h2><button class="link-btn" data-go="crm">Lihat semua</button></div>
             <div class="mini-stats"><div><b id="followToday">—</b><span>Hari ini</span></div><div><b id="followOverdue" class="t-danger">—</b><span>Terlambat</span></div><div><b id="followOpen">—</b><span>Open</span></div><div><b id="crmCount">—</b><span>CRM terisi</span></div></div>
             <ul id="taskList" class="tasks"></ul></div>
           <div class="widget"><div class="w-head"><h2>Aktivitas Terbaru</h2><button class="link-btn" data-go="activity">Lihat semua</button></div><ul id="activityMini" class="feed"></ul></div>
+        </div>
+      </section>
+
+      <!-- ISSUES -->
+      <section class="page" data-page="issues" hidden>
+        <div id="issuesNeedSql" class="notice hidden">Sebagian deteksi (error aplikasi &amp; aktivitas workspace) aktif setelah SQL <b>admin panel v2</b> dijalankan di Supabase.</div>
+        <div class="kpi-row three">
+          <div class="widget kpi sev-high"><span>Tinggi</span><b id="issHigh">0</b></div>
+          <div class="widget kpi sev-med"><span>Sedang</span><b id="issMed">0</b></div>
+          <div class="widget kpi sev-low"><span>Rendah</span><b id="issLow">0</b></div>
+        </div>
+        <div class="widget">
+          <div class="w-head wrap">
+            <div class="chips" role="group" aria-label="Filter tingkat">
+              <button class="chip issFilter active" data-sev="all">Semua</button>
+              <button class="chip issFilter" data-sev="high">Tinggi</button>
+              <button class="chip issFilter" data-sev="med">Sedang</button>
+              <button class="chip issFilter" data-sev="low">Rendah</button>
+            </div>
+            <span class="muted">Dicek otomatis setiap data dimuat</span>
+          </div>
+          <div class="table-wrap"><table><thead><tr><th>Masalah</th><th>Tingkat</th><th>Workspace</th><th>Detail</th><th>Sejak</th><th></th></tr></thead><tbody id="issueRows"></tbody></table><p id="issueEmpty" class="empty hidden">Tidak ada masalah terdeteksi. 🎉</p></div>
+        </div>
+        <div class="widget">
+          <div class="w-head"><h2>Error Aplikasi di Sisi User (72 jam)</h2><span class="muted">Pesan error yang muncul di browser user</span></div>
+          <div class="table-wrap"><table><thead><tr><th>Pesan error</th><th>Halaman</th><th class="num">Kejadian</th><th class="num">User</th><th>Workspace</th><th>Terakhir</th></tr></thead><tbody id="errorRows"></tbody></table><p id="errorEmpty" class="empty hidden">Belum ada error yang dilaporkan.</p></div>
         </div>
       </section>
 
@@ -200,6 +232,59 @@
         <div class="widget">
           <div class="w-head"><h2>CRM Workspace</h2><div class="w-tools"><input id="crmSearch" class="input" type="search" placeholder="Cari workspace / kontak / tag…"></div></div>
           <div class="table-wrap"><table><thead><tr><th>Workspace</th><th>Kontak</th><th>Sumber</th><th>Tag</th><th>Terakhir dihubungi</th><th>Catatan</th><th></th></tr></thead><tbody id="crmRows"></tbody></table><p id="crmEmpty" class="empty hidden">Tidak ada data CRM yang cocok.</p></div>
+        </div>
+      </section>
+
+      <!-- CUSTOM REQUESTS -->
+      <section class="page" data-page="custom" hidden>
+        <div id="customNeedSql" class="notice hidden">Menu ini aktif setelah SQL <b>admin panel v2</b> dijalankan di Supabase (tabel request &amp; checklist).</div>
+        <div class="kpi-row four">
+          <div class="widget kpi"><span>Total request</span><b id="cuTotal">0</b></div>
+          <div class="widget kpi"><span>Pending</span><b id="cuPending">0</b></div>
+          <div class="widget kpi"><span>On progress</span><b id="cuProgress">0</b></div>
+          <div class="widget kpi"><span>Success</span><b id="cuSuccess">0</b></div>
+        </div>
+        <div id="customLeads" class="widget hidden">
+          <div class="w-head"><h2>Pendaftar Paket Custom Belum Dicatat</h2><span class="muted">Dari form daftar</span></div>
+          <ul id="customLeadList" class="lead-list"></ul>
+        </div>
+        <div class="widget">
+          <div class="w-head"><h2>Papan Request</h2><div class="w-tools"><input id="customSearch" class="input" type="search" placeholder="Cari request / workspace…"><button id="newCustom" class="btn btn-primary"><svg><use href="#i-plus"/></svg>Request Custom</button></div></div>
+          <div class="board">
+            <div class="board-col" data-col="pending"><h3><i class="dot dot-pending"></i>Pending <em id="colPending">0</em></h3><div class="board-list" id="boardPending"></div></div>
+            <div class="board-col" data-col="on_progress"><h3><i class="dot dot-progress"></i>On progress <em id="colProgress">0</em></h3><div class="board-list" id="boardProgress"></div></div>
+            <div class="board-col" data-col="success"><h3><i class="dot dot-success"></i>Success <em id="colSuccess">0</em></h3><div class="board-list" id="boardSuccess"></div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SERVER -->
+      <section class="page" data-page="server" hidden>
+        <div id="serverNeedSql" class="notice hidden">Data kapasitas server tampil setelah SQL <b>admin panel v2</b> dijalankan di Supabase.</div>
+        <div class="widget server-status"><div><span id="srvBadge" class="badge b-mute">Belum dicek</span><h2 id="srvHeadline">Status server</h2><p id="srvSummary" class="muted">—</p></div><div class="srv-meta"><span>Dicek <b id="srvChecked">—</b></span><span>Cek otomatis tiap 60 detik saat halaman ini terbuka</span></div></div>
+        <div class="stat-grid">
+          <div class="widget stat"><p class="stat-label">Database terpakai</p><b id="srvDb" class="stat-value">—</b><div class="progress"><i id="srvDbBar"></i></div><div class="stat-meta"><span id="srvDbOf">—</span><b id="srvDbPct">—</b></div></div>
+          <div class="widget stat"><p class="stat-label">Koneksi database</p><b id="srvConn" class="stat-value">—</b><div class="progress"><i id="srvConnBar"></i></div><div class="stat-meta"><span id="srvConnOf">—</span><b id="srvConnPct">—</b></div></div>
+          <div class="widget stat"><p class="stat-label">Waktu respons</p><b id="srvLatency" class="stat-value">—</b><div class="stat-meta"><span>Dari browser ini ke server</span></div></div>
+          <div class="widget stat"><p class="stat-label">Cache hit</p><b id="srvCache" class="stat-value">—</b><div class="stat-meta"><span>Ideal di atas 99%</span></div></div>
+        </div>
+        <div class="row-2">
+          <div class="widget"><div class="w-head"><h2>Beban Pemakaian</h2></div>
+            <ul class="health">
+              <li><span>Total akun</span><b id="srvUsers">—</b></li>
+              <li><span>Akun login 24 jam terakhir</span><b id="srvActive">—</b></li>
+              <li><span>Transaksi dicatat 24 jam terakhir</span><b id="srvTx">—</b></li>
+              <li><span>Error aplikasi 72 jam terakhir</span><b id="srvErrors">—</b></li>
+            </ul>
+            <label class="field srv-plan"><span>Batas database paket Supabase</span><select id="srvPlan"><option value="500">Free — 500 MB</option><option value="8192">Pro — 8 GB</option></select></label>
+          </div>
+          <div class="widget"><div class="w-head"><h2>Tabel Terbesar</h2></div>
+            <div class="table-wrap compact"><table><thead><tr><th>Tabel</th><th class="num">Baris</th><th class="num">Ukuran</th></tr></thead><tbody id="srvTables"></tbody></table></div>
+          </div>
+        </div>
+        <div class="widget"><div class="w-head"><h2>CPU, RAM, bandwidth &amp; kuota API</h2></div>
+          <p class="muted">Angka ini tidak bisa dibaca dari dalam database, jadi dicek langsung di laporan Supabase (login akun Supabase).</p>
+          <div class="actions"><a class="btn btn-ghost" href="https://supabase.com/dashboard/project/sbjmvsiwngmfxfktxbgr/reports" target="_blank" rel="noopener"><svg><use href="#i-app"/></svg>Buka laporan Supabase</a><a class="btn btn-ghost" href="https://supabase.com/dashboard/org/_/usage" target="_blank" rel="noopener"><svg><use href="#i-app"/></svg>Pemakaian &amp; kuota</a></div>
         </div>
       </section>
 
@@ -313,6 +398,32 @@
     </div>
     <div class="actions"><button id="saveFollow" class="btn btn-primary">Simpan Follow-up</button></div>
     <div id="fError" class="err"></div>
+  </div>
+</div>
+
+<!-- Modal: custom request -->
+<div id="customModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="cuTitle">
+  <div class="modal modal-wide">
+    <div class="modal-head"><div><h3 id="cuTitle">Request Custom</h3><p id="cuSub" class="muted">Catat permintaan customer paket Pro custom.</p></div><button class="close" data-close="customModal" aria-label="Tutup">×</button></div>
+    <div id="cuChecklist" class="checklist hidden">
+      <div class="checklist-head"><h4>Checklist</h4><span id="cuProgressText" class="muted"></span></div>
+      <div class="progress"><i id="cuProgressBar"></i></div>
+      <ul id="cuItems" class="check-items"></ul>
+      <form id="cuAddItem" class="check-add"><input id="cuNewItem" class="input" placeholder="Tambah poin, mis. Desain struk dengan logo"><button class="btn btn-ghost" type="submit"><svg><use href="#i-plus"/></svg>Tambah</button></form>
+    </div>
+    <div class="form-grid">
+      <label class="field"><span>Workspace</span><select id="cuWorkspace"></select></label>
+      <label class="field"><span>Nama customer</span><input id="cuCustomer"></label>
+      <label class="field"><span>Kontak (WA / email)</span><input id="cuContact"></label>
+      <label class="field"><span>Harga deal (Rp)</span><input id="cuPrice" type="number" min="0"></label>
+      <label class="field wide"><span>Judul request</span><input id="cuName" placeholder="Contoh: Struk dengan logo + laporan mingguan"></label>
+      <label class="field wide"><span>Detail permintaan</span><textarea id="cuDetail" rows="3"></textarea></label>
+      <label class="field"><span>Mulai</span><input id="cuStart" type="date"></label>
+      <label class="field"><span>Target selesai</span><input id="cuDue" type="date"></label>
+    </div>
+    <div class="actions"><button id="saveCustom" class="btn btn-primary">Simpan Request</button><button id="deleteCustom" class="btn btn-danger hidden">Hapus Request</button></div>
+    <div id="cuError" class="err"></div>
+    <p id="cuSaveFirst" class="hint">Simpan request dulu, lalu tambahkan poin checklist.</p>
   </div>
 </div>
 
