@@ -73,7 +73,7 @@ URL live: `https://trinemagic.github.io/kairo-ui-v2-review/`
 | `assets/kairo-runtime.js` | Lazy loader lama | Tidak dimuat oleh `index.html` saat ini. |
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
-Versi terakhir: `kairo.css?v=20.10.151`, `kairo-v3.css?v=3.18.0`,
+Versi terakhir: `kairo.css?v=20.10.151`, `kairo-v3.css?v=3.18.1`,
 `kairo-v3.js?v=3.16.0`, `kairo-app.js?v=20.10.159`.
 
 **Halaman app** = `main.container > section.section` dengan id:
@@ -127,7 +127,8 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
 - **Living Origami (latar app):** gradient + origami terbang (kairo.css + `mountOrigami()` di
   kairo-app.js) dinyalakan lagi di v3 (dulu `display:none` sejak upload 20–21 Sep). Warna ikut
   `--v3-primary`/`--v3-accent` (token baru, diisi `syncLayoutColors()` dari warna aksen
-  workspace; default navy). Opacity 0,62 (dark 0,5; HP 0,48/0,4), skala 0,55–1, tanpa
+  workspace; default navy), dicampur ±30–45% dengan warna canvas biar soft (owner). Opacity 0,5
+  (dark 0,4; HP 0,4/0,32), gradient blob 8–14%, skala 0,55–1, tanpa
   drop-shadow, 9/6/4 burung (desktop/lite/HP kecil). Jalur terbang pakai Web Animations API
   (`d._drift`) dengan transform pasti — **jangan** kembali ke keyframes ber-`var()` (memaksa
   recalc style tiap frame). Pause saat tab tersembunyi; diam bila prefers-reduced-motion.
