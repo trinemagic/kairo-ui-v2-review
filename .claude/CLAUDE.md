@@ -37,6 +37,10 @@ yang diawali titik). Tetap: **jangan pernah menulis rahasia di sini.**
   `sb_publishable_…` (memang publik, dilindungi RLS). Tidak boleh ada `service_role`
   atau secret key di repo.
 
+- **Perubahan Supabase (owner Okt 2026):** Claude tidak mengubah database. Kalau perlu tabel/kolom/
+  RLS/data baru, tulis **SQL siap tempel** (aman diulang: `if not exists`, `on conflict`) + penjelasan
+  singkat; owner yang menjalankan di SQL Editor Supabase. Jangan pernah minta key/password.
+
 ### Git, PR, merge
 - Kerja di branch sesi yang ditentukan sistem (format `claude/...`). Jangan push ke
   `main` langsung.
@@ -54,6 +58,9 @@ yang diawali titik). Tetap: **jangan pernah menulis rahasia di sini.**
   localStorage baru (jika ada). Pola ini sudah dipakai di PR #1–#14.
 - GitHub Pages deploy otomatis dari `main` (± 1–2 menit). Ingatkan owner hard
   refresh (Cmd+Shift+R).
+  Deploy bisa macet (PR #28: langkah "Deploy to GitHub Pages" >8 menit). Kalau owner bilang
+  fix belum jalan, cek dulu status run `pages build and deployment` (actions_list) sebelum
+  mencari bug lain. `index.html` di-cache browser ±10 menit oleh GitHub Pages.
 
 ---
 
@@ -73,7 +80,7 @@ URL live: `https://trinemagic.github.io/kairo-ui-v2-review/`
 | `assets/kairo-runtime.js` | Lazy loader lama | Tidak dimuat oleh `index.html` saat ini. |
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
-Versi terakhir: `kairo.css?v=20.10.154`, `kairo-v3.css?v=3.21.2`,
+Versi terakhir: `kairo.css?v=20.10.154`, `kairo-v3.css?v=3.22.1`,
 `kairo-v3.js?v=3.18.0`, `kairo-app.js?v=20.10.167`.
 
 **Halaman app** = `main.container > section.section` dengan id:
@@ -86,8 +93,16 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
 
 ## 3. Yang sudah dibangun (jangan dirusak)
 
-- **Landing:** Home (Hero+CTA+FAQ), halaman hash `#features #solutions #pricing #about`,
-  `#masuk` = langsung form login. Badge "kini hadir…" sudah dihapus (owner: jangan
+- **Landing:** Home (Hero + `#home-highlights` "Kenapa KAIRO" 4 kartu `.kairo-lp-feature-list` +
+  `#home-plans` ringkasan Gratis/Pro + CTA + FAQ), halaman hash `#features #solutions #pricing #about`,
+  `#features` = showcase screenshot asli (`assets/landing/*.webp`, data contoh nama netral "Toko Demo",
+  dibuat ulang dengan `.claude/testing/shoot-landing.js`; contoh **toko online umum** — Kaos/Totebag, label struk
+  Tanggal/Produk/Kategori; owner: **jangan** pakai contoh jasa tarot / kolom "Start Reading"; screenshot Orders
+  dipotong sebelum field Topik) + "Fitur lainnya"; label `.kairo-lp-pro-tag`
+  untuk fitur Pro. Meta SEO/Open Graph + favicon di `<head>`; gambar preview link
+  `assets/og/kairo-og.jpg` (1200×630), URL absolut github.io (ganti bila pindah domain).
+  Badge kuning kecil di atas judul section (`.kairo-lp-eyebrow`) sudah dihapus semua (owner) — jangan
+  ditambah lagi. `#masuk` = langsung form login. Badge "kini hadir…" sudah dihapus (owner: jangan
   wording khas AI).
   Copy landing ditulis untuk pelanggan: **jangan** ada catatan internal/teknis (Supabase,
   tenant, auth, "belum final"). Pricing Gratis (Rp0) / Pro / Custom dengan daftar fitur; tombol

@@ -9,7 +9,26 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>KAIRO WORKSPACES — Business Dashboard</title>
+<title>KAIRO Workspaces — Order, Kas & Struk dalam Satu Dashboard</title>
+<meta name="description" content="Catat order, kas, pembagian hasil, dan struk usaha online dalam satu dashboard. Bisa dibuka dari HP atau laptop. Mulai gratis.">
+<meta name="theme-color" content="#173a59">
+<link rel="icon" type="image/svg+xml" href="assets/kairo-mark.svg">
+<link rel="apple-touch-icon" href="assets/og/apple-touch-icon.png">
+<link rel="canonical" href="https://trinemagic.github.io/kairo-ui-v2-review/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="KAIRO Workspaces">
+<meta property="og:locale" content="id_ID">
+<meta property="og:url" content="https://trinemagic.github.io/kairo-ui-v2-review/">
+<meta property="og:title" content="KAIRO Workspaces — Order, Kas & Struk dalam Satu Dashboard">
+<meta property="og:description" content="Catat order, kas, pembagian hasil, dan struk usaha online dalam satu dashboard. Bisa dibuka dari HP atau laptop. Mulai gratis.">
+<meta property="og:image" content="https://trinemagic.github.io/kairo-ui-v2-review/assets/og/kairo-og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="KAIRO Workspaces: form Penjualan Baru dan Open Store di dashboard">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="KAIRO Workspaces — Order, Kas & Struk dalam Satu Dashboard">
+<meta name="twitter:description" content="Catat order, kas, pembagian hasil, dan struk usaha online dalam satu dashboard. Bisa dibuka dari HP atau laptop. Mulai gratis.">
+<meta name="twitter:image" content="https://trinemagic.github.io/kairo-ui-v2-review/assets/og/kairo-og.jpg">
 
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preload" as="font" type="font/woff2" href="assets/fonts/plus-jakarta-sans-latin-wght-normal.woff2" crossorigin>
@@ -62,7 +81,7 @@
 
 
 <link rel="stylesheet" href="assets/kairo.css?v=20.10.154">
-<link rel="stylesheet" href="assets/kairo-v3.css?v=3.21.2">
+<link rel="stylesheet" href="assets/kairo-v3.css?v=3.22.1">
 </head>
 
 <body class="auth-locked">
@@ -160,29 +179,100 @@
       </div>
     </section>
 
-    <section id="features" class="kairo-lp-features" aria-labelledby="features-title">
+    <section id="home-highlights" class="kairo-lp-features" aria-labelledby="highlights-title">
       <div class="kairo-entry-container">
         <header class="kairo-lp-section-head" data-kairo-reveal>
-          <span class="kairo-lp-eyebrow">Fitur utama</span>
-          <h2 id="features-title">Yang penting untuk operasional, <mark>tanpa bikin penuh layar.</mark></h2>
+          <h2 id="highlights-title">Yang penting untuk operasional, <mark>tanpa bikin penuh layar.</mark></h2>
         </header>
         <div class="kairo-lp-feature-list">
           <article data-kairo-reveal>
             <span class="kairo-lp-icon"><svg viewBox="0 0 24 24"><path d="M6 4h12v16H6Z"/><path d="M9 8h6M9 12h6M9 16h4"/></svg></span>
-            <div><h3>Order lebih teratur</h3><p>Catat order manual maupun autofill dengan alur yang tetap familiar.</p></div>
-          </article>
-          <article data-kairo-reveal>
-            <span class="kairo-lp-icon is-sky"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3"/><path d="M5 20c0-4 3-7 7-7s7 3 7 7"/></svg></span>
-            <div><h3>Customer tersimpan rapi</h3><p>Riwayat customer dan subscription mudah ditemukan saat dibutuhkan.</p></div>
-          </article>
-          <article data-kairo-reveal>
-            <span class="kairo-lp-icon is-gold"><svg viewBox="0 0 24 24"><path d="M4 18V9M10 18V5M16 18v-7M22 18V3"/><path d="M2 20h20"/></svg></span>
-            <div><h3>Angka lebih terbaca</h3><p>Pantau omzet, kas, piutang, dan pengeluaran dari ringkasan yang jelas.</p></div>
+            <div><h3>Order lebih teratur</h3><p>Catat order manual atau autofill, dan nama customer lama muncul sendiri saat diketik.</p></div>
           </article>
           <article data-kairo-reveal>
             <span class="kairo-lp-icon is-warm"><svg viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2Z"/><path d="M9 8h6M9 12h6"/></svg></span>
-            <div><h3>Struk siap dibagikan</h3><p>Preview, download, share, dan cetak ulang struk profesional dari workspace.</p></div>
+            <div><h3>Struk siap dibagikan</h3><p>Simpan, salin, bagikan, dan cetak ulang struk dari setiap transaksi.</p></div>
           </article>
+          <article data-kairo-reveal>
+            <span class="kairo-lp-icon is-gold"><svg viewBox="0 0 24 24"><path d="M4 18V9M10 18V5M16 18v-7M22 18V3"/><path d="M2 20h20"/></svg></span>
+            <div><h3>Angka lebih terbaca</h3><p>Omzet, kas, pengeluaran, dan pembagian hasil terangkum di satu dashboard.</p></div>
+          </article>
+          <article data-kairo-reveal>
+            <span class="kairo-lp-icon is-sky"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3"/><path d="M5 20c0-4 3-7 7-7s7 3 7 7"/></svg></span>
+            <div><h3>Customer tersimpan rapi</h3><p>Riwayat order setiap customer mudah ditemukan saat mereka order lagi.</p></div>
+          </article>
+        </div>
+        <a class="kairo-lp-more-link" href="#features">Lihat semua fitur <span aria-hidden="true">→</span></a>
+      </div>
+    </section>
+
+    <section id="home-plans" class="kairo-lp-plans-lite" aria-labelledby="home-plans-title">
+      <div class="kairo-entry-container">
+        <header class="kairo-lp-section-head kairo-lp-section-head-center" data-kairo-reveal>
+          <h2 id="home-plans-title">Mulai gratis, <mark>upgrade saat siap.</mark></h2>
+        </header>
+        <div class="kairo-lp-plan-lite-grid">
+          <article class="kairo-lp-plan-lite" data-kairo-reveal>
+            <h3>Gratis</h3>
+            <strong>Rp0</strong>
+            <ul class="kairo-lp-price-list"><li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.2 4.2L19 7"/></svg><span>Catat order, riwayat &amp; struk</span></li><li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.2 4.2L19 7"/></svg><span>Petty Cash &amp; Withdraw</span></li><li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.2 4.2L19 7"/></svg><span>Dashboard &amp; notifikasi order</span></li></ul>
+            <button type="button" class="kairo-lp-price-action is-secondary" data-v3-signup>Coba Gratis <span>→</span></button>
+          </article>
+          <article class="kairo-lp-plan-lite is-featured" data-kairo-reveal>
+            <h3>Pro</h3>
+            <strong>Rp43.000<span>/bulan</span></strong>
+            <p class="kairo-lp-plan-lite-deal">6 bulan <s aria-label="Harga normal Rp258.000">Rp258.000</s> <b>Rp238.000</b></p>
+            <ul class="kairo-lp-price-list"><li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.2 4.2L19 7"/></svg><span>Semua fitur Gratis</span></li><li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.2 4.2L19 7"/></svg><span>Autofill, Customer Database &amp; Promo</span></li><li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.2 4.2L19 7"/></svg><span>Open / Close Store &amp; Export Excel</span></li></ul>
+            <button type="button" class="kairo-lp-price-action" data-v3-signup data-signup-plan="pro">Pilih Pro <span>→</span></button>
+          </article>
+        </div>
+        <a class="kairo-lp-more-link is-center" href="#pricing">Bandingkan paket &amp; lihat paket Custom <span aria-hidden="true">→</span></a>
+      </div>
+    </section>
+
+    <section id="features" class="kairo-lp-features" aria-labelledby="features-title">
+      <div class="kairo-entry-container">
+        <header class="kairo-lp-section-head" data-kairo-reveal>
+          <h2 id="features-title">Lihat langsung <mark>cara KAIRO bekerja.</mark></h2>
+          <p>Tampilan asli dari dashboard KAIRO, memakai data contoh.</p>
+        </header>
+        <div class="kairo-lp-showcase">
+          <article class="kairo-lp-showcase-row" data-kairo-reveal>
+            <figure class="kairo-lp-shot"><img src="assets/landing/orders.webp" width="1200" height="602" alt="Form Penjualan Baru di KAIRO: tanggal, nama customer, platform, metode pembayaran, paket, dan topik" loading="lazy" decoding="async"></figure>
+            <div class="kairo-lp-showcase-copy">
+              <h3>Catat order dalam hitungan detik</h3>
+              <p>Isi form sekali jalan, atau pakai Autofill: tempel pesan order dari customer dan form terisi sendiri.</p>
+              <ul class="kairo-lp-price-list"><li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.2 4.2L19 7"/></svg><span>Nama customer lama muncul saat diketik</span></li><li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.2 4.2L19 7"/></svg><span>Autofill Orders dari format pesan customer <span class="kairo-lp-pro-tag">Pro</span></span></li><li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.2 4.2L19 7"/></svg><span>Data wajib yang terlewat langsung ditunjukkan</span></li></ul>
+            </div>
+          </article>
+          <article class="kairo-lp-showcase-row is-flipped" data-kairo-reveal>
+            <figure class="kairo-lp-shot is-tall"><img src="assets/landing/receipt.webp" width="1120" height="1668" alt="Preview struk penjualan KAIRO dengan tombol Salin Struk, Simpan PNG, dan Bagikan Foto" loading="lazy" decoding="async"></figure>
+            <div class="kairo-lp-showcase-copy">
+              <h3>Struk rapi, siap dikirim ke customer</h3>
+              <p>Setiap order masuk ke riwayat lengkap dengan statusnya. Struknya bisa disimpan, disalin, dibagikan, atau dicetak ulang kapan saja.</p>
+              <ul class="kairo-lp-price-list"><li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.2 4.2L19 7"/></svg><span>Simpan PNG, salin, dan bagikan foto struk</span></li><li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.2 4.2L19 7"/></svg><span>Status order ikut tercatat di struk</span></li><li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.2 4.2L19 7"/></svg><span>Warna, wording, dan logo struk sendiri <span class="kairo-lp-pro-tag">Pro</span></span></li></ul>
+            </div>
+          </article>
+          <article class="kairo-lp-showcase-row" data-kairo-reveal>
+            <figure class="kairo-lp-shot"><img src="assets/landing/open-store.webp" width="1200" height="424" alt="Kartu Open Store KAIRO dengan omzet sesi, jumlah transaksi, dan riwayat buka-tutup toko" loading="lazy" decoding="async"></figure>
+            <div class="kairo-lp-showcase-copy">
+              <h3>Buka–tutup toko, omzet per sesi terhitung</h3>
+              <p>Tandai jam buka dan tutup. KAIRO menghitung omzet dan jumlah transaksi setiap sesi, lengkap dengan riwayatnya. <span class="kairo-lp-pro-tag">Pro</span></p>
+              <ul class="kairo-lp-price-list"><li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.2 4.2L19 7"/></svg><span>Omzet dan transaksi sesi berjalan</span></li><li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.2 4.2L19 7"/></svg><span>Durasi buka toko otomatis</span></li><li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.2 4.2L19 7"/></svg><span>Riwayat sesi sebelumnya</span></li></ul>
+            </div>
+          </article>
+          <article class="kairo-lp-showcase-row is-flipped" data-kairo-reveal>
+            <figure class="kairo-lp-shot"><img src="assets/landing/petty-cash.webp" width="1200" height="315" alt="Riwayat pengeluaran kas KAIRO dengan filter tanggal dan total" loading="lazy" decoding="async"></figure>
+            <div class="kairo-lp-showcase-copy">
+              <h3>Kas keluar–masuk tercatat rapi</h3>
+              <p>Catat pengeluaran dan pemasukan kas usaha, lalu saring per tanggal untuk melihat totalnya.</p>
+              <ul class="kairo-lp-price-list"><li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.2 4.2L19 7"/></svg><span>Filter: hari ini, 7 hari, bulan ini, atau tanggal pilihan</span></li><li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.2 4.2L19 7"/></svg><span>Ringkasan jumlah catatan dan total</span></li><li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.2 4.2L19 7"/></svg><span>Sisa kas ikut terhitung di Dashboard</span></li></ul>
+            </div>
+          </article>
+        </div>
+        <div class="kairo-lp-more-features" data-kairo-reveal>
+          <h3>Fitur lainnya</h3>
+          <ul><li><strong>Customer Database <span class="kairo-lp-pro-tag">Pro</span></strong><span>Riwayat order dan total belanja setiap customer.</span></li><li><strong>Promo otomatis <span class="kairo-lp-pro-tag">Pro</span></strong><span>Diskon persen atau nominal untuk semua paket atau paket tertentu.</span></li><li><strong>Performance</strong><span>Grafik omzet dan platform sesuai filter tanggal.</span></li><li><strong>Notifikasi order</strong><span>Pengingat order yang belum selesai diproses.</span></li><li><strong>Pembagian profit <span class="kairo-lp-pro-tag">Pro</span></strong><span>Hak partner dan kas dihitung dari setiap penjualan.</span></li><li><strong>Export Excel <span class="kairo-lp-pro-tag">Pro</span></strong><span>Unduh data transaksi untuk laporan.</span></li></ul>
         </div>
       </div>
     </section>
@@ -202,7 +292,6 @@
           </div>
         </div>
         <div class="kairo-lp-about-copy" data-kairo-reveal>
-          <span class="kairo-lp-eyebrow">Tentang KAIRO</span>
           <h2 id="about-title">Satu tempat untuk kerja yang <mark>lebih tenang.</mark></h2>
           <p>KAIRO menyatukan pencatatan bisnis yang biasanya tersebar agar kamu bisa fokus pada order dan customer, bukan berpindah-pindah sistem.</p>
           <ul>
@@ -217,7 +306,6 @@
     <section id="solutions" class="kairo-lp-compare" aria-labelledby="compare-title">
       <div class="kairo-entry-container">
         <header class="kairo-lp-section-head kairo-lp-section-head-center" data-kairo-reveal>
-          <span class="kairo-lp-eyebrow">Cara kerja yang lebih rapi</span>
           <h2 id="compare-title">Lebih sedikit pindah tempat. <mark>Lebih jelas apa yang perlu dikerjakan.</mark></h2>
           <p>KAIRO membantu menyatukan aktivitas harian tanpa mengubah fondasi bisnis yang sudah berjalan.</p>
         </header>
@@ -248,7 +336,6 @@
     <section id="pricing" class="kairo-lp-pricing" aria-labelledby="pricing-title">
       <div class="kairo-entry-container">
         <header class="kairo-lp-section-head kairo-lp-section-head-center" data-kairo-reveal>
-          <span class="kairo-lp-eyebrow">Pilihan akses</span>
           <h2 id="pricing-title">Mulai sesuai kebutuhanmu, <mark>tumbuh saat waktunya tepat.</mark></h2>
           <p>Mulai dari Gratis, buka semua fitur dengan Pro. Butuh penyesuaian untuk alur bisnismu? Pilih Custom.</p>
         </header>
@@ -287,7 +374,6 @@
       <div class="kairo-entry-container">
         <div class="kairo-lp-cta-panel" data-kairo-reveal>
           <div>
-            <span class="kairo-lp-eyebrow">Mulai lebih rapi</span>
             <h2 id="cta-title">Bisnismu sudah jalan. Sekarang waktunya workspace-mu ikut <mark>tertata.</mark></h2>
             <p>Mulai dari pencatatan yang kamu butuhkan hari ini, lalu lanjutkan semuanya dalam satu alur.</p>
           </div>
@@ -299,7 +385,6 @@
     <section id="faq" class="kairo-lp-faq" aria-labelledby="faq-title">
       <div class="kairo-entry-container">
         <header class="kairo-lp-section-head" data-kairo-reveal>
-          <span class="kairo-lp-eyebrow">FAQ</span>
           <h2 id="faq-title">Pertanyaan yang <mark>sering ditanyakan.</mark></h2>
           <p>Jawaban singkat sebelum kamu mulai memakai KAIRO Workspaces.</p>
         </header>

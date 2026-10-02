@@ -2200,7 +2200,7 @@ html.kairo-v3 #kairo-entry[data-page] .kairo-landing-main > section {
   display: none;
 }
 
-html.kairo-v3 #kairo-entry[data-page="home"] .kairo-landing-main > :is(#home, .kairo-lp-cta, #faq),
+html.kairo-v3 #kairo-entry[data-page="home"] .kairo-landing-main > :is(#home, #home-highlights, #home-plans, .kairo-lp-cta, #faq),
 html.kairo-v3 #kairo-entry[data-page="features"] .kairo-landing-main > :is(#features, .kairo-lp-cta),
 html.kairo-v3 #kairo-entry[data-page="solutions"] .kairo-landing-main > :is(#solutions, .kairo-lp-cta),
 html.kairo-v3 #kairo-entry[data-page="pricing"] .kairo-landing-main > :is(#pricing, .kairo-lp-cta),
@@ -2501,22 +2501,6 @@ html.kairo-v3 .kairo-lp-hero-grid {
 
 html.kairo-v3 .kairo-lp-hero-copy {
   min-width: 0;
-}
-
-html.kairo-v3 .kairo-lp-eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  width: max-content;
-  max-width: 100%;
-  padding: 7px 12px;
-  border: 1px solid rgba(223, 169, 74, .32);
-  border-radius: 999px;
-  background: var(--kairo-gold-050);
-  color: #75571b;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: .02em;
 }
 
 html.kairo-v3 .kairo-lp-hero h1 {
@@ -3014,14 +2998,10 @@ html.kairo-v3 .kairo-lp-section-head-center {
   text-align: center;
 }
 
-html.kairo-v3 .kairo-lp-section-head-center .kairo-lp-eyebrow {
-  margin-inline: auto;
-}
-
 html.kairo-v3 .kairo-lp-section-head h2,
 html.kairo-v3 .kairo-lp-about-copy h2,
 html.kairo-v3 .kairo-lp-cta-panel h2 {
-  margin: 15px 0 0;
+  margin: 0;
   color: var(--kairo-delft);
   font-size: clamp(30px, 4.1vw, 48px);
   font-weight: 800;
@@ -3557,12 +3537,6 @@ html.kairo-v3 .kairo-lp-cta-panel::after {
 html.kairo-v3 .kairo-lp-cta-panel > * {
   position: relative;
   z-index: 1;
-}
-
-html.kairo-v3 .kairo-lp-cta-panel .kairo-lp-eyebrow {
-  border-color: rgba(223, 169, 74, .22);
-  background: rgba(255, 245, 215, .11);
-  color: #f3d68d;
 }
 
 html.kairo-v3 .kairo-lp-cta-panel h2 {
@@ -4383,3 +4357,78 @@ html.kairo-v3 .kairo-pp-deal {
 html.kairo-v3 .kairo-pp-deal span { color: #c9dbe6; }
 html.kairo-v3 .kairo-pp-deal s { color: #9fb6c5; }
 html.kairo-v3 .kairo-pp-deal b { color: var(--kairo-gold); font-weight: 800; }
+
+/* Home: "Kenapa KAIRO" strip (reuses .kairo-lp-feature-list) + Gratis/Pro summary. */
+html.kairo-v3 .kairo-lp-more-link {
+  display: inline-flex; align-items: center; gap: 6px; margin-top: 34px;
+  color: var(--kairo-delft); font-size: 14px; font-weight: 800;
+  text-decoration: underline; text-decoration-color: var(--kairo-turquoise); text-decoration-thickness: 2px; text-underline-offset: 5px;
+}
+html.kairo-v3 .kairo-lp-more-link:hover { color: var(--kairo-turquoise-dark); }
+html.kairo-v3 .kairo-lp-more-link.is-center { display: flex; justify-content: center; }
+html.kairo-v3 .kairo-lp-plans-lite { padding: clamp(64px, 7vw, 92px) 0; background: var(--kairo-sky-050); }
+html.kairo-v3 .kairo-lp-plan-lite-grid {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px;
+  width: min(820px, 100%); margin: 40px auto 0;
+}
+html.kairo-v3 .kairo-lp-plan-lite {
+  display: flex; flex-direction: column; min-width: 0; padding: 26px;
+  border: 1px solid var(--kairo-entry-line); border-radius: 18px; background: var(--kairo-white);
+}
+html.kairo-v3 .kairo-lp-plan-lite.is-featured { border-color: var(--kairo-delft); background: var(--kairo-delft); box-shadow: 0 22px 50px rgba(23, 58, 89, .15); }
+html.kairo-v3 .kairo-lp-plan-lite h3 { margin: 0; color: var(--kairo-delft); font-size: 17px; }
+html.kairo-v3 .kairo-lp-plan-lite > strong { margin-top: 18px; color: var(--kairo-delft); font-size: clamp(24px, 2.6vw, 30px); line-height: 1.1; letter-spacing: -.04em; }
+html.kairo-v3 .kairo-lp-plan-lite > strong > span { margin-left: 2px; font-size: 14px; font-weight: 700; letter-spacing: 0; color: var(--kairo-entry-muted); }
+html.kairo-v3 .kairo-lp-plan-lite.is-featured h3,
+html.kairo-v3 .kairo-lp-plan-lite.is-featured > strong { color: var(--kairo-white); }
+html.kairo-v3 .kairo-lp-plan-lite.is-featured > strong > span { color: #c6d5de; }
+html.kairo-v3 .kairo-lp-plan-lite-deal { margin: 10px 0 0; color: #c6d5de; font-size: 13px; font-weight: 700; }
+html.kairo-v3 .kairo-lp-plan-lite-deal s { margin: 0 4px; color: #9fb6c5; font-weight: 600; }
+html.kairo-v3 .kairo-lp-plan-lite-deal b { color: var(--kairo-gold); }
+html.kairo-v3 .kairo-lp-plan-lite .kairo-lp-price-list { margin: 18px 0 22px; }
+html.kairo-v3 .kairo-lp-plan-lite.is-featured .kairo-lp-price-list li { color: #eef5f8; }
+
+/* Features page: real screenshots (demo data) + compact list of other features. */
+html.kairo-v3 .kairo-lp-pro-tag {
+  display: inline-flex; margin-left: 4px; padding: 2px 7px; border-radius: 999px; vertical-align: 1px;
+  background: var(--kairo-gold-050); color: #7a5410; font-size: 10px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase;
+}
+html.kairo-v3 .kairo-lp-showcase { display: grid; gap: clamp(48px, 7vw, 88px); margin-top: 52px; }
+html.kairo-v3 .kairo-lp-showcase-row {
+  display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); align-items: center; gap: clamp(28px, 5vw, 64px);
+}
+html.kairo-v3 .kairo-lp-showcase-row.is-flipped { grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); }
+html.kairo-v3 .kairo-lp-showcase-row.is-flipped .kairo-lp-shot { grid-column: 2; grid-row: 1; }
+html.kairo-v3 .kairo-lp-showcase-row.is-flipped .kairo-lp-showcase-copy { grid-column: 1; grid-row: 1; }
+html.kairo-v3 .kairo-lp-shot {
+  margin: 0; padding: 12px; border: 1px solid var(--kairo-entry-line); border-radius: 22px;
+  background: var(--kairo-sky-050); box-shadow: var(--kairo-entry-shadow-soft);
+}
+html.kairo-v3 .kairo-lp-shot img { display: block; width: 100%; height: auto; border-radius: 14px; background: var(--kairo-white); }
+html.kairo-v3 .kairo-lp-shot.is-tall { justify-self: center; width: min(420px, 100%); }
+html.kairo-v3 .kairo-lp-showcase-copy h3 { margin: 0; color: var(--kairo-delft); font-size: clamp(22px, 2.4vw, 30px); line-height: 1.2; letter-spacing: -.03em; }
+html.kairo-v3 .kairo-lp-showcase-copy > p { margin: 12px 0 0; color: var(--kairo-entry-muted); font-size: 15px; line-height: 1.7; }
+html.kairo-v3 .kairo-lp-showcase-copy .kairo-lp-price-list { margin: 18px 0 0; }
+html.kairo-v3 .kairo-lp-more-features { margin-top: clamp(56px, 7vw, 88px); padding-top: 32px; border-top: 1px solid var(--kairo-entry-line); }
+html.kairo-v3 .kairo-lp-more-features h3 { margin: 0; color: var(--kairo-delft); font-size: 18px; }
+html.kairo-v3 .kairo-lp-more-features ul {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px 28px; margin: 22px 0 0; padding: 0; list-style: none;
+}
+html.kairo-v3 .kairo-lp-more-features li { display: grid; gap: 4px; }
+html.kairo-v3 .kairo-lp-more-features strong { color: var(--kairo-delft); font-size: 14px; }
+html.kairo-v3 .kairo-lp-more-features li > span { color: var(--kairo-entry-muted); font-size: 13px; line-height: 1.55; }
+
+@media (max-width: 860px) {
+  html.kairo-v3 .kairo-lp-showcase-row,
+  html.kairo-v3 .kairo-lp-showcase-row.is-flipped { grid-template-columns: 1fr; gap: 22px; }
+  html.kairo-v3 .kairo-lp-showcase-row.is-flipped :is(.kairo-lp-shot, .kairo-lp-showcase-copy) { grid-column: 1; grid-row: auto; }
+  html.kairo-v3 .kairo-lp-more-features ul { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 560px) {
+  html.kairo-v3 .kairo-lp-plan-lite-grid { grid-template-columns: 1fr; margin-top: 30px; }
+  html.kairo-v3 .kairo-lp-plan-lite { padding: 22px; }
+  html.kairo-v3 .kairo-lp-shot { padding: 8px; border-radius: 16px; }
+  html.kairo-v3 .kairo-lp-shot img { border-radius: 10px; }
+  html.kairo-v3 .kairo-lp-shot.is-tall { width: min(300px, 100%); }
+  html.kairo-v3 .kairo-lp-more-features ul { grid-template-columns: 1fr; gap: 16px; }
+}
