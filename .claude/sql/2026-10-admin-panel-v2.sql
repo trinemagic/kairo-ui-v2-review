@@ -68,11 +68,18 @@ create table if not exists public.platform_client_errors (
   line         int,
   user_agent   text
 );
+-- kolom tambahan untuk analisa (stack trace, kolom, versi app)
+alter table public.platform_client_errors add column if not exists col int;
+alter table public.platform_client_errors add column if not exists stack text;
+alter table public.platform_client_errors add column if not exists app_version text;
 create index if not exists platform_client_errors_created_idx on public.platform_client_errors (created_at desc);
 alter table public.platform_client_errors enable row level security;   -- tanpa policy: tidak bisa dibaca/ditulis langsung
 
+drop function if exists public.report_client_error(uuid, text, text, text, int, text);
 create or replace function public.report_client_error(p_workspace_id uuid, p_page text, p_message text,
-                                                      p_source text, p_line int, p_user_agent text)
+                                                      p_source text, p_line int, p_user_agent text,
+                                                      p_col int default null, p_stack text default null,
+                                                      p_app_version text default null)
 returns void
 language plpgsql security definer
 set search_path = public, pg_catalog
@@ -82,18 +89,21 @@ begin
   -- maksimal 30 laporan per user per jam (anti-spam)
   if (select count(*) from public.platform_client_errors
       where user_id = auth.uid() and created_at > now() - interval '1 hour') >= 30 then return; end if;
-  insert into public.platform_client_errors (user_id, workspace_id, page, message, source, line, user_agent)
+  insert into public.platform_client_errors (user_id, workspace_id, page, message, source, line, user_agent, col, stack, app_version)
   values (auth.uid(),
           case when exists (select 1 from public.workspace_members wm
                             where wm.workspace_id = p_workspace_id and wm.user_id = auth.uid())
                then p_workspace_id end,
-          left(p_page, 40), left(p_message, 500), left(p_source, 200), p_line, left(p_user_agent, 200));
+          left(p_page, 40), left(p_message, 500), left(p_source, 200), p_line, left(p_user_agent, 200),
+          p_col, left(p_stack, 2000), left(p_app_version, 40));
   delete from public.platform_client_errors where created_at < now() - interval '30 days';
 end $$;
 
+drop function if exists public.platform_admin_client_errors(int);
 create or replace function public.platform_admin_client_errors(p_hours int default 72)
 returns table (message text, source text, line int, page text, occurrences bigint, users bigint,
-               workspace_names text[], first_seen timestamptz, last_seen timestamptz)
+               workspace_names text[], first_seen timestamptz, last_seen timestamptz,
+               col int, stack text, app_versions text[], user_agents text[])
 language plpgsql security definer
 set search_path = public, pg_catalog
 as $$
@@ -102,7 +112,11 @@ begin
   if not public.is_platform_admin() then raise exception 'Akses ditolak' using errcode = '42501'; end if;
   return query
   select e.message, e.source, e.line, e.page, count(*), count(distinct e.user_id),
-         array_remove(array_agg(distinct w.name), null), min(e.created_at), max(e.created_at)
+         array_remove(array_agg(distinct w.name), null), min(e.created_at), max(e.created_at),
+         max(e.col),
+         (array_remove(array_agg(e.stack order by e.created_at desc), null))[1],
+         array_remove(array_agg(distinct e.app_version), null),
+         (array_remove(array_agg(distinct e.user_agent), null))[1:3]
   from public.platform_client_errors e
   left join public.workspaces w on w.id = e.workspace_id
   where e.created_at > now() - make_interval(hours => greatest(p_hours, 1))
@@ -249,7 +263,7 @@ end $$;
 -- ── 5. HAK AKSES FUNGSI ──────────────────────────────────────────────────────
 revoke all on function public.platform_admin_server_health() from public, anon;
 revoke all on function public.platform_admin_workspace_activity() from public, anon;
-revoke all on function public.report_client_error(uuid, text, text, text, int, text) from public, anon;
+revoke all on function public.report_client_error(uuid, text, text, text, int, text, int, text, text) from public, anon;
 revoke all on function public.platform_admin_client_errors(int) from public, anon;
 revoke all on function public.platform_admin_custom_requests() from public, anon;
 revoke all on function public.platform_admin_save_custom_request(bigint, uuid, text, text, text, text, numeric, text, date, date) from public, anon;
@@ -258,7 +272,7 @@ revoke all on function public.platform_admin_save_custom_item(bigint, bigint, te
 revoke all on function public.platform_admin_delete_custom_item(bigint) from public, anon;
 grant execute on function public.platform_admin_server_health() to authenticated;
 grant execute on function public.platform_admin_workspace_activity() to authenticated;
-grant execute on function public.report_client_error(uuid, text, text, text, int, text) to authenticated;
+grant execute on function public.report_client_error(uuid, text, text, text, int, text, int, text, text) to authenticated;
 grant execute on function public.platform_admin_client_errors(int) to authenticated;
 grant execute on function public.platform_admin_custom_requests() to authenticated;
 grant execute on function public.platform_admin_save_custom_request(bigint, uuid, text, text, text, text, numeric, text, date, date) to authenticated;

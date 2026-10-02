@@ -545,16 +545,19 @@ function dismissToast(item){
   setTimeout(()=>item.remove(),200);
 }
 // Errors users hit (script errors and red "Gagal" pop-ups) are reported so KAIRO Admin can list them
-// under "Perlu Perhatian". Only the message, file/line and page are sent; never form or order data.
+// under "Perlu Perhatian" and the owner can copy them for analysis. Sent: message, file/line/column,
+// stack trace, page and app version; never form or order data.
 const kairoReportedErrors=new Set();
-function reportClientError(message,source,line){
+const kairoAppVersion=(document.querySelector('script[src*="kairo-app.js"]')?.src.match(/[?&]v=([^&]+)/)||[])[1]||"";
+function reportClientError(message,source,line,col,stack){
   const msg=String(message||"").trim();
   if(!activeAuthUserId||!msg||kairoReportedErrors.size>=10)return;
   const key=msg+"|"+source+"|"+line;if(kairoReportedErrors.has(key))return;kairoReportedErrors.add(key);
-  db.rpc("report_client_error",{p_workspace_id:activeWorkspaceId||null,p_page:document.querySelector("main.container > .section.active")?.id||"",p_message:msg.slice(0,500),p_source:String(source||"").replace(location.origin,"").slice(0,200),p_line:Number(line)||0,p_user_agent:navigator.userAgent.slice(0,200)}).then(()=>{},()=>{});
+  const trace=String(stack||"").split(location.origin).join("").slice(0,2000);
+  db.rpc("report_client_error",{p_workspace_id:activeWorkspaceId||null,p_page:document.querySelector("main.container > .section.active")?.id||"",p_message:msg.slice(0,500),p_source:String(source||"").replace(location.origin,"").slice(0,200),p_line:Number(line)||0,p_user_agent:navigator.userAgent.slice(0,200),p_col:Number(col)||null,p_stack:trace||null,p_app_version:kairoAppVersion||null}).then(()=>{},()=>{});
 }
-window.addEventListener("error",e=>{if(e.message&&(!e.filename||e.filename.startsWith(location.origin))&&!/ResizeObserver loop|^Script error\.?$/.test(e.message))reportClientError(e.message,e.filename,e.lineno);});
-window.addEventListener("unhandledrejection",e=>reportClientError(e.reason?.message||e.reason,"promise",0));
+window.addEventListener("error",e=>{if(e.message&&(!e.filename||e.filename.startsWith(location.origin))&&!/ResizeObserver loop|^Script error\.?$/.test(e.message))reportClientError(e.message,e.filename,e.lineno,e.colno,e.error?.stack);});
+window.addEventListener("unhandledrejection",e=>reportClientError(e.reason?.message||e.reason,"promise",0,0,e.reason?.stack));
 function showToast(message, error=false){
   const host=document.getElementById("toast");if(!host)return;
   // Plan-lock notices ("… tersedia di paket Pro", "Upgrade ke paket …") are passed as errors
@@ -562,7 +565,7 @@ function showToast(message, error=false){
   const planLock=/tersedia (mulai|di|untuk) paket|upgrade ke paket/i.test(String(message??""));
   const variant=typeof error==="string"&&TOAST_VARIANTS[error]?error:(error?(planLock?"warning":"error"):"success");
   const {title,icon}=TOAST_VARIANTS[variant];
-  if(variant==="error")reportClientError(message,"toast",0);
+  if(variant==="error")reportClientError(message,"toast",0,0,new Error("toast").stack);
   const item=document.createElement("div");
   item.className=`kairo-toast is-${variant}`;
   item.setAttribute("role",variant==="error"?"alert":"status");
