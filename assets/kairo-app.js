@@ -514,12 +514,44 @@ function setPeriod(period,refresh=true){
   if(refresh) loadPageData(currentAppPage()).catch(()=>{});
 }
 
+// Alert pop-ups: a stack fixed at the top right (stays in view while scrolling), each card with
+// an icon, title, message and an X button. showToast(message, error) keeps its old signature;
+// `error` may also be a variant name: 'success' | 'info' | 'warning' | 'error'.
+const TOAST_VARIANTS={
+  success:{title:"Berhasil",icon:'<circle cx="12" cy="12" r="9"/><path d="m8.5 12.2 2.4 2.4 4.6-5"/>'},
+  info:{title:"Info",icon:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5.5"/><path d="M12 7.6h.01"/>'},
+  warning:{title:"Perhatian",icon:'<path d="M10.3 4.2 2.9 17.1A2 2 0 0 0 4.6 20h14.8a2 2 0 0 0 1.7-2.9L13.7 4.2a2 2 0 0 0-3.4 0Z"/><path d="M12 9.5v4"/><path d="M12 16.8h.01"/>'},
+  error:{title:"Gagal",icon:'<circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5"/><path d="M12 16.4h.01"/>'}
+};
+const TOAST_MAX=4;
+function dismissToast(item){
+  if(!item||item.classList.contains("is-leaving"))return;
+  clearTimeout(item._timer);item.classList.add("is-leaving");
+  setTimeout(()=>item.remove(),200);
+}
 function showToast(message, error=false){
-  const el=document.getElementById("toast");
-  el.textContent=message;
-  el.style.background=error ? "var(--danger)" : "var(--green)";
-  el.style.display="block";
-  setTimeout(()=>el.style.display="none",2800);
+  const host=document.getElementById("toast");if(!host)return;
+  const variant=typeof error==="string"&&TOAST_VARIANTS[error]?error:(error?"error":"success");
+  const {title,icon}=TOAST_VARIANTS[variant];
+  const item=document.createElement("div");
+  item.className=`kairo-toast is-${variant}`;
+  item.setAttribute("role",variant==="error"?"alert":"status");
+  item.innerHTML=`<svg class="kairo-toast-icon" viewBox="0 0 24 24" aria-hidden="true">${icon}</svg><div class="kairo-toast-copy"><strong>${title}</strong><span></span></div><button type="button" class="kairo-toast-close" aria-label="Tutup notifikasi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 7 10 10M17 7 7 17"/></svg></button>`;
+  item.querySelector(".kairo-toast-copy span").textContent=String(message??"");
+  item.querySelector(".kairo-toast-close").addEventListener("click",()=>dismissToast(item));
+  // Errors and warnings stay longer; hovering or focusing a card pauses its countdown.
+  const life=variant==="error"||variant==="warning"?7000:4500;
+  const start=()=>{clearTimeout(item._timer);item._timer=setTimeout(()=>dismissToast(item),life)};
+  item.addEventListener("mouseenter",()=>clearTimeout(item._timer));
+  item.addEventListener("mouseleave",start);
+  item.addEventListener("focusin",()=>clearTimeout(item._timer));
+  item.addEventListener("focusout",start);
+  // Sit just below the sticky desktop header so the bell and theme buttons stay usable.
+  const header=document.querySelector("#app-shell .header")?.getBoundingClientRect();
+  host.style.setProperty("--kairo-toast-top",header&&header.height&&header.bottom>0?`${Math.round(header.bottom+10)}px`:"16px");
+  host.prepend(item);
+  [...host.querySelectorAll(".kairo-toast:not(.is-leaving)")].slice(TOAST_MAX).forEach(dismissToast);
+  start();
 }
 
 function setDefaultDates(){

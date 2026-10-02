@@ -25,7 +25,7 @@ const SEED = require('./seed.js');
   await p.waitForTimeout(700);
   await p.evaluate(() => document.getElementById('confirm-save')?.click());
   await p.waitForTimeout(1500);
-  console.log('after save  ', JSON.stringify(await state()), '| inserted:', await p.evaluate(() => window.__db.log.filter(l => l.startsWith('insert:transactions')).length), '| toast:', await p.evaluate(() => document.getElementById('toast')?.textContent));
+  console.log('after save  ', JSON.stringify(await state()), '| inserted:', await p.evaluate(() => window.__db.log.filter(l => l.startsWith('insert:transactions')).length), '| toast:', await p.evaluate(() => document.querySelector('#toast .kairo-toast-copy span')?.textContent));
   await p.evaluate(() => document.querySelector('#tx-form button[onclick="resetTxForm()"]').click());
   await p.waitForTimeout(300);
   console.log('after Reset ', JSON.stringify(await state()));
