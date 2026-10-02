@@ -89,6 +89,9 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
 - **Landing:** Home (Hero+CTA+FAQ), halaman hash `#features #solutions #pricing #about`,
   `#masuk` = langsung form login. Badge "kini hadir…" sudah dihapus (owner: jangan
   wording khas AI).
+  Copy landing ditulis untuk pelanggan: **jangan** ada catatan internal/teknis (Supabase,
+  tenant, auth, "belum final"). Pricing (Gratis/Pro/Custom) & kontak masih menunggu data owner
+  (harga, WhatsApp/email, testimoni, S&K/Privasi) — lihat saran landing Okt 2026.
 - **Login:** "Ingat saya" menyimpan **username saja** (`kairo_remember_username_v1`);
   `persistSession:false` sengaja (wajib login tiap buka) — jangan diubah tanpa izin.
 - **Riwayat Transaksi:** 7 kolom (Tanggal, Start Reading, Nama, Status, Paket=kode,
