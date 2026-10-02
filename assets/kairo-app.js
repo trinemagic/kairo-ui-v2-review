@@ -544,8 +544,8 @@ function showToast(message, error=false){
   item.innerHTML=`<svg class="kairo-toast-icon" viewBox="0 0 24 24" aria-hidden="true">${icon}</svg><div class="kairo-toast-copy"><strong>${title}</strong><span></span></div><button type="button" class="kairo-toast-close" aria-label="Tutup notifikasi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 7 10 10M17 7 7 17"/></svg></button>`;
   item.querySelector(".kairo-toast-copy span").textContent=String(message??"");
   item.querySelector(".kairo-toast-close").addEventListener("click",()=>dismissToast(item));
-  // Errors and warnings stay longer; hovering or focusing a card pauses its countdown.
-  const life=variant==="error"||variant==="warning"?7000:4500;
+  // Every pop-up closes by itself after 5 s (owner); hovering or focusing a card pauses it.
+  const life=5000;
   const start=()=>{clearTimeout(item._timer);item._timer=setTimeout(()=>dismissToast(item),life)};
   item.addEventListener("mouseenter",()=>clearTimeout(item._timer));
   item.addEventListener("mouseleave",start);
@@ -4299,7 +4299,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
  document.addEventListener('click',e=>{
    const cust=e.target.closest('[data-tab="customers"],.saas-mobile-nav-btn[data-mobile-tab="customers"]');if(cust&&!canUseFeature('customer_database')){e.preventDefault();e.stopImmediatePropagation();showToast(lockedMsg('customer_database'),true);return;}
    const shift=e.target.closest('#open-shift-btn,#close-shift-btn');if(shift&&!canUseFeature('open_close_store')){e.preventDefault();e.stopImmediatePropagation();showToast(lockedMsg('open_close_store'),true);return;}
-   const auto=e.target.closest('#smart-sales-open');if(auto&&!canUseFeature('autofill_orders')){e.preventDefault();e.stopImmediatePropagation();showToast(lockedMsg('autofill_orders'),true);return;}
+   const auto=e.target.closest('#smart-sales-open');if(auto&&!canUseFeature('autofill_orders')){e.preventDefault();e.stopImmediatePropagation();const menu=document.getElementById('orders-tool-menu');if(menu){menu.hidden=true;document.getElementById('orders-tool-trigger')?.setAttribute('aria-expanded','false')}showToast(lockedMsg('autofill_orders'),true);return;}
    const set=e.target.closest('.saas-settings-submenu-btn');if(set&&['profit','receipt'].includes(set.dataset.settingsCategory)&&!pro()){e.preventDefault();e.stopImmediatePropagation();showToast('Menu ini tersedia di paket Pro.',true);return;}
  },true);
  // Wrap export: Gratis blocked, Pro normal.
