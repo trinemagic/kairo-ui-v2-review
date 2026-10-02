@@ -1,8 +1,8 @@
 -- KAIRO Admin v2 (Okt 2026): kapasitas server, deteksi masalah user, catatan request paket Custom.
--- Jalankan sekali di Supabase › SQL Editor (aman diulang). Tidak mengubah/menghapus data lama.
+-- Jalankan sekali di Supabase > SQL Editor (aman diulang). Tidak mengubah/menghapus data lama.
 -- Semua fungsi admin menolak akun yang bukan platform admin (memakai public.is_platform_admin()).
 
--- ── 1. KAPASITAS SERVER ───────────────────────────────────────────────────────
+-- ===== 1. KAPASITAS SERVER =====
 create or replace function public.platform_admin_server_health()
 returns jsonb
 language plpgsql security definer
@@ -31,7 +31,7 @@ begin
   return r;
 end $$;
 
--- ── 2. DETEKSI MASALAH: aktivitas per workspace ──────────────────────────────
+-- ===== 2. DETEKSI MASALAH: aktivitas per workspace =====
 create or replace function public.platform_admin_workspace_activity()
 returns table (workspace_id uuid, workspace_created_at timestamptz, last_tx_at timestamptz, tx_30d bigint,
                owner_last_sign_in timestamptz, requested_variant text, owner_phone text)
@@ -55,7 +55,7 @@ begin
   left join auth.users u on u.id = o.user_id;
 end $$;
 
--- ── 3. DETEKSI MASALAH: error yang dialami user di aplikasi ───────────────────
+-- ===== 3. DETEKSI MASALAH: error yang dialami user di aplikasi =====
 -- Pesan error, lokasi file/baris/kolom, stack trace, halaman, versi app, browser. Tidak menyimpan isi form/data transaksi.
 create table if not exists public.platform_client_errors (
   id           bigserial primary key,
@@ -125,7 +125,7 @@ begin
   limit 200;
 end $$;
 
--- ── 4. REQUEST PAKET CUSTOM + CHECKLIST ───────────────────────────────────────
+-- ===== 4. REQUEST PAKET CUSTOM + CHECKLIST =====
 create table if not exists public.platform_custom_requests (
   id            bigserial primary key,
   workspace_id  uuid references public.workspaces(id) on delete set null,
@@ -260,7 +260,7 @@ begin
   where id = v_req;
 end $$;
 
--- ── 5. HAK AKSES FUNGSI ──────────────────────────────────────────────────────
+-- ===== 5. HAK AKSES FUNGSI =====
 revoke all on function public.platform_admin_server_health() from public, anon;
 revoke all on function public.platform_admin_workspace_activity() from public, anon;
 revoke all on function public.report_client_error(uuid, text, text, text, int, text, int, text, text) from public, anon;
