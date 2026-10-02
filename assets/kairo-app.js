@@ -544,8 +544,8 @@ function showToast(message, error=false){
   item.innerHTML=`<svg class="kairo-toast-icon" viewBox="0 0 24 24" aria-hidden="true">${icon}</svg><div class="kairo-toast-copy"><strong>${title}</strong><span></span></div><button type="button" class="kairo-toast-close" aria-label="Tutup notifikasi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 7 10 10M17 7 7 17"/></svg></button>`;
   item.querySelector(".kairo-toast-copy span").textContent=String(message??"");
   item.querySelector(".kairo-toast-close").addEventListener("click",()=>dismissToast(item));
-  // Errors and warnings stay longer; hovering or focusing a card pauses its countdown.
-  const life=variant==="error"||variant==="warning"?7000:4500;
+  // Every pop-up closes by itself after 5 s (owner); hovering or focusing a card pauses it.
+  const life=5000;
   const start=()=>{clearTimeout(item._timer);item._timer=setTimeout(()=>dismissToast(item),life)};
   item.addEventListener("mouseenter",()=>clearTimeout(item._timer));
   item.addEventListener("mouseleave",start);
