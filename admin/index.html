@@ -7,10 +7,10 @@
 <meta name="color-scheme" content="dark">
 <title>KAIRO Admin</title>
 <link rel="icon" type="image/svg+xml" href="../assets/kairo-mark.svg">
-<link rel="stylesheet" href="admin.css?v=1.1.0">
+<link rel="stylesheet" href="admin.css?v=1.2.0">
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
-<script defer src="admin.js?v=1.1.0"></script>
+<script defer src="admin.js?v=1.2.0"></script>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -36,6 +36,7 @@
   <symbol id="i-clip" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M9 11l2 2 4-4M9 17h6"/></symbol>
   <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></symbol>
   <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></symbol>
   <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4.5 4.5L19 7"/></symbol>
 </svg>
 
@@ -138,13 +139,13 @@
               <button class="chip issFilter" data-sev="med">Sedang</button>
               <button class="chip issFilter" data-sev="low">Rendah</button>
             </div>
-            <span class="muted">Dicek otomatis setiap data dimuat</span>
+            <div class="w-tools"><span class="muted">Dicek otomatis setiap data dimuat</span><button id="copyUrgent" class="btn btn-ghost hidden" title="Salin semua masalah urgent (selain subscription) untuk dianalisa"><svg><use href="#i-copy"/></svg>Salin semua yang urgent</button></div>
           </div>
           <div class="table-wrap"><table><thead><tr><th>Masalah</th><th>Tingkat</th><th>Workspace</th><th>Detail</th><th>Sejak</th><th></th></tr></thead><tbody id="issueRows"></tbody></table><p id="issueEmpty" class="empty hidden">Tidak ada masalah terdeteksi. 🎉</p></div>
         </div>
         <div class="widget">
-          <div class="w-head"><h2>Error Aplikasi di Sisi User (72 jam)</h2><span class="muted">Pesan error yang muncul di browser user</span></div>
-          <div class="table-wrap"><table><thead><tr><th>Pesan error</th><th>Halaman</th><th class="num">Kejadian</th><th class="num">User</th><th>Workspace</th><th>Terakhir</th></tr></thead><tbody id="errorRows"></tbody></table><p id="errorEmpty" class="empty hidden">Belum ada error yang dilaporkan.</p></div>
+          <div class="w-head"><h2>Error Aplikasi di Sisi User (72 jam)</h2><span class="muted">Klik Salin, lalu tempel ke chat Claude untuk dianalisa</span></div>
+          <div class="table-wrap"><table><thead><tr><th>Pesan error</th><th>Halaman</th><th class="num">Kejadian</th><th class="num">User</th><th>Workspace</th><th>Terakhir</th><th></th></tr></thead><tbody id="errorRows"></tbody></table><p id="errorEmpty" class="empty hidden">Belum ada error yang dilaporkan.</p></div>
         </div>
       </section>
 

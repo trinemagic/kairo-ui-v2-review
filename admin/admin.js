@@ -341,6 +341,56 @@ async function saveSale(){
   }catch(e){$('sError').textContent=e.message;}
 }
 
+/* ── Salin detail masalah (untuk ditempel ke chat & dianalisa) ── */
+const PAGE_LABEL={dashboard:'Dashboard',performance:'Performance',input:'Orders',customers:'Customers',promo:'Promo',payout:'Withdraw',cash:'Petty Cash',settings:'Settings'};
+const pageLabel=p=>p?(PAGE_LABEL[p]?`${PAGE_LABEL[p]} (${p})`:p):'—';
+const fmtTime=v=>v?new Date(v).toLocaleString('id-ID',{dateStyle:'medium',timeStyle:'short'}):'—';
+function uaLabel(ua){
+  ua=String(ua||'');if(!ua)return'';
+  const dev=/iPhone/.test(ua)?'iPhone':/iPad/.test(ua)?'iPad':/Android/.test(ua)?'Android':/Macintosh|Mac OS X/.test(ua)?'Mac':/Windows/.test(ua)?'Windows':/Linux/.test(ua)?'Linux':'Perangkat lain';
+  const m=ua.match(/(Edg|SamsungBrowser|Firefox|CriOS|FxiOS|Chrome)\/(\d+)/)||(/Safari/.test(ua)&&ua.match(/Version\/(\d+)/)?['','Safari',ua.match(/Version\/(\d+)/)[1]]:null);
+  const name={Edg:'Edge',CriOS:'Chrome iOS',FxiOS:'Firefox iOS'}[m?.[1]]||m?.[1]||'Browser lain';
+  return `${dev} · ${name}${m?.[2]?' '+m[2]:''}`;
+}
+function errorReport(e){
+  const loc=`${e.source||'—'}${e.line?` baris ${e.line}`:''}${e.col?` kolom ${e.col}`:''}`;
+  return ['=== KAIRO · Laporan error untuk dianalisa ===',
+    `Pesan     : ${e.message}`,
+    `Lokasi    : ${loc}${e.source==='toast'?' (pop-up "Gagal" di aplikasi)':e.source==='promise'?' (proses async gagal)':''}`,
+    `Halaman   : ${pageLabel(e.page)}`,
+    `Versi app : kairo-app.js v${(e.app_versions||[]).join(', ')||'tidak tercatat'}`,
+    `Kejadian  : ${e.occurrences}× oleh ${e.users} user (72 jam terakhir)`,
+    `Pertama   : ${fmtTime(e.first_seen)}`,
+    `Terakhir  : ${fmtTime(e.last_seen)}`,
+    `Workspace : ${(e.workspace_names||[]).join(', ')||'—'}`,
+    `Browser   : ${[...new Set((e.user_agents||[]).map(uaLabel).filter(Boolean))].join(' | ')||'—'}`,
+    'Stack trace:',
+    e.stack?String(e.stack).split('\n').map(l=>'  '+l.trim()).join('\n'):'  (tidak tercatat)'
+  ].join('\n');
+}
+function serverReport(r){
+  const h=serverHealth||{},st=serverState();
+  return ['=== KAIRO · Laporan server untuk dianalisa ===',
+    `Masalah   : ${r.title} — ${r.detail}`,
+    `Database  : ${fmtBytes(h.db_size_bytes)} dari batas ${fmtBytes(serverLimitMB()*1048576)}${st.dbPct!=null?` (${st.dbPct.toFixed(1)}%)`:''}`,
+    `Koneksi   : ${h.connections_total??'—'} total, ${h.connections_active??'—'} aktif, maks ${h.max_connections??'—'}`,
+    `Respons   : ${serverLatency!=null?serverLatency+' ms':'—'} · cache hit ${h.cache_hit_pct??'—'}%`,
+    `Beban 24j : ${h.active_users_24h??'—'} akun login, ${h.transactions_24h??'—'} transaksi`,
+    `Tabel terbesar: ${(h.top_tables||[]).slice(0,5).map(t=>`${t.name} ${fmtBytes(t.bytes)}`).join(', ')||'—'}`,
+    `Dicek     : ${fmtTime(h.checked_at)}`
+  ].join('\n');
+}
+async function copyText(text,btn){
+  let ok=false;
+  try{await navigator.clipboard.writeText(text);ok=true;}catch(_e){
+    const ta=document.createElement('textarea');ta.value=text;ta.setAttribute('readonly','');ta.style.cssText='position:fixed;left:-9999px;top:0';document.body.appendChild(ta);ta.select();
+    try{ok=document.execCommand('copy');}catch(_e2){}ta.remove();
+  }
+  if(!ok)return toast('Gagal menyalin. Coba lagi atau salin manual.',true);
+  toast('Detail disalin — tempel ke chat Claude untuk dianalisa');
+  if(btn){const old=btn.innerHTML;btn.innerHTML='<svg><use href="#i-check"/></svg>Tersalin';btn.classList.add('is-done');setTimeout(()=>{btn.innerHTML=old;btn.classList.remove('is-done');},1800);}
+}
+
 /* ── Perlu Perhatian: deteksi otomatis ── */
 const SEV={high:['Tinggi','b-danger',0],med:['Sedang','b-warn',1],low:['Rendah','b-info',2]};
 const DAY=864e5;
@@ -348,7 +398,7 @@ function computeIssues(){
   const out=[],now=Date.now(),today=todayISO(),act=Object.fromEntries(wsActivity.map(a=>[a.workspace_id,a]));
   const openFollow=new Set(followups.filter(f=>f.status==='open').map(f=>f.workspace_name));
   const customWs=new Set(customReqs.map(r=>r.workspace_id).filter(Boolean));
-  const add=(sev,title,ws,detail,since,action)=>out.push({sev,title,ws,detail,since,action});
+  const add=(sev,title,ws,detail,since,action,copy)=>out.push({sev,title,ws,detail,since,action,copy});
   all.forEach(w=>{
     const ss=String(w.subscription_status||'').toLowerCase(),wst=String(w.workspace_status||'').toLowerCase(),until=w.valid_until?+new Date(w.valid_until):null,pro=planKey(w.plan)==='pro';
     const manage={label:'Kelola',run:()=>openWorkspace(w.workspace_id)};
@@ -365,8 +415,8 @@ function computeIssues(){
     }
   });
   sales.filter(x=>x.payment_status==='pending'&&+new Date(x.created_at||x.paid_at)<now-3*DAY).forEach(x=>add('med','Pembayaran pending lebih dari 3 hari',{workspace_name:x.workspace_name},`${money(x.amount)} · ${x.customer_name||'—'}`,x.created_at||x.paid_at,{label:'Lihat',run:()=>activatePage('sales')}));
-  clientErrors.filter(e=>+new Date(e.last_seen)>now-DAY).forEach(e=>add(Number(e.occurrences)>=5||Number(e.users)>=3?'high':'med','Error aplikasi di sisi user',{workspace_name:(e.workspace_names||[]).join(', ')||'—'},`${String(e.message).slice(0,90)} · ${e.occurrences}× / ${e.users} user`,e.first_seen,{label:'Detail',run:()=>{$('errorRows').scrollIntoView({behavior:'smooth',block:'center'});}}));
-  const srv=serverState();srv.reasons.forEach(r=>add(r.sev,r.title,{workspace_name:'Server KAIRO'},r.detail,null,{label:'Lihat',run:()=>activatePage('server')}));
+  clientErrors.filter(e=>+new Date(e.last_seen)>now-DAY).forEach(e=>add(Number(e.occurrences)>=5||Number(e.users)>=3?'high':'med','Error aplikasi di sisi user',{workspace_name:(e.workspace_names||[]).join(', ')||'—'},`${String(e.message).slice(0,90)} · ${e.occurrences}× / ${e.users} user`,e.first_seen,{label:'Detail',run:()=>{$('errorRows').scrollIntoView({behavior:'smooth',block:'center'});}},()=>errorReport(e)));
+  const srv=serverState();srv.reasons.forEach(r=>add(r.sev,r.title,{workspace_name:'Server KAIRO'},r.detail,null,{label:'Lihat',run:()=>activatePage('server')},()=>serverReport(r)));
   return out.sort((a,b)=>SEV[a.sev][2]-SEV[b.sev][2]||String(b.since||'').localeCompare(String(a.since||'')));
 }
 function renderIssues(){
@@ -376,10 +426,15 @@ function renderIssues(){
   setText('issueCount',c('high')+c('med'));
   $('issuesNeedSql').classList.toggle('hidden',!(needSql.activity||needSql.errors));
   const rows=issues.filter(x=>issueFilter==='all'||x.sev===issueFilter);
-  $('issueRows').innerHTML=rows.map((x,i)=>`<tr><td><span class="issue-title ${x.sev}"><svg><use href="#i-alert"/></svg>${esc(x.title)}</span></td><td><span class="badge ${SEV[x.sev][1]}">${SEV[x.sev][0]}</span></td><td>${esc(x.ws?.workspace_name||'—')}</td><td>${esc(x.detail)}</td><td>${x.since?dateID(x.since):'—'}</td><td class="num">${x.action?`<button class="table-btn issueAct" data-i="${i}">${esc(x.action.label)}</button>`:''}</td></tr>`).join('');
+  $('issueRows').innerHTML=rows.map((x,i)=>`<tr><td><span class="issue-title ${x.sev}"><svg><use href="#i-alert"/></svg>${esc(x.title)}</span></td><td><span class="badge ${SEV[x.sev][1]}">${SEV[x.sev][0]}</span></td><td>${esc(x.ws?.workspace_name||'—')}</td><td>${esc(x.detail)}</td><td>${x.since?dateID(x.since):'—'}</td><td class="num">${x.copy&&x.sev==='high'?`<button class="table-btn is-copy issueCopy" data-i="${i}" title="Salin detail untuk dianalisa"><svg><use href="#i-copy"/></svg>Salin</button>`:''}${x.action?`<button class="table-btn issueAct" data-i="${i}">${esc(x.action.label)}</button>`:''}</td></tr>`).join('');
   $('issueEmpty').classList.toggle('hidden',rows.length>0);
   $('issueRows').querySelectorAll('.issueAct').forEach(b=>b.onclick=()=>rows[+b.dataset.i].action.run());
-  $('errorRows').innerHTML=clientErrors.map(e=>`<tr><td class="err-msg">${esc(e.message)}${e.source?`<br><small>${esc(e.source)}${e.line?':'+esc(e.line):''}</small>`:''}</td><td>${esc(e.page||'—')}</td><td class="num"><b>${esc(e.occurrences)}</b></td><td class="num">${esc(e.users)}</td><td>${esc((e.workspace_names||[]).join(', ')||'—')}</td><td>${e.last_seen?new Date(e.last_seen).toLocaleString('id-ID',{dateStyle:'medium',timeStyle:'short'}):'—'}</td></tr>`).join('');
+  $('issueRows').querySelectorAll('.issueCopy').forEach(b=>b.onclick=()=>copyText(rows[+b.dataset.i].copy(),b));
+  const urgent=issues.filter(x=>x.sev==='high'&&x.copy);
+  $('copyUrgent').classList.toggle('hidden',!urgent.length);
+  $('copyUrgent').onclick=()=>copyText(urgent.map(x=>x.copy()).join('\n\n'),$('copyUrgent'));
+  $('errorRows').innerHTML=clientErrors.map((e,i)=>`<tr><td class="err-msg">${esc(e.message)}${e.source?`<br><small>${esc(e.source)}${e.line?':'+esc(e.line):''}</small>`:''}</td><td>${esc(pageLabel(e.page))}</td><td class="num"><b>${esc(e.occurrences)}</b></td><td class="num">${esc(e.users)}</td><td>${esc((e.workspace_names||[]).join(', ')||'—')}</td><td>${e.last_seen?new Date(e.last_seen).toLocaleString('id-ID',{dateStyle:'medium',timeStyle:'short'}):'—'}</td><td class="num"><button class="table-btn is-copy errCopy" data-i="${i}" title="Salin detail untuk dianalisa"><svg><use href="#i-copy"/></svg>Salin</button></td></tr>`).join('');
+  $('errorRows').querySelectorAll('.errCopy').forEach(b=>b.onclick=()=>copyText(errorReport(clientErrors[+b.dataset.i]),b));
   $('errorEmpty').textContent=needSql.errors?'Aktif setelah SQL admin panel v2 dijalankan.':'Belum ada error yang dilaporkan.';
   $('errorEmpty').classList.toggle('hidden',clientErrors.length>0);
   renderNavCounts();

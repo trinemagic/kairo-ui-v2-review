@@ -172,6 +172,10 @@ td.note{max-width:260px;color:var(--muted);font-size:13px}
 .table-btn:hover{background:rgba(255,255,255,.12)}
 .table-btn.is-danger{color:var(--danger);border-color:rgba(255,138,141,.35)}
 td .table-btn+.table-btn{margin-left:6px}
+.table-btn{display:inline-flex;align-items:center;gap:5px;vertical-align:middle}
+.table-btn svg{width:13px;height:13px}
+.table-btn.is-copy{color:#8fe3dc;border-color:rgba(37,185,176,.4)}
+.table-btn.is-done{color:var(--ok);border-color:rgba(79,209,165,.5)}
 .status-select{min-height:32px;padding:4px 8px;border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.06);font-size:12px;font-weight:700}
 .mini-bar{height:5px;border-radius:999px;background:rgba(255,255,255,.1);margin-top:6px;overflow:hidden;min-width:90px}
 .mini-bar i{display:block;height:100%;background:var(--primary)}

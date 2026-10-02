@@ -80,7 +80,7 @@ URL live: `https://trinemagic.github.io/kairo-ui-v2-review/`
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
 Versi terakhir: `kairo.css?v=20.10.156`, `kairo-v3.css?v=3.23.0`,
-`kairo-v3.js?v=3.19.0`, `kairo-app.js?v=20.10.170`; template seller dimuat dari kairo-app.js
+`kairo-v3.js?v=3.19.0`, `kairo-app.js?v=20.10.171`; template seller dimuat dari kairo-app.js
 (`seller-app-premium.js?v=20.10.148`, `.css?v=20.10.150`) — naikkan juga bila file template diubah.
 
 **Halaman app** = `main.container > section.section` dengan id:
@@ -242,7 +242,7 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   `trinemagic/trine-magic-dashboard/admin` (yang lama tidak diubah). Tombol keluar = tutup tab admin. Paket tampil Gratis/Pro
   (`plus` dll dihitung Pro; pilihan paket di modal hanya basic/pro; harga `plus` disembunyikan). Tabel jadi kartu di
   ≤640px (label kolom otomatis dari `thead`, `labelCells()`). Tes: stub `window.supabase` + data contoh di
-  scratchpad (route `**/supabase-js@2*` dan `**/chart.umd.min.js`). Cache `admin.css?v=1.1.0`, `admin.js?v=1.1.0`.
+  scratchpad (route `**/supabase-js@2*` dan `**/chart.umd.min.js`). Cache `admin.css?v=1.2.0`, `admin.js?v=1.2.0`.
   **Akses (owner Okt 2026): tanpa form login.** admin/ hanya jalan bila dibuka dari tombol KAIRO Admin di dashboard
   Trine Magic: `openKairoAdmin()` membuka tab (tanpa `noopener`), admin minta token lewat `postMessage`
   (`kairo-admin-token-request` → `kairo-admin-token`, cek origin + window yang dibuka), dashboard hanya menjawab bila
@@ -256,8 +256,14 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   `kairo_admin_db_limit_mb` di localStorage, koneksi, cache hit, waktu respons, tabel terbesar; CPU/RAM/bandwidth hanya
   di laporan Supabase). SQL: `.claude/sql/2026-10-admin-panel-v2.sql` (diuji di Postgres lokal dengan skema tiruan).
 - **Laporan error user** (kairo-app.js, di atas `showToast`): `reportClientError()` mengirim pesan error script
-  (file sendiri saja) + toast merah "Gagal" (bukan pesan kunci paket) ke RPC `report_client_error`; maks 10/sesi,
-  tanpa data form. Sebelum SQL v2 dijalankan, panggilan gagal diam-diam.
+  (file sendiri saja) + toast merah "Gagal" (bukan pesan kunci paket) ke RPC `report_client_error` beserta
+  baris/kolom, stack trace (toast: stack pemanggil `showToast`) dan versi `kairo-app.js?v=`; maks 10/sesi, tanpa data
+  form. Sebelum SQL v2 dijalankan, panggilan gagal diam-diam.
+- **Salin untuk dianalisa (owner Okt 2026):** di admin › Perlu Perhatian, masalah **Tinggi selain subscription/pembayaran**
+  (error aplikasi, server) punya tombol **Salin**, plus "Salin semua yang urgent"; tiap baris tabel error juga.
+  Teksnya (`errorReport()`/`serverReport()`) = pesan, lokasi file:baris:kolom, halaman, versi app, jumlah kejadian,
+  workspace, browser, stack trace. Owner menempelkannya ke chat → cari baris itu di versi `kairo-app.js` yang
+  disebut (cek `git log` untuk versi tersebut bila sudah berubah).
 
 ## 4. Jebakan yang sudah pernah terjadi
 
