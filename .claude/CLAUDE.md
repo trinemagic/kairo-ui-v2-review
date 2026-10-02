@@ -218,7 +218,7 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   pesan "Workspace hanya bisa dibuka dengan akun pemiliknya…" lalu sign out. Semua cek/tampilan role
   (pill OWNER, "Role Kamu", catatan Staff, `requireWorkspaceRole`, `isWorkspaceAdmin`) sudah dihapus.
   Tim yang ikut mencatat memakai akun owner (FAQ 05). SQL sisi DB: `.claude/sql/2026-10-owner-only-workspaces.sql`
-  (owner yang menjalankan; status dijalankan/belum: tanya owner).
+  (**sudah dijalankan owner Okt 2026**: anggota non-owner dihapus + constraint `workspace_members_owner_only`).
 - **Ajakan upgrade (Gratis):** `#kairo-upgrade-hint` di Dashboard di bawah kartu statistik (menggantikan
   carousel paket lama yang tersembunyi). Tombol → `window.kairoRequestUpgrade()` (WhatsApp bila
   `WA_BUSINESS` diisi, kalau belum: toast info). X = sembunyi 7 hari per workspace
