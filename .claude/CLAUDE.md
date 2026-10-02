@@ -96,7 +96,9 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
 - **Landing:** Home (Hero + `#home-highlights` "Kenapa KAIRO" 4 kartu `.kairo-lp-feature-list` +
   `#home-plans` ringkasan Gratis/Pro + CTA + FAQ), halaman hash `#features #solutions #pricing #about`,
   `#features` = showcase screenshot asli (`assets/landing/*.webp`, data contoh nama netral "Toko Demo",
-  dibuat ulang dengan `.claude/testing/shoot-landing.js`) + "Fitur lainnya"; label `.kairo-lp-pro-tag`
+  dibuat ulang dengan `.claude/testing/shoot-landing.js`; contoh **toko online umum** — Kaos/Totebag, label struk
+  Tanggal/Produk/Kategori; owner: **jangan** pakai contoh jasa tarot / kolom "Start Reading"; screenshot Orders
+  dipotong sebelum field Topik) + "Fitur lainnya"; label `.kairo-lp-pro-tag`
   untuk fitur Pro. Meta SEO/Open Graph + favicon di `<head>`; gambar preview link
   `assets/og/kairo-og.jpg` (1200×630), URL absolut github.io (ganti bila pindah domain).
   `#masuk` = langsung form login. Badge "kini hadir…" sudah dihapus (owner: jangan

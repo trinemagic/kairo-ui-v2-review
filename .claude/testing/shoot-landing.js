@@ -3,7 +3,12 @@
 const { chromium, bootApp } = require('./boot.js');
 const fs=require('fs');
 let SEED = require('./seed.js');
-SEED=SEED.replace(/'Nesa'/g,"'Partner A'").replace(/'Ganesh'/g,"'Partner B'")+`
+// Universal online-shop example (not the tarot/reading demo): products, add-on, categories.
+const SWAP=[["'TR3'","'TOTE'"],["'Tarot 3 Kartu'","'Totebag Kanvas'"],["'LOVE'","'KAOS'"],["'Love Reading'","'Kaos Polos'"],["'VN'","'WRAP'"],["'Voice Note'","'Gift Wrap'"],["'Karier'","'Reguler'"],["'Asmara'","'Pre-order'"],["'Nesa'","'Partner A'"],["'Ganesh'","'Partner B'"]];
+SWAP.forEach(([from,to])=>{SEED=SEED.split(from).join(to)});
+SEED=SEED+`
+;T.workspace_branding[0].receipt_labels={start:'Tanggal',status_value:'Diproses',package:'Produk',topic:'Kategori',addon:'Tambahan'};
+T.workspace_branding[0].receipt_layout={design:{template:'studio'}};
 ;(function(){const H=3600000,D=86400000;
 T.transactions.slice(0,4).forEach(t=>t.shift_id='s1');
 T.reading_shifts.push({id:'s2',workspace_id:'w1',opened_at:new Date(now-D-9*H).toISOString(),closed_at:new Date(now-D-1*H).toISOString()},{id:'s3',workspace_id:'w1',opened_at:new Date(now-2*D-8*H).toISOString(),closed_at:new Date(now-2*D-2*H).toISOString()},{id:'s4',workspace_id:'w1',opened_at:new Date(now-3*D-7*H).toISOString(),closed_at:new Date(now-3*D-H).toISOString()});
@@ -30,9 +35,11 @@ await p.waitForTimeout(400);
 await shot('.shift-card','open-store',560);
 // Orders form
 await p.evaluate(async()=>{openAppPage('input');await loadPageData('input',{force:true})});await p.waitForTimeout(900);
-await p.evaluate(()=>{const set=(id,v)=>{const el=document.getElementById(id);el.value=v;el.dispatchEvent(new Event('change',{bubbles:true}))};document.getElementById('tx-customer').value='Alya Putri';document.getElementById('tx-date').value=todayISO();set('tx-platform','Instagram');set('tx-payment','QRIS');const pk=document.querySelector('.package-check');pk.checked=true;pk.dispatchEvent(new Event('change',{bubbles:true}));const tp=document.querySelector('.topic-check');tp.checked=true;tp.dispatchEvent(new Event('change',{bubbles:true}))});
+await p.evaluate(()=>{const set=(id,v)=>{const el=document.getElementById(id);el.value=v;el.dispatchEvent(new Event('change',{bubbles:true}))};document.getElementById('tx-customer').value='Alya Putri';document.getElementById('tx-date').value=todayISO();set('tx-platform','Instagram');set('tx-payment','QRIS');const pk=document.querySelector('.package-check');pk.checked=true;pk.dispatchEvent(new Event('change',{bubbles:true}))});
 const formCard=await p.evaluate(()=>{const f=document.getElementById('tx-form');const c=f.closest('.card')||f.parentElement;c.id=c.id||'kairo-shot-orders';return '#'+c.id});
-await shot(formCard,'orders',760);
+// Crop after "Package & Qty": the Topik field belongs to the service (reading) flow.
+const cut=await p.evaluate(sel=>{const c=document.querySelector(sel).getBoundingClientRect();const pk=document.getElementById('tx-packages').getBoundingClientRect();return Math.round(pk.bottom-c.top+12)},formCard);
+await shot(formCard,'orders',cut);
 // Receipt
 await p.evaluate(()=>openSavedReceipt(window.__db.tables.transactions[0].id));await p.waitForTimeout(900);
 const rsel=await p.evaluate(()=>{const m=document.getElementById('receipt-modal');const c=m.querySelector('.receipt-card,.modal-card,.modal-content')||m.firstElementChild;c.id=c.id||'kairo-shot-receipt';return '#'+c.id});
@@ -42,5 +49,9 @@ await p.evaluate(()=>{const m=document.getElementById('receipt-modal');m.style.d
 await p.evaluate(async()=>{openAppPage('cash');await loadPageData('cash',{force:true})});await p.waitForTimeout(900);
 await p.evaluate(()=>{const bar=document.querySelector('#cash .cash-filter-bar');let t=bar.nextElementSibling;while(t&&!t.classList.contains('table-wrap'))t=t.nextElementSibling;const w=document.createElement('div');w.id='kairo-shot-cash';w.style.cssText='margin-top:48px;position:relative;z-index:2;padding:18px;background:var(--v3-surface,#fff);border-radius:20px';bar.parentNode.insertBefore(w,bar);w.appendChild(bar);w.appendChild(t)});
 await p.waitForTimeout(400);{const el=await p.$('#kairo-shot-cash');const buf=await el.screenshot();await toWebp(p,buf,'petty-cash',1200);0}
+// Link-preview image from the fresh screenshots.
+const og=await (await b.newContext({viewport:{width:1200,height:630}})).newPage();
+await og.goto((process.env.KAIRO_URL||'http://localhost:8123/index.html').replace(/index\.html$/,'')+'.claude/testing/og-template.html');await og.waitForTimeout(800);
+await og.screenshot({path:require('path').join(__dirname,'../../assets/og/kairo-og.jpg'),type:'jpeg',quality:86});console.log('og 1200x630');
 console.log(p.errs);await b.close();
 })();
