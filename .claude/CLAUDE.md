@@ -237,6 +237,14 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   Settings di sidebar (`#kairo-app-switcher`); HP: menu More (`#kairo-admin-more-item`). Klik → cek
   `admin/` (HEAD); kalau belum ada → toast "Admin panel KAIRO sedang disiapkan", kalau ada → tab baru.
   Owner: nanti jadi admin panel KAIRO Workspaces (tampilannya akan diubah).
+- **Admin panel (`admin/`)**: `index.html` + `admin.css` + `admin.js` (tanpa build). Gaya diadaptasi dari template
+  Light Blue (flatlogic) dengan palet KAIRO, dark saja: sidebar bergrup (drawer di HP), topbar (cari workspace,
+  refresh, keluar), widget kaca. Logika & RPC `platform_admin_*` sama persis dengan admin lama di repo
+  `trinemagic/trine-magic-dashboard/admin` (yang lama tidak diubah). Login username → `get_login_email` →
+  `is_platform_admin`; `persistSession:false` (keluar = reload, di admin memang begitu). Paket tampil Gratis/Pro
+  (`plus` dll dihitung Pro; pilihan paket di modal hanya basic/pro; harga `plus` disembunyikan). Tabel jadi kartu di
+  ≤640px (label kolom otomatis dari `thead`, `labelCells()`). Tes: stub `window.supabase` + data contoh di
+  scratchpad (route `**/supabase-js@2*` dan `**/chart.umd.min.js`). Cache `admin.css?v=1.0.0`, `admin.js?v=1.0.0`.
 
 ## 4. Jebakan yang sudah pernah terjadi
 

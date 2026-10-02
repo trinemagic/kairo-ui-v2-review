@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="color-scheme" content="dark">
+<title>KAIRO Admin</title>
+<link rel="icon" type="image/svg+xml" href="../assets/kairo-mark.svg">
+<link rel="stylesheet" href="admin.css?v=1.0.0">
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script defer src="admin.js?v=1.0.0"></script>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></symbol>
+  <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></symbol>
+  <symbol id="i-cart" viewBox="0 0 24 24"><path d="M3 4h2l2.4 11h11L21 7H6.2"/><circle cx="9" cy="19.5" r="1.4"/><circle cx="17" cy="19.5" r="1.4"/></symbol>
+  <symbol id="i-repeat" viewBox="0 0 24 24"><path d="M17 2l3 3-3 3"/><path d="M4 11V9a4 4 0 0 1 4-4h12"/><path d="M7 22l-3-3 3-3"/><path d="M20 13v2a4 4 0 0 1-4 4H4"/></symbol>
+  <symbol id="i-tag" viewBox="0 0 24 24"><path d="M3 12V4h8l10 10-8 8Z"/><circle cx="7.5" cy="8.5" r="1.4"/></symbol>
+  <symbol id="i-wallet" viewBox="0 0 24 24"><path d="M3 7h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/><path d="M3 7l12-4 2 4"/><circle cx="16.5" cy="13.5" r="1.3"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.6 2.7-6 6-6s6 2.4 6 6"/><path d="M16 4.5a3 3 0 0 1 0 6M18 14c2 .7 3 2.8 3 6"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></symbol>
+  <symbol id="i-out" viewBox="0 0 24 24"><path d="M15 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4"/><path d="M10 16l-4-4 4-4M6 12h10"/></symbol>
+  <symbol id="i-app" viewBox="0 0 24 24"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4.5 4.5L19 7"/></symbol>
+</svg>
+
+<!-- Login -->
+<section id="login" class="login">
+  <form id="form" class="login-card" autocomplete="on">
+    <div class="login-brand"><img src="../assets/kairo-mark.svg" alt="" width="40" height="40"><div><b>KAIRO Admin</b><span>Panel pengelola KAIRO Workspaces</span></div></div>
+    <label class="field"><span>Username</span><input id="username" autocomplete="username" required></label>
+    <label class="field"><span>Password</span><input id="password" type="password" autocomplete="current-password" required></label>
+    <button class="btn btn-primary btn-block" type="submit">Masuk</button>
+    <div id="error" class="err" role="alert"></div>
+    <a class="login-back" href="../">← Kembali ke KAIRO Workspaces</a>
+  </form>
+</section>
+
+<!-- App -->
+<div id="shell" class="shell hidden">
+  <aside id="sidebar" class="sidebar" aria-label="Menu admin">
+    <div class="side-brand"><img src="../assets/kairo-mark.svg" alt="" width="30" height="30"><div><b>KAIRO</b><span>Admin</span></div></div>
+    <nav class="side-nav">
+      <p class="side-label">Ringkasan</p>
+      <button class="nav-item" data-page="overview"><svg><use href="#i-home"/></svg><span>Overview</span></button>
+      <p class="side-label">Bisnis</p>
+      <button class="nav-item" data-page="workspaces"><svg><use href="#i-grid"/></svg><span>Workspaces</span><em id="navWs" class="nav-count"></em></button>
+      <button class="nav-item" data-page="sales"><svg><use href="#i-cart"/></svg><span>Penjualan</span></button>
+      <button class="nav-item" data-page="renewals"><svg><use href="#i-repeat"/></svg><span>Renewal</span><em id="navRenew" class="nav-count is-warn"></em></button>
+      <button class="nav-item" data-page="plans"><svg><use href="#i-tag"/></svg><span>Harga Paket</span></button>
+      <p class="side-label">Keuangan</p>
+      <button class="nav-item" data-page="expenses"><svg><use href="#i-wallet"/></svg><span>Pengeluaran</span></button>
+      <button class="nav-item" data-page="analytics"><svg><use href="#i-chart"/></svg><span>Analitik</span></button>
+      <p class="side-label">Customer</p>
+      <button class="nav-item" data-page="crm"><svg><use href="#i-users"/></svg><span>CRM &amp; Follow-up</span><em id="navFollow" class="nav-count is-danger"></em></button>
+      <p class="side-label">Sistem</p>
+      <button class="nav-item" data-page="settings"><svg><use href="#i-gear"/></svg><span>Pengaturan</span></button>
+      <button class="nav-item" data-page="activity"><svg><use href="#i-list"/></svg><span>Log Aktivitas</span></button>
+    </nav>
+    <div class="side-foot">
+      <a class="nav-item" href="../"><svg><use href="#i-app"/></svg><span>Buka Workspace App</span></a>
+    </div>
+  </aside>
+  <div id="scrim" class="scrim" hidden></div>
+
+  <div class="main">
+    <header class="topbar">
+      <button id="menuBtn" class="icon-btn only-mobile" type="button" aria-label="Buka menu"><svg><use href="#i-menu"/></svg></button>
+      <div class="top-title"><h1 id="pageTitle">Overview</h1><p id="pageSub">Ringkasan platform KAIRO Workspaces</p></div>
+      <label class="top-search"><svg><use href="#i-search"/></svg><input id="topSearch" type="search" placeholder="Cari workspace / owner…" aria-label="Cari workspace"></label>
+      <div class="top-actions">
+        <span class="top-refresh">Diperbarui <b id="lastRefresh">—</b></span>
+        <button id="refresh" class="icon-btn" type="button" aria-label="Refresh data" title="Refresh data"><svg><use href="#i-refresh"/></svg></button>
+        <button id="logout" class="icon-btn" type="button" aria-label="Keluar" title="Keluar"><svg><use href="#i-out"/></svg></button>
+      </div>
+    </header>
+
+    <main class="content">
+      <!-- OVERVIEW -->
+      <section class="page" data-page="overview">
+        <div class="stat-grid">
+          <div class="widget stat"><p class="stat-label">Total Workspace</p><b id="total" class="stat-value">—</b><div class="stat-meta"><span>Aktif <b id="active">—</b></span><span>Gratis <b id="basic">—</b></span><span>Pro <b id="pro">—</b></span></div></div>
+          <div class="widget stat"><p class="stat-label">Revenue Bulan Ini</p><b id="revMonth" class="stat-value">—</b><div class="progress"><i id="targetBar"></i></div><div class="stat-meta"><span id="targetText">—</span><b id="targetPct">—</b></div></div>
+          <div class="widget stat"><p class="stat-label">Penjualan Bulan Ini</p><b id="salesMonth" class="stat-value">—</b><div class="stat-meta"><span>Pending <b id="pendingAmount">—</b></span></div></div>
+          <div class="widget stat"><p class="stat-label">Renewal ≤ 30 Hari</p><b id="renew30" class="stat-value">—</b><div class="stat-meta"><span>Habis ≤ 7 hari <b id="exp7" class="t-warn">—</b></span></div></div>
+        </div>
+        <div class="row-2-1">
+          <div class="widget"><div class="w-head"><h2>Revenue 12 Bulan</h2><span class="muted">Pembayaran berstatus lunas</span></div><div class="chartbox"><canvas id="revenueChart" aria-label="Grafik revenue 12 bulan"></canvas></div></div>
+          <div class="widget"><div class="w-head"><h2>Komposisi Paket</h2></div>
+            <div class="donut-wrap"><div id="planDonut" class="donut"><div><b id="donutTotal">0</b><span>workspace</span></div></div>
+              <ul class="legend"><li><i class="dot dot-free"></i>Gratis<b id="legendFree">0</b></li><li><i class="dot dot-pro"></i>Pro<b id="legendPro">0</b></li></ul></div>
+          </div>
+        </div>
+        <div class="row-3">
+          <div class="widget"><div class="w-head"><h2>Kesehatan Platform</h2></div>
+            <ul class="health">
+              <li><span>Subscription bermasalah</span><b id="issues">—</b></li>
+              <li><span>Habis ≤ 7 hari</span><b id="exp7b">—</b></li>
+              <li><span>Tagihan pending</span><b id="pendingB">—</b></li>
+              <li><span>Revenue total</span><b id="revAllB">—</b></li>
+            </ul></div>
+          <div class="widget"><div class="w-head"><h2>Follow-up</h2><button class="link-btn" data-go="crm">Lihat semua</button></div>
+            <div class="mini-stats"><div><b id="followToday">—</b><span>Hari ini</span></div><div><b id="followOverdue" class="t-danger">—</b><span>Terlambat</span></div><div><b id="followOpen">—</b><span>Open</span></div><div><b id="crmCount">—</b><span>CRM terisi</span></div></div>
+            <ul id="taskList" class="tasks"></ul></div>
+          <div class="widget"><div class="w-head"><h2>Aktivitas Terbaru</h2><button class="link-btn" data-go="activity">Lihat semua</button></div><ul id="activityMini" class="feed"></ul></div>
+        </div>
+      </section>
+
+      <!-- WORKSPACES -->
+      <section class="page" data-page="workspaces" hidden>
+        <div class="widget">
+          <div class="w-head wrap">
+            <div class="chips" role="group" aria-label="Filter workspace">
+              <button class="chip filter active" data-filter="all">Semua</button>
+              <button class="chip filter" data-filter="basic">Gratis</button>
+              <button class="chip filter" data-filter="pro">Pro</button>
+              <button class="chip filter" data-filter="expiring">Habis ≤ 30 hari</button>
+              <button class="chip filter" data-filter="issue">Bermasalah</button>
+            </div>
+            <div class="w-tools"><input id="search" class="input" type="search" placeholder="Cari workspace / owner…"><button id="exportWorkspaces" class="btn btn-ghost"><svg><use href="#i-down"/></svg>CSV</button></div>
+          </div>
+          <div class="table-wrap"><table><thead><tr><th>Workspace</th><th>Owner</th><th>Paket</th><th>Subscription</th><th>Status</th><th>Masa Aktif</th><th>Sisa</th></tr></thead><tbody id="rows"></tbody></table><p id="empty" class="empty hidden">Tidak ada workspace yang cocok.</p></div>
+          <p class="hint">Klik baris untuk mengubah paket, masa aktif, atau status workspace.</p>
+        </div>
+      </section>
+
+      <!-- SALES -->
+      <section class="page" data-page="sales" hidden>
+        <div class="kpi-row">
+          <div class="widget kpi"><span>Revenue total</span><b id="revAll">—</b></div>
+          <div class="widget kpi"><span>Revenue bulan ini</span><b id="revMonth2">—</b></div>
+          <div class="widget kpi"><span>Pending</span><b id="pending2">—</b></div>
+          <div class="widget kpi"><span>Transaksi bulan ini</span><b id="salesMonth2">—</b></div>
+          <div class="widget kpi"><span>Renewal ≤ 30 hari</span><b id="renew302">—</b></div>
+        </div>
+        <div class="widget">
+          <div class="w-head"><h2>Riwayat Penjualan</h2><div class="w-tools"><button id="exportSales" class="btn btn-ghost"><svg><use href="#i-down"/></svg>CSV</button><button id="newSale" class="btn btn-primary"><svg><use href="#i-plus"/></svg>Catat Penjualan</button></div></div>
+          <div class="table-wrap"><table><thead><tr><th>Tanggal</th><th>Workspace</th><th>Customer</th><th>Paket</th><th>Periode</th><th class="num">Nominal</th><th>Metode</th><th>Status</th></tr></thead><tbody id="saleRows"></tbody></table><p id="saleEmpty" class="empty hidden">Belum ada penjualan.</p></div>
+        </div>
+      </section>
+
+      <!-- RENEWALS -->
+      <section class="page" data-page="renewals" hidden>
+        <div class="widget">
+          <div class="w-head"><h2>Antrean Renewal (60 hari)</h2><div class="w-tools"><button id="exportRenewals" class="btn btn-ghost"><svg><use href="#i-down"/></svg>CSV</button></div></div>
+          <div class="table-wrap"><table><thead><tr><th>Workspace</th><th>Owner</th><th>Paket</th><th>Subscription</th><th>Berlaku sampai</th><th>Sisa</th><th></th></tr></thead><tbody id="renewRows"></tbody></table><p id="renewEmpty" class="empty hidden">Tidak ada renewal dalam 60 hari.</p></div>
+        </div>
+      </section>
+
+      <!-- PLANS -->
+      <section class="page" data-page="plans" hidden>
+        <div id="priceGrid" class="price-grid"></div>
+      </section>
+
+      <!-- EXPENSES -->
+      <section class="page" data-page="expenses" hidden>
+        <div class="kpi-row">
+          <div class="widget kpi"><span>Pengeluaran bulan ini</span><b id="expenseMonth">—</b></div>
+          <div class="widget kpi"><span>Pengeluaran total</span><b id="expenseAll">—</b></div>
+          <div class="widget kpi"><span>Laba bersih bulan ini</span><b id="netMonth">—</b></div>
+          <div class="widget kpi"><span>Laba bersih total</span><b id="netAll">—</b></div>
+          <div class="widget kpi"><span>Margin bulan ini</span><b id="marginMonth">—</b></div>
+        </div>
+        <div class="widget">
+          <div class="w-head"><h2>Daftar Pengeluaran</h2><div class="w-tools"><button id="newExpense" class="btn btn-primary"><svg><use href="#i-plus"/></svg>Catat Pengeluaran</button></div></div>
+          <div class="table-wrap"><table><thead><tr><th>Tanggal</th><th>Kategori</th><th>Keterangan</th><th>Metode</th><th class="num">Nominal</th><th></th></tr></thead><tbody id="expenseRows"></tbody></table><p id="expenseEmpty" class="empty hidden">Belum ada pengeluaran.</p></div>
+        </div>
+      </section>
+
+      <!-- ANALYTICS -->
+      <section class="page" data-page="analytics" hidden>
+        <div class="kpi-row four">
+          <div class="widget kpi"><span>Customer berbayar</span><b id="paidCustomers">—</b></div>
+          <div class="widget kpi"><span>Workspace baru bulan ini</span><b id="newWsMonth">—</b></div>
+          <div class="widget kpi"><span>Subscription aktif</span><b id="activeSubs">—</b></div>
+          <div class="widget kpi"><span>Subscription expired</span><b id="expiredSubs">—</b></div>
+        </div>
+        <div class="widget">
+          <div class="w-head"><h2>Performa Paket</h2></div>
+          <div class="table-wrap"><table><thead><tr><th>Paket</th><th class="num">Workspace</th><th class="num">Penjualan lunas</th><th class="num">Revenue</th><th class="num">Rata-rata</th><th>Porsi revenue</th></tr></thead><tbody id="planPerfRows"></tbody></table></div>
+        </div>
+      </section>
+
+      <!-- CRM -->
+      <section class="page" data-page="crm" hidden>
+        <div class="widget">
+          <div class="w-head"><h2>Antrean Follow-up</h2><div class="w-tools"><select id="followFilter" class="input"><option value="open">Open</option><option value="all">Semua</option><option value="done">Selesai</option><option value="canceled">Batal</option></select><button id="newFollow" class="btn btn-primary"><svg><use href="#i-plus"/></svg>Follow-up</button></div></div>
+          <div class="table-wrap"><table><thead><tr><th>Jatuh tempo</th><th>Workspace</th><th>Prioritas</th><th>Tugas</th><th>Status</th><th></th></tr></thead><tbody id="followRows"></tbody></table><p id="followEmpty" class="empty hidden">Tidak ada follow-up.</p></div>
+        </div>
+        <div class="widget">
+          <div class="w-head"><h2>CRM Workspace</h2><div class="w-tools"><input id="crmSearch" class="input" type="search" placeholder="Cari workspace / kontak / tag…"></div></div>
+          <div class="table-wrap"><table><thead><tr><th>Workspace</th><th>Kontak</th><th>Sumber</th><th>Tag</th><th>Terakhir dihubungi</th><th>Catatan</th><th></th></tr></thead><tbody id="crmRows"></tbody></table><p id="crmEmpty" class="empty hidden">Tidak ada data CRM yang cocok.</p></div>
+        </div>
+      </section>
+
+      <!-- SETTINGS -->
+      <section class="page" data-page="settings" hidden>
+        <div class="row-2">
+          <div class="widget"><div class="w-head"><h2>Target &amp; Peringatan</h2></div>
+            <div class="form-grid">
+              <label class="field"><span>Target revenue bulanan (Rp)</span><input id="setTarget" type="number" min="0"></label>
+              <label class="field"><span>Peringatan renewal (hari)</span><input id="setRenewDays" type="number" min="1" max="365"></label>
+              <label class="field"><span>Mata uang</span><input value="IDR" disabled></label>
+            </div>
+            <div class="actions"><button id="saveSettings" class="btn btn-primary">Simpan Pengaturan</button></div></div>
+          <div class="widget"><div class="w-head"><h2>Backup &amp; Export</h2></div>
+            <p class="muted">Unduh salinan data admin (workspace, penjualan, pengeluaran, CRM, follow-up, pengaturan) dalam satu file JSON.</p>
+            <div class="actions"><button id="fullBackup" class="btn btn-ghost"><svg><use href="#i-down"/></svg>Backup JSON</button><button id="exportSales2" class="btn btn-ghost"><svg><use href="#i-down"/></svg>CSV Penjualan</button><button id="exportWorkspaces2" class="btn btn-ghost"><svg><use href="#i-down"/></svg>CSV Workspace</button></div></div>
+        </div>
+      </section>
+
+      <!-- ACTIVITY -->
+      <section class="page" data-page="activity" hidden>
+        <div class="widget"><div class="w-head"><h2>Log Aktivitas Admin</h2><span class="muted">100 terakhir</span></div><ul id="activity" class="feed feed-full"></ul></div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<!-- Modal: workspace -->
+<div id="workspaceModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="mName">
+  <div class="modal">
+    <div class="modal-head"><div><h3 id="mName">Workspace</h3><p id="mSlug" class="muted"></p></div><button class="close" data-close="workspaceModal" aria-label="Tutup">×</button></div>
+    <div class="detail-grid"><div><span>Owner</span><b id="mOwner">—</b></div><div><span>Status workspace</span><b id="mWsStatus">—</b></div></div>
+    <div class="form-grid">
+      <label class="field"><span>Paket</span><select id="mPlan"><option value="basic">Gratis</option><option value="pro">Pro</option></select></label>
+      <label class="field"><span>Status subscription</span><select id="mSubStatus"><option value="active">Aktif</option><option value="trialing">Trial</option><option value="past_due">Telat bayar</option><option value="canceled">Dibatalkan</option><option value="inactive">Nonaktif</option></select></label>
+      <label class="field"><span>Berlaku sampai</span><input id="mUntil" type="date"></label>
+    </div>
+    <div class="actions"><button id="saveSub" class="btn btn-primary">Simpan Subscription</button><button id="add30" class="btn btn-ghost">+30 hari</button><button id="add365" class="btn btn-ghost">+1 tahun</button></div>
+    <div id="mError" class="err"></div>
+    <h4>Kontrol Workspace</h4>
+    <div class="actions"><button class="btn btn-ghost wsStatus" data-status="active">Aktifkan</button><button class="btn btn-danger wsStatus" data-status="suspended">Suspend</button><button class="btn btn-danger wsStatus" data-status="archived">Arsipkan</button></div>
+  </div>
+</div>
+
+<!-- Modal: sale -->
+<div id="saleModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="saleTitle">
+  <div class="modal">
+    <div class="modal-head"><div><h3 id="saleTitle">Catat Penjualan</h3><p class="muted">Penjualan lunas ikut menghitung revenue.</p></div><button class="close" data-close="saleModal" aria-label="Tutup">×</button></div>
+    <div class="form-grid">
+      <label class="field wide"><span>Workspace</span><select id="sWorkspace"></select></label>
+      <label class="field"><span>Nama customer</span><input id="sCustomer"></label>
+      <label class="field"><span>Paket</span><select id="sPlan"><option value="basic">Gratis</option><option value="pro">Pro</option></select></label>
+      <label class="field"><span>Periode</span><select id="sPeriod"><option value="monthly">1 Bulan</option><option value="quarterly">3 Bulan</option><option value="semiannual">6 Bulan</option><option value="annual">1 Tahun</option><option value="custom">Custom</option></select></label>
+      <label class="field"><span>Nominal (Rp)</span><input id="sAmount" type="number" min="0"></label>
+      <label class="field"><span>Metode</span><input id="sMethod" placeholder="QRIS / Transfer / …"></label>
+      <label class="field"><span>Status</span><select id="sStatus"><option value="paid">Lunas</option><option value="pending">Pending</option></select></label>
+      <label class="field"><span>Tanggal bayar</span><input id="sPaid" type="date"></label>
+      <label class="field"><span>Mulai</span><input id="sStart" type="date"></label>
+      <label class="field"><span>Berakhir</span><input id="sEnd" type="date"></label>
+      <label class="field wide"><span>Catatan</span><textarea id="sNotes" rows="3"></textarea></label>
+    </div>
+    <div class="actions"><button id="saveSale" class="btn btn-primary">Simpan Penjualan</button></div>
+    <div id="sError" class="err"></div>
+  </div>
+</div>
+
+<!-- Modal: expense -->
+<div id="expenseModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="expTitle">
+  <div class="modal">
+    <div class="modal-head"><div><h3 id="expTitle">Catat Pengeluaran</h3><p class="muted">Biaya operasional KAIRO.</p></div><button class="close" data-close="expenseModal" aria-label="Tutup">×</button></div>
+    <div class="form-grid">
+      <label class="field"><span>Tanggal</span><input id="eDate" type="date"></label>
+      <label class="field"><span>Kategori</span><select id="eCategory"><option value="hosting">Hosting / Infrastruktur</option><option value="domain">Domain</option><option value="tools">Tools / Software</option><option value="marketing">Marketing</option><option value="fee">Biaya admin / pembayaran</option><option value="operational">Operasional</option><option value="other">Lainnya</option></select></label>
+      <label class="field"><span>Nominal (Rp)</span><input id="eAmount" type="number" min="0"></label>
+      <label class="field"><span>Metode</span><input id="eMethod" placeholder="Transfer / QRIS / …"></label>
+      <label class="field wide"><span>Keterangan</span><input id="eDescription"></label>
+      <label class="field wide"><span>Catatan</span><textarea id="eNotes" rows="3"></textarea></label>
+    </div>
+    <div class="actions"><button id="saveExpense" class="btn btn-primary">Simpan Pengeluaran</button></div>
+    <div id="eError" class="err"></div>
+  </div>
+</div>
+
+<!-- Modal: CRM -->
+<div id="crmModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="crmTitle">
+  <div class="modal">
+    <div class="modal-head"><div><h3 id="crmTitle">CRM Workspace</h3><p id="crmSub" class="muted"></p></div><button class="close" data-close="crmModal" aria-label="Tutup">×</button></div>
+    <div class="form-grid">
+      <label class="field"><span>Nama kontak</span><input id="cName"></label>
+      <label class="field"><span>Handle / email</span><input id="cHandle"></label>
+      <label class="field"><span>Telepon / WhatsApp</span><input id="cPhone"></label>
+      <label class="field"><span>Sumber</span><input id="cSource" placeholder="Instagram / Referral / Organik…"></label>
+      <label class="field wide"><span>Tag (pisahkan koma)</span><input id="cTags" placeholder="pelanggan-setia, calon-pro"></label>
+      <label class="field wide"><span>Catatan internal</span><textarea id="cNotes" rows="4"></textarea></label>
+    </div>
+    <div class="actions"><button id="saveCrm" class="btn btn-primary">Simpan CRM</button><button id="markContacted" class="btn btn-ghost">Simpan + tandai sudah dihubungi</button></div>
+    <div id="cError" class="err"></div>
+  </div>
+</div>
+
+<!-- Modal: follow-up -->
+<div id="followModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="followTitle">
+  <div class="modal">
+    <div class="modal-head"><div><h3 id="followTitle">Buat Follow-up</h3><p class="muted">Jadwalkan tindak lanjut customer.</p></div><button class="close" data-close="followModal" aria-label="Tutup">×</button></div>
+    <div class="form-grid">
+      <label class="field wide"><span>Workspace</span><select id="fWorkspace"></select></label>
+      <label class="field"><span>Jatuh tempo</span><input id="fDate" type="date"></label>
+      <label class="field"><span>Prioritas</span><select id="fPriority"><option value="normal">Normal</option><option value="high">Tinggi</option><option value="low">Rendah</option></select></label>
+      <label class="field wide"><span>Tugas</span><input id="fTitle" placeholder="Follow-up renewal / demo / pembayaran…"></label>
+      <label class="field wide"><span>Catatan</span><textarea id="fNotes" rows="3"></textarea></label>
+    </div>
+    <div class="actions"><button id="saveFollow" class="btn btn-primary">Simpan Follow-up</button></div>
+    <div id="fError" class="err"></div>
+  </div>
+</div>
+
+<div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+</body>
+</html>
