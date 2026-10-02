@@ -56,7 +56,7 @@ begin
 end $$;
 
 -- ── 3. DETEKSI MASALAH: error yang dialami user di aplikasi ───────────────────
--- Hanya pesan error + nama file/baris + halaman. Tidak menyimpan isi form/data transaksi.
+-- Pesan error, lokasi file/baris/kolom, stack trace, halaman, versi app, browser. Tidak menyimpan isi form/data transaksi.
 create table if not exists public.platform_client_errors (
   id           bigserial primary key,
   created_at   timestamptz not null default now(),
