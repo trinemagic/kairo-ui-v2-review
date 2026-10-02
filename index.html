@@ -15,7 +15,7 @@
 <link rel="preload" as="font" type="font/woff2" href="assets/fonts/plus-jakarta-sans-latin-wght-normal.woff2" crossorigin>
 
 <!-- Stable auth boot order. Feature-heavy libraries remain lazy inside kairo-app.js. -->
-<script defer src="assets/kairo-v3.js?v=3.16.0"></script>
+<script defer src="assets/kairo-v3.js?v=3.17.0"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 
@@ -62,7 +62,7 @@
 
 
 <link rel="stylesheet" href="assets/kairo.css?v=20.10.151">
-<link rel="stylesheet" href="assets/kairo-v3.css?v=3.18.1">
+<link rel="stylesheet" href="assets/kairo-v3.css?v=3.19.0">
 </head>
 
 <body class="auth-locked">
@@ -250,30 +250,33 @@
         <header class="kairo-lp-section-head kairo-lp-section-head-center" data-kairo-reveal>
           <span class="kairo-lp-eyebrow">Pilihan akses</span>
           <h2 id="pricing-title">Mulai sesuai kebutuhanmu, <mark>tumbuh saat waktunya tepat.</mark></h2>
-          <p>Mulai gratis untuk merapikan pencatatan bisnismu, lalu tingkatkan paket saat operasionalmu butuh fitur yang lebih lengkap.</p>
+          <p>Mulai dari Gratis, buka semua fitur dengan Pro. Butuh penyesuaian untuk alur bisnismu? Pilih Custom.</p>
         </header>
         <div class="kairo-lp-price-grid">
           <article class="kairo-lp-price-card" data-kairo-reveal>
             <h3>Gratis</h3>
-            <strong>Mulai tanpa biaya</strong>
-            <p>Untuk mencoba cara kerja KAIRO dan mulai merapikan pencatatan bisnis.</p>
+            <strong>Rp0</strong>
+            <p>Untuk mulai merapikan pencatatan bisnis tanpa biaya.</p>
+            <ul class="kairo-lp-price-list"><li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.2 4.2L19 7"/></svg><span>Catat order manual</span></li><li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.2 4.2L19 7"/></svg><span>Petty Cash &amp; Withdraw</span></li><li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.2 4.2L19 7"/></svg><span>Ringkasan penjualan harian</span></li><li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.2 4.2L19 7"/></svg><span>Struk transaksi</span></li></ul>
             <button type="button" class="kairo-lp-price-action" data-v3-signup>Coba KAIRO Gratis <span>→</span></button>
-            <small>Fitur yang tersedia mengikuti paket aktif di workspace-mu.</small>
+            <small>Bisa upgrade ke Pro kapan saja.</small>
           </article>
           <article class="kairo-lp-price-card is-featured" data-kairo-reveal>
-            <span class="kairo-lp-price-badge">Untuk bisnis berkembang</span>
+            <span class="kairo-lp-price-badge">Paling lengkap</span>
             <h3>Pro</h3>
-            <strong>Segera hadir</strong>
-            <p>Untuk operasional yang membutuhkan pengelolaan dan kontrol lebih lanjut.</p>
-            <span class="kairo-lp-price-action is-disabled" aria-disabled="true">Segera tersedia</span>
-            <small>Harga dan rincian fitur akan diumumkan di halaman ini.</small>
+            <strong>Semua fitur KAIRO</strong>
+            <p>Untuk bisnis yang ingin operasional, otomatisasi, dan laporan yang lengkap.</p>
+            <ul class="kairo-lp-price-list"><li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.2 4.2L19 7"/></svg><span>Customer Database</span></li><li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.2 4.2L19 7"/></svg><span>Autofill Orders &amp; Promo</span></li><li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.2 4.2L19 7"/></svg><span>Open / Close Store &amp; Auto Lock</span></li><li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.2 4.2L19 7"/></svg><span>Export Excel &amp; Performance lengkap</span></li><li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.2 4.2L19 7"/></svg><span>Branding, struk &amp; wording sendiri</span></li><li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.2 4.2L19 7"/></svg><span>Pembagian profit advanced</span></li><li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.2 4.2L19 7"/></svg><span>2 akun: Owner + Member</span></li></ul>
+            <button type="button" class="kairo-lp-price-action" data-v3-signup data-signup-plan="pro">Pilih Pro <span>→</span></button>
+            <small>Aktif setelah konfirmasi pembayaran via WhatsApp.</small>
           </article>
           <article class="kairo-lp-price-card" data-kairo-reveal>
             <h3>Custom</h3>
-            <strong>Sesuai kebutuhan</strong>
-            <p>Untuk kebutuhan workspace yang memerlukan pembahasan dan penyesuaian khusus.</p>
-            <span class="kairo-lp-price-action is-disabled" aria-disabled="true">Hubungi tim KAIRO</span>
-            <small>Kontak tim KAIRO akan segera tersedia di halaman ini.</small>
+            <strong>Pro + penyesuaian</strong>
+            <p>Untuk bisnis dengan alur khusus yang butuh penyesuaian dan pendampingan.</p>
+            <ul class="kairo-lp-price-list"><li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.2 4.2L19 7"/></svg><span>Semua fitur Pro</span></li><li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.2 4.2L19 7"/></svg><span>Penyesuaian sesuai alur bisnismu</span></li><li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.2 4.2L19 7"/></svg><span>Pendampingan setup</span></li><li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.2 4.2L19 7"/></svg><span>Jumlah akun sesuai kebutuhan</span></li></ul>
+            <button type="button" class="kairo-lp-price-action is-secondary" data-v3-signup data-signup-plan="custom">Pilih Custom <span>→</span></button>
+            <small>Aktif sebagai paket Pro setelah kebutuhanmu dibahas bersama tim KAIRO.</small>
           </article>
         </div>
       </div>
@@ -300,14 +303,14 @@
           <p>Jawaban singkat sebelum kamu mulai memakai KAIRO Workspaces.</p>
         </header>
         <div class="kairo-lp-faq-grid">
-          <article data-kairo-reveal><span>01</span><div><h3>Apa itu KAIRO Workspaces?</h3><p>Workspace untuk mencatat order, customer, transaksi, subscription, dan kebutuhan operasional bisnis dalam satu tempat.</p></div></article>
-          <article data-kairo-reveal><span>02</span><div><h3>Siapa yang cocok memakai KAIRO?</h3><p>KAIRO dirancang untuk seller digital dan bisnis yang ingin pencatatannya lebih terstruktur tanpa sistem yang ribet.</p></div></article>
-          <article data-kairo-reveal><span>03</span><div><h3>Apakah harus menginstal aplikasi?</h3><p>Tidak. KAIRO digunakan melalui browser, sehingga bisa diakses dari perangkat yang kompatibel.</p></div></article>
-          <article data-kairo-reveal><span>04</span><div><h3>Apakah KAIRO bisa membuat struk?</h3><p>Bisa. Struk dapat dipreview, diunduh, dibagikan, dan dicetak ulang menggunakan layout yang tersedia.</p></div></article>
-          <article data-kairo-reveal><span>05</span><div><h3>Apakah data antar-workspace terpisah?</h3><p>Ya. Setiap workspace punya datanya sendiri dan hanya bisa dibuka oleh akun yang diberi akses ke workspace tersebut.</p></div></article>
-          <article data-kairo-reveal><span>06</span><div><h3>Apakah tersedia mode gelap?</h3><p>Ya. Kamu bisa beralih antara mode terang dan mode gelap kapan saja langsung dari dashboard.</p></div></article>
-          <article data-kairo-reveal><span>07</span><div><h3>Berapa harga paket berbayar?</h3><p>Harga paket berbayar akan segera diumumkan. Sambil menunggu, kamu bisa mulai gratis dan merapikan pencatatan bisnismu dulu.</p></div></article>
-          <article data-kairo-reveal><span>08</span><div><h3>Bagaimana cara mulai?</h3><p>Klik “Coba KAIRO Gratis”, buat akun, lalu kamu langsung masuk ke workspace dan bisa mulai mencatat order.</p></div></article>
+          <article data-kairo-reveal><span>01</span><div><h3>Apa itu KAIRO Workspaces?</h3><p>Dashboard bisnis untuk mencatat order, customer, kas, pembagian hasil, dan struk dalam satu tempat. Bisa dibuka dari HP maupun laptop lewat browser, tanpa instal aplikasi.</p></div></article>
+          <article data-kairo-reveal><span>02</span><div><h3>Cocok untuk bisnis seperti apa?</h3><p>Seller aplikasi premium, jasa online (joki, tarot reading, wording), online shop, dan produk digital. Saat daftar, kamu memilih jenis usaha dan tampilan dashboard menyesuaikan, misalnya seller aplikasi premium bisa memantau akun yang akan expired dan piutang customer.</p></div></article>
+          <article data-kairo-reveal><span>03</span><div><h3>Apa bedanya paket Gratis dan Pro?</h3><p>Gratis cukup untuk mencatat order, petty cash, withdraw, dan melihat penjualan harian. Pro membuka semua fitur: Customer Database, Autofill Orders, Open / Close Store, Promo, Export Excel, branding &amp; struk sendiri, pembagian profit advanced, insight performa, dan akses tim.</p></div></article>
+          <article data-kairo-reveal><span>04</span><div><h3>Bagaimana kalau bisnisku butuh penyesuaian khusus?</h3><p>Pilih paket Custom saat daftar. Workspace-mu aktif sebagai paket Pro, lalu kebutuhan khususnya dibahas bersama tim KAIRO lewat WhatsApp.</p></div></article>
+          <article data-kairo-reveal><span>05</span><div><h3>Bisakah KAIRO dipakai bersama tim?</h3><p>Bisa. Paket Pro mendukung akun Owner dan Member dalam satu workspace. Hak aksesnya dibedakan: pengaturan dan harga hanya bisa diubah oleh Owner/Admin, sementara tim tetap bisa mencatat order.</p></div></article>
+          <article data-kairo-reveal><span>06</span><div><h3>Bagaimana keuntungan dibagi ke partner atau kas?</h3><p>Atur persentase pembagian omzet untuk setiap partner dan kas. KAIRO menghitung hak masing-masing dari setiap penjualan, dan pencairannya tercatat di menu Withdraw.</p></div></article>
+          <article data-kairo-reveal><span>07</span><div><h3>Apakah struk bisa dikirim ke customer?</h3><p>Bisa. Setiap transaksi punya struk yang bisa diunduh, dibagikan, dan dicetak ulang. Di paket Pro, warna, wording, dan logo struk bisa disesuaikan dengan brand-mu.</p></div></article>
+          <article data-kairo-reveal><span>08</span><div><h3>Apakah data bisnisku aman?</h3><p>Setiap workspace punya datanya sendiri dan hanya bisa dibuka oleh akun yang diberi akses. Dashboard selalu meminta login setiap kali dibuka, dan di paket Pro bisa terkunci otomatis saat tidak dipakai.</p></div></article>
         </div>
       </div>
     </section>
@@ -444,16 +447,16 @@
       </div>
       <div class="plan-carousel-track" id="plan-carousel-track">
         <article class="plan-offer-card" data-plan-card="basic">
-          <div class="plan-card-visual"><svg viewBox="0 0 64 64" aria-hidden="true"><rect x="12" y="10" width="40" height="44" rx="7"/><path d="M21 22h22M21 31h14M21 40h18"/><circle cx="45" cy="42" r="5"/></svg><span>BASIC</span></div>
-          <div class="plan-card-content"><div class="plan-card-tag"><svg viewBox="0 0 24 24"><path d="M20 13 11 22l-9-9V4h9l9 9Z"/><circle cx="7" cy="9" r="1.5"/></svg><span>Mulai & Catat</span></div><h3>Basic</h3><p>Fondasi buat bisnis yang baru mulai nyatet order dan arus kas secara rapi.</p><div class="plan-feature-chips"><span>Manual Orders</span><span>Petty Cash</span><span>Withdrawal</span><span>Receipt Basic</span></div><div class="plan-card-footer"><span class="plan-card-level">Pencatatan inti</span><span class="plan-card-arrow"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div></div>
+          <div class="plan-card-visual"><svg viewBox="0 0 64 64" aria-hidden="true"><rect x="12" y="10" width="40" height="44" rx="7"/><path d="M21 22h22M21 31h14M21 40h18"/><circle cx="45" cy="42" r="5"/></svg><span>GRATIS</span></div>
+          <div class="plan-card-content"><div class="plan-card-tag"><svg viewBox="0 0 24 24"><path d="M20 13 11 22l-9-9V4h9l9 9Z"/><circle cx="7" cy="9" r="1.5"/></svg><span>Mulai &amp; Catat</span></div><h3>Gratis</h3><p>Fondasi untuk mulai mencatat order dan arus kas secara rapi, tanpa biaya.</p><div class="plan-feature-chips"><span>Manual Orders</span><span>Petty Cash</span><span>Withdrawal</span><span>Struk</span><span>Penjualan Harian</span></div><div class="plan-card-footer"><span class="plan-card-level">Pencatatan inti</span><span class="plan-card-arrow"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div></div>
         </article>
-        <article class="plan-offer-card plan-featured" data-plan-card="plus">
-          <div class="plan-card-visual"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M12 48V28l20-14 20 14v20"/><path d="M22 48V34h20v14M32 14v34"/><path d="m24 24 8 6 8-6"/></svg><span>PLUS</span></div>
-          <div class="plan-card-content"><div class="plan-card-tag"><svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18"/><circle cx="12" cy="12" r="9"/></svg><span>Operate & Grow</span></div><h3>Plus</h3><p>Workflow bisnis lebih praktis dengan automation, customer tools, branding, dan operasional tim.</p><div class="plan-feature-chips"><span>Customer Database</span><span>Open / Close Store</span><span>Autofill Orders</span><span>Export Excel</span><span>Custom Branding</span><span>Multi-partner</span></div><div class="plan-card-footer"><span class="plan-card-level">Operasional lengkap</span><span class="plan-card-arrow"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div></div>
-        </article>
-        <article class="plan-offer-card" data-plan-card="pro">
+        <article class="plan-offer-card plan-featured" data-plan-card="pro">
           <div class="plan-card-visual"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M12 50V34h10v16M27 50V24h10v26M42 50V14h10v36"/><path d="m13 25 13-9 10 4 15-12"/></svg><span>PRO</span></div>
-          <div class="plan-card-content"><div class="plan-card-tag"><svg viewBox="0 0 24 24"><path d="M4 19V9M10 19V5M16 19v-7M22 19V2"/><path d="M2 19h20"/></svg><span>Understand & Scale</span></div><h3>Pro</h3><p>Kontrol dan insight lebih dalam buat bisnis yang udah serius berkembang dan punya workflow kompleks.</p><div class="plan-feature-chips"><span>Full Performance</span><span>Advanced Profit Split</span><span>Business Insights</span><span>Advanced Reports</span><span>Activity Log</span><span>Multi-workspace</span></div><div class="plan-card-footer"><span class="plan-card-level">Management advanced</span><span class="plan-card-arrow"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div></div>
+          <div class="plan-card-content"><div class="plan-card-tag"><svg viewBox="0 0 24 24"><path d="M4 19V9M10 19V5M16 19v-7M22 19V2"/><path d="M2 19h20"/></svg><span>Semua Fitur</span></div><h3>Pro</h3><p>Semua fitur KAIRO terbuka: operasional, otomatisasi, branding, insight, dan akses tim.</p><div class="plan-feature-chips"><span>Customer Database</span><span>Open / Close Store</span><span>Autofill Orders</span><span>Export Excel</span><span>Custom Branding</span><span>Promo</span><span>Advanced Profit Sharing</span><span>Business Insights</span><span>Owner + Member</span></div><div class="plan-card-footer"><span class="plan-card-level">Semua fitur terbuka</span><span class="plan-card-arrow"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div></div>
+        </article>
+        <article class="plan-offer-card" data-plan-card="custom">
+          <div class="plan-card-visual"><svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="9"/><path d="M32 10v8M32 46v8M10 32h8M46 32h8M16.5 16.5l5.7 5.7M41.8 41.8l5.7 5.7M16.5 47.5l5.7-5.7M41.8 22.2l5.7-5.7"/></svg><span>CUSTOM</span></div>
+          <div class="plan-card-content"><div class="plan-card-tag"><svg viewBox="0 0 24 24"><path d="M12 3v4M12 17v4M3 12h4M17 12h4"/><circle cx="12" cy="12" r="3"/></svg><span>Sesuai Kebutuhan</span></div><h3>Custom</h3><p>Semua fitur Pro, ditambah penyesuaian dan pendampingan sesuai alur bisnismu. Aktif sebagai paket Pro.</p><div class="plan-feature-chips"><span>Semua fitur Pro</span><span>Penyesuaian khusus</span><span>Pendampingan setup</span><span>Akun sesuai kebutuhan</span></div><div class="plan-card-footer"><span class="plan-card-level">Dibahas bersama tim KAIRO</span><span class="plan-card-arrow"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div></div>
         </article>
       </div>
     </section>
@@ -860,7 +863,7 @@
           <div class="full kairo-layout-colors-head"><div><div class="kairo-layout-colors-title">Tampilan Layout Dashboard</div><div class="page-sub">Warna Utama dipakai tombol, filter tanggal, dan menu aktif di sidebar. Warna Aksen dipakai untuk sorotan dan latar tabel.</div></div><button type="button" id="settings-color-reset" class="btn btn-light">Reset</button></div>
           <div class="form-group"><label class="label">Warna Utama</label><div class="color-field"><input id="settings-primary-color" type="color" value="#696F41"><input id="settings-primary-text" class="input" value="#696F41" maxlength="7"></div></div>
           <div class="form-group"><label class="label">Warna Aksen</label><div class="color-field"><input id="settings-accent-color" type="color" value="#EA97A9"><input id="settings-accent-text" class="input" value="#EA97A9" maxlength="7"></div></div>
-          <div class="full" id="settings-branding-lock" style="display:none"><div class="pro-lock">Logo dan slogan tersedia mulai paket PLUS. Warna Utama dan Warna Aksen tetap dapat digunakan di paket BASIC.</div></div>
+          <div class="full" id="settings-branding-lock" style="display:none"><div class="pro-lock">Logo dan slogan tersedia di paket Pro. Warna Utama dan Warna Aksen tetap bisa diatur di paket Gratis.</div></div>
           <div class="full actions"><button id="settings-save-btn" class="btn btn-green" type="submit">Simpan Pengaturan</button></div>
         </form>
       </div>
@@ -1086,6 +1089,6 @@
 
 
 
-<script defer src="assets/kairo-app.js?v=20.10.160"></script>
+<script defer src="assets/kairo-app.js?v=20.10.161"></script>
 </body>
 </html>

@@ -3463,23 +3463,51 @@ html.kairo-v3 .kairo-lp-price-action {
   cursor: pointer;
 }
 
-html.kairo-v3 .kairo-lp-price-action.is-disabled {
-  border-color: var(--kairo-entry-line);
-  background: var(--kairo-sky-050);
-  color: var(--kairo-entry-muted);
-  cursor: default;
+html.kairo-v3 .kairo-lp-price-action.is-secondary {
+  border-color: var(--kairo-delft);
+  background: var(--kairo-white);
+  color: var(--kairo-delft);
 }
 
-html.kairo-v3 .kairo-lp-price-card.is-featured .kairo-lp-price-action.is-disabled {
-  border-color: rgba(255, 255, 255, .17);
-  background: rgba(255, 255, 255, .08);
-  color: #d7e2e8;
+/* Feature list inside each pricing card. */
+html.kairo-v3 .kairo-lp-price-list {
+  display: grid;
+  gap: 9px;
+  margin: 20px 0 24px;
+  padding: 0;
+  list-style: none;
+}
+
+html.kairo-v3 .kairo-lp-price-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  color: var(--kairo-delft);
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.45;
+}
+
+html.kairo-v3 .kairo-lp-price-list svg {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  margin-top: 1px;
+  fill: none;
+  stroke: var(--kairo-turquoise);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+html.kairo-v3 .kairo-lp-price-card.is-featured .kairo-lp-price-list li {
+  color: #eef5f8;
 }
 
 html.kairo-v3 .kairo-lp-price-card > small {
-  margin-top: 13px;
+  margin-top: 12px;
   color: var(--kairo-entry-muted);
-  font-size: 8px;
+  font-size: 11px;
   line-height: 1.5;
 }
 

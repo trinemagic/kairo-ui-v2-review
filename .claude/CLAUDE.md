@@ -73,8 +73,8 @@ URL live: `https://trinemagic.github.io/kairo-ui-v2-review/`
 | `assets/kairo-runtime.js` | Lazy loader lama | Tidak dimuat oleh `index.html` saat ini. |
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
-Versi terakhir: `kairo.css?v=20.10.151`, `kairo-v3.css?v=3.18.1`,
-`kairo-v3.js?v=3.16.0`, `kairo-app.js?v=20.10.160`.
+Versi terakhir: `kairo.css?v=20.10.151`, `kairo-v3.css?v=3.19.0`,
+`kairo-v3.js?v=3.17.0`, `kairo-app.js?v=20.10.161`.
 
 **Halaman app** = `main.container > section.section` dengan id:
 `dashboard`, `performance`, `input` (Orders), `customers`, `promo` (dibuat via JS),
@@ -90,8 +90,16 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   `#masuk` = langsung form login. Badge "kini hadir…" sudah dihapus (owner: jangan
   wording khas AI).
   Copy landing ditulis untuk pelanggan: **jangan** ada catatan internal/teknis (Supabase,
-  tenant, auth, "belum final"). Pricing (Gratis/Pro/Custom) & kontak masih menunggu data owner
-  (harga, WhatsApp/email, testimoni, S&K/Privasi) — lihat saran landing Okt 2026.
+  tenant, auth, "belum final"). Pricing Gratis (Rp0) / Pro / Custom dengan daftar fitur; tombol
+  Pro/Custom membuka form daftar dengan paket terpilih (`data-signup-plan` → `window.__kairoSignupPlan`).
+  Harga Pro, kontak, testimoni, S&K/Privasi masih menunggu data owner. FAQ 8 poin fokus fitur
+  unggulan (tanpa poin dark mode — owner). Jangan klaim fitur yang belum ada (mis. "Owner Menu
+  Lock" hanya baris tabel, belum ada fiturnya).
+- **Paket (keputusan owner Okt 2026):** hanya **Gratis** dan **Pro**. `canonicalPlan()`/`planLabel()`
+  (kairo-app.js): DB `basic`/`free` → internal `basic`, tampil "GRATIS"; `plus`/`custom`/`enterprise`
+  → `pro`, tampil "PRO". `PLAN_RANK={basic:1,pro:2}`, fitur eks-PLUS sekarang min `pro`. Daftar
+  akun: tabel Gratis/Pro/Custom; pilih Custom → `requested_plan:'pro'`, `requested_variant:'custom'`.
+  Entitlement DB dibaca dari baris `plan='basic'|'pro'` (baris `plus` tidak dipakai lagi).
 - **Login:** "Ingat saya" menyimpan **username saja** (`kairo_remember_username_v1`);
   `persistSession:false` sengaja (wajib login tiap buka) — jangan diubah tanpa izin.
 - **Riwayat Transaksi:** 7 kolom (Tanggal, Start Reading, Nama, Status, Paket=kode,
