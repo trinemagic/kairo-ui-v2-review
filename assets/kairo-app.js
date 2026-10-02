@@ -4154,14 +4154,23 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
     const veryLowPower = matchMedia('(max-width: 480px)').matches || (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 2);
     document.body.classList.toggle('origami-lite', lowPower);
     const count = veryLowPower ? 4 : lowPower ? 6 : 9;
+    const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
     for(let i=0;i<count;i++){
       const d=document.createElement('div');d.className='origami-drifter';
-      d.style.setProperty('--y-start',`${rand(-38,38)}vh`);d.style.setProperty('--y-end',`${rand(-38,38)}vh`);d.style.setProperty('--r-start',`${rand(-18,18)}deg`);d.style.setProperty('--r-end',`${rand(-18,18)}deg`);d.style.setProperty('--scale',rand(.34,.76).toFixed(2));d.style.animationDuration=`${rand(lowPower?34:28,lowPower?54:46).toFixed(1)}s`;d.style.animationDelay=`${rand(-48,0).toFixed(1)}s`;
+      // The drift path uses concrete transforms (Web Animations API) so the compositor runs it;
+      // CSS keyframes reading custom properties forced a style recalculation on every frame.
+      const scale=rand(.55,1).toFixed(2),at=(x,y,r)=>`translateX(${x}vw) translateY(${y.toFixed(1)}vh) rotateZ(${r.toFixed(1)}deg) scale(${scale})`;
+      const from=at(-14,rand(-38,38),rand(-18,18)),to=at(114,rand(-38,38),rand(-18,18));
+      d.style.transform=from;
+      if(!reduceMotion)d._drift=d.animate([{transform:from},{transform:to}],{duration:rand(lowPower?34:28,lowPower?54:46)*1000,delay:rand(-48,0)*1000,iterations:Infinity,easing:'linear'});
       d.innerHTML='<div class="origami-crane" style="animation-delay:'+rand(-4,0).toFixed(1)+'s"><div class="origami-part origami-body"></div><div class="origami-part origami-wing-left"></div><div class="origami-part origami-wing-right"></div><div class="origami-part origami-tail"></div><div class="origami-part origami-head"></div></div>';
       bg.appendChild(d);
     }
     document.body.prepend(bg);
-    const syncPause=()=>document.body.classList.toggle('origami-paused',document.hidden);
+    const syncPause=()=>{
+      document.body.classList.toggle('origami-paused',document.hidden);
+      bg.querySelectorAll('.origami-drifter').forEach(d=>{if(d._drift)document.hidden?d._drift.pause():d._drift.play()});
+    };
     document.addEventListener('visibilitychange',syncPause,{passive:true});
     syncPause();
   }

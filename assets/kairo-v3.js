@@ -466,7 +466,7 @@
   // The legacy defaults count as "not customised" and keep the KAIRO identity.
   const KAIRO_IDENTITY = { primary: '#25B9B0', accent: '#173A59' };
   const LEGACY_BRAND = ['#696F41', '#EA97A9'];
-  const LAYOUT_TOKENS = ['--v3-primary', '--v3-primary-dark', '--v3-primary-soft', '--v3-on-primary', '--v3-sky', '--v3-sky-strong', '--kairo-on-accent'];
+  const LAYOUT_TOKENS = ['--v3-primary', '--v3-primary-dark', '--v3-primary-soft', '--v3-on-primary', '--v3-sky', '--v3-sky-strong', '--v3-accent', '--kairo-on-accent'];
 
   function brandHex(name) {
     const value = document.documentElement.style.getPropertyValue(name).trim().toUpperCase();
@@ -491,6 +491,7 @@
       next['--v3-on-primary'] = readableOn(primary);
     }
     if (accent) {
+      next['--v3-accent'] = accent;
       next['--v3-sky'] = `color-mix(in srgb, ${accent} 7%, #fff)`;
       next['--v3-sky-strong'] = `color-mix(in srgb, ${accent} 30%, #fff)`;
     }
