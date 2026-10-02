@@ -74,7 +74,7 @@ URL live: `https://trinemagic.github.io/kairo-ui-v2-review/`
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
 Versi terakhir: `kairo.css?v=20.10.154`, `kairo-v3.css?v=3.21.2`,
-`kairo-v3.js?v=3.18.0`, `kairo-app.js?v=20.10.166`.
+`kairo-v3.js?v=3.18.0`, `kairo-app.js?v=20.10.167`.
 
 **Halaman app** = `main.container > section.section` dengan id:
 `dashboard`, `performance`, `input` (Orders), `customers`, `promo` (dibuat via JS),
@@ -186,6 +186,9 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
 - **Orders:** setelah simpan berhasil, form kosong total termasuk Platform & Metode
   Pembayaran (owner: user wajib pilih ulang tiap order). `tx-payment` punya opsi
   kosong "-- Pilih Metode Pembayaran --" + `required`, jadi tidak jatuh ke QRIS.
+- **Orders — saran nama customer:** `renderCustomerMatches()` membaca `customerDirectory`, yang
+  sekarang dimuat juga di `loadPageData('input')` (dulu cuma di halaman Customers → di Orders
+  kosong, saran tidak muncul; paket Gratis tidak pernah dapat).
 - **Orders — data wajib terlewat:** `invalid` (capture) di `#tx-form` → scroll ke field pertama,
   fokus, getar `.kairo-field-shake` + outline merah `.kairo-field-missing` (hilang saat diisi), toast
   kuning "Lengkapi dulu: …" (menggantikan yang lama, bukan menumpuk). Package/Topik kosong dicek
