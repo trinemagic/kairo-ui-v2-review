@@ -28,20 +28,11 @@
 *{box-sizing:border-box;margin:0;padding:0;font-family:'Plus Jakarta Sans',sans-serif}
 body{background:var(--cream);color:var(--ink);min-height:100vh}
 button,input,select{font:inherit}
-.auth-screen{min-height:100vh;display:grid;place-items:center;padding:20px;background:var(--cream)}
-.auth-card{width:min(420px,100%);background:#fff;border:1px solid var(--line);border-radius:var(--radius-xl);box-shadow:var(--shadow-md);padding:28px}
-.auth-brand{text-align:center;margin-bottom:24px}
-.auth-brand .brand-mark{margin:0 auto 10px}
-.auth-brand .brand-name{font-size:24px}
 .auth-title{font-size:18px;font-weight:800;color:var(--green);margin-bottom:6px}
-.auth-sub{font-size:12px;color:var(--muted);margin-bottom:18px}
 .auth-error{display:none;background:#F9E8EB;color:var(--danger);border:1px solid #efc8cf;border-radius:var(--radius-md);padding:10px 12px;font-size:12px;font-weight:700;margin-bottom:12px}
-.auth-card .input{width:100%}
 .auth-submit{width:100%;margin-top:4px}
 .app-shell{display:none}
-body.authenticated .auth-screen{display:none}
 body.authenticated .app-shell{display:block}
-body.auth-locked .auth-screen{display:grid}
 .user-area{display:flex;align-items:center;gap:8px}
 .user-email{font-size:11px;color:var(--muted);max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .btn-logout{padding:7px 10px;font-size:11px}
@@ -70,7 +61,6 @@ button{cursor:pointer}
 @keyframes dashboardEnter{from{opacity:0;transform:translateY(14px) scale(.992)}to{opacity:1;transform:translateY(0) scale(1)}}
 @media(max-width:700px){.price-adjustment-grid{grid-template-columns:1fr 1fr}.price-adjustment-grid .adjustment-value-wrap{grid-column:1/-1}}
 .brand-name{font-size:20px;font-weight:800;color:var(--green)}
-.brand-sub{font-size:11px;color:var(--muted)}
 .status{font-size:12px;font-weight:700;color:var(--green);background:#F2F4E9;border-radius:999px;padding:7px 11px}
 .container{max-width:1280px;margin:24px auto;padding:0 18px}
 .toolbar{display:flex;justify-content:space-between;align-items:end;gap:12px;margin-bottom:18px;flex-wrap:wrap}
@@ -140,7 +130,6 @@ td{padding:10px;border-bottom:1px solid var(--line)}
 @media(max-width:600px){
   .container{padding:0 11px;margin-top:15px}
   .header-inner{padding:11px}
-  .brand-sub{display:none}
   .brand-name{font-size:17px}
   .kpi-grid{grid-template-columns:1fr 1fr;gap:8px}
   .kpi{padding:13px}
@@ -192,17 +181,6 @@ body{
   position:absolute;top:2.1%;right:3.45%;z-index:5;
   display:flex;align-items:center;gap:10px;
 }
-.landing-nav-btn{
-  min-width:118px;min-height:42px;padding:10px 18px;
-  border:0;border-radius:999px;
-  background:rgba(249,237,232,.80);color:#74384a;
-  font:800 12px/1 "Plus Jakarta Sans",sans-serif;
-  letter-spacing:.10em;text-transform:uppercase;cursor:pointer;
-}
-.landing-nav-btn[data-tab="cash"]{min-width:170px}
-.landing-nav-btn:hover,.landing-nav-btn:focus-visible{
-  background:rgba(220,145,164,.94);outline:none;
-}
 .landing-account{
   position:absolute;right:3.5%;bottom:3.5%;z-index:5;
   display:flex;align-items:center;gap:8px;padding:8px 10px;
@@ -222,13 +200,6 @@ body{
   backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
 }
 #app-shell .brand{cursor:pointer}
-.v19-nav{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
-.v19-nav .tab{
-  border-radius:999px;background:rgba(255,250,248,.80);
-  color:#713b4b;border:1px solid rgba(126,72,88,.14);
-  text-transform:uppercase;letter-spacing:.05em;
-}
-.v19-nav .tab.active{background:#d98fa4;color:#5e2e3c;border-color:#d98fa4}
 #app-shell main.container{padding-top:28px;padding-bottom:50px}
 #app-shell main.container>.tabs{display:none!important}
 #app-shell .section{scroll-margin-top:96px}
@@ -239,13 +210,9 @@ body{
     left:16px;right:16px;top:auto;bottom:18px;
     display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;
   }
-  .landing-nav-btn,.landing-nav-btn[data-tab="cash"]{
-    min-width:0;width:100%;font-size:10px;padding:10px 8px;letter-spacing:.05em;
-  }
   .landing-account{top:14px;right:14px;bottom:auto}
   .landing-account .user-email{display:none}
   #app-shell .header-inner{align-items:flex-start}
-  .v19-nav{width:100%;margin-top:10px;justify-content:flex-start}
 }
 @media(max-width:600px){
   #landing-screen{min-height:640px;background-size:cover}
@@ -257,12 +224,7 @@ body{
   --font-display: Georgia, "Times New Roman", serif;
   --font-ui: "Plus Jakarta Sans", Arial, sans-serif;
 }
-.brand h1,
-.page-title,
-.card-title,
-.kpi-label,
-.landing-nav-btn,
-.v19-nav .tab{
+.brand h1,.page-title,.card-title,.kpi-label{
   font-family:var(--font-display);
 }
 .brand h1{
@@ -291,11 +253,6 @@ body{
 .kpi-label{
   font-weight:600;
   letter-spacing:.015em;
-}
-.landing-nav-btn,
-.v19-nav .tab{
-  font-weight:600;
-  letter-spacing:.09em;
 }
 .label,
 .input,
@@ -640,10 +597,7 @@ html{
 .workspace-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .workspace-pill{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 10px;font-size:11px;font-weight:800;color:var(--green)}
 .plan-pill{display:inline-flex;align-items:center;border-radius:999px;padding:6px 9px;font-size:10px;font-weight:800;background:#FFF8E7;border:1px solid #F0DEAA;color:#745D25}
-.role-pill{display:inline-flex;align-items:center;border-radius:999px;padding:6px 9px;font-size:10px;font-weight:800;background:#F2F4E9;color:var(--green)}
-.saas-settings-btn{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:10px;padding:8px 10px;font-size:11px;font-weight:800}
-.saas-settings-btn:hover{border-color:var(--pink);box-shadow:0 0 0 3px rgba(234,151,169,.10)}
-@media(max-width:700px){.workspace-pill{max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.role-pill{display:none}.saas-settings-btn{padding:8px}}
+@media(max-width:700px){.workspace-pill{max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}
 
 /* V20.3.6 — Workspace switcher + real Settings */
 .workspace-switcher{border:1px solid var(--line);background:#fff;border-radius:10px;padding:7px 9px;font-size:11px;font-weight:800;color:var(--green);max-width:180px}
@@ -736,7 +690,7 @@ body.authenticated{
 }
 body.saas-sidebar-collapsed #app-shell .header{left:var(--sidebar-mini);width:calc(100% - var(--sidebar-mini))}
 #app-shell .header-inner{max-width:none!important;padding:11px 22px!important;min-height:68px}
-#app-shell .header .brand,#app-shell .header .v19-nav,#app-shell .header .workspace-meta{display:none!important}
+#app-shell .header .workspace-meta{display:none!important}
 #app-shell .header-inner>div:last-child{width:100%;justify-content:flex-end!important}
 #app-shell main.container{
   max-width:none!important; margin:0 0 0 var(--sidebar-w)!important;
@@ -777,7 +731,7 @@ body.saas-sidebar-collapsed #saas-sidebar{width:var(--sidebar-mini)}
 .saas-side-brand{display:flex;align-items:center;gap:10px;padding:4px 7px 10px;min-height:52px;overflow:hidden}
 .saas-side-brand img{width:42px;height:42px;border-radius:50%;object-fit:cover;flex:0 0 auto;border:2px solid #fff;box-shadow:0 4px 14px rgba(45,55,72,.1)}
 .saas-side-brand-copy{min-width:0;white-space:nowrap}.saas-side-brand-copy strong{display:block;color:var(--brand-primary);font-size:14px;overflow:hidden;text-overflow:ellipsis}.saas-side-brand-copy small{display:block;color:var(--muted);font-size:9.5px;margin-top:2px}
-body.saas-sidebar-collapsed .saas-side-brand-copy,body.saas-sidebar-collapsed .saas-side-meta-copy,body.saas-sidebar-collapsed .saas-nav-label{display:none}
+body.saas-sidebar-collapsed .saas-side-brand-copy,body.saas-sidebar-collapsed .saas-nav-label{display:none}
 .saas-sidebar-nav{display:grid;gap:5px}
 .saas-sidebar-nav .tab,.saas-settings-side-btn{
   width:100%;display:flex;align-items:center;gap:11px;text-align:left;border:0;background:transparent;color:var(--ink);
@@ -788,13 +742,8 @@ body.saas-sidebar-collapsed .saas-side-brand-copy,body.saas-sidebar-collapsed .s
 .saas-nav-icon{width:20px;text-align:center;flex:0 0 20px;font-size:16px}
 body.saas-sidebar-collapsed .saas-sidebar-nav .tab,body.saas-sidebar-collapsed .saas-settings-side-btn{justify-content:center;padding:11px 8px}
 .saas-side-spacer{flex:1}
-.saas-side-meta{padding:10px;border:1px solid var(--line);background:rgba(250,248,245,.76);border-radius:13px;overflow:hidden}
-.saas-side-meta-top{display:flex;align-items:center;gap:9px}.saas-side-dot{width:9px;height:9px;border-radius:50%;background:var(--brand-accent);box-shadow:0 0 0 4px color-mix(in srgb,var(--brand-accent) 16%, transparent);flex:0 0 auto}
-.saas-side-meta-copy strong{display:block;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.saas-side-meta-copy small{font-size:9px;color:var(--muted)}
 .saas-collapse-btn{height:38px;border:1px solid var(--line);background:#fff;border-radius:11px;font-weight:800;color:var(--brand-primary);cursor:pointer}
 .saas-collapse-btn:hover{background:#F8F6F3}
-.saas-workspace-select-side{width:100%;margin-top:8px;border:1px solid var(--line);border-radius:9px;padding:7px 8px;background:#fff;font-size:10px;color:var(--ink)}
-body.saas-sidebar-collapsed .saas-workspace-select-side{display:none}
 #saas-mobile-bottom{display:none}
 
 /* V20.4.1 — sidebar visual refinement */
@@ -832,11 +781,6 @@ body.saas-sidebar-collapsed #saas-sidebar{width:calc(var(--sidebar-mini) - 20px)
   border-color:color-mix(in srgb,var(--brand-primary) 78%, #fff)!important;
   box-shadow:0 7px 16px color-mix(in srgb,var(--brand-primary) 19%, transparent),inset 0 1px 0 rgba(255,255,255,.22)!important;
 }
-.saas-side-meta{
-  border-color:rgba(255,255,255,.9);
-  background:linear-gradient(145deg,rgba(255,255,255,.76),rgba(250,248,245,.7));
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 4px 12px rgba(45,55,72,.04);
-}
 .saas-collapse-btn{
   min-height:42px;
   border:1.5px solid color-mix(in srgb,var(--brand-accent) 58%, #fff);
@@ -869,7 +813,7 @@ body.saas-sidebar-collapsed #saas-sidebar{width:calc(var(--sidebar-mini) - 20px)
   #app-shell .user-email{max-width:130px}
   #saas-mobile-bottom{position:fixed;z-index:90;left:10px;right:10px;bottom:10px;height:66px;display:grid;grid-template-columns:repeat(8,1fr);background:rgba(255,255,255,.92);backdrop-filter:blur(18px);border:1px solid var(--line);border-radius:18px;box-shadow:0 14px 42px rgba(45,55,72,.16);padding:6px}
   .saas-mobile-nav-btn{border:0;background:transparent;border-radius:12px;font-size:8px;font-weight:750;color:var(--muted);display:grid;place-items:center;gap:1px;padding:4px 2px}.saas-mobile-nav-btn span:first-child{font-size:17px;line-height:1}.saas-mobile-nav-btn.active{background:color-mix(in srgb,var(--brand-primary) 11%, white);color:var(--brand-primary)}
-  #app-shell .toolbar{gap:10px}.workspace-pill,.plan-pill,.role-pill{font-size:9px!important}
+  #app-shell .toolbar{gap:10px}.workspace-pill,.plan-pill{font-size:9px!important}
 }
 @media(max-width:520px){
   #saas-mobile-bottom{left:7px;right:7px;bottom:7px;height:62px;border-radius:16px;padding:5px}
@@ -881,7 +825,6 @@ body.saas-sidebar-collapsed #saas-sidebar{width:calc(var(--sidebar-mini) - 20px)
 #landing-screen{display:none!important;}
 body.auth-locked #app-shell{display:block!important;}
 body.auth-locked header, body.auth-locked main, body.auth-locked .sidebar, body.auth-locked .mobile-bottom-nav, body.auth-locked #landing-screen{display:none!important;}
-body.auth-locked .auth-screen{display:grid!important;position:fixed;inset:0;z-index:99999;}
 
 
 
@@ -916,7 +859,6 @@ body.saas-sidebar-collapsed #app-shell .header{
   color:var(--ink)!important;font-weight:800!important;max-width:210px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap
 }
 #app-shell .plan-pill{background:#F7E7B7!important;color:#75601D!important;border:0!important;padding:5px 8px!important;border-radius:999px!important;font-size:9px!important}
-#app-shell .role-pill{background:rgba(105,111,65,.09)!important;color:var(--brand-primary)!important;border:0!important;padding:5px 8px!important;border-radius:999px!important;font-size:9px!important}
 #app-shell .workspace-switcher{background:rgba(255,255,255,.78)!important;border:1px solid rgba(105,111,65,.11)!important;border-radius:11px!important;min-height:36px!important}
 .saas-user-menu-wrap{position:relative!important;display:flex!important;align-items:center!important;gap:0!important}
 .saas-avatar-btn{
@@ -946,8 +888,7 @@ body.saas-sidebar-collapsed #app-shell .header{
 @media(max-width:760px){
   #app-shell .header{left:10px!important;right:10px!important;width:auto!important;top:8px!important;border-radius:14px!important}
   #app-shell .header-inner{padding:7px 8px!important;min-height:50px!important}
-  #app-shell .workspace-pill{max-width:145px;padding:8px 9px!important;font-size:10px!important}
-  #app-shell .role-pill{display:none!important}.saas-avatar-btn{width:36px;height:36px;border-radius:10px}
+  #app-shell .workspace-pill{max-width:145px;padding:8px 9px!important;font-size:10px!important}.saas-avatar-btn{width:36px;height:36px;border-radius:10px}
   #app-shell main.container{padding-top:70px!important}
   #app-shell .toolbar{padding-top:10px!important;align-items:flex-start!important}
   #app-shell .page-title{font-size:23px!important;letter-spacing:-.8px!important}
@@ -968,7 +909,6 @@ body.authenticated{
   border-color:color-mix(in srgb,var(--brand-accent) 20%,#fff)!important;
 }
 #app-shell .workspace-pill{background:color-mix(in srgb,var(--brand-accent) 9%,#fff)!important;border-color:color-mix(in srgb,var(--brand-accent) 24%,#fff)!important}
-#app-shell .role-pill{background:color-mix(in srgb,var(--brand-primary) 13%,#fff)!important}
 #app-shell .page-title{color:color-mix(in srgb,var(--ink) 82%,var(--brand-accent))!important}
 #app-shell .toolbar{border-bottom:1px solid color-mix(in srgb,var(--brand-accent) 18%,transparent)}
 #app-shell table thead th,#app-shell .table thead th{
@@ -982,8 +922,6 @@ body.authenticated{
 .saas-sidebar-nav .tab:not(.active):hover,.saas-settings-side-btn:not(.active):hover{background:color-mix(in srgb,var(--brand-accent) 16%,#fff)!important}
 #saas-mobile-bottom{border-color:color-mix(in srgb,var(--brand-accent) 20%,#fff)!important}
 .saas-mobile-nav-btn.active{background:color-mix(in srgb,var(--brand-accent) 17%,#fff)!important;color:color-mix(in srgb,var(--brand-accent) 70%,#743c49)!important}
-@media(max-width:760px){
-}
 
 
 
@@ -1671,29 +1609,6 @@ body.saas-dark #app-shell .shift-delete-btn{background:rgba(255,94,94,.11)!impor
 
 
 
-/* KAIRO auth identity — logo intentionally removed until the new mark is ready. */
-#auth-screen .kairo-auth-brand{justify-content:center;margin-bottom:28px}
-#auth-screen .kairo-auth-brand .brand-name{font-size:27px;line-height:1.1;letter-spacing:-.035em;font-weight:800;color:var(--ink);text-align:center}
-#auth-screen .auth-title{font-size:25px;letter-spacing:-.025em;margin-bottom:5px}
-#auth-screen .auth-sub{font-size:14px;letter-spacing:.01em;margin-bottom:22px}
-#auth-screen .auth-mode-switch{border-radius:14px;padding:4px;margin-bottom:22px}
-#auth-screen .auth-mode-btn{min-height:46px;border-radius:11px}
-#auth-screen .input{min-height:50px;border-radius:12px}
-#auth-screen .auth-submit{min-height:52px;border-radius:12px}
-body.dark-mode #auth-screen .kairo-auth-brand .brand-name{color:#f7f7f5}
-@media(max-width:560px){#auth-screen .kairo-auth-brand{margin-bottom:22px}#auth-screen .kairo-auth-brand .brand-name{font-size:23px}#auth-screen .auth-title{font-size:22px}}
-
-
-
-#kairo-app-switcher{position:static!important;display:flex;align-items:center;justify-content:center;gap:7px;width:100%;box-sizing:border-box;margin:0 0 9px;padding:8px 10px;border-radius:10px;background:color-mix(in srgb,var(--brand-primary,#2F9AA4) 92%,#111);color:#fff;text-decoration:none;font:700 10px/1.2 'Plus Jakarta Sans',sans-serif;box-shadow:none;transition:transform .18s ease,filter .18s ease}
-#kairo-app-switcher:hover{transform:translateY(-1px);filter:brightness(1.05)}
-#kairo-app-switcher svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}
-body.saas-sidebar-collapsed #kairo-app-switcher{width:34px;height:34px;padding:0;margin:0 auto 9px;border-radius:10px}
-body.saas-sidebar-collapsed #kairo-app-switcher span{display:none}
-body.saas-sidebar-collapsed #kairo-app-switcher svg{width:16px;height:16px}
-
-
-
 /* V20.8.1 — Settings category dropdown + full-width master data */
 .settings-category-shell{margin:0 0 18px;padding:16px 18px;display:flex;align-items:center;justify-content:space-between;gap:16px}
 .settings-category-copy{min-width:0}.settings-category-copy .card-title{margin-bottom:3px}
@@ -1817,8 +1732,7 @@ body.saas-dark #saas-sidebar:before{background:linear-gradient(180deg,rgba(255,2
 body.saas-dark .saas-sidebar-nav .tab,body.saas-dark .saas-settings-side-btn{color:var(--ink)!important}
 body.saas-dark .saas-sidebar-nav .tab:hover,body.saas-dark .saas-settings-side-btn:hover{background:color-mix(in srgb,var(--brand-accent) 12%,#252930)!important;border-color:color-mix(in srgb,var(--brand-accent) 18%,#252930)!important}
 body.saas-dark .saas-sidebar-nav .tab.active,body.saas-dark .saas-settings-side-btn.active{color:#fff!important}
-body.saas-dark .saas-side-meta{background:rgba(39,43,50,.72)!important;border-color:rgba(255,255,255,.08)!important}
-body.saas-dark .saas-collapse-btn,body.saas-dark .saas-workspace-select-side{background:#282C33!important;border-color:#3A4049!important;color:var(--ink)!important}
+body.saas-dark .saas-collapse-btn{background:#282C33!important;border-color:#3A4049!important;color:var(--ink)!important}
 body.saas-dark #app-shell .card,body.saas-dark #app-shell .kpi{background:rgba(31,34,40,.91)!important;border-color:rgba(255,255,255,.075)!important;box-shadow:0 10px 34px rgba(0,0,0,.16)!important}
 body.saas-dark .input,body.saas-dark .control,body.saas-dark select,body.saas-dark textarea{background:#252930!important;border-color:#3A4049!important;color:var(--ink)!important}
 body.saas-dark input::placeholder,body.saas-dark textarea::placeholder{color:#737D8C!important}
@@ -1837,20 +1751,7 @@ body.saas-dark hr,body.saas-dark .saas-user-menu-divider{border-color:#343941!im
 /* V20.10.19 — stronger dark-mode readability + softer theme transition. Brand colors stay untouched. */
 
 /* Improve contrast on muted/secondary text without touching workspace brand palette. */
-body.saas-dark .page-sub,
-body.saas-dark .muted,
-body.saas-dark .customer-db-muted,
-body.saas-dark .share-pct,
-body.saas-dark .kpi-label,
-body.saas-dark .settings-master-status,
-body.saas-dark .adjustment-help,
-body.saas-dark .receipt-layout-preview,
-body.saas-dark .receipt-editor-sub,
-body.saas-dark .saas-side-meta small,
-body.saas-dark .saas-brand-copy small,
-body.saas-dark .platform-summary-meta,
-body.saas-dark .customer-history-meta,
-body.saas-dark .profit-editor-card .page-sub{color:#B8C1CE!important;opacity:1!important;}
+body.saas-dark .page-sub,body.saas-dark .muted,body.saas-dark .customer-db-muted,body.saas-dark .share-pct,body.saas-dark .kpi-label,body.saas-dark .settings-master-status,body.saas-dark .adjustment-help,body.saas-dark .receipt-layout-preview,body.saas-dark .receipt-editor-sub,body.saas-dark .saas-brand-copy small,body.saas-dark .platform-summary-meta,body.saas-dark .customer-history-meta,body.saas-dark .profit-editor-card .page-sub{color:#B8C1CE!important;opacity:1!important;}
 
 body.saas-dark .card-title,
 body.saas-dark .page-title,
@@ -2044,7 +1945,6 @@ body.auth-locked #app-shell header,
 body.auth-locked #app-shell main.container{display:none!important;}
 body.auth-locked #app-shell{margin:0!important;padding:0!important;background:transparent!important;}
 body.auth-locked .living-origami-bg{display:none!important;}
-body.auth-locked .auth-screen{display:grid!important;position:fixed!important;inset:0!important;z-index:99999!important;}
 body.authenticated #saas-sidebar{display:flex;}
 body.authenticated #app-shell > .header,body.authenticated #app-shell header{display:block;}
 body.authenticated #app-shell main.container{display:block;}
@@ -2101,139 +2001,16 @@ body.saas-dark .orders-tool-item.is-active{background:color-mix(in srgb,var(--br
 
 
 .entitlement-locked{opacity:.55!important;cursor:not-allowed!important}.entitlement-lock-badge{margin-left:auto;font-size:9px;font-weight:900;letter-spacing:.06em;padding:3px 6px;border-radius:999px;border:1px solid color-mix(in srgb,var(--brand-primary) 28%,var(--line));color:var(--brand-primary);background:color-mix(in srgb,var(--brand-primary) 8%,var(--card))}
-
-
-
-/* V20.10.41 — self-service signup + automatic BASIC workspace onboarding */
-.auth-card{max-width:460px}
-.auth-mode-switch{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:5px;margin:14px 0 18px;border:1px solid color-mix(in srgb,var(--brand-primary,#696F41) 18%,transparent);border-radius:14px;background:color-mix(in srgb,var(--brand-primary,#696F41) 5%,#fff)}
 .auth-mode-btn{border:0;background:transparent;border-radius:10px;padding:9px 12px;font:inherit;font-weight:700;color:#718096;cursor:pointer}
 .auth-mode-btn.active{background:#fff;color:var(--brand-primary,#696F41);box-shadow:0 2px 10px rgba(45,55,72,.08)}
-#signup-form[hidden],#login-form[hidden]{display:none!important}
-.signup-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.signup-note{font-size:12px;line-height:1.5;color:#718096;margin:-2px 0 14px}
-.signup-plan-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border-radius:999px;font-size:11px;font-weight:800;letter-spacing:.04em;background:color-mix(in srgb,var(--brand-primary,#696F41) 12%,#fff);color:var(--brand-primary,#696F41)}
-.signup-status{display:none;margin:0 0 14px;padding:10px 12px;border-radius:10px;font-size:12px;line-height:1.45}
-.signup-status.show{display:block}
-.signup-status.ok{background:rgba(34,197,94,.10);color:#166534;border:1px solid rgba(34,197,94,.18)}
-.signup-status.bad{background:rgba(220,38,38,.08);color:#991b1b;border:1px solid rgba(220,38,38,.16)}
+#login-form[hidden]{display:none!important}
 .username-hint{font-size:11px;color:#718096;margin-top:5px;min-height:16px}
 .username-hint.ok{color:#15803d}.username-hint.bad{color:#b91c1c}
-body.dark-mode .auth-mode-switch{background:rgba(255,255,255,.035);border-color:rgba(255,255,255,.09)}
 body.dark-mode .auth-mode-btn.active{background:rgba(255,255,255,.09);color:#fff;box-shadow:none}
-body.dark-mode .signup-note,body.dark-mode .username-hint{color:#a0aec0}
-body.dark-mode .signup-plan-chip{background:rgba(255,255,255,.08);color:#fff}
-@media(max-width:560px){.signup-grid{grid-template-columns:1fr}.auth-card{max-width:min(94vw,460px)}}
-
-
-
-.plan-carousel-shell{margin:18px 0 20px;position:relative}.plan-carousel-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:13px}.plan-carousel-heading .card-title{font-size:18px}.plan-carousel-nav{display:flex;gap:8px;flex:none}.plan-carousel-arrow{width:38px;height:38px;border-radius:999px;border:1px solid color-mix(in srgb,var(--brand-primary) 22%,transparent);background:color-mix(in srgb,var(--brand-primary) 8%,var(--card));color:var(--ink);display:grid;place-items:center;cursor:pointer;transition:.2s ease}.plan-carousel-arrow:hover{transform:translateY(-2px);background:color-mix(in srgb,var(--brand-primary) 15%,var(--card))}.plan-carousel-arrow svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.plan-carousel-track{display:flex;gap:16px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;padding:3px 3px 12px;scrollbar-width:none}.plan-carousel-track::-webkit-scrollbar{display:none}.plan-offer-card{position:relative;flex:0 0 min(355px,82vw);height:390px;border-radius:22px;overflow:hidden;scroll-snap-align:start;border:1px solid color-mix(in srgb,var(--brand-primary) 18%,transparent);background:var(--card);box-shadow:0 12px 32px color-mix(in srgb,var(--brand-primary) 8%,transparent);transition:transform .32s cubic-bezier(.2,.8,.2,1),box-shadow .32s ease,border-color .32s ease}.plan-offer-card:hover{transform:translateY(-7px);box-shadow:0 18px 42px color-mix(in srgb,var(--brand-primary) 15%,transparent);border-color:color-mix(in srgb,var(--brand-primary) 38%,transparent)}.plan-card-visual{height:43%;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,color-mix(in srgb,var(--brand-primary) 88%,white),color-mix(in srgb,var(--brand-accent) 78%,var(--brand-primary)));color:white}.plan-card-visual:before,.plan-card-visual:after{content:"";position:absolute;border:1px solid rgba(255,255,255,.22);border-radius:28px;transform:rotate(32deg)}.plan-card-visual:before{width:170px;height:100px;left:-45px;top:-25px}.plan-card-visual:after{width:150px;height:90px;right:-35px;bottom:-28px}.plan-card-visual>svg{width:72px;height:72px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;opacity:.96;z-index:1;transition:transform .45s ease}.plan-offer-card:hover .plan-card-visual>svg{transform:scale(1.08) rotate(-3deg)}.plan-card-visual>span{position:absolute;left:18px;bottom:14px;font-size:12px;font-weight:800;letter-spacing:.16em;z-index:1}.plan-featured .plan-card-visual{background:linear-gradient(135deg,color-mix(in srgb,var(--brand-accent) 86%,white),color-mix(in srgb,var(--brand-primary) 82%,var(--brand-accent)))}.plan-card-content{height:57%;padding:17px 18px 15px;display:flex;flex-direction:column}.plan-card-tag{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--muted);font-weight:700}.plan-card-tag svg{width:16px;height:16px;fill:none;stroke:var(--brand-primary);stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}.plan-card-content h3{font-size:22px;line-height:1.1;margin:7px 0 5px;color:var(--ink)}.plan-card-content>p{font-size:12.5px;line-height:1.45;color:var(--muted);margin:0 0 10px}.plan-feature-chips{display:flex;flex-wrap:wrap;gap:5px;max-height:54px;overflow:hidden}.plan-feature-chips span{font-size:10px;font-weight:700;padding:4px 7px;border-radius:999px;background:color-mix(in srgb,var(--brand-primary) 9%,var(--card));border:1px solid color-mix(in srgb,var(--brand-primary) 15%,transparent);color:color-mix(in srgb,var(--ink) 84%,var(--brand-primary))}.plan-card-footer{margin-top:auto;padding-top:10px;border-top:1px solid color-mix(in srgb,var(--brand-primary) 14%,transparent);display:flex;align-items:center;justify-content:space-between}.plan-card-level{font-size:11px;font-weight:750;color:var(--ink)}.plan-card-arrow{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:color-mix(in srgb,var(--brand-primary) 10%,var(--card));color:var(--brand-primary);transition:.25s ease}.plan-card-arrow svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.plan-offer-card:hover .plan-card-arrow{transform:rotate(-45deg);background:var(--brand-primary);color:white}.plan-offer-card.is-current{border:2px solid var(--brand-primary)}.plan-offer-card.is-current:after{content:"PAKET AKTIF";position:absolute;right:12px;top:12px;padding:5px 8px;border-radius:999px;background:var(--card);color:var(--brand-primary);font-size:9px;font-weight:900;letter-spacing:.08em;box-shadow:0 4px 14px rgba(0,0,0,.08)}
-html[data-theme="dark"] .plan-offer-card{background:color-mix(in srgb,var(--brand-primary) 5%,#151515)}html[data-theme="dark"] .plan-feature-chips span,html[data-theme="dark"] .plan-card-arrow{background:color-mix(in srgb,var(--brand-primary) 16%,#191919)}
-@media(max-width:700px){.plan-carousel-heading{align-items:center}.plan-carousel-nav{display:none}.plan-carousel-track{gap:12px;margin-right:-14px}.plan-offer-card{flex-basis:84vw;height:382px}.plan-carousel-heading .card-title{font-size:16px}}
-@media(prefers-reduced-motion:reduce){.plan-carousel-track{scroll-behavior:auto}.plan-offer-card,.plan-card-visual>svg,.plan-card-arrow{transition:none}}
-
-
-
-/* V20.10.43 — plan carousel moved to the very first auth screen. */
-#auth-screen.auth-screen{
-  display:flex!important;
-  align-items:center;
-  justify-content:center;
-  padding:28px clamp(18px,3vw,54px);
-  overflow-x:hidden;
-}
-body.authenticated #auth-screen.auth-screen{display:none!important}
-.auth-entry-layout{
-  width:min(1480px,100%);
-  min-height:calc(100vh - 56px);
-  display:grid;
-  grid-template-columns:minmax(0,1fr) minmax(390px,460px);
-  align-items:center;
-  gap:clamp(28px,4vw,64px);
-}
-.auth-plans-panel{min-width:0;display:flex;flex-direction:column;justify-content:center}
-.auth-plans-eyebrow{display:flex;align-items:center;gap:9px;margin:0 0 10px;color:var(--brand-primary,#696F41);font-size:11px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}
-.auth-plans-eyebrow svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
-.auth-plans-title{font-size:clamp(25px,2.4vw,38px);line-height:1.08;font-weight:850;max-width:760px;margin:0;color:var(--ink,#2D3748)}
-.auth-plans-sub{font-size:13px;line-height:1.65;color:var(--muted,#718096);max-width:720px;margin:10px 0 22px}
-.auth-plans-panel .plan-carousel-shell{margin:0!important;padding:0!important;background:transparent!important;border:0!important;box-shadow:none!important;overflow:visible!important}
-.auth-plans-panel .plan-carousel-heading{display:none!important}
-.auth-plans-panel .plan-carousel-track{gap:14px!important;padding:7px 4px 16px!important;margin:0!important;scroll-padding-inline:4px}
-.auth-plans-panel .plan-offer-card{flex:0 0 clamp(220px,20vw,265px)!important;width:clamp(220px,20vw,265px)!important;height:365px!important;border-radius:20px!important;box-shadow:0 16px 42px rgba(45,55,72,.11)!important}
-.auth-plans-panel .plan-card-visual{height:42%!important}
-.auth-plans-panel .plan-card-content{height:58%!important;padding:16px!important}
-.auth-plans-panel .plan-card-content h3{font-size:19px!important}
-.auth-plans-panel .plan-card-content p{font-size:11.5px!important;line-height:1.45!important}
-.auth-plans-panel .plan-feature-chips{gap:5px!important}
-.auth-plans-panel .plan-feature-chips span{font-size:9.5px!important;padding:5px 7px!important}
-.auth-plans-panel .plan-offer-card.is-current{border:1px solid color-mix(in srgb,var(--brand-primary,#696F41) 17%,transparent)!important}
-.auth-plans-panel .plan-offer-card.is-current:after{display:none!important}
-.auth-plans-panel .plan-carousel-nav.auth-carousel-nav{display:flex!important;justify-content:flex-end;gap:8px;margin-top:2px}
-.auth-plans-panel .plan-carousel-arrow{position:static!important;opacity:1!important;transform:none!important;width:38px!important;height:38px!important;background:rgba(255,255,255,.86)!important;backdrop-filter:blur(10px);border:1px solid color-mix(in srgb,var(--brand-primary,#696F41) 16%,transparent)!important}
-.auth-entry-layout>.auth-card{width:100%!important;max-width:460px!important;justify-self:end;position:relative;z-index:3;box-shadow:0 24px 70px rgba(45,55,72,.16)!important}
-html[data-theme="dark"] .auth-plans-title{color:#f5f5f5}
-html[data-theme="dark"] .auth-plans-panel .plan-carousel-arrow{background:rgba(25,25,25,.88)!important}
-@media(max-width:1120px){
-  .auth-entry-layout{grid-template-columns:minmax(0,1fr) minmax(360px,430px);gap:24px}
-  .auth-plans-panel .plan-offer-card{flex-basis:238px!important;width:238px!important}
-}
-@media(max-width:860px){
-  #auth-screen.auth-screen{align-items:flex-start;padding:20px 16px 34px;overflow-y:auto}
-  .auth-entry-layout{grid-template-columns:1fr;min-height:auto;gap:24px}
-  .auth-plans-panel{order:2;width:100%}
-  .auth-entry-layout>.auth-card{order:1;justify-self:center;max-width:520px!important}
-  .auth-plans-title{font-size:24px}
-  .auth-plans-sub{margin-bottom:14px}
-  .auth-plans-panel .plan-offer-card{flex:0 0 min(78vw,270px)!important;width:min(78vw,270px)!important}
-}
-
-
-
-/* =========================================================
-   KAIRO AUTH LANDING — palette/background pass 01
-   Scoped ONLY to #auth-screen. Dashboard after login untouched.
-   ========================================================= */
-
-/* Palette taken from the provided reference */
-#auth-screen{
-  --kairo-gold:#DFB83C;
-  --kairo-mint:#59B9A7;
-  --kairo-teal:#2F9AA4;
-  --kairo-blue:#3B5B8B;
-  --kairo-indigo:#353A66;
-  --kairo-navy:#07122F;
-  --kairo-ice:#EAF4F6;
-  --kairo-ink:#102A49;
-}
-
-/* Main auth-page background: soft dotted texture + calm navy palette */
-#auth-screen.auth-screen{
-  position:fixed!important;
-  inset:0!important;
-  z-index:99999!important;
-  display:flex!important;
-  align-items:center!important;
-  justify-content:center!important;
-  padding:132px clamp(24px,4vw,64px) 32px!important;
-  overflow:hidden!important;
-  color:#fff!important;
-  background:
-    radial-gradient(circle at 2% 5%,rgba(223,184,60,.42) 0 3%,rgba(89,185,167,.28) 13%,transparent 31%),
-    radial-gradient(circle at 5% 94%,rgba(223,184,60,.27) 0 3%,rgba(89,185,167,.30) 15%,transparent 35%),
-    radial-gradient(circle at 29% 18%,rgba(47,154,164,.28),transparent 35%),
-    linear-gradient(112deg,
-      #0A8999 0%,
-      #167D96 20%,
-      #286B8F 38%,
-      #355B89 55%,
-      #273F70 72%,
-      #172A58 86%,
-      #07122F 100%)!important;
-}
-body.authenticated #auth-screen.auth-screen{display:none!important}
+body.dark-mode .username-hint{color:#a0aec0}
 
 /* Dot texture — reference texture, without any "Dot Pattern" text */
-#auth-screen.auth-screen::before{
+/* Dot texture — reference texture{
   content:"";
   position:absolute;
   inset:0;
@@ -2245,59 +2022,9 @@ body.authenticated #auth-screen.auth-screen{display:none!important}
   mask-image:linear-gradient(to bottom,rgba(0,0,0,.75),rgba(0,0,0,.38));
   -webkit-mask-image:linear-gradient(to bottom,rgba(0,0,0,.75),rgba(0,0,0,.38));
 }
-#auth-screen.auth-screen::after{
-  content:"";
-  position:absolute;
-  inset:0;
-  z-index:0;
-  pointer-events:none;
-  background:
-    radial-gradient(ellipse at 0% 52%,rgba(89,185,167,.20),transparent 28%),
-    radial-gradient(ellipse at 70% 35%,rgba(59,91,139,.16),transparent 35%),
-    linear-gradient(180deg,rgba(6,18,47,.05),rgba(6,18,47,.18));
-}
-
-/* KAIRO WORKSPACES centered at the top */
-#auth-screen>.kairo-auth-page-brand{
-  position:absolute!important;
-  top:36px!important;
-  left:50%!important;
-  transform:translateX(-50%)!important;
-  z-index:5!important;
-  width:min(1100px,94vw)!important;
-  margin:0!important;
-  text-align:center!important;
-  pointer-events:none!important;
-}
-#auth-screen .kairo-auth-page-title{
-  color:#fff!important;
-  font-family:"Plus Jakarta Sans",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;
-  font-size:clamp(38px,4.6vw,70px)!important;
-  line-height:.95!important;
-  font-weight:800!important;
-  letter-spacing:.16em!important;
-  text-transform:uppercase!important;
-  font-variant-caps:all-small-caps!important;
-  white-space:nowrap!important;
-  text-shadow:0 8px 26px rgba(2,18,48,.28)!important;
-}
-#auth-screen .kairo-auth-page-tagline{
-  margin-top:15px!important;
-  color:rgba(255,255,255,.88)!important;
-  font-size:clamp(10px,.9vw,13px)!important;
-  line-height:1!important;
-  font-weight:700!important;
-  letter-spacing:.34em!important;
-  text-transform:uppercase!important;
-  font-variant-caps:all-small-caps!important;
-  white-space:nowrap!important;
-}
-
-/* Existing brand inside login card hidden — brand now belongs to page */
-#auth-screen .auth-card .kairo-auth-brand{display:none!important}
 
 /* Keep the original v20.10.44 structure, only restyle/reposition it */
-#auth-screen .auth-entry-layout{
+/* Keep the original v20.10.44 structure{
   position:relative!important;
   z-index:2!important;
   width:min(1480px,100%)!important;
@@ -2309,22 +2036,8 @@ body.authenticated #auth-screen.auth-screen{display:none!important}
   margin:0!important;
 }
 
-/* Left intro text */
-#auth-screen .auth-plans-eyebrow{
-  color:#D9F3EF!important;
-  text-shadow:0 2px 10px rgba(2,18,48,.20)!important;
-}
-#auth-screen .auth-plans-eyebrow svg{stroke:#D9F3EF!important}
-#auth-screen .auth-plans-title{
-  color:#fff!important;
-  text-shadow:0 3px 15px rgba(2,18,48,.20)!important;
-}
-#auth-screen .auth-plans-sub{
-  color:rgba(235,248,249,.86)!important;
-}
-
 /* Carousel cards: glossy, palette-driven, no plain white block */
-#auth-screen .auth-plans-panel .plan-offer-card{
+/* Carousel cards: glossy,palette-driven{
   border:1px solid rgba(204,239,238,.42)!important;
   background:linear-gradient(180deg,rgba(239,248,250,.88),rgba(206,229,235,.78))!important;
   box-shadow:
@@ -2333,71 +2046,9 @@ body.authenticated #auth-screen.auth-screen{display:none!important}
   backdrop-filter:blur(15px) saturate(1.16)!important;
   -webkit-backdrop-filter:blur(15px) saturate(1.16)!important;
 }
-#auth-screen .auth-plans-panel .plan-offer-card::before{
-  content:"";
-  position:absolute;
-  z-index:4;
-  pointer-events:none;
-  left:8px;right:8px;top:7px;
-  height:34%;
-  border-radius:16px 16px 44% 44%;
-  background:linear-gradient(125deg,rgba(255,255,255,.24),rgba(255,255,255,.04) 58%,transparent);
-  opacity:.72;
-}
-#auth-screen [data-plan-card="basic"] .plan-card-visual{
-  background:linear-gradient(135deg,
-    var(--kairo-gold) 0%,
-    #A9B478 42%,
-    var(--kairo-mint) 100%)!important;
-}
-#auth-screen [data-plan-card="plus"] .plan-card-visual{
-  background:linear-gradient(135deg,
-    var(--kairo-mint) 0%,
-    var(--kairo-teal) 48%,
-    #267F93 100%)!important;
-}
-#auth-screen [data-plan-card="pro"] .plan-card-visual{
-  background:linear-gradient(135deg,
-    var(--kairo-blue) 0%,
-    var(--kairo-indigo) 52%,
-    var(--kairo-navy) 100%)!important;
-}
-#auth-screen .plan-card-content{
-  color:var(--kairo-ink)!important;
-  background:
-    radial-gradient(circle at 95% 5%,rgba(89,185,167,.12),transparent 35%),
-    linear-gradient(180deg,rgba(240,248,250,.92),rgba(215,232,237,.84))!important;
-}
-#auth-screen .plan-card-content h3,
-#auth-screen .plan-card-level{color:var(--kairo-ink)!important}
-#auth-screen .plan-card-content>p,
-#auth-screen .plan-card-tag{color:#4B6E83!important}
-#auth-screen .plan-card-tag svg{stroke:var(--kairo-teal)!important}
-#auth-screen .plan-feature-chips span{
-  background:rgba(204,231,235,.62)!important;
-  border-color:rgba(47,154,164,.18)!important;
-  color:#174865!important;
-}
-#auth-screen .plan-card-footer{border-color:rgba(47,154,164,.14)!important}
-#auth-screen .plan-card-arrow{
-  background:rgba(47,154,164,.10)!important;
-  color:#1E7184!important;
-}
-
-/* Carousel navigation */
-#auth-screen .auth-plans-panel .plan-carousel-arrow{
-  color:#fff!important;
-  background:linear-gradient(145deg,rgba(89,185,167,.24),rgba(53,58,102,.30))!important;
-  border:1px solid rgba(211,242,241,.34)!important;
-  box-shadow:
-    0 10px 24px rgba(3,21,53,.19),
-    inset 0 1px 0 rgba(255,255,255,.28)!important;
-  backdrop-filter:blur(12px)!important;
-  -webkit-backdrop-filter:blur(12px)!important;
-}
 
 /* Auth card: deliberately different from main background, dark glossy indigo glass */
-#auth-screen .auth-entry-layout>.auth-card{
+/* Auth card: deliberately different from main background{
   width:100%!important;
   max-width:460px!important;
   padding:32px!important;
@@ -2414,213 +2065,12 @@ body.authenticated #auth-screen.auth-screen{display:none!important}
   backdrop-filter:blur(20px) saturate(1.20)!important;
   -webkit-backdrop-filter:blur(20px) saturate(1.20)!important;
 }
-#auth-screen .auth-entry-layout>.auth-card::before{
-  content:"";
-  position:absolute;
-  inset:1px 1px auto 1px;
-  height:42%;
-  border-radius:21px 21px 52% 52%;
-  pointer-events:none;
-  background:linear-gradient(125deg,rgba(255,255,255,.16),rgba(255,255,255,.025) 64%,transparent);
-  opacity:.62;
-}
-#auth-screen .auth-title{
-  position:relative;
-  z-index:1;
-  color:#fff!important;
-}
-#auth-screen .auth-sub{
-  position:relative;
-  z-index:1;
-  color:rgba(225,243,245,.76)!important;
-}
-
-/* Login/Signup switch */
-#auth-screen .auth-mode-switch{
-  position:relative;
-  z-index:1;
-  border:1px solid rgba(186,224,229,.25)!important;
-  background:rgba(8,31,65,.26)!important;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.07)!important;
-}
-#auth-screen .auth-mode-btn{
-  color:rgba(230,244,246,.75)!important;
-  background:transparent!important;
-}
-#auth-screen .auth-mode-btn.active{
-  color:#112D4C!important;
-  background:linear-gradient(180deg,rgba(250,253,253,.96),rgba(221,235,239,.92))!important;
-  box-shadow:0 6px 18px rgba(2,18,48,.18),inset 0 1px 0 #fff!important;
-}
-
-/* Form fields */
-#auth-screen .label{color:#EAF7F8!important}
-#auth-screen .input{
-  color:#F2FAFB!important;
-  border:1px solid rgba(190,226,230,.26)!important;
-  background:rgba(8,34,68,.26)!important;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.04)!important;
-}
-#auth-screen .input::placeholder{color:rgba(213,234,237,.54)!important}
-#auth-screen .input:focus{
-  border-color:rgba(89,185,167,.68)!important;
-  box-shadow:0 0 0 3px rgba(89,185,167,.12)!important;
-}
-
-/* Primary auth button */
-#auth-screen .auth-submit{
-  color:#fff!important;
-  border:1px solid rgba(129,224,219,.20)!important;
-  background:linear-gradient(90deg,var(--kairo-teal),#167D96 48%,var(--kairo-blue))!important;
-  box-shadow:
-    0 12px 28px rgba(4,34,67,.24),
-    inset 0 1px 0 rgba(255,255,255,.22)!important;
-}
-#auth-screen .auth-submit:hover{filter:brightness(1.06)!important}
-
-/* Signup helper text */
-#auth-screen .signup-note,
-#auth-screen .signup-plan-chip,
-#auth-screen .username-hint{color:rgba(225,243,245,.72)!important}
-
-/* Short laptop screens */
-@media(max-height:760px) and (min-width:861px){
-  #auth-screen.auth-screen{padding-top:112px!important;padding-bottom:18px!important}
-  #auth-screen>.kairo-auth-page-brand{top:24px!important}
-  #auth-screen .kairo-auth-page-title{font-size:clamp(34px,4vw,54px)!important}
-  #auth-screen .kairo-auth-page-tagline{margin-top:11px!important}
-  #auth-screen .auth-plans-panel .plan-offer-card{height:345px!important}
-  #auth-screen .auth-entry-layout>.auth-card{padding:26px 30px!important}
-}
-
-/* Mobile */
-@media(max-width:860px){
-  #auth-screen.auth-screen{
-    align-items:flex-start!important;
-    overflow-y:auto!important;
-    padding:126px 16px 36px!important;
-  }
-  #auth-screen>.kairo-auth-page-brand{top:28px!important;width:92vw!important}
-  #auth-screen .kairo-auth-page-title{
-    font-size:clamp(30px,9vw,48px)!important;
-    line-height:.96!important;
-    letter-spacing:.10em!important;
-    white-space:normal!important;
-  }
-  #auth-screen .kairo-auth-page-tagline{
-    margin-top:12px!important;
-    font-size:10px!important;
-    letter-spacing:.22em!important;
-    white-space:normal!important;
-  }
-  #auth-screen .auth-entry-layout{
-    grid-template-columns:1fr!important;
-    gap:24px!important;
-    min-height:auto!important;
-  }
-  #auth-screen .auth-entry-layout>.auth-card{
-    order:1!important;
-    justify-self:center!important;
-    max-width:520px!important;
-  }
-  #auth-screen .auth-plans-panel{order:2!important}
-}
-
-
-
-/* Page identity: guaranteed above every auth element/background layer */
-#auth-screen > .kairo-auth-page-brand{
-  display:block!important;
-  visibility:visible!important;
-  opacity:1!important;
-  position:fixed!important;
-  top:28px!important;
-  left:50%!important;
-  right:auto!important;
-  bottom:auto!important;
-  transform:translateX(-50%)!important;
-  width:min(1200px,94vw)!important;
-  height:auto!important;
-  overflow:visible!important;
-  z-index:100005!important;
-  text-align:center!important;
-  pointer-events:none!important;
-}
-#auth-screen > .kairo-auth-page-brand .kairo-auth-page-title{
-  display:block!important;
-  visibility:visible!important;
-  opacity:1!important;
-  margin:0!important;
-  color:#FFFFFF!important;
-  font-family:"Plus Jakarta Sans",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;
-  font-size:clamp(48px,5vw,76px)!important;
-  line-height:1!important;
-  font-weight:800!important;
-  letter-spacing:.14em!important;
-  font-variant-caps:all-small-caps!important;
-  text-transform:uppercase!important;
-  white-space:nowrap!important;
-  text-shadow:0 8px 30px rgba(3,16,45,.42)!important;
-}
-#auth-screen > .kairo-auth-page-brand .kairo-auth-page-tagline{
-  display:block!important;
-  visibility:visible!important;
-  opacity:1!important;
-  margin:13px 0 0!important;
-  color:rgba(255,255,255,.94)!important;
-  font-size:13px!important;
-  line-height:1.2!important;
-  font-weight:700!important;
-  letter-spacing:.30em!important;
-  font-variant-caps:all-small-caps!important;
-  text-transform:uppercase!important;
-  white-space:nowrap!important;
-  text-shadow:0 4px 18px rgba(3,16,45,.36)!important;
-}
 
 /* The slogan belongs only to the page header, never inside login/signup card. */
-#auth-screen .auth-card .auth-sub{display:none!important}
-
-@media(max-height:760px) and (min-width:861px){
-  #auth-screen > .kairo-auth-page-brand{top:18px!important}
-  #auth-screen > .kairo-auth-page-brand .kairo-auth-page-title{
-    font-size:clamp(40px,4.2vw,60px)!important;
-  }
-  #auth-screen > .kairo-auth-page-brand .kairo-auth-page-tagline{
-    margin-top:9px!important;
-    font-size:11px!important;
-  }
-}
-@media(max-width:860px){
-  #auth-screen > .kairo-auth-page-brand{
-    position:absolute!important;
-    top:24px!important;
-    width:92vw!important;
-  }
-  #auth-screen > .kairo-auth-page-brand .kairo-auth-page-title{
-    font-size:clamp(34px,9vw,52px)!important;
-    line-height:1!important;
-    letter-spacing:.09em!important;
-    white-space:normal!important;
-  }
-  #auth-screen > .kairo-auth-page-brand .kairo-auth-page-tagline{
-    margin-top:10px!important;
-    font-size:10px!important;
-    letter-spacing:.20em!important;
-    white-space:normal!important;
-  }
-}
-
-
-
-/* KAIRO identity now lives INSIDE the final auth grid created at runtime. */
-#auth-screen .auth-entry-layout{
-  grid-template-rows:auto auto!important;
-  row-gap:26px!important;
-}
+/* The slogan belongs only to the page header{display:none!important}
 
 /* It spans both columns, so it cannot disappear behind or outside the runtime layout. */
-#auth-screen .auth-entry-layout > .kairo-auth-page-brand{
+/* It spans both columns{
   display:block!important;
   visibility:visible!important;
   opacity:1!important;
@@ -2639,174 +2089,8 @@ body.authenticated #auth-screen.auth-screen{display:none!important}
   overflow:visible!important;
 }
 
-#auth-screen .auth-entry-layout > .kairo-auth-page-brand .kairo-auth-page-title{
-  display:block!important;
-  visibility:visible!important;
-  opacity:1!important;
-  margin:0!important;
-  color:#fff!important;
-  font-family:"Plus Jakarta Sans",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;
-  font-size:clamp(52px,5.1vw,78px)!important;
-  line-height:.98!important;
-  font-weight:800!important;
-  letter-spacing:.15em!important;
-  text-transform:uppercase!important;
-  font-variant-caps:all-small-caps!important;
-  white-space:nowrap!important;
-  text-shadow:0 7px 28px rgba(2,18,48,.38)!important;
-}
-
-#auth-screen .auth-entry-layout > .kairo-auth-page-brand .kairo-auth-page-tagline{
-  display:block!important;
-  visibility:visible!important;
-  opacity:1!important;
-  margin:14px 0 0!important;
-  color:rgba(255,255,255,.94)!important;
-  font-size:12px!important;
-  line-height:1.2!important;
-  font-weight:700!important;
-  letter-spacing:.31em!important;
-  text-transform:uppercase!important;
-  font-variant-caps:all-small-caps!important;
-  white-space:nowrap!important;
-  text-shadow:0 3px 16px rgba(2,18,48,.32)!important;
-}
-
-/* Main content becomes grid row 2. */
-#auth-screen .auth-entry-layout > .auth-plans-panel{
-  grid-column:1!important;
-  grid-row:2!important;
-}
-#auth-screen .auth-entry-layout > .auth-card{
-  grid-column:2!important;
-  grid-row:2!important;
-}
-
-/* Remove the now-obsolete absolute/fixed header placement from previous pass. */
-#auth-screen > .kairo-auth-page-brand{
-  position:static!important;
-}
-
-@media(max-height:760px) and (min-width:861px){
-  #auth-screen.auth-screen{
-    padding-top:24px!important;
-    padding-bottom:20px!important;
-  }
-  #auth-screen .auth-entry-layout{
-    row-gap:18px!important;
-  }
-  #auth-screen .auth-entry-layout > .kairo-auth-page-brand .kairo-auth-page-title{
-    font-size:clamp(42px,4.3vw,60px)!important;
-  }
-  #auth-screen .auth-entry-layout > .kairo-auth-page-brand .kairo-auth-page-tagline{
-    margin-top:9px!important;
-    font-size:10px!important;
-  }
-}
-
-@media(max-width:860px){
-  #auth-screen .auth-entry-layout{
-    grid-template-columns:1fr!important;
-    grid-template-rows:auto auto auto!important;
-    row-gap:20px!important;
-  }
-  #auth-screen .auth-entry-layout > .kairo-auth-page-brand{
-    grid-column:1!important;
-    grid-row:1!important;
-    margin-bottom:4px!important;
-  }
-  #auth-screen .auth-entry-layout > .auth-card{
-    grid-column:1!important;
-    grid-row:2!important;
-  }
-  #auth-screen .auth-entry-layout > .auth-plans-panel{
-    grid-column:1!important;
-    grid-row:3!important;
-  }
-  #auth-screen .auth-entry-layout > .kairo-auth-page-brand .kairo-auth-page-title{
-    font-size:clamp(34px,9vw,50px)!important;
-    letter-spacing:.09em!important;
-    white-space:normal!important;
-  }
-  #auth-screen .auth-entry-layout > .kairo-auth-page-brand .kairo-auth-page-tagline{
-    margin-top:10px!important;
-    font-size:10px!important;
-    letter-spacing:.20em!important;
-    white-space:normal!important;
-  }
-}
-
-
-
-/* Typography-only change: preserve the fixed carousel/auth layout exactly. */
-#auth-screen .auth-entry-layout > .kairo-auth-page-brand .kairo-auth-page-title{
-  font-size:clamp(78px,7.65vw,117px)!important; /* 1.5x */
-}
-#auth-screen .auth-entry-layout > .kairo-auth-page-brand .kairo-auth-page-tagline{
-  font-size:30px!important; /* 2.5x */
-}
-
-/* Keep scaling proportional on shorter laptop screens without moving either content column. */
-@media(max-height:760px) and (min-width:861px){
-  #auth-screen .auth-entry-layout > .kairo-auth-page-brand .kairo-auth-page-title{
-    font-size:clamp(63px,6.45vw,90px)!important;
-  }
-  #auth-screen .auth-entry-layout > .kairo-auth-page-brand .kairo-auth-page-tagline{
-    font-size:25px!important;
-  }
-}
-
-/* Mobile remains responsive; only typography changes. */
-@media(max-width:860px){
-  #auth-screen .auth-entry-layout > .kairo-auth-page-brand .kairo-auth-page-title{
-    font-size:clamp(51px,13.5vw,75px)!important;
-  }
-  #auth-screen .auth-entry-layout > .kairo-auth-page-brand .kairo-auth-page-tagline{
-    font-size:25px!important;
-  }
-}
-
-
-
-/* Auth intro hierarchy only — carousel/auth positioning untouched. */
-
-#auth-screen .auth-plans-panel{
-  display:flex!important;
-  flex-direction:column!important;
-}
-
-/* 1. Brand story goes first */
-#auth-screen .auth-plans-title{
-  order:1!important;
-  margin:0 0 18px!important;
-  max-width:760px!important;
-  color:rgba(255,255,255,.94)!important;
-  font-family:Georgia,"Times New Roman",serif!important;
-  font-size:clamp(20px,1.65vw,25px)!important;
-  line-height:1.34!important;
-  font-weight:400!important;
-  letter-spacing:-.012em!important;
-  font-style:italic!important;
-  text-wrap:balance!important;
-  text-shadow:0 3px 14px rgba(2,18,48,.18)!important;
-}
-
-/* 2. Package chooser label goes in the middle */
-#auth-screen .auth-plans-eyebrow{
-  order:2!important;
-  margin:0 0 10px!important;
-  font-size:clamp(13px,1.05vw,16px)!important;
-  line-height:1.15!important;
-  font-weight:800!important;
-  letter-spacing:.12em!important;
-}
-#auth-screen .auth-plans-eyebrow svg{
-  width:18px!important;
-  height:18px!important;
-}
-
 /* 3. Supporting copy stays beneath it, just a little larger */
-#auth-screen .auth-plans-sub{
+/* 3. Supporting copy stays beneath it{
   order:3!important;
   margin:0 0 22px!important;
   max-width:820px!important;
@@ -2816,95 +2100,8 @@ body.authenticated #auth-screen.auth-screen{display:none!important}
 }
 
 /* Carousel remains after all three lines, unchanged */
-#auth-screen .auth-plans-panel .plan-carousel-shell{
+/* Carousel remains after all three lines{
   order:4!important;
-}
-#auth-screen .auth-plans-panel .auth-carousel-nav{
-  order:5!important;
-}
-
-@media(max-height:760px) and (min-width:861px){
-  #auth-screen .auth-plans-title{
-    font-size:clamp(17px,1.45vw,21px)!important;
-    margin-bottom:13px!important;
-  }
-  #auth-screen .auth-plans-eyebrow{
-    font-size:13px!important;
-    margin-bottom:8px!important;
-  }
-  #auth-screen .auth-plans-sub{
-    font-size:12.5px!important;
-    margin-bottom:16px!important;
-  }
-}
-
-@media(max-width:860px){
-  #auth-screen .auth-plans-title{
-    max-width:100%!important;
-    font-size:clamp(19px,5.4vw,24px)!important;
-  }
-  #auth-screen .auth-plans-eyebrow{
-    font-size:14px!important;
-  }
-  #auth-screen .auth-plans-sub{
-    font-size:14px!important;
-  }
-}
-
-
-
-/*
-  Position lock:
-  switching Masuk <-> Buat Akun must NOT recenter the whole auth grid.
-  Brand and auth card keep the same top anchor; taller signup content grows downward.
-*/
-@media(min-width:861px){
-  #auth-screen.auth-screen{
-    align-items:flex-start!important;
-    justify-content:center!important;
-    overflow-y:auto!important;
-  }
-
-  #auth-screen .auth-entry-layout{
-    align-self:start!important;
-    align-content:start!important;
-    align-items:start!important;
-    margin-top:0!important;
-    min-height:0!important;
-  }
-
-  /* Brand identity gets a stable first-row anchor. */
-  #auth-screen .auth-entry-layout > .kairo-auth-page-brand{
-    align-self:start!important;
-    justify-self:stretch!important;
-    margin-top:0!important;
-  }
-
-  /* Both main columns always begin from the exact same row-2 top edge. */
-  #auth-screen .auth-entry-layout > .auth-plans-panel,
-  #auth-screen .auth-entry-layout > .auth-card{
-    align-self:start!important;
-    margin-top:0!important;
-  }
-
-  /* Auth panel no longer vertically recenters when its internal form height changes. */
-  #auth-screen .auth-entry-layout > .auth-card{
-    justify-self:end!important;
-    height:auto!important;
-    min-height:0!important;
-  }
-}
-
-/* On short laptop screens keep the same anchor and simply allow page scrolling. */
-@media(max-height:760px) and (min-width:861px){
-  #auth-screen.auth-screen{
-    align-items:flex-start!important;
-    overflow-y:auto!important;
-  }
-  #auth-screen .auth-entry-layout{
-    align-content:start!important;
-    align-items:start!important;
-  }
 }
 
 
@@ -2919,36 +2116,8 @@ body.authenticated #auth-screen.auth-screen{display:none!important}
 
 
 
-.kairo-business-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.kairo-business-option{position:relative;cursor:pointer;border:1px solid #d8e3e7;border-radius:15px;padding:13px;background:#fff;display:flex;gap:11px;align-items:flex-start;transition:.16s}.kairo-business-option:hover{transform:translateY(-1px);box-shadow:0 8px 22px rgba(16,42,73,.08)}.kairo-business-option.selected{border-color:#2f9aa4;box-shadow:0 0 0 3px rgba(47,154,164,.12);background:#f4fbfb}.kairo-business-option input{position:absolute;opacity:0}.kairo-business-icon{width:36px;height:36px;border-radius:11px;background:#eaf4f6;color:#2f9aa4;display:grid;place-items:center;flex:none}.kairo-business-icon svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8}.kairo-business-option strong{display:block;font-size:12px;color:#183753}.kairo-business-option small{display:block;margin-top:3px;font-size:10px;line-height:1.4;color:#6b7d91}.kairo-basic-upgrade{display:none;margin:10px 0 0;padding:12px 13px;border-radius:14px;border:1px solid color-mix(in srgb,var(--brand-primary) 18%,var(--line));background:linear-gradient(135deg,color-mix(in srgb,var(--brand-primary) 7%,#fff),color-mix(in srgb,var(--brand-accent) 8%,#fff));font-size:10px;line-height:1.45}.kairo-basic-upgrade.show{display:flex;gap:10px;align-items:flex-start}.kairo-basic-upgrade svg{width:19px;height:19px;fill:none;stroke:var(--brand-primary);stroke-width:1.8;flex:none}.kairo-feedback-link{width:100%;margin:8px 0 0;border:1px solid var(--line);background:color-mix(in srgb,var(--brand-primary) 4%,#fff);border-radius:11px;padding:9px 10px;display:flex;align-items:center;gap:8px;color:var(--ink);font:700 9.5px/1.3 'Plus Jakarta Sans',sans-serif;cursor:pointer}.kairo-feedback-link svg{width:16px;height:16px;fill:none;stroke:var(--brand-primary);stroke-width:1.8}.customer-contact-card{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-bottom:14px}.customer-contact-item{padding:11px 13px;border:1px solid var(--line);border-radius:13px;background:color-mix(in srgb,var(--brand-primary) 3%,#fff)}.customer-contact-item span{display:block;font-size:9px;color:var(--muted);font-weight:800;margin-bottom:4px}.customer-contact-item strong{font-size:12px;color:var(--ink);word-break:break-word}
+.kairo-business-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.kairo-business-option{position:relative;cursor:pointer;border:1px solid #d8e3e7;border-radius:15px;padding:13px;background:#fff;display:flex;gap:11px;align-items:flex-start;transition:.16s}.kairo-business-option:hover{transform:translateY(-1px);box-shadow:0 8px 22px rgba(16,42,73,.08)}.kairo-business-option.selected{border-color:#2f9aa4;box-shadow:0 0 0 3px rgba(47,154,164,.12);background:#f4fbfb}.kairo-business-option input{position:absolute;opacity:0}.kairo-business-icon{width:36px;height:36px;border-radius:11px;background:#eaf4f6;color:#2f9aa4;display:grid;place-items:center;flex:none}.kairo-business-icon svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8}.kairo-business-option strong{display:block;font-size:12px;color:#183753}.kairo-business-option small{display:block;margin-top:3px;font-size:10px;line-height:1.4;color:#6b7d91}.kairo-feedback-link{width:100%;margin:8px 0 0;border:1px solid var(--line);background:color-mix(in srgb,var(--brand-primary) 4%,#fff);border-radius:11px;padding:9px 10px;display:flex;align-items:center;gap:8px;color:var(--ink);font:700 9.5px/1.3 'Plus Jakarta Sans',sans-serif;cursor:pointer}.kairo-feedback-link svg{width:16px;height:16px;fill:none;stroke:var(--brand-primary);stroke-width:1.8}.customer-contact-card{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-bottom:14px}.customer-contact-item{padding:11px 13px;border:1px solid var(--line);border-radius:13px;background:color-mix(in srgb,var(--brand-primary) 3%,#fff)}.customer-contact-item span{display:block;font-size:9px;color:var(--muted);font-weight:800;margin-bottom:4px}.customer-contact-item strong{font-size:12px;color:var(--ink);word-break:break-word}
 @media(max-width:760px){.kairo-business-grid,.customer-contact-card{grid-template-columns:1fr}}
-
-
-
-/* LOGIN: remove package carousel from auth landing and lock the login card to the center. */
-#auth-screen .auth-entry-layout{
-  width:min(760px,100%)!important;
-  min-height:calc(100vh - 56px)!important;
-  grid-template-columns:minmax(320px,460px)!important;
-  grid-template-rows:auto auto!important;
-  justify-content:center!important;
-  align-content:center!important;
-  align-items:center!important;
-  column-gap:0!important;
-  row-gap:24px!important;
-}
-#auth-screen .auth-entry-layout>.auth-plans-panel{display:none!important}
-#auth-screen .auth-entry-layout>.kairo-auth-page-brand{
-  grid-column:1!important;grid-row:1!important;width:100%!important;
-  margin:0 auto 4px!important;text-align:center!important;
-}
-#auth-screen .auth-entry-layout>.auth-card{
-  grid-column:1!important;grid-row:2!important;width:100%!important;
-  max-width:460px!important;margin:0 auto!important;position:relative!important;
-}
-@media(max-width:860px){
- #auth-screen.auth-screen{padding:20px 14px!important}
- #auth-screen .auth-entry-layout{width:min(520px,100%)!important;min-height:calc(100vh - 40px)!important;row-gap:18px!important}
-}
 
 /* Business type cards: glossy and clearly selectable. */
 .kairo-business-grid{gap:13px!important}
@@ -2967,16 +2136,6 @@ body.authenticated #auth-screen.auth-screen{display:none!important}
 @media(max-width:760px){
  .kairo-business-grid{grid-template-columns:1fr!important}
 }
-
-
-
-/* Auth — keep KAIRO brand truly centered and fixed */
-#auth-screen .auth-entry-layout{grid-template-columns:1fr!important;justify-items:center!important;align-content:center!important;gap:18px!important;max-width:980px!important;margin-inline:auto!important;position:relative!important}
-#auth-screen .kairo-auth-page-brand{grid-column:1!important;width:100%!important;text-align:center!important;justify-self:center!important;margin:0 auto 12px!important;position:static!important;transform:none!important}
-#auth-screen .kairo-auth-page-title,#auth-screen .kairo-auth-page-tagline{text-align:center!important;margin-inline:auto!important}
-#auth-screen .auth-entry-layout>.auth-card{grid-column:1!important;justify-self:center!important;margin-inline:auto!important;max-width:460px!important;width:min(460px,100%)!important}
-#auth-screen .auth-plans-panel{display:none!important}
-@media(max-width:860px){#auth-screen .auth-entry-layout{align-content:start!important;padding-top:22px!important}.kairo-auth-page-title{font-size:clamp(42px,11vw,68px)!important;letter-spacing:.12em!important}}
 
 /* Orders — glossy controls driven by workspace brand colors */
 #input .card{background:color-mix(in srgb,var(--brand-blend,var(--cream)) 2%,var(--white));border:1px solid color-mix(in srgb,var(--brand-primary) 12%,var(--line));box-shadow:var(--shadow-md)}
@@ -3017,29 +2176,16 @@ body.saas-dark #input .card,body.saas-dark #promo .promo-card{background:linear-
 #saas-sidebar .saas-sidebar-nav{display:flex;flex-direction:column;gap:5px}
 #saas-sidebar #saas-settings-side-btn + #saas-settings-submenu{order:initial}
 #saas-sidebar .kairo-feedback-link{flex:0 0 auto;margin:8px 0 0;border:1px solid color-mix(in srgb,var(--brand-primary) 14%,var(--line));background:linear-gradient(145deg,color-mix(in srgb,var(--white) 96%,transparent),color-mix(in srgb,var(--brand-accent) 7%,var(--white)));box-shadow:0 4px 12px rgba(45,55,72,.04)}
-#saas-sidebar .saas-side-meta + .kairo-feedback-link{margin-top:8px}
 body.saas-sidebar-collapsed #saas-sidebar .kairo-feedback-link{display:grid!important;place-items:center;width:42px!important;height:36px!important;min-width:42px!important;padding:0!important;margin-left:auto!important;margin-right:auto!important;gap:0!important;overflow:hidden!important}
 body.saas-sidebar-collapsed #saas-sidebar .kairo-feedback-link>span{display:none!important}
 body.saas-sidebar-collapsed #saas-sidebar .kairo-feedback-link svg{width:17px!important;height:17px!important;flex:none!important}
 @media(max-width:900px){#saas-sidebar .kairo-feedback-link{display:none!important}}
-
-
-/* V20.10.71 — sidebar subscription visibility + master delete */
-#saas-sidebar .saas-side-meta{overflow:visible!important;min-height:max-content!important;height:auto!important;padding-bottom:12px!important}
-#saas-sidebar .saas-side-meta-copy{min-width:0;overflow:visible!important}
-#saas-sidebar #saas-side-status{display:block!important;white-space:normal!important;overflow:visible!important;line-height:1.35!important;margin-top:3px!important}
 .settings-master-actions{flex-wrap:wrap!important}
 .settings-master-delete{background:color-mix(in srgb,var(--danger) 8%,var(--white))!important;color:var(--danger)!important;border:1px solid rgba(180,35,24,.22)!important}
 .settings-master-delete:hover{background:color-mix(in srgb,var(--danger) 15%,var(--white))!important;border-color:rgba(180,35,24,.38)!important}
 
 /* v20.10.72 mobile nav parity */
 @media(max-width:760px){#saas-mobile-bottom{grid-template-columns:repeat(8,minmax(0,1fr))}.saas-mobile-nav-btn{min-width:0}.saas-mobile-nav-btn span:last-child{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}
-
-
-/* v20.10.77 — sidebar account frame clearance + interactive plan locks */
-#saas-sidebar .saas-side-meta{transform:translateY(-10px)!important;margin-bottom:-10px!important}
-#saas-sidebar .saas-side-meta + .kairo-feedback-link{transform:translateY(-10px)!important;margin-bottom:-10px!important}
-#saas-sidebar .kairo-basic-upgrade{padding:10px 11px!important;margin-top:8px!important;line-height:1.35!important}
 .kairo-feature-locked{opacity:.64!important;cursor:pointer!important;position:relative}
 .kairo-feature-locked:hover{opacity:.82!important}
 .kairo-menu-lock{margin-left:auto;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;color:currentColor}
@@ -3047,98 +2193,6 @@ body.saas-sidebar-collapsed #saas-sidebar .kairo-feedback-link svg{width:17px!im
 .saas-mobile-nav-btn .kairo-menu-lock{position:absolute;right:5px;top:5px;width:15px;height:15px;padding:2px;border-radius:999px;background:var(--card);box-shadow:0 2px 7px rgba(16,42,73,.12)}
 .saas-mobile-nav-btn .kairo-menu-lock svg{width:11px!important;height:11px!important}
 .saas-settings-submenu-btn.kairo-feature-locked{pointer-events:auto!important}
-body.saas-sidebar-collapsed #saas-sidebar .saas-side-meta{transform:none!important;margin-bottom:0!important}
-\n\n/* v20.10.78 — auth landing hard reset. Prevent stale/legacy auth layout rules from washing out or splitting the login page. */
-body.auth-locked #auth-screen.auth-screen{
-  display:grid!important;place-items:center!important;min-height:100vh!important;padding:28px!important;
-}
-body.auth-locked #auth-screen .auth-entry-layout{
-  width:min(760px,100%)!important;min-height:calc(100vh - 56px)!important;
-  display:grid!important;grid-template-columns:minmax(320px,460px)!important;grid-template-rows:auto auto!important;
-  justify-content:center!important;align-content:center!important;align-items:center!important;justify-items:center!important;
-  gap:24px!important;margin:0 auto!important;
-}
-body.auth-locked #auth-screen .auth-entry-layout>.kairo-auth-page-brand{
-  grid-column:1!important;grid-row:1!important;position:static!important;transform:none!important;
-  width:100%!important;margin:0 auto 4px!important;text-align:center!important;justify-self:center!important;
-}
-body.auth-locked #auth-screen .auth-entry-layout>.auth-card{
-  grid-column:1!important;grid-row:2!important;position:relative!important;justify-self:center!important;
-  width:min(460px,100%)!important;margin:0 auto!important;padding:32px!important;border-radius:22px!important;
-  border:1px solid rgba(180,224,228,.38)!important;color:#F4FBFC!important;
-  background:radial-gradient(circle at 0% 0%,rgba(89,185,167,.24),transparent 34%),radial-gradient(circle at 100% 100%,rgba(59,91,139,.44),transparent 44%),linear-gradient(145deg,rgba(17,54,82,.94),rgba(27,47,93,.96))!important;
-  box-shadow:0 24px 70px rgba(2,17,45,.30),inset 0 1px 0 rgba(255,255,255,.28)!important;
-  opacity:1!important;filter:none!important;
-}
-body.auth-locked #auth-screen .auth-entry-layout>.auth-plans-panel{display:none!important}
-body.auth-locked #auth-screen .auth-title{color:#fff!important;opacity:1!important}
-body.auth-locked #auth-screen .label{color:rgba(225,243,245,.90)!important;opacity:1!important}
-body.auth-locked #auth-screen .input{opacity:1!important;color:#F4FBFC!important;-webkit-text-fill-color:#F4FBFC!important;background:rgba(225,238,247,.16)!important;border-color:rgba(205,229,235,.24)!important}
-body.auth-locked #auth-screen .input::placeholder{color:rgba(225,243,245,.50)!important;-webkit-text-fill-color:rgba(225,243,245,.50)!important}
-body.auth-locked #auth-screen .auth-submit{opacity:1!important;color:#fff!important}
-@media(max-width:860px){body.auth-locked #auth-screen.auth-screen{padding:20px 14px!important}body.auth-locked #auth-screen .auth-entry-layout{width:min(520px,100%)!important;min-height:calc(100vh - 40px)!important;row-gap:18px!important}}
-
-/* v20.10.80 — safe correction: keep v78 auth flow intact; no fixed/absolute wordmark overlay. */
-body.auth-locked #auth-screen .auth-entry-layout{
-  width:min(760px,100%)!important;
-  grid-template-columns:minmax(0,460px)!important;
-  justify-content:center!important;
-  justify-items:stretch!important;
-}
-body.auth-locked #auth-screen .auth-entry-layout>.kairo-auth-page-brand{
-  position:static!important;
-  inset:auto!important;
-  transform:none!important;
-  width:100%!important;
-  max-width:460px!important;
-  justify-self:center!important;
-  margin:0 auto 4px!important;
-  text-align:center!important;
-}
-body.auth-locked #auth-screen .kairo-auth-page-title,
-body.auth-locked #auth-screen .kairo-auth-page-tagline{
-  display:block!important;
-  width:100%!important;
-  margin-left:auto!important;
-  margin-right:auto!important;
-  text-align:center!important;
-}
-body.auth-locked #auth-screen .auth-entry-layout>.auth-card{
-  position:relative!important;
-  inset:auto!important;
-  transform:none!important;
-  justify-self:center!important;
-}
-/* Raise the tenant footer cards only; do not reposition sidebar navigation. */
-#saas-sidebar .saas-side-meta{transform:translateY(-22px)!important;margin-bottom:-22px!important}
-#saas-sidebar .saas-side-meta + .kairo-feedback-link{transform:translateY(-22px)!important;margin-bottom:-22px!important}
-body.saas-sidebar-collapsed #saas-sidebar .saas-side-meta{transform:none!important;margin-bottom:0!important}
-\n\n/* v20.10.81 — targeted only: auth wordmark centering + sidebar footer clearance + datetime control */\nbody.auth-locked #auth-screen .auth-entry-layout>.kairo-auth-page-brand .kairo-auth-page-title,\nbody.auth-locked #auth-screen .auth-entry-layout>.kairo-auth-page-brand .kairo-auth-page-tagline{\n  position:relative!important;left:50%!important;transform:translateX(-50%)!important;\n  width:max-content!important;max-width:94vw!important;text-align:center!important;\n}\n#saas-sidebar .saas-side-meta{transform:translateY(-34px)!important;margin-bottom:-34px!important}\n#saas-sidebar .saas-side-meta + .kairo-feedback-link{transform:translateY(-34px)!important;margin-bottom:-34px!important}\n#saas-sidebar .saas-side-meta-copy,#saas-sidebar #saas-side-status{overflow:visible!important}\nbody.saas-sidebar-collapsed #saas-sidebar .saas-side-meta{transform:none!important;margin-bottom:0!important}\n#profit-share-effective-date{min-width:205px}\n
-
-/* v20.10.82 — BASIC UI revision + independent desktop sidebar scroll */
-@media (min-width:901px){
-  #saas-sidebar{overflow:hidden!important}
-  #saas-sidebar .saas-side-brand{flex:0 0 auto}
-  #saas-sidebar .saas-sidebar-nav{flex:1 1 auto!important;min-height:0!important;overflow-y:auto!important;overflow-x:hidden!important;padding-right:3px;padding-bottom:8px;scrollbar-width:thin;overscroll-behavior:contain}
-  #saas-sidebar .saas-side-spacer{display:none!important}
-  #saas-sidebar .saas-side-meta,#saas-sidebar .kairo-feedback-link,#saas-sidebar .saas-collapse-btn{flex:0 0 auto}
-  #saas-sidebar .saas-sidebar-nav::-webkit-scrollbar{width:5px}
-  #saas-sidebar .saas-sidebar-nav::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--brand-primary) 22%,transparent);border-radius:99px}
-
-  body.kairo-basic-plan #saas-sidebar .saas-side-meta,
-  body.kairo-basic-plan #saas-sidebar #kairo-basic-upgrade{display:none!important}
-  body.kairo-basic-plan #app-shell .header .workspace-meta{gap:8px!important;flex:1 1 auto!important;min-width:0!important}
-  body.kairo-basic-plan #app-shell .plan-pill,
-  body.kairo-basic-plan #app-shell .role-pill{display:none!important}
-  .kairo-basic-header-frame{display:flex;align-items:center;gap:12px;min-width:0;max-width:min(690px,calc(100vw - 520px));padding:6px 10px;border:1px solid color-mix(in srgb,var(--brand-primary) 12%,var(--line));border-radius:13px;background:linear-gradient(145deg,color-mix(in srgb,var(--white) 96%,transparent),color-mix(in srgb,var(--brand-accent) 5%,var(--white)));box-shadow:0 4px 14px rgba(45,55,72,.035)}
-  .kairo-basic-header-status{display:flex;align-items:center;gap:7px;flex:0 0 auto;padding-right:11px;border-right:1px solid var(--line)}
-  .kairo-basic-header-status strong,.kairo-basic-header-upgrade strong{display:block;font-size:9px;line-height:1.2;color:var(--ink)}
-  .kairo-basic-header-status small,.kairo-basic-header-upgrade small{display:block;margin-top:2px;font-size:7.5px;line-height:1.25;color:var(--muted);white-space:normal}
-  .kairo-basic-header-upgrade{display:flex;align-items:center;gap:7px;min-width:0;max-width:390px}
-  .kairo-basic-header-upgrade>div{min-width:0}
-  .kairo-basic-header-arrow{font-size:15px;color:var(--brand-primary);flex:0 0 auto}
-  .kairo-basic-header-upgrade small{max-width:340px}
-}
 
 /* BASIC Performance: only Penjualan Harian is visible. Global date filters remain untouched. */
 body.kairo-basic-plan #performance .performance-intro,
@@ -3156,11 +2210,8 @@ body.kairo-basic-plan #performance>.grid-main:first-of-type>.card:first-child{wi
 
 /* ---- KAIRO v20.10.83 — BASIC UI targeted fixes ---- */
 @media (min-width:901px){
-  body.kairo-basic-plan #saas-sidebar .saas-side-meta,
-  body.kairo-basic-plan #saas-sidebar #kairo-basic-upgrade{display:none!important}
   body.kairo-basic-plan #app-shell .header .workspace-meta{display:flex!important;align-items:stretch!important;gap:7px!important;min-width:0!important;flex:1 1 auto!important}
-  body.kairo-basic-plan #app-shell .plan-pill,
-  body.kairo-basic-plan #app-shell .role-pill{display:flex!important}
+  body.kairo-basic-plan #app-shell .plan-pill{display:flex!important}
   .kairo-header-card-v83{min-height:38px!important;padding:7px 11px!important;border:1px solid color-mix(in srgb,var(--brand-primary) 13%,var(--line))!important;border-radius:12px!important;background:color-mix(in srgb,var(--brand-primary) 3%,var(--white))!important;box-shadow:0 3px 12px rgba(45,55,72,.035)!important;align-items:center!important;justify-content:center!important;white-space:nowrap!important}
   .kairo-plan-card-v83{flex-direction:column!important;align-items:flex-start!important;gap:1px!important;line-height:1.05!important}
   .kairo-plan-card-v83 strong{font-size:9px!important}.kairo-plan-card-v83 small{font-size:7px!important;color:var(--muted)!important;font-weight:650!important}
@@ -3204,9 +2255,7 @@ body.kairo-basic-plan #performance #kairo-basic-daily-sales-v83{display:block!im
   #saas-sidebar .saas-side-spacer{
     display:none!important;
   }
-  #saas-sidebar .saas-side-meta,
-  #saas-sidebar .kairo-feedback-link,
-  #saas-sidebar .saas-collapse-btn{
+  #saas-sidebar .kairo-feedback-link,#saas-sidebar .saas-collapse-btn{
     flex:0 0 auto!important;
   }
   #saas-sidebar .saas-sidebar-nav::-webkit-scrollbar{width:5px!important}
@@ -3220,7 +2269,6 @@ body.kairo-basic-plan #performance #kairo-basic-daily-sales-v83{display:block!im
 
 /* KAIRO v20.10.86 — same fixed header frame geometry for BASIC / PLUS / PRO */
 @media (min-width:901px){
-  #saas-sidebar .saas-side-meta.kairo-plan-meta-retired-v86{display:none!important}
   .workspace-meta .kairo-header-card-v83{font-size:11px!important;line-height:1.2!important}
   .workspace-meta .kairo-header-card-v83 strong{font-size:11px!important;line-height:1.15!important}
   .workspace-meta .kairo-header-card-v83 small{font-size:8px!important;line-height:1.15!important}
@@ -3233,86 +2281,6 @@ body.kairo-basic-plan #performance #kairo-basic-daily-sales-v83{display:block!im
 .topic-label-editor{display:grid;grid-template-columns:minmax(220px,1fr) auto;gap:10px;align-items:end;margin:14px 0 16px;padding:12px;border:1px solid var(--line);border-radius:14px;background:color-mix(in srgb,var(--brand-accent) 5%,var(--white))}
 .settings-topic-master-row{grid-template-columns:minmax(130px,.55fr) minmax(220px,1fr) auto!important}
 @media(max-width:720px){.topic-label-editor{grid-template-columns:1fr}.settings-topic-master-row{grid-template-columns:1fr!important}}
-
-/* v20.10.88 — auth landing restore. Keep KAIRO WORKSPACES centered regardless of auth body timing. */
-#auth-screen.auth-screen{
-  display:grid!important;
-  place-items:center!important;
-  min-height:100vh!important;
-  padding:28px!important;
-}
-#auth-screen .auth-entry-layout{
-  width:min(760px,100%)!important;
-  min-height:calc(100vh - 56px)!important;
-  display:grid!important;
-  grid-template-columns:minmax(0,460px)!important;
-  grid-template-rows:auto auto!important;
-  justify-content:center!important;
-  align-content:center!important;
-  justify-items:center!important;
-  align-items:center!important;
-  gap:24px!important;
-  margin:0 auto!important;
-  position:relative!important;
-}
-#auth-screen .auth-entry-layout>.kairo-auth-page-brand{
-  grid-column:1!important;
-  grid-row:1!important;
-  position:static!important;
-  inset:auto!important;
-  transform:none!important;
-  width:100%!important;
-  max-width:none!important;
-  margin:0 auto 4px!important;
-  text-align:center!important;
-  justify-self:center!important;
-}
-#auth-screen .auth-entry-layout>.kairo-auth-page-brand .kairo-auth-page-title,
-#auth-screen .auth-entry-layout>.kairo-auth-page-brand .kairo-auth-page-tagline{
-  position:static!important;
-  left:auto!important;
-  transform:none!important;
-  display:block!important;
-  width:max-content!important;
-  max-width:94vw!important;
-  margin-left:auto!important;
-  margin-right:auto!important;
-  text-align:center!important;
-}
-#auth-screen .auth-entry-layout>.auth-card{
-  grid-column:1!important;
-  grid-row:2!important;
-  position:relative!important;
-  inset:auto!important;
-  transform:none!important;
-  justify-self:center!important;
-  width:min(460px,100%)!important;
-  margin:0 auto!important;
-  padding:32px!important;
-  border-radius:22px!important;
-  border:1px solid rgba(180,224,228,.38)!important;
-  color:#F4FBFC!important;
-  background:radial-gradient(circle at 0% 0%,rgba(89,185,167,.24),transparent 34%),radial-gradient(circle at 100% 100%,rgba(59,91,139,.44),transparent 44%),linear-gradient(145deg,rgba(17,54,82,.94),rgba(27,47,93,.96))!important;
-  box-shadow:0 24px 70px rgba(2,17,45,.30),inset 0 1px 0 rgba(255,255,255,.28)!important;
-  opacity:1!important;
-  filter:none!important;
-}
-#auth-screen .auth-entry-layout>.auth-plans-panel{display:none!important}
-#auth-screen .auth-title{color:#fff!important;opacity:1!important}
-#auth-screen .label{color:rgba(225,243,245,.90)!important;opacity:1!important}
-#auth-screen .input{opacity:1!important;color:#F4FBFC!important;-webkit-text-fill-color:#F4FBFC!important;background:rgba(225,238,247,.16)!important;border-color:rgba(205,229,235,.24)!important}
-#auth-screen .input::placeholder{color:rgba(225,243,245,.50)!important;-webkit-text-fill-color:rgba(225,243,245,.50)!important}
-#auth-screen .auth-submit{opacity:1!important;color:#fff!important}
-@media(max-width:860px){
-  #auth-screen.auth-screen{padding:20px 14px!important}
-  #auth-screen .auth-entry-layout{width:min(520px,100%)!important;min-height:calc(100vh - 40px)!important;row-gap:18px!important}
-}
-
-/* v20.10.93 — hide pricing/package carousel only when it is inside the authenticated dashboard.
-   Keep the DOM intact because auth/login scripts may reuse the same plan carousel. */
-body.authenticated #dashboard #plan-carousel-shell {
-  display: none !important;
-}
 
 
 /* KAIRO v20.10.100 — receipt layout templates only. No auth/login selectors. */
@@ -3503,7 +2471,7 @@ body.saas-dark #settings .receipt-template-section{background:#252b32;border-col
   .kairo-mobile-plan-card>div{min-width:0}.kairo-mobile-plan-card strong{display:block;font-size:12px;color:var(--ink);line-height:1.2}.kairo-mobile-plan-card small{display:block;margin-top:3px;font-size:9px;color:var(--muted);line-height:1.35;white-space:normal}.kairo-mobile-plan-chevron{font-size:22px;color:var(--brand-accent);text-align:right}
 
   /* Retire the desktop plan/header furniture on mobile only; prevents the oversized PRO frame bug. */
-  #app-shell .workspace-meta,#kairo-basic-header-upgrade-v83,#kairo-basic-header-frame{display:none!important}
+  #app-shell .workspace-meta,#kairo-basic-header-upgrade-v83{display:none!important}
 
   /* Kairo mobile bottom nav: More → Dashboard → Orders → Promo → Settings */
   #saas-mobile-bottom{left:10px!important;right:10px!important;bottom:max(8px,env(safe-area-inset-bottom))!important;height:70px!important;display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;align-items:end!important;overflow:visible!important;padding:7px 8px 6px!important;border-radius:22px!important;background:color-mix(in srgb,var(--card) 92%,transparent)!important;border:1px solid color-mix(in srgb,var(--brand-accent) 15%,var(--line))!important;box-shadow:0 15px 38px rgba(16,26,36,.20),inset 0 1px 0 rgba(255,255,255,.08)!important;backdrop-filter:blur(22px) saturate(125%)!important;-webkit-backdrop-filter:blur(22px) saturate(125%)!important}

@@ -205,12 +205,6 @@ html.kairo-v3 .saas-settings-side-btn.active .saas-nav-icon {
   color: var(--v3-primary-dark);
 }
 
-html.kairo-v3 .saas-side-meta {
-  background: var(--v3-sky) !important;
-  border-color: var(--v3-line) !important;
-  box-shadow: none !important;
-}
-
 /* Minimized sidebar (desktop): a 76px rail where every icon keeps the exact x
    position it has when expanded, so expand/minimize only animates the rail width
    and fades the labels instead of jumping. */
@@ -432,7 +426,7 @@ html.kairo-v3 body.saas-dark #kairo-v3-dashboard-head small {
   color: var(--v3-primary);
 }
 
-html.kairo-v3 body.saas-dark #app-shell :is(#saas-workspace-pill, #saas-role-pill) {
+html.kairo-v3 body.saas-dark #app-shell #saas-workspace-pill {
   background: var(--v3-surface-subtle) !important;
   border-color: var(--v3-line) !important;
   color: var(--v3-ink) !important;
@@ -868,10 +862,6 @@ html.kairo-v3 .kairo-refresh-btn.is-refreshing .kairo-btn-icon {
 
 @keyframes kairo-spin {
   to { transform: rotate(360deg); }
-}
-
-html.kairo-v3 .saas-side-dot {
-  background: var(--v3-primary) !important;
 }
 
 html.kairo-v3 .saas-collapse-btn {
@@ -4431,4 +4421,41 @@ html.kairo-v3 .kairo-lp-more-features li > span { color: var(--kairo-entry-muted
   html.kairo-v3 .kairo-lp-shot img { border-radius: 10px; }
   html.kairo-v3 .kairo-lp-shot.is-tall { width: min(300px, 100%); }
   html.kairo-v3 .kairo-lp-more-features ul { grid-template-columns: 1fr; gap: 16px; }
+}
+
+/* Dashboard upgrade hint (Gratis only, kairo-v3.js): clear but quiet — one slim row, dismissible. */
+html.kairo-v3 #kairo-upgrade-hint:not([hidden]) {
+  display: flex; align-items: center; gap: 14px; margin: 0 0 var(--v3-card-gap, 16px); padding: 12px 14px 12px 16px;
+  border: 1px solid color-mix(in srgb, var(--v3-primary) 28%, var(--v3-line)); border-radius: var(--v3-r-md, 16px);
+  background: color-mix(in srgb, var(--v3-primary) 6%, var(--v3-surface));
+}
+html.kairo-v3 .kairo-upgrade-hint-icon {
+  flex: none; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 11px;
+  background: color-mix(in srgb, var(--v3-primary) 16%, var(--v3-surface)); color: var(--v3-primary-dark);
+}
+html.kairo-v3 .kairo-upgrade-hint-icon svg,
+html.kairo-v3 .kairo-upgrade-hint-close svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+html.kairo-v3 .kairo-upgrade-hint-copy { flex: 1; min-width: 0; display: grid; gap: 2px; }
+html.kairo-v3 .kairo-upgrade-hint-copy strong { color: var(--v3-ink); font-size: 13.5px; }
+html.kairo-v3 .kairo-upgrade-hint-copy span { color: var(--v3-ink-soft); font-size: 12.5px; line-height: 1.45; }
+html.kairo-v3 .kairo-upgrade-hint-actions { flex: none; display: flex; align-items: center; gap: 6px; }
+html.kairo-v3 .kairo-upgrade-hint-copy .is-short { display: none; }
+html.kairo-v3 .kairo-upgrade-hint-cta {
+  min-height: 36px; padding: 0 14px; border: 0; border-radius: 10px; cursor: pointer;
+  background: var(--v3-primary); color: var(--v3-on-primary); font: inherit; font-size: 12.5px; font-weight: 800; white-space: nowrap;
+}
+html.kairo-v3 .kairo-upgrade-hint-cta:hover { background: var(--v3-primary-dark); color: #fff; }
+html.kairo-v3 .kairo-upgrade-hint-close {
+  display: grid; place-items: center; width: 32px; height: 32px; border: 0; border-radius: 9px; cursor: pointer;
+  background: transparent; color: var(--v3-muted);
+}
+html.kairo-v3 .kairo-upgrade-hint-close:hover { background: color-mix(in srgb, var(--v3-ink) 7%, transparent); color: var(--v3-ink); }
+html.kairo-v3 :is(.kairo-upgrade-hint-cta, .kairo-upgrade-hint-close):focus-visible { outline: 3px solid color-mix(in srgb, var(--v3-primary) 45%, transparent); outline-offset: 2px; }
+@media (max-width: 640px) {
+  html.kairo-v3 #kairo-upgrade-hint:not([hidden]) { display: grid; grid-template-columns: 36px minmax(0, 1fr) 32px; gap: 10px 12px; padding: 12px; align-items: start; }
+  html.kairo-v3 .kairo-upgrade-hint-actions { display: contents; }
+  html.kairo-v3 .kairo-upgrade-hint-copy .is-long { display: none; }
+  html.kairo-v3 .kairo-upgrade-hint-copy .is-short { display: inline; }
+  html.kairo-v3 .kairo-upgrade-hint-close { grid-column: 3; grid-row: 1; }
+  html.kairo-v3 .kairo-upgrade-hint-cta { grid-column: 1 / -1; grid-row: 2; width: 100%; min-height: 40px; }
 }

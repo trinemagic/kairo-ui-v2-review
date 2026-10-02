@@ -60,32 +60,12 @@ async function loadPlatformAccess(){
 function isTrineMagicWorkspace(){
   return String(activeWorkspaceId||"")==="e43c8ee6-f4a7-4e10-8d00-dc34fdaf1dc2" || String(activeWorkspaceName||"").trim().toLowerCase()==="trine magic";
 }
+// The "KAIRO Admin" shortcut (admin/) used to sit in the retired sidebar plan box and was never
+// visible; the admin/ page is not part of this site, so no shortcut is mounted.
 function ensureKairoAppSwitcher(){
-  let el=document.getElementById("kairo-app-switcher");
-  const allowed=Boolean(activePlatformAdmin && isTrineMagicWorkspace());
-  if(!allowed){ if(el) el.remove(); return; }
-  if(!el){
-    el=document.createElement("a");
-    el.id="kairo-app-switcher";
-    el.href="admin/";
-    el.title="Buka KAIRO Super Admin";
-    el.setAttribute("aria-label","Buka KAIRO Super Admin");
-    el.innerHTML=`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4.5 6v5.2c0 4.7 3.1 8.9 7.5 9.8 4.4-.9 7.5-5.1 7.5-9.8V6L12 3Z"/><path d="M9 12.2 11 14l4-4"/></svg><span>KAIRO Admin</span>`;
-  }
-  const meta=document.querySelector('.saas-side-meta');
-  if(meta && el.parentElement!==meta) meta.prepend(el);
-  else if(!meta && !el.isConnected) document.body.appendChild(el);
+  document.getElementById("kairo-app-switcher")?.remove();
 }
 
-function normalizedWorkspaceRole(){ return String(activeWorkspaceRole||"").toLowerCase(); }
-function isWorkspaceOwner(){ return normalizedWorkspaceRole()==="owner"; }
-function isWorkspaceAdmin(){ return ["owner","admin"].includes(normalizedWorkspaceRole()); }
-function isWorkspaceStaff(){ return ["owner","admin","staff"].includes(normalizedWorkspaceRole()); }
-function requireWorkspaceRole(allowedRoles, actionLabel="melakukan aksi ini"){
-  const role=normalizedWorkspaceRole();
-  if(!allowedRoles.includes(role)) throw new Error(`Role ${role||"unknown"} tidak diizinkan untuk ${actionLabel}.`);
-  return true;
-}
 let activePlanEntitlements = new Map();
 // KAIRO has two plans: Gratis (stored as "basic"/"free") and Pro. The retired "plus" and the
 // "custom" plan (a tailored Pro) are treated as Pro everywhere, so their badge shows PRO.
@@ -141,12 +121,14 @@ async function loadActiveWorkspaceForUser(user){
     .eq("status","active");
 
   if(error) throw error;
-  const memberships=(data||[]).filter(x=>x.workspaces?.status==="active");
+  // One workspace = one account: only the owner's own login opens it (no admin/staff accounts).
+  const active=(data||[]).filter(x=>x.workspaces?.status==="active");
+  const memberships=active.filter(x=>String(x.role||"").toLowerCase()==="owner");
   activeWorkspaceMemberships=memberships;
   if(!memberships.length){
     activeWorkspaceId=null;
     activeWorkspaceRole=null;
-    throw new Error("Akun ini belum memiliki akses ke workspace aktif.");
+    throw new Error(active.length?"Workspace hanya bisa dibuka dengan akun pemiliknya. Masuk memakai akun owner workspace ini.":"Akun ini belum memiliki akses ke workspace aktif.");
   }
 
   const savedWorkspaceId=localStorage.getItem("trine_active_workspace_id_v1");
@@ -154,7 +136,6 @@ async function loadActiveWorkspaceForUser(user){
   activeWorkspaceId=membership.workspace_id;
   activeWorkspaceRole=membership.role;
   activeWorkspaceName=membership.workspaces?.name || "Trine Magic";
-  document.documentElement.dataset.workspaceRole=normalizedWorkspaceRole();
   return membership;
 }
 
@@ -574,7 +555,6 @@ async function switchActiveWorkspace(workspaceId){
   stopRealtimeSync();
   activeWorkspaceId=membership.workspace_id; activeWorkspaceRole=membership.role; activeWorkspaceName=membership.workspaces?.name||"Workspace";
   localStorage.setItem("trine_active_workspace_id_v1",activeWorkspaceId);
-  document.documentElement.dataset.workspaceRole=normalizedWorkspaceRole();
   mastersWorkspaceId='';invalidateWorkspaceData();
   await loadWorkspaceSaasContext();
   dashboardInitialized=false;
@@ -590,30 +570,25 @@ function renderWorkspaceSwitcher(){
 }
 function hydrateSaasUi(){
   const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v};
-  set('saas-workspace-pill',activeWorkspaceName||'Workspace'); set('saas-plan-pill',planLabel(activeWorkspacePlan)); set('saas-role-pill',String(activeWorkspaceRole||'-').toUpperCase());
-  set('settings-meta-name',activeWorkspaceName||'-'); set('settings-meta-role',String(activeWorkspaceRole||'-').toUpperCase()); set('settings-meta-plan',String(activeWorkspacePlan||'basic').toUpperCase()); set('settings-meta-status',String(activeWorkspaceSubscription?.status||'active').toUpperCase());
+  set('saas-workspace-pill',activeWorkspaceName||'Workspace'); set('saas-plan-pill',planLabel(activeWorkspacePlan));
+  set('settings-meta-name',activeWorkspaceName||'-'); set('settings-meta-plan',String(activeWorkspacePlan||'basic').toUpperCase()); set('settings-meta-status',String(activeWorkspaceSubscription?.status||'active').toUpperCase());
   const b=activeWorkspaceBranding||{}; const name=document.getElementById('settings-workspace-name'); if(name)name.value=activeWorkspaceName||'';
   const logo=document.getElementById('settings-logo-url'); if(logo)logo.value=b.logo_url||'';
   const pc=b.primary_color||'#696F41', ac=b.accent_color||'#EA97A9';
   ['settings-primary-color','settings-primary-text'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=pc}); ['settings-accent-color','settings-accent-text'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=ac});
   const rf=document.getElementById('settings-receipt-footer');if(rf)rf.value=b.receipt_footer||''; const slogan=document.getElementById('settings-dashboard-slogan');if(slogan)slogan.value=dashboardSlogan(); const validity=document.getElementById('settings-meta-validity');if(validity){const raw=activeWorkspaceSubscription?.current_period_end||activeWorkspaceSubscription?.expires_at||activeWorkspaceSubscription?.end_date||activeWorkspaceSubscription?.valid_until||activeWorkspaceSubscription?.trial_ends_at; validity.textContent=raw?new Date(raw).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}):'Belum ditentukan';}
-  const editable=isWorkspaceAdmin(); document.querySelectorAll('#workspace-settings-form input').forEach(e=>e.disabled=!editable); const save=document.getElementById('settings-save-btn');if(save)save.style.display=editable?'':'none';
-  const note=document.getElementById('settings-permission-note');if(note)note.style.display=editable?'none':'block';
   const fullBranding=canUseFeature('custom_branding');
   const lock=document.getElementById('settings-branding-lock');if(lock)lock.style.display=fullBranding?'none':'block';
-  ['settings-logo-url','settings-dashboard-slogan'].forEach(id=>{const el=document.getElementById(id);if(el)el.disabled=!editable||!fullBranding});
-  ['settings-primary-color','settings-primary-text','settings-accent-color','settings-accent-text'].forEach(id=>{const el=document.getElementById(id);if(el)el.disabled=!editable});
-  set('settings-access-copy',isWorkspaceOwner()?'Owner punya akses penuh ke workspace dan pengaturannya.':isWorkspaceAdmin()?'Admin dapat mengelola operasional dan identitas workspace.':'Staff dapat menjalankan operasional, tetapi tidak dapat mengubah Settings.');
+  ['settings-logo-url','settings-dashboard-slogan'].forEach(id=>{const el=document.getElementById(id);if(el)el.disabled=!fullBranding});
   renderSettingsMasterData();
   applyTopicFieldLabel();
   renderWorkspaceSwitcher();
 }
 function openWorkspaceSettings(){
-  if(!isWorkspaceAdmin()){showToast('Role Staff tidak memiliki akses untuk mengubah Settings.',true);return;}
   hydrateSaasUi();
   openAppPage('settings');
 }
-window.openWorkspaceSettings=openWorkspaceSettings; window.canManageSettings=isWorkspaceAdmin;
+window.openWorkspaceSettings=openWorkspaceSettings;
 
 /* =========================
    V19 PAGE NAVIGATION
@@ -634,7 +609,7 @@ function openAppPage(tabName){
     section.style.animation="";
   }
 
-  document.querySelectorAll(".v19-nav .tab").forEach(x=>{
+  document.querySelectorAll("#saas-sidebar .tab").forEach(x=>{
     x.classList.toggle("active",x.dataset.tab===tabName);
   });
 
@@ -667,13 +642,8 @@ function openLanding(){
     window.scrollTo({top:0,left:0,behavior:"auto"});
   }
 }
-document.querySelectorAll(".v19-nav .tab, .landing-nav-btn").forEach(btn=>{
-  btn.addEventListener("click",()=>openAppPage(btn.dataset.tab));
-});
-document.getElementById("v19-home")?.addEventListener("click",openLanding);
 
 
-document.getElementById('saas-settings-btn')?.addEventListener('click',openWorkspaceSettings);
 document.getElementById('saas-workspace-switcher')?.addEventListener('change',e=>switchActiveWorkspace(e.target.value).catch(err=>{console.error(err);showToast(err.message||'Gagal mengganti workspace.',true)}));
 function syncColorPair(a,b){const x=document.getElementById(a),y=document.getElementById(b);x?.addEventListener('input',()=>{if(y)y.value=x.value});y?.addEventListener('change',()=>{if(/^#[0-9a-f]{6}$/i.test(y.value)&&x)x.value=y.value})}
 syncColorPair('settings-primary-color','settings-primary-text');syncColorPair('settings-accent-color','settings-accent-text');
@@ -685,7 +655,7 @@ function applyTopicFieldLabel(){const label=topicFieldLabel(); document.querySel
 document.getElementById('workspace-settings-form')?.addEventListener('submit',async e=>{
   e.preventDefault();
   try{
-    requireWorkspaceRole(['owner','admin'],'mengubah Settings'); const wid=requireWorkspaceId(); const name=document.getElementById('settings-workspace-name').value.trim(); if(!name)throw new Error('Nama workspace wajib diisi.');
+     const wid=requireWorkspaceId(); const name=document.getElementById('settings-workspace-name').value.trim(); if(!name)throw new Error('Nama workspace wajib diisi.');
     const {error:werr}=await db.from('workspaces').update({name}).eq('id',wid); if(werr)throw werr;
     // v20.10.85: BASIC may customize only Primary + Accent colors. Logo/slogan stay plan-gated.
     const branding={
@@ -735,26 +705,24 @@ async function loadMasters(){
 }
 
 
-function settingsMasterCanEdit(){return isWorkspaceAdmin();}
 function masterTypeMeta(type){
   if(type==='package')return {label:'Package',table:'package_masters',priced:true};
   if(type==='addon')return {label:'Add-on',table:'addon_masters',priced:true};
   return {label:topicFieldLabel(),table:'topic_masters',priced:false};
 }
 function masterRowHtml(item,type){
-  const canEdit=settingsMasterCanEdit(),m=masterTypeMeta(type);
-  return `<div class="settings-master-row ${m.priced?'':'settings-topic-master-row'}" data-master-type="${type}" data-master-id="${escapeHtml(item.id||'')}"><div class="form-group"><label class="label">Kode <span style="font-weight:500;color:var(--muted)">(opsional)</span></label><input class="input settings-master-code" value="${escapeHtml(item.code||'')}" maxlength="30" ${canEdit?'':'disabled'}></div><div class="form-group master-name-field"><label class="label">Nama ${escapeHtml(m.label)}</label><input class="input settings-master-name" value="${escapeHtml(item.name||'')}" maxlength="100" ${canEdit?'':'disabled'}></div>${m.priced?`<div class="form-group"><label class="label">Harga</label><input class="input settings-master-price" type="number" min="0" step="1000" value="${Number(item.price||0)}" ${canEdit?'':'disabled'}></div>`:''}<div class="settings-master-actions">${canEdit?`<button class="btn btn-green settings-master-save" type="button">Simpan</button><button class="btn btn-light settings-master-disable" type="button">Nonaktifkan</button><button class="btn btn-danger settings-master-delete" type="button">Hapus</button>`:`<span class="settings-master-status">Read only</span>`}</div></div>`;
+  const m=masterTypeMeta(type);
+  return `<div class="settings-master-row ${m.priced?'':'settings-topic-master-row'}" data-master-type="${type}" data-master-id="${escapeHtml(item.id||'')}"><div class="form-group"><label class="label">Kode <span style="font-weight:500;color:var(--muted)">(opsional)</span></label><input class="input settings-master-code" value="${escapeHtml(item.code||'')}" maxlength="30"></div><div class="form-group master-name-field"><label class="label">Nama ${escapeHtml(m.label)}</label><input class="input settings-master-name" value="${escapeHtml(item.name||'')}" maxlength="100"></div>${m.priced?`<div class="form-group"><label class="label">Harga</label><input class="input settings-master-price" type="number" min="0" step="1000" value="${Number(item.price||0)}"></div>`:''}<div class="settings-master-actions"><button class="btn btn-green settings-master-save" type="button">Simpan</button><button class="btn btn-light settings-master-disable" type="button">Nonaktifkan</button><button class="btn btn-danger settings-master-delete" type="button">Hapus</button></div></div>`;
 }
 function renderSettingsMasterData(){
   const p=document.getElementById('settings-package-list'),a=document.getElementById('settings-addon-list'),t=document.getElementById('settings-topic-list');
   if(p)p.innerHTML=packages.length?packages.map(x=>masterRowHtml(x,'package')).join(''):'<div class="empty">Belum ada package aktif.</div>';
   if(a)a.innerHTML=addons.length?addons.map(x=>masterRowHtml(x,'addon')).join(''):'<div class="empty">Belum ada add-on aktif.</div>';
   if(t)t.innerHTML=topics.length?topics.map(x=>masterRowHtml(x,'topic')).join(''):`<div class="empty">Belum ada ${escapeHtml(topicFieldLabel().toLowerCase())} aktif.</div>`;
-  const canEdit=settingsMasterCanEdit(); ['package','addon','topic'].forEach(type=>{const id=type==='package'?'settings-add-package':type==='addon'?'settings-add-addon':'settings-add-topic';const b=document.getElementById(id);if(b)b.style.display=canEdit?'':'none'}); const sl=document.getElementById('settings-save-topic-label');if(sl)sl.style.display=canEdit?'':'none'; const li=document.getElementById('settings-topic-label');if(li)li.disabled=!canEdit;
+
   applyTopicFieldLabel();
 }
 function appendNewMasterRow(type){
-  if(!settingsMasterCanEdit())return showToast('Hanya Owner/Admin yang bisa mengubah master data.',true);
   const list=document.getElementById(type==='package'?'settings-package-list':type==='addon'?'settings-addon-list':'settings-topic-list'); if(!list)return;
   // v20.10.89: allow multiple draft rows at once, including Topic/Jenis.
   // Each click on + Tambah creates a fresh independent row instead of forcing a single draft.
@@ -771,24 +739,24 @@ async function writeMasterPayload(m,payload,write){
   return res;
 }
 async function saveExistingMasterRow(row){
-  try{requireWorkspaceRole(['owner','admin'],'mengubah master data'); const type=row.dataset.masterType,id=row.dataset.masterId,code=row.querySelector('.settings-master-code').value.trim(),name=row.querySelector('.settings-master-name').value.trim(),m=masterTypeMeta(type); if(!name)throw new Error('Nama wajib diisi.'); const payload={code:code||null,name}; if(m.priced){const price=Number(row.querySelector('.settings-master-price').value);if(!Number.isFinite(price)||price<0)throw new Error('Harga tidak valid.');payload.price=price} const {error}=await writeMasterPayload(m,payload,data=>db.from(m.table).update(data).eq('workspace_id',requireWorkspaceId()).eq('id',id)); if(error)throw error; showToast(`${m.label} berhasil diperbarui.`); await loadMasters();}catch(err){showToast(err.message||'Gagal menyimpan master data.',true)}
+  try{ const type=row.dataset.masterType,id=row.dataset.masterId,code=row.querySelector('.settings-master-code').value.trim(),name=row.querySelector('.settings-master-name').value.trim(),m=masterTypeMeta(type); if(!name)throw new Error('Nama wajib diisi.'); const payload={code:code||null,name}; if(m.priced){const price=Number(row.querySelector('.settings-master-price').value);if(!Number.isFinite(price)||price<0)throw new Error('Harga tidak valid.');payload.price=price} const {error}=await writeMasterPayload(m,payload,data=>db.from(m.table).update(data).eq('workspace_id',requireWorkspaceId()).eq('id',id)); if(error)throw error; showToast(`${m.label} berhasil diperbarui.`); await loadMasters();}catch(err){showToast(err.message||'Gagal menyimpan master data.',true)}
 }
 async function createMasterRow(row){
-  try{requireWorkspaceRole(['owner','admin'],'menambah master data'); const type=row.dataset.masterType,code=row.querySelector('.settings-master-code').value.trim(),name=row.querySelector('.settings-master-name').value.trim(),m=masterTypeMeta(type); if(!name)throw new Error('Nama wajib diisi.'); const payload={workspace_id:requireWorkspaceId(),code:code||null,name,is_active:true}; if(m.priced){const price=Number(row.querySelector('.settings-master-price').value);if(!Number.isFinite(price)||price<0)throw new Error('Harga tidak valid.');payload.price=price} const {error}=await writeMasterPayload(m,payload,data=>db.from(m.table).insert(data)); if(error)throw error; showToast(`${m.label} berhasil ditambahkan.`); await loadMasters();}catch(err){showToast(err.message||'Gagal menambah master data.',true)}
+  try{ const type=row.dataset.masterType,code=row.querySelector('.settings-master-code').value.trim(),name=row.querySelector('.settings-master-name').value.trim(),m=masterTypeMeta(type); if(!name)throw new Error('Nama wajib diisi.'); const payload={workspace_id:requireWorkspaceId(),code:code||null,name,is_active:true}; if(m.priced){const price=Number(row.querySelector('.settings-master-price').value);if(!Number.isFinite(price)||price<0)throw new Error('Harga tidak valid.');payload.price=price} const {error}=await writeMasterPayload(m,payload,data=>db.from(m.table).insert(data)); if(error)throw error; showToast(`${m.label} berhasil ditambahkan.`); await loadMasters();}catch(err){showToast(err.message||'Gagal menambah master data.',true)}
 }
 async function deleteMasterRow(row){
   const type=row.dataset.masterType,id=row.dataset.masterId,name=row.querySelector('.settings-master-name')?.value||'',m=masterTypeMeta(type);
   if(!confirm(`Hapus permanen ${m.label} “${name}”? Item ini akan hilang dari master aktif. Data transaksi lama tidak ikut dihapus.`))return;
-  try{requireWorkspaceRole(['owner','admin'],'menghapus master data');const {error}=await db.from(m.table).delete().eq('workspace_id',requireWorkspaceId()).eq('id',id);if(error)throw error;showToast(`${m.label} berhasil dihapus.`);await loadMasters();}catch(err){console.error(err);const msg=String(err?.message||'');showToast(msg.toLowerCase().includes('foreign key')||msg.toLowerCase().includes('violates')?'Item ini sudah dipakai di data lama, jadi tidak aman dihapus permanen. Gunakan Nonaktifkan agar histori tetap utuh.':(msg||'Gagal menghapus master data.'),true)}
+  try{const {error}=await db.from(m.table).delete().eq('workspace_id',requireWorkspaceId()).eq('id',id);if(error)throw error;showToast(`${m.label} berhasil dihapus.`);await loadMasters();}catch(err){console.error(err);const msg=String(err?.message||'');showToast(msg.toLowerCase().includes('foreign key')||msg.toLowerCase().includes('violates')?'Item ini sudah dipakai di data lama, jadi tidak aman dihapus permanen. Gunakan Nonaktifkan agar histori tetap utuh.':(msg||'Gagal menghapus master data.'),true)}
 }
 async function disableMasterRow(row){
   const type=row.dataset.masterType,id=row.dataset.masterId,name=row.querySelector('.settings-master-name')?.value||'',m=masterTypeMeta(type); if(!confirm(`Nonaktifkan ${m.label} “${name}”? Data transaksi lama tetap aman.`))return;
-  try{requireWorkspaceRole(['owner','admin'],'menonaktifkan master data');const {error}=await db.from(m.table).update({is_active:false}).eq('workspace_id',requireWorkspaceId()).eq('id',id);if(error)throw error;showToast(`${m.label} dinonaktifkan.`);await loadMasters();}catch(err){showToast(err.message||'Gagal menonaktifkan master data.',true)}
+  try{const {error}=await db.from(m.table).update({is_active:false}).eq('workspace_id',requireWorkspaceId()).eq('id',id);if(error)throw error;showToast(`${m.label} dinonaktifkan.`);await loadMasters();}catch(err){showToast(err.message||'Gagal menonaktifkan master data.',true)}
 }
 document.getElementById('settings-add-package')?.addEventListener('click',()=>appendNewMasterRow('package'));
 document.getElementById('settings-add-addon')?.addEventListener('click',()=>appendNewMasterRow('addon'));
 document.getElementById('settings-add-topic')?.addEventListener('click',()=>appendNewMasterRow('topic'));
-document.getElementById('settings-save-topic-label')?.addEventListener('click',async()=>{try{requireWorkspaceRole(['owner','admin'],'mengubah nama topik');const label=(document.getElementById('settings-topic-label')?.value||'').trim();if(!label)throw new Error('Nama field wajib diisi.');const wid=requireWorkspaceId(),labels={...(activeWorkspaceBranding?.receipt_labels||{}),__topic_label:label};const {error}=await db.from('workspace_branding').upsert({workspace_id:wid,receipt_labels:labels,updated_at:new Date().toISOString()},{onConflict:'workspace_id'});if(error)throw error;await loadWorkspaceSaasContext();applyTopicFieldLabel();renderSettingsMasterData();showToast(`Nama Topik diubah menjadi “${label}”.`)}catch(err){showToast(err.message||'Gagal menyimpan nama Topik.',true)}});
+document.getElementById('settings-save-topic-label')?.addEventListener('click',async()=>{try{const label=(document.getElementById('settings-topic-label')?.value||'').trim();if(!label)throw new Error('Nama field wajib diisi.');const wid=requireWorkspaceId(),labels={...(activeWorkspaceBranding?.receipt_labels||{}),__topic_label:label};const {error}=await db.from('workspace_branding').upsert({workspace_id:wid,receipt_labels:labels,updated_at:new Date().toISOString()},{onConflict:'workspace_id'});if(error)throw error;await loadWorkspaceSaasContext();applyTopicFieldLabel();renderSettingsMasterData();showToast(`Nama Topik diubah menjadi “${label}”.`)}catch(err){showToast(err.message||'Gagal menyimpan nama Topik.',true)}});
 document.addEventListener('click',e=>{const row=e.target.closest('.settings-master-row'); if(!row)return; if(e.target.closest('.settings-master-save'))saveExistingMasterRow(row); if(e.target.closest('.settings-master-create'))createMasterRow(row); if(e.target.closest('.settings-master-disable'))disableMasterRow(row); if(e.target.closest('.settings-master-delete'))deleteMasterRow(row); if(e.target.closest('.settings-master-cancel'))renderSettingsMasterData();});
 
 function renderMasterOptions(){
@@ -1338,7 +1306,6 @@ function renderShares(revenue){
 
 function renderProfitShareEditor(){
   const grid=document.getElementById("profit-share-rule-grid"); if(!grid) return;
-  const editable=isWorkspaceAdmin();
   const effective=document.getElementById("profit-share-effective-date"); if(effective&&!effective.value) effective.value=kairoLocalDateTimeValue();
   const active=activeShareVersionForDate(kairoLocalDateTimeValue());
   const activeRules=active?normalizeShareRules(active.rules):[];
@@ -1349,8 +1316,7 @@ function renderProfitShareEditor(){
     const pct=(Number(saved?.percentage??p.percentage??(String(p.partner_name).toLowerCase()==='kas'?LEGACY_CASH_SHARE_RATE:0))*100);
     return `<div class="profit-rule-item"><label>${escapeHtml(p.partner_name||'-')}</label><div class="profit-rule-input-wrap"><input class="input profit-share-pct" type="number" min="0" max="100" step="0.01" value="${Number.isFinite(pct)?pct.toFixed(2).replace(/\.00$/,''):0}" data-partner-id="${p.id||''}" data-partner-name="${escapeHtml(p.partner_name||'')}"><span>%</span></div></div>`;
   }).join('');
-  grid.querySelectorAll('input').forEach(i=>{i.disabled=!editable;i.addEventListener('input',updateProfitShareTotal)});
-  const save=document.getElementById('profit-share-save'); if(save) save.style.display=editable?'':'none';
+  grid.querySelectorAll('input').forEach(i=>i.addEventListener('input',updateProfitShareTotal));
   const label=document.getElementById('profit-share-active-label'); if(label) label.textContent=active?`Aktif sejak ${String(active.effective_from||'').replace('T',' ').slice(0,16)}`:'Aturan legacy';
   const note=document.getElementById('profit-share-history-note'); if(note) note.textContent=profitShareVersionTableReady?(profitShareVersions.length?`${profitShareVersions.length} versi pembagian tersimpan.`:'Belum ada versi tersimpan. Simpan untuk membuat versi pertama.'):'Jalankan migration profit_share_versions dulu agar histori pembagian tersimpan.';
   updateProfitShareTotal();
@@ -1363,13 +1329,13 @@ function updateProfitShareTotal(){
 
 function profitManualPartners(){const rows=[...partners];if(!rows.some(p=>String(p.partner_name||'').toLowerCase()==='kas'))rows.push({id:null,partner_name:'Kas'});return rows;}
 function productProfitRow(item,type){
-  const editable=isWorkspaceAdmin(),mode=String(item.profit_share_mode||'percentage'),cost=Math.max(0,Number(item.cost_price||0)),net=Math.max(0,Number(item.price||0)-cost),saved=Array.isArray(item.manual_profit_split)?item.manual_profit_split:[];
-  const fields=profitManualPartners().map(p=>{const r=saved.find(x=>(x.partner_id&&p.id&&String(x.partner_id)===String(p.id))||String(x.partner_name||'').toLowerCase()===String(p.partner_name||'').toLowerCase());return `<div class="profit-manual-field"><label>${escapeHtml(p.partner_name||'-')}</label><input class="input profit-product-manual-amount" type="number" min="0" step="500" value="${Number(r?.amount||0)}" data-partner-id="${p.id||''}" data-partner-name="${escapeHtml(p.partner_name||'')}" ${editable?'':'disabled'}></div>`;}).join('');
-  return `<div class="profit-product-row ${mode==='manual'?'manual':''}" data-profit-type="${type}" data-profit-id="${escapeHtml(item.id||'')}"><div class="profit-product-top"><div class="profit-product-name"><strong>${escapeHtml(item.name||item.code||'-')}</strong><small>${type==='package'?'Package':'Add-on'} · Harga jual ${rupiah(item.price||0)}</small></div><div class="form-group"><label class="label">HPP / Modal</label><input class="input profit-product-cost" type="number" min="0" step="500" value="${cost}" ${editable?'':'disabled'}></div><div class="form-group"><label class="label">Laba Bersih</label><div class="profit-product-net">${rupiah(net)}</div></div><div class="form-group"><label class="label">Metode Pembagian</label><select class="input profit-product-mode" ${editable?'':'disabled'}><option value="percentage" ${mode!=='manual'?'selected':''}>Persentase global</option><option value="manual" ${mode==='manual'?'selected':''}>Nominal manual</option></select></div>${editable?'<button class="btn btn-green profit-product-save" type="button">Simpan</button>':''}</div><div class="profit-product-manual">${fields}<div class="profit-manual-total"></div></div></div>`;
+  const mode=String(item.profit_share_mode||'percentage'),cost=Math.max(0,Number(item.cost_price||0)),net=Math.max(0,Number(item.price||0)-cost),saved=Array.isArray(item.manual_profit_split)?item.manual_profit_split:[];
+  const fields=profitManualPartners().map(p=>{const r=saved.find(x=>(x.partner_id&&p.id&&String(x.partner_id)===String(p.id))||String(x.partner_name||'').toLowerCase()===String(p.partner_name||'').toLowerCase());return `<div class="profit-manual-field"><label>${escapeHtml(p.partner_name||'-')}</label><input class="input profit-product-manual-amount" type="number" min="0" step="500" value="${Number(r?.amount||0)}" data-partner-id="${p.id||''}" data-partner-name="${escapeHtml(p.partner_name||'')}"></div>`;}).join('');
+  return `<div class="profit-product-row ${mode==='manual'?'manual':''}" data-profit-type="${type}" data-profit-id="${escapeHtml(item.id||'')}"><div class="profit-product-top"><div class="profit-product-name"><strong>${escapeHtml(item.name||item.code||'-')}</strong><small>${type==='package'?'Package':'Add-on'} · Harga jual ${rupiah(item.price||0)}</small></div><div class="form-group"><label class="label">HPP / Modal</label><input class="input profit-product-cost" type="number" min="0" step="500" value="${cost}"></div><div class="form-group"><label class="label">Laba Bersih</label><div class="profit-product-net">${rupiah(net)}</div></div><div class="form-group"><label class="label">Metode Pembagian</label><select class="input profit-product-mode"><option value="percentage" ${mode!=='manual'?'selected':''}>Persentase global</option><option value="manual" ${mode==='manual'?'selected':''}>Nominal manual</option></select></div><button class="btn btn-green profit-product-save" type="button">Simpan</button></div><div class="profit-product-manual">${fields}<div class="profit-manual-total"></div></div></div>`;
 }
 function refreshProductProfitRow(row){if(!row)return;const type=row.dataset.profitType,id=row.dataset.profitId,source=type==='package'?packages:addons,item=source.find(x=>String(x.id)===String(id));if(!item)return;const cost=Math.max(0,Number(row.querySelector('.profit-product-cost')?.value||0)),net=Math.max(0,Number(item.price||0)-cost),mode=row.querySelector('.profit-product-mode')?.value||'percentage';const netEl=row.querySelector('.profit-product-net');if(netEl)netEl.textContent=rupiah(net);row.classList.toggle('manual',mode==='manual');const total=[...row.querySelectorAll('.profit-product-manual-amount')].reduce((s,x)=>s+Math.max(0,Number(x.value||0)),0),note=row.querySelector('.profit-manual-total');if(note){note.textContent=mode==='manual'?`Total manual ${rupiah(total)} dari laba bersih ${rupiah(net)}`:'Mengikuti persentase global setelah HPP dipotong.';note.classList.toggle('invalid',mode==='manual'&&Math.abs(total-net)>0.005);}}
 function renderProductProfitRules(){const host=document.getElementById('profit-product-rules');if(!host)return;const rows=[...packages.map(x=>({item:x,type:'package'})),...addons.map(x=>({item:x,type:'addon'}))];host.innerHTML=rows.length?rows.map(x=>productProfitRow(x.item,x.type)).join(''):'<div class="empty">Belum ada package atau add-on aktif.</div>';host.querySelectorAll('.profit-product-row').forEach(row=>{row.querySelector('.profit-product-cost')?.addEventListener('input',()=>refreshProductProfitRow(row));row.querySelector('.profit-product-mode')?.addEventListener('change',()=>refreshProductProfitRow(row));row.querySelectorAll('.profit-product-manual-amount').forEach(i=>i.addEventListener('input',()=>refreshProductProfitRow(row)));row.querySelector('.profit-product-save')?.addEventListener('click',()=>saveProductProfitRule(row));refreshProductProfitRow(row);});}
-async function saveProductProfitRule(row){try{requireWorkspaceRole(['owner','admin'],'mengubah HPP dan pembagian produk');const type=row.dataset.profitType,id=row.dataset.profitId,source=type==='package'?packages:addons,item=source.find(x=>String(x.id)===String(id));if(!item)throw new Error('Produk tidak ditemukan.');const cost=Math.max(0,Number(row.querySelector('.profit-product-cost')?.value||0)),net=Math.max(0,Number(item.price||0)-cost),mode=row.querySelector('.profit-product-mode')?.value||'percentage',manual=[...row.querySelectorAll('.profit-product-manual-amount')].map(i=>({partner_id:i.dataset.partnerId||null,partner_name:i.dataset.partnerName||'',amount:Math.max(0,Number(i.value||0))})),total=manual.reduce((s,r)=>s+r.amount,0);if(mode==='manual'&&Math.abs(total-net)>0.005)throw new Error(`Total nominal manual wajib sama dengan laba bersih ${rupiah(net)}. Sekarang ${rupiah(total)}.`);const table=type==='package'?'package_masters':'addon_masters',payload={cost_price:cost,profit_share_mode:mode,manual_profit_split:mode==='manual'?manual:[]};const {error}=await db.from(table).update(payload).eq('workspace_id',requireWorkspaceId()).eq('id',id);if(error)throw error;showToast(`${type==='package'?'Package':'Add-on'}: HPP dan aturan profit tersimpan.`);await loadMasters();await refreshAll();}catch(err){console.error(err);showToast(err.message||'Gagal menyimpan aturan profit produk.',true);}}
+async function saveProductProfitRule(row){try{const type=row.dataset.profitType,id=row.dataset.profitId,source=type==='package'?packages:addons,item=source.find(x=>String(x.id)===String(id));if(!item)throw new Error('Produk tidak ditemukan.');const cost=Math.max(0,Number(row.querySelector('.profit-product-cost')?.value||0)),net=Math.max(0,Number(item.price||0)-cost),mode=row.querySelector('.profit-product-mode')?.value||'percentage',manual=[...row.querySelectorAll('.profit-product-manual-amount')].map(i=>({partner_id:i.dataset.partnerId||null,partner_name:i.dataset.partnerName||'',amount:Math.max(0,Number(i.value||0))})),total=manual.reduce((s,r)=>s+r.amount,0);if(mode==='manual'&&Math.abs(total-net)>0.005)throw new Error(`Total nominal manual wajib sama dengan laba bersih ${rupiah(net)}. Sekarang ${rupiah(total)}.`);const table=type==='package'?'package_masters':'addon_masters',payload={cost_price:cost,profit_share_mode:mode,manual_profit_split:mode==='manual'?manual:[]};const {error}=await db.from(table).update(payload).eq('workspace_id',requireWorkspaceId()).eq('id',id);if(error)throw error;showToast(`${type==='package'?'Package':'Add-on'}: HPP dan aturan profit tersimpan.`);await loadMasters();await refreshAll();}catch(err){console.error(err);showToast(err.message||'Gagal menyimpan aturan profit produk.',true);}}
 
 
 function renderCharts(){
@@ -2166,7 +2132,6 @@ document.getElementById("confirm-save").addEventListener("click",async()=>{
 document.getElementById("profit-share-editor-form")?.addEventListener("submit",async e=>{
   e.preventDefault();
   try{
-    requireWorkspaceRole(["owner","admin"],"mengubah pembagian omzet");
     if(!profitShareVersionTableReady) throw new Error("Migration profit_share_versions belum diterapkan di Supabase.");
     const effectiveFrom=document.getElementById("profit-share-effective-date")?.value; if(!effectiveFrom) throw new Error("Tanggal dan waktu mulai wajib diisi.");
     const inputs=[...document.querySelectorAll('.profit-share-pct')];
@@ -3183,25 +3148,11 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
   function hydrate(){
     try{
       const ws = window.activeWorkspace || window.currentWorkspace || window.workspaceState || null;
-      const role = window.activeWorkspaceRole || window.currentWorkspaceRole || window.workspaceRole || pick(ws,['role']);
       const sub = window.activeWorkspaceSubscription || window.currentSubscription || window.workspaceSubscription || null;
       const plan = window.activeWorkspacePlan || window.currentPlan || pick(sub,['plan','plan_code','tier']);
       const name = pick(ws,['name','business_name','workspace_name']);
       if(name) txt('saas-workspace-pill', name);
       if(plan) txt('saas-plan-pill', planLabel(plan));
-      if(role) txt('saas-role-pill', String(role).toUpperCase());
-      const settingsBtn=document.getElementById('saas-settings-btn');
-      if(settingsBtn){
-        const can = (typeof window.canManageSettings==='function') ? !!window.canManageSettings() : String(role||'').toLowerCase()!=='staff';
-        settingsBtn.style.display = can ? '' : 'none';
-        settingsBtn.onclick=function(){
-          if(typeof window.openWorkspaceSettings==='function') return window.openWorkspaceSettings();
-          const target=document.querySelector('[data-section="settings"],#settings,.settings-section');
-          if(target) target.scrollIntoView({behavior:'smooth',block:'start'});
-          else if(typeof window.showToast==='function') window.showToast('Workspace Settings akan aktif di tahap UI berikutnya.');
-          else alert('Workspace Settings akan aktif di tahap UI berikutnya.');
-        };
-      }
     }catch(e){ console.warn('SaaS UI hydrate skipped:', e); }
   }
   document.addEventListener('DOMContentLoaded', hydrate);
@@ -3252,35 +3203,27 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
 
   function buildSidebar(){
     const app=document.querySelector('.app-shell#app-shell'); if(!app||document.getElementById('saas-sidebar')) return;
-    const existingNav=app.querySelector('.v19-nav');
-    const oldWsSelect=document.getElementById('saas-workspace-switcher');
     const side=document.createElement('aside');side.id='saas-sidebar';
-    side.innerHTML=`<div class="saas-side-brand" id="saas-side-home"><img class="brand-logo" alt="Logo workspace"><div class="saas-side-brand-copy"><strong id="saas-side-workspace-name">${escapeHtml(typeof activeWorkspaceName!=='undefined'?activeWorkspaceName:'Trine Magic')}</strong><small>Business Dashboard</small></div></div><nav class="saas-sidebar-nav" aria-label="Navigasi dashboard"></nav><div class="saas-side-spacer"></div><div class="saas-side-meta"><div class="saas-side-meta-top"><span class="saas-side-dot"></span><div class="saas-side-meta-copy"><strong id="saas-side-role-plan">Workspace aktif</strong><small id="saas-side-status">Masa berlaku: —</small></div></div><select id="saas-workspace-select-side" class="saas-workspace-select-side" style="display:none"></select></div><button id="saas-collapse-btn" class="saas-collapse-btn" type="button" title="Minimize sidebar">‹</button>`;
+    side.innerHTML=`<div class="saas-side-brand" id="saas-side-home"><img class="brand-logo" alt="Logo workspace"><div class="saas-side-brand-copy"><strong id="saas-side-workspace-name">${escapeHtml(typeof activeWorkspaceName!=='undefined'?activeWorkspaceName:'Trine Magic')}</strong><small>Business Dashboard</small></div></div><nav class="saas-sidebar-nav" aria-label="Navigasi dashboard"></nav><div class="saas-side-spacer"></div><button id="saas-collapse-btn" class="saas-collapse-btn" type="button" title="Minimize sidebar">‹</button>`;
     document.body.appendChild(side);
     const sideNav=side.querySelector('.saas-sidebar-nav');
-    if(existingNav){
-      existingNav.querySelectorAll('.tab[data-tab]').forEach(btn=>{
-        const tab=btn.dataset.tab; btn.innerHTML=`<span class="saas-nav-icon">${iconMap[tab]||'•'}</span><span class="saas-nav-label">${labelMap[tab]||tab}</span>`; sideNav.appendChild(btn);
-      });
-    }
-    const settingsBtn=document.getElementById('saas-settings-btn');
-    if(settingsBtn){settingsBtn.style.display='none';const b=document.createElement('button');b.type='button';b.id='saas-settings-side-btn';b.className='saas-settings-side-btn';b.innerHTML=`<span class="saas-nav-icon">${iconMap.settings}</span><span class="saas-nav-label">Settings</span>`;b.addEventListener('click',()=>settingsBtn.click());sideNav.appendChild(b);}
-    const originalLogo=app.querySelector('.header .brand-logo'); const sideLogo=side.querySelector('.brand-logo'); if(originalLogo&&sideLogo){sideLogo.src=originalLogo.src;sideLogo.dataset.defaultSrc=originalLogo.src;}
+    // Sidebar menu buttons (the old top tab bar in the header is gone).
+    ['dashboard','performance','cash','payout','input','customers'].forEach(tab=>{
+      const btn=document.createElement('button');btn.type='button';btn.className='tab'+(tab==='dashboard'?' active':'');btn.dataset.tab=tab;
+      btn.innerHTML=`<span class="saas-nav-icon">${iconMap[tab]||'•'}</span><span class="saas-nav-label">${labelMap[tab]||tab}</span>`;
+      btn.addEventListener('click',()=>openAppPage(tab));sideNav.appendChild(btn);
+    });
+    {const b=document.createElement('button');b.type='button';b.id='saas-settings-side-btn';b.className='saas-settings-side-btn';b.innerHTML=`<span class="saas-nav-icon">${iconMap.settings}</span><span class="saas-nav-label">Settings</span>`;b.addEventListener('click',()=>openWorkspaceSettings());sideNav.appendChild(b);}
+    const sideLogo=side.querySelector('.brand-logo'); if(sideLogo){sideLogo.src='assets/kairo-mark.svg';sideLogo.dataset.defaultSrc=sideLogo.src;}
     side.querySelector('#saas-side-home')?.addEventListener('click',()=>document.querySelector('.tab[data-tab="dashboard"]')?.click());
     const collapse=side.querySelector('#saas-collapse-btn');
     const setCollapsed=(yes)=>{document.body.classList.toggle('saas-sidebar-collapsed',yes);collapse.textContent=yes?'›':'‹';collapse.title=yes?'Expand sidebar':'Minimize sidebar';localStorage.setItem(SIDEBAR_KEY,yes?'1':'0')};
     collapse.addEventListener('click',()=>setCollapsed(!document.body.classList.contains('saas-sidebar-collapsed')));setCollapsed(localStorage.getItem(SIDEBAR_KEY)==='1');
-    if(oldWsSelect){
-      const sideSel=side.querySelector('#saas-workspace-select-side');
-      const sync=()=>{sideSel.innerHTML=oldWsSelect.innerHTML;sideSel.value=oldWsSelect.value;sideSel.style.display=oldWsSelect.options.length>1?'':'none'};
-      sync(); new MutationObserver(sync).observe(oldWsSelect,{childList:true,subtree:true,attributes:true});
-      sideSel.addEventListener('change',()=>{oldWsSelect.value=sideSel.value;oldWsSelect.dispatchEvent(new Event('change',{bubbles:true}))});
-    }
     buildMobileNav(); syncNavState();
   }
   function buildMobileNav(){
     if(document.getElementById('saas-mobile-bottom')) return; const bar=document.createElement('nav');bar.id='saas-mobile-bottom';bar.setAttribute('aria-label','Navigasi mobile');
-    ['dashboard','input','promo','performance','customers','payout','cash','settings'].forEach(tab=>{const b=document.createElement('button');b.type='button';b.className='saas-mobile-nav-btn';b.dataset.mobileTab=tab;b.innerHTML=`<span>${iconMap[tab]}</span><span>${labelMap[tab]}</span>`;b.addEventListener('click',()=>{if(tab==='settings')document.getElementById('saas-settings-btn')?.click();else document.querySelector(`#saas-sidebar .tab[data-tab="${tab}"],.v19-nav .tab[data-tab="${tab}"]`)?.click();setTimeout(syncNavState,20)});bar.appendChild(b)});document.body.appendChild(bar);
+    ['dashboard','input','promo','performance','customers','payout','cash','settings'].forEach(tab=>{const b=document.createElement('button');b.type='button';b.className='saas-mobile-nav-btn';b.dataset.mobileTab=tab;b.innerHTML=`<span>${iconMap[tab]}</span><span>${labelMap[tab]}</span>`;b.addEventListener('click',()=>{if(tab==='settings')document.getElementById('saas-settings-side-btn')?.click();else document.querySelector(`#saas-sidebar .tab[data-tab="${tab}"]`)?.click();setTimeout(syncNavState,20)});bar.appendChild(b)});document.body.appendChild(bar);
   }
   function syncNavState(){
     const active=document.querySelector('.section.active')?.id||'dashboard';document.querySelectorAll('.saas-mobile-nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.mobileTab===active));
@@ -3304,7 +3247,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
   // Extend existing UI hydrator without replacing its backend behavior.
   if(typeof hydrateSaasUi==='function'){
     const originalHydrate=hydrateSaasUi;
-    hydrateSaasUi=function(){const r=originalHydrate.apply(this,arguments);setTimeout(()=>{addBrandPreview();wireBrandingPreview();applyWorkspaceBrandingV204(activeWorkspaceBranding);const rp=document.getElementById('saas-side-role-plan');if(rp)rp.textContent=`${String(activeWorkspaceRole||'-').toUpperCase()} · ${planLabel(activeWorkspacePlan)}`;const st=document.getElementById('saas-side-status');if(st){if(isTrineMagicWorkspace()){st.textContent='Masa berlaku: Unlimited';}else{const raw=activeWorkspaceSubscription?.current_period_end||activeWorkspaceSubscription?.expires_at||activeWorkspaceSubscription?.end_date||activeWorkspaceSubscription?.valid_until||activeWorkspaceSubscription?.trial_ends_at;st.textContent=raw?`Masa berlaku: ${new Date(raw).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'})}`:'Masa berlaku: Belum ditentukan';}}ensureKairoAppSwitcher();syncNavState();},0);return r;};
+    hydrateSaasUi=function(){const r=originalHydrate.apply(this,arguments);setTimeout(()=>{addBrandPreview();wireBrandingPreview();applyWorkspaceBrandingV204(activeWorkspaceBranding);ensureKairoAppSwitcher();syncNavState();},0);return r;};
   }
   // Add workspace-specific receipt footer to preview.
   if(typeof showReceiptPreview==='function'){
@@ -3312,7 +3255,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
     showReceiptPreview=function(p){originalReceipt(p);const footer=activeWorkspaceBranding?.receipt_footer;if(footer){const c=document.getElementById('receipt-content');if(c&&!c.querySelector('.saas-receipt-footer')){const f=document.createElement('div');f.className='saas-receipt-footer';f.style.cssText='margin-top:14px;padding-top:11px;border-top:1px dashed #ddd;text-align:center;font-size:11px;color:var(--muted)';f.textContent=footer;c.appendChild(f);}}};
   }
   // Keep active state synced even when old navigation logic changes sections.
-  document.addEventListener('click',e=>{if(e.target.closest('.tab,#saas-settings-btn,.saas-settings-side-btn'))setTimeout(syncNavState,30)});
+  document.addEventListener('click',e=>{if(e.target.closest('.tab,.saas-settings-side-btn'))setTimeout(syncNavState,30)});
   const appObs=new MutationObserver(()=>syncNavState());document.querySelectorAll('.section').forEach(s=>appObs.observe(s,{attributes:true,attributeFilter:['class']}));
 
   function initV204(){buildSidebar();addBrandPreview();wireBrandingPreview();if(typeof activeWorkspaceBranding!=='undefined')applyWorkspaceBrandingV204(activeWorkspaceBranding);syncNavState();}
@@ -3336,7 +3279,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
     menu.addEventListener('click',e=>e.stopPropagation());
     document.addEventListener('click',()=>setOpen(false));
     document.addEventListener('keydown',e=>{if(e.key==='Escape')setOpen(false)});
-    document.getElementById('saas-user-settings-menu')?.addEventListener('click',()=>{setOpen(false);document.getElementById('saas-settings-btn')?.click()});
+    document.getElementById('saas-user-settings-menu')?.addEventListener('click',()=>{setOpen(false);document.getElementById('saas-settings-side-btn')?.click()});
     const updateInitial=()=>{
       const raw=(email?.textContent||'G').trim();
       const ch=(raw.match(/[A-Za-z0-9]/)?.[0]||'G').toUpperCase();
@@ -3474,9 +3417,9 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
      <div class="full receipt-settings-preview"><strong>Catatan</strong>Footer struk diatur dari submenu Struk & Wording. Tombol “Salin Struk” akan menyalin versi teks yang rapi dan siap dipaste ke chat customer.</div>
      <div class="full actions"><button class="btn btn-green" type="submit">Simpan Wording Struk</button></div></form></div>`;
    settings.appendChild(panel);
-   function fill(){const l=receiptLabels();panel.querySelectorAll('[data-receipt-label]').forEach(input=>{input.value=l[input.dataset.receiptLabel]??'';input.disabled=!isWorkspaceAdmin();});}
+   function fill(){const l=receiptLabels();panel.querySelectorAll('[data-receipt-label]').forEach(input=>{input.value=l[input.dataset.receiptLabel]??'';});}
    fill();
-   panel.querySelector('#receipt-wording-form').addEventListener('submit',async e=>{e.preventDefault();try{requireWorkspaceRole(['owner','admin'],'mengubah wording struk');const labels={...(activeWorkspaceBranding?.receipt_labels||{})};panel.querySelectorAll('[data-receipt-label]').forEach(input=>labels[input.dataset.receiptLabel]=input.value.trim());labels.shift_active=receiptLabels().shift_active;const wid=requireWorkspaceId();const {error}=await db.from('workspace_branding').upsert({workspace_id:wid,receipt_labels:labels,updated_at:new Date().toISOString()},{onConflict:'workspace_id'});if(error)throw error;await loadWorkspaceSaasContext();fill();showToast('Wording struk tersimpan.');}catch(err){console.error(err);showToast(err.message||'Gagal menyimpan wording struk.',true);}});
+   panel.querySelector('#receipt-wording-form').addEventListener('submit',async e=>{e.preventDefault();try{const labels={...(activeWorkspaceBranding?.receipt_labels||{})};panel.querySelectorAll('[data-receipt-label]').forEach(input=>labels[input.dataset.receiptLabel]=input.value.trim());labels.shift_active=receiptLabels().shift_active;const wid=requireWorkspaceId();const {error}=await db.from('workspace_branding').upsert({workspace_id:wid,receipt_labels:labels,updated_at:new Date().toISOString()},{onConflict:'workspace_id'});if(error)throw error;await loadWorkspaceSaasContext();fill();showToast('Wording struk tersimpan.');}catch(err){console.error(err);showToast(err.message||'Gagal menyimpan wording struk.',true);}});
    // Extend the existing dropdown controller without rebuilding it.
    select.addEventListener('change',()=>{settings.querySelectorAll('.settings-category-panel').forEach(p=>p.classList.toggle('active',p.dataset.settingsPanel===select.value));try{localStorage.setItem('trine_settings_category_v1',select.value)}catch(e){}});
    try{if(localStorage.getItem('trine_settings_category_v1')==='receipt'){select.value='receipt';select.dispatchEvent(new Event('change'));}}catch(e){}
@@ -3517,7 +3460,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
    updateLogoUploadPreview();syncLogoUploadPermissions();
  }
  function syncLogoUploadPermissions(){
-   const editable=(typeof isWorkspaceAdmin==='function'?isWorkspaceAdmin():true) && (typeof canUseFeature==='function'?canUseFeature('custom_branding'):true);
+   const editable=(typeof canUseFeature==='function'?canUseFeature('custom_branding'):true);
    ['settings-logo-file-btn','settings-logo-recrop-btn'].forEach(id=>{const e=q(id);if(e)e.disabled=!editable});
  }
  function updateLogoUploadPreview(){
@@ -3543,7 +3486,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
  async function uploadCroppedLogo(){
    const btn=q('logo-crop-apply');const shell=q('settings-logo-upload-shell');
    try{
-     requireWorkspaceRole(['owner','admin'],'mengubah logo workspace');if(typeof canUseFeature==='function'&&!canUseFeature('custom_branding'))throw new Error('Upload logo tersedia untuk plan PRO.');
+     if(typeof canUseFeature==='function'&&!canUseFeature('custom_branding'))throw new Error('Upload logo tersedia untuk plan PRO.');
      btn.disabled=true;btn.textContent='Mengupload...';shell?.classList.add('logo-upload-busy');
      const blob=await croppedBlob(),wid=requireWorkspaceId(),path=`${wid}/logo.png`;
      const {error:upErr}=await db.storage.from(BUCKET).upload(path,blob,{contentType:'image/png',upsert:true,cacheControl:'3600'});if(upErr)throw upErr;
@@ -3746,7 +3689,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
  async function saveLayout(){
    const btn=document.getElementById('receipt-layout-save');const oldText=btn?.textContent;
    try{
-     requireWorkspaceRole(['owner','admin'],'mengubah layout struk');const wid=requireWorkspaceId();
+     const wid=requireWorkspaceId();
      if(btn){btn.disabled=true;btn.textContent='Menyimpan…';}
      readDesignControls();
      const labelsPayload=syncLegacyLabels();
@@ -4317,186 +4260,6 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
 
 
 (function(){
-  function bootSignup(){
-    const loginForm=document.getElementById('login-form');
-    const card=loginForm?.closest('.auth-card');
-    if(!loginForm||!card||document.getElementById('signup-form'))return;
-    const title=card.querySelector('.auth-title');
-    const sub=card.querySelector('.auth-sub');
-    const authError=document.getElementById('auth-error');
-
-    const switcher=document.createElement('div');
-    switcher.className='auth-mode-switch';
-    switcher.innerHTML='<button type="button" class="auth-mode-btn active" data-auth-mode="login">Masuk</button><button type="button" class="auth-mode-btn" data-auth-mode="signup">Buat Akun</button>';
-    loginForm.before(switcher);
-
-    const form=document.createElement('form');
-    form.id='signup-form';
-    form.hidden=true;
-    form.innerHTML=`
-      <div class="signup-status" id="signup-status"></div>
-      <div class="signup-grid">
-        <div class="form-group"><label class="label" for="signup-name">Nama Kamu</label><input id="signup-name" class="input" type="text" autocomplete="name" required placeholder="Nama owner"></div>
-        <div class="form-group"><label class="label" for="signup-business">Nama Bisnis</label><input id="signup-business" class="input" type="text" required placeholder="Nama workspace"></div>
-      </div>
-      <div class="form-group"><label class="label" for="signup-template">Jenis Usaha</label><select id="signup-template" class="input" required><option value="general">General / Blank</option><option value="digital_subscription">Digital Subscription Seller</option><option value="service_consultation">Service / Consultation</option><option value="online_shop">Online Shop</option></select><div class="username-hint" id="signup-template-hint">KAIRO menyiapkan struktur awal sesuai jenis usaha. Semua master data tetap bisa diedit setelah masuk.</div></div>
-      <div class="form-group"><label class="label" for="signup-username">Username</label><input id="signup-username" class="input" type="text" autocomplete="username" required maxlength="32" placeholder="username"><div class="username-hint" id="signup-username-hint">3–32 karakter: huruf kecil, angka, titik, _ atau -</div></div>
-      <div class="form-group"><label class="label" for="signup-email">Email</label><input id="signup-email" class="input" type="email" autocomplete="email" required placeholder="nama@email.com"></div>
-      <div class="signup-grid">
-        <div class="form-group"><label class="label" for="signup-password">Password</label><input id="signup-password" class="input" type="password" autocomplete="new-password" required minlength="8" placeholder="Minimal 8 karakter"></div>
-        <div class="form-group"><label class="label" for="signup-password-confirm">Ulangi Password</label><input id="signup-password-confirm" class="input" type="password" autocomplete="new-password" required minlength="8" placeholder="Ulangi password"></div>
-      </div>
-      <div class="signup-note"><span class="signup-plan-chip">GRATIS</span> Akun baru otomatis mendapat 1 workspace dengan paket Gratis dan pembagian Owner 100%.</div>
-      <button id="signup-button" class="btn btn-green auth-submit" type="submit">Buat Akun & Workspace</button>`;
-    loginForm.after(form);
-
-    function setMode(mode){
-      const signup=mode==='signup';
-      loginForm.hidden=signup; form.hidden=!signup;
-      switcher.querySelectorAll('.auth-mode-btn').forEach(b=>b.classList.toggle('active',b.dataset.authMode===mode));
-      if(authError){authError.style.display='none';authError.textContent='';}
-      const status=document.getElementById('signup-status'); if(status){status.className='signup-status';status.textContent='';}
-      if(title)title.textContent=signup?'Buat Workspace Baru':'Masuk ke Dashboard';
-      if(sub)sub.textContent='';
-      setTimeout(()=>document.getElementById(signup?'signup-name':'login-username')?.focus(),0);
-    }
-    switcher.addEventListener('click',e=>{const b=e.target.closest('[data-auth-mode]');if(!b)return;if(b.dataset.authMode==='signup'){e.preventDefault();e.stopPropagation();location.href=location.pathname+'?signup=1';return;}setMode(b.dataset.authMode)});
-    const directSignupBtn=switcher.querySelector('[data-auth-mode="signup"]');
-    if(directSignupBtn){directSignupBtn.onclick=(e)=>{e.preventDefault();e.stopImmediatePropagation();location.href=location.pathname+'?signup=1';};}
-
-    const usernameInput=document.getElementById('signup-username');
-    const hint=document.getElementById('signup-username-hint');
-    function normalizeUsername(v){return String(v||'').trim().toLowerCase().replace(/\s+/g,'');}
-    usernameInput.addEventListener('input',()=>{usernameInput.value=normalizeUsername(usernameInput.value);hint.className='username-hint';hint.textContent='3–32 karakter: huruf kecil, angka, titik, _ atau -';});
-    usernameInput.addEventListener('blur',async()=>{
-      const u=normalizeUsername(usernameInput.value); if(!u)return;
-      if(!/^[a-z0-9._-]{3,32}$/.test(u)){hint.className='username-hint bad';hint.textContent='Format username belum valid.';return;}
-      try{const {data,error}=await db.rpc('is_username_available',{p_username:u});if(error)throw error;hint.className='username-hint '+(data?'ok':'bad');hint.textContent=data?'Username tersedia.':'Username sudah dipakai.';}catch(err){hint.className='username-hint';hint.textContent='Ketersediaan akan dicek saat daftar.';}
-    });
-
-    form.addEventListener('submit',async e=>{
-      e.preventDefault();
-      const btn=document.getElementById('signup-button');
-      const status=document.getElementById('signup-status');
-      const displayName=document.getElementById('signup-name').value.trim();
-      const workspaceName=document.getElementById('signup-business').value.trim();
-      const businessTemplate=document.getElementById('signup-template')?.value||'general';
-      const username=normalizeUsername(usernameInput.value);
-      const email=document.getElementById('signup-email').value.trim().toLowerCase();
-      const password=document.getElementById('signup-password').value;
-      const confirm=document.getElementById('signup-password-confirm').value;
-      const fail=msg=>{status.className='signup-status show bad';status.textContent=msg;};
-      if(!displayName||!workspaceName||!username||!email||!password){fail('Semua field wajib diisi.');return;}
-      if(!/^[a-z0-9._-]{3,32}$/.test(username)){fail('Format username belum valid.');return;}
-      if(password.length<8){fail('Password minimal 8 karakter.');return;}
-      if(password!==confirm){fail('Ulangi password harus sama.');return;}
-      btn.disabled=true;btn.textContent='Membuat akun...';status.className='signup-status';status.textContent='';
-      try{
-        const {data:available,error:checkError}=await db.rpc('is_username_available',{p_username:username});
-        if(checkError)throw checkError;
-        if(!available){fail('Username sudah dipakai. Coba username lain.');return;}
-        const {data,error}=await db.auth.signUp({email,password,options:{data:{username,display_name:displayName,workspace_name:workspaceName,business_template:businessTemplate}}});
-        if(error)throw error;
-        if(data?.session){
-          status.className='signup-status show ok';status.textContent='Akun dan workspace Gratis berhasil dibuat. Membuka dashboard...';
-          // onAuthStateChange handles workspace hydration.
-        }else{
-          status.className='signup-status show ok';
-          status.textContent='Akun berhasil dibuat. Lo bisa langsung masuk memakai username kamu.';
-          document.getElementById('login-username').value=username;
-          setTimeout(()=>setMode('login'),2200);
-        }
-      }catch(err){
-        console.error('Signup:',err);
-        const raw=String(err?.message||'');
-        let msg='Gagal membuat akun. Coba lagi.';
-        if(/already registered|already exists|user already/i.test(raw))msg='Email tersebut sudah terdaftar.';
-        else if(/username/i.test(raw)||/Database error saving new user/i.test(raw))msg='Username kemungkinan sudah dipakai. Coba username lain.';
-        else if(/password/i.test(raw))msg='Password belum memenuhi ketentuan keamanan.';
-        fail(msg);
-      }finally{btn.disabled=false;btn.textContent='Buat Akun & Workspace';}
-    });
-  }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bootSignup,{once:true});else bootSignup();
-})();
-
-
-/* ---- KAIRO SCRIPT BOUNDARY ---- */
-
-
-(()=>{
- const boot=()=>{
-  const track=document.getElementById('plan-carousel-track'); if(!track)return;
-  const move=dir=>track.scrollBy({left:dir*track.clientWidth*.8,behavior:'smooth'});
-  document.getElementById('plan-carousel-left')?.addEventListener('click',()=>move(-1));
-  document.getElementById('plan-carousel-right')?.addEventListener('click',()=>move(1));
-  const markCurrent=()=>{const p=String(window.activeWorkspacePlan||document.documentElement.dataset.workspacePlan||'basic').toLowerCase();document.querySelectorAll('[data-plan-card]').forEach(x=>x.classList.toggle('is-current',x.dataset.planCard===p));};
-  markCurrent(); new MutationObserver(markCurrent).observe(document.documentElement,{attributes:true,attributeFilter:['data-workspace-plan']});
- };
- document.readyState==='loading'?document.addEventListener('DOMContentLoaded',boot,{once:true}):boot();
-})();
-
-
-/* ---- KAIRO SCRIPT BOUNDARY ---- */
-
-
-(()=>{
-  function mountAuthPlanCarousel(){
-    const auth=document.getElementById('auth-screen');
-    const card=auth?.querySelector(':scope > .auth-card');
-    const carousel=document.getElementById('plan-carousel-shell');
-    if(!auth||!card||!carousel||auth.querySelector('.auth-entry-layout')) return;
-
-    const layout=document.createElement('div');
-    layout.className='auth-entry-layout';
-    const left=document.createElement('section');
-    left.className='auth-plans-panel';
-    left.setAttribute('aria-label','Pilihan paket SaaS');
-    left.innerHTML=`
-      <div class="auth-plans-eyebrow">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 17 9 12l4 4 7-8"/><path d="M15 8h5v5"/></svg>
-        <span>PILIH KEBUTUHAN BISNISMU</span>
-      </div>
-      <h1 class="auth-plans-title">Someday, you'll look back at how far you've come. Kairo remembers where you started.</h1>
-      <p class="auth-plans-sub">Bandingkan paket sesuai dengan kebutuhanmu. Mulai pencatatan usahamu dengan Kairo.</p>`;
-
-    const nav=document.createElement('div');
-    nav.className='plan-carousel-nav auth-carousel-nav';
-    nav.innerHTML=`
-      <button type="button" class="plan-carousel-arrow" data-auth-carousel="left" aria-label="Geser paket ke kiri"><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg></button>
-      <button type="button" class="plan-carousel-arrow" data-auth-carousel="right" aria-label="Geser paket ke kanan"><svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button>`;
-
-    auth.insertBefore(layout,card);
-    const pageBrand=auth.querySelector(':scope > .kairo-auth-page-brand');
-    if(pageBrand) layout.append(pageBrand);
-    layout.append(left,card);
-    left.append(carousel,nav);
-
-    const track=carousel.querySelector('#plan-carousel-track');
-    nav.addEventListener('click',e=>{
-      const b=e.target.closest('[data-auth-carousel]'); if(!b||!track)return;
-      track.scrollBy({left:(b.dataset.authCarousel==='left'?-1:1)*Math.max(220,track.clientWidth*.72),behavior:'smooth'});
-    });
-  }
-  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',mountAuthPlanCarousel,{once:true}):mountAuthPlanCarousel();
-})();
-
-
-/* ---- KAIRO SCRIPT BOUNDARY ---- */
-
-
-(()=>{
- const copy={general:'Workspace kosong dan fleksibel untuk berbagai jenis usaha.',digital_subscription:'Siap untuk seller aplikasi premium: durasi 1/3/6/12 bulan + tracking masa aktif.',service_consultation:'Siap untuk jasa konsultasi/readings: paket layanan + alur order berbasis layanan.',online_shop:'Siap untuk toko online: master produk/order dasar yang bisa kamu sesuaikan.'};
- function sync(){const s=document.getElementById('signup-template'),h=document.getElementById('signup-template-hint');if(s&&h)h.textContent=copy[s.value]||copy.general;}
- document.addEventListener('change',e=>{if(e.target?.id==='signup-template')sync()});
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',sync,{once:true});else sync();
-})();
-
-
-/* ---- KAIRO SCRIPT BOUNDARY ---- */
-
-
-(function(){
  const EYE_OPEN='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="2.7"/></svg>';
  const EYE_CLOSED='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 3 18 18"/><path d="M10.6 6.2A9.7 9.7 0 0 1 12 6c6.5 0 10 6 10 6a15 15 0 0 1-2.1 2.8M6.2 6.2C3.5 8 2 12 2 12s3.5 6 10 6c1.6 0 3-.35 4.2-.9"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>';
  function eye(input){if(!input||input.parentElement?.classList.contains('kairo-password-wrap'))return;const wrap=document.createElement('div');wrap.className='kairo-password-wrap';input.parentNode.insertBefore(wrap,input);wrap.appendChild(input);const b=document.createElement('button');b.type='button';b.className='kairo-eye';b.setAttribute('aria-label','Tampilkan password');b.innerHTML=EYE_OPEN;wrap.appendChild(b);b.onclick=()=>{const show=input.type==='password';input.type=show?'text':'password';b.innerHTML=show?EYE_CLOSED:EYE_OPEN;b.setAttribute('aria-label',show?'Sembunyikan password':'Tampilkan password')};}
@@ -4513,7 +4276,6 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
  function openAccountPage(mode='signup'){buildPage();const page=document.getElementById('kairo-account-page');if(!page)return;page.classList.add('show');page.setAttribute('aria-hidden','false');mode==='recover'?renderRecover():mode==='recovery-complete'?renderRecoveryComplete():renderSignup();window.scrollTo(0,0)}
  window.__kairoOpenAccountPage=openAccountPage;
  window.__kairoOpenRecoveryComplete=function(){document.body.classList.remove('authenticated');document.body.classList.add('auth-locked');openAccountPage('recovery-complete')};
- function hijackOldSignup(){const oldForm=document.getElementById('signup-form');if(oldForm)oldForm.hidden=true}
  function addAutolock(){
   const theme=document.getElementById('saas-theme-toggle');
   if(!theme||document.getElementById('kairo-lock-trigger'))return;
@@ -4545,7 +4307,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
    e.stopPropagation();
    openAccountPage('signup');
  },true);
- function boot(){buildPage();ensureLoginExtras();hijackOldSignup();addAutolock();wireEyes();const q=new URLSearchParams(location.search);if(q.get('recovery')==='1')setTimeout(()=>openAccountPage('recovery-complete'),120);else if(q.get('signup')==='1')setTimeout(()=>openAccountPage('signup'),120)}
+ function boot(){buildPage();ensureLoginExtras();addAutolock();wireEyes();const q=new URLSearchParams(location.search);if(q.get('recovery')==='1')setTimeout(()=>openAccountPage('recovery-complete'),120);else if(q.get('signup')==='1')setTimeout(()=>openAccountPage('signup'),120)}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,40));else setTimeout(boot,40)
 })();
 
@@ -4565,7 +4327,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
  function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
  const pencil='<svg viewBox="0 0 24 24"><path d="M4 20h4l11-11-4-4L4 16v4Z"/><path d="m13.5 6.5 4 4"/></svg>',trash='<svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13"/></svg>';
  const old=window.renderProfitShareEditor||renderProfitShareEditor;
- window.renderProfitShareEditor=renderProfitShareEditor=function(){old.apply(this,arguments);const grid=document.getElementById('profit-share-rule-grid');if(!grid||!isWorkspaceAdmin())return;grid.querySelectorAll('.profit-rule-item').forEach(row=>{row.classList.add('kairo-partner-row');const input=row.querySelector('.profit-share-pct'),label=row.querySelector('label');if(!input||!label)return;const id=input.dataset.partnerId,name=input.dataset.partnerName;label.innerHTML=`<span>${esc(name)}</span><span class="kairo-partner-actions">${id?`<button type="button" class="kairo-partner-icon kairo-rename-partner" title="Ganti nama">${pencil}</button><button type="button" class="kairo-partner-icon kairo-delete-partner" title="Hapus partner">${trash}</button>`:''}</span>`;label.querySelector('.kairo-rename-partner')?.addEventListener('click',async()=>{const next=prompt('Nama partner baru:',name);if(!next||next.trim()===name)return;try{const {error}=await db.from('profit_share_rules').update({partner_name:next.trim()}).eq('workspace_id',requireWorkspaceId()).eq('id',id);if(error)throw error;await loadMasters();await refreshAll();showToast('Nama partner diperbarui.')}catch(e){showToast(e.message||'Gagal mengganti nama partner.',true)}});label.querySelector('.kairo-delete-partner')?.addEventListener('click',async()=>{if(!confirm(`Hapus ${name} dari pembagian aktif? Histori versi lama tetap tersimpan.`))return;try{const {error}=await db.from('profit_share_rules').update({is_active:false}).eq('workspace_id',requireWorkspaceId()).eq('id',id);if(error)throw error;await loadMasters();await refreshAll();showToast('Partner dinonaktifkan.')}catch(e){showToast(e.message||'Gagal menghapus partner.',true)}})});if(!document.getElementById('kairo-add-partner')){const b=document.createElement('button');b.id='kairo-add-partner';b.type='button';b.className='btn btn-light kairo-profit-add';b.textContent='+ Tambah Partner';grid.after(b);b.onclick=async()=>{const name=prompt('Nama partner / pos pembagian baru:');if(!name?.trim())return;try{const {error}=await db.from('profit_share_rules').insert({workspace_id:requireWorkspaceId(),partner_name:name.trim(),percentage:0,is_active:true});if(error)throw error;await loadMasters();await refreshAll();showToast('Partner ditambahkan. Atur persentasenya lalu simpan pembagian.')}catch(e){showToast(e.message||'Gagal menambahkan partner.',true)}}}}
+ window.renderProfitShareEditor=renderProfitShareEditor=function(){old.apply(this,arguments);const grid=document.getElementById('profit-share-rule-grid');if(!grid)return;grid.querySelectorAll('.profit-rule-item').forEach(row=>{row.classList.add('kairo-partner-row');const input=row.querySelector('.profit-share-pct'),label=row.querySelector('label');if(!input||!label)return;const id=input.dataset.partnerId,name=input.dataset.partnerName;label.innerHTML=`<span>${esc(name)}</span><span class="kairo-partner-actions">${id?`<button type="button" class="kairo-partner-icon kairo-rename-partner" title="Ganti nama">${pencil}</button><button type="button" class="kairo-partner-icon kairo-delete-partner" title="Hapus partner">${trash}</button>`:''}</span>`;label.querySelector('.kairo-rename-partner')?.addEventListener('click',async()=>{const next=prompt('Nama partner baru:',name);if(!next||next.trim()===name)return;try{const {error}=await db.from('profit_share_rules').update({partner_name:next.trim()}).eq('workspace_id',requireWorkspaceId()).eq('id',id);if(error)throw error;await loadMasters();await refreshAll();showToast('Nama partner diperbarui.')}catch(e){showToast(e.message||'Gagal mengganti nama partner.',true)}});label.querySelector('.kairo-delete-partner')?.addEventListener('click',async()=>{if(!confirm(`Hapus ${name} dari pembagian aktif? Histori versi lama tetap tersimpan.`))return;try{const {error}=await db.from('profit_share_rules').update({is_active:false}).eq('workspace_id',requireWorkspaceId()).eq('id',id);if(error)throw error;await loadMasters();await refreshAll();showToast('Partner dinonaktifkan.')}catch(e){showToast(e.message||'Gagal menghapus partner.',true)}})});if(!document.getElementById('kairo-add-partner')){const b=document.createElement('button');b.id='kairo-add-partner';b.type='button';b.className='btn btn-light kairo-profit-add';b.textContent='+ Tambah Partner';grid.after(b);b.onclick=async()=>{const name=prompt('Nama partner / pos pembagian baru:');if(!name?.trim())return;try{const {error}=await db.from('profit_share_rules').insert({workspace_id:requireWorkspaceId(),partner_name:name.trim(),percentage:0,is_active:true});if(error)throw error;await loadMasters();await refreshAll();showToast('Partner ditambahkan. Atur persentasenya lalu simpan pembagian.')}catch(e){showToast(e.message||'Gagal menambahkan partner.',true)}}}}
 })();
 
 
@@ -4591,7 +4353,9 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
  // Capture submit to enrich metadata and open WA after successful Supabase signup flow.
  document.addEventListener('submit',e=>{if(e.target?.id!=='kairo-signup-form')return;const plan=document.getElementById('kairo-selected-plan')?.value||'basic',biz=document.querySelector('input[name="kairo-business"]:checked')?.value||'digital_subscription',wa=(document.getElementById('kairo-signup-wa')?.value||'').trim();const hiddenTemplate=document.getElementById('kairo-signup-template');if(hiddenTemplate)hiddenTemplate.value=biz;window.__kairoPendingSignup={plan,biz,wa}},true);
  // Basic-only upgrade frame + feedback in sidebar.
- function decorateSidebar(){const meta=document.querySelector('.saas-side-meta');if(!meta)return;if(!document.getElementById('kairo-feedback-link')){const f=document.createElement('button');f.id='kairo-feedback-link';f.className='kairo-feedback-link';f.type='button';f.innerHTML='<svg viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4V5Z"/><path d="M8 9h8M8 12h5"/></svg><span>Ada masukan/keluhan? <strong>Tell us</strong></span>';f.onclick=()=>{const msg=encodeURIComponent(`Halo KAIRO, saya punya masukan/keluhan untuk workspace ${window.activeWorkspaceName||''}: `);if(WA_BUSINESS)window.open(`https://wa.me/${WA_BUSINESS}?text=${msg}`,'_blank');else showToast('Nomor WhatsApp bisnis KAIRO belum dikonfigurasi.',true)};meta.insertAdjacentElement('afterend',f)}else if(f.previousElementSibling!==meta){meta.insertAdjacentElement('afterend',f)}let up=document.getElementById('kairo-basic-upgrade');if(!up){up=document.createElement('div');up.id='kairo-basic-upgrade';up.className='kairo-basic-upgrade';up.innerHTML='<svg viewBox="0 0 24 24"><path d="M4 17 9 12l4 4 7-9"/><path d="M14 7h6v6"/></svg><div><strong>Siap melangkah lebih jauh?</strong><br>Upgrade ke Pro untuk membuka seluruh fitur KAIRO dan pengelolaan usaha yang lebih lengkap.</div>';meta.appendChild(up)}up.classList.toggle('show',String(window.activeWorkspacePlan||activeWorkspacePlan||'basic').toLowerCase()==='basic')}
+ // Upgrade request for Gratis workspaces (Dashboard banner): WhatsApp when the number is set.
+ window.kairoRequestUpgrade=function(){const name=window.activeWorkspaceName||'';if(WA_BUSINESS){window.open(`https://wa.me/${WA_BUSINESS}?text=${encodeURIComponent(`Halo KAIRO, saya mau upgrade workspace ${name} ke paket Pro.`)}`,'_blank');return}showToast('Untuk upgrade ke Pro, hubungi tim KAIRO. Kontak WhatsApp segera tersedia di aplikasi.','info')};
+ function decorateSidebar(){const collapse=document.getElementById('saas-collapse-btn');if(!collapse||document.getElementById('kairo-feedback-link'))return;const f=document.createElement('button');f.id='kairo-feedback-link';f.className='kairo-feedback-link';f.type='button';f.innerHTML='<svg viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4V5Z"/><path d="M8 9h8M8 12h5"/></svg><span>Ada masukan/keluhan? <strong>Tell us</strong></span>';f.onclick=()=>{const msg=encodeURIComponent(`Halo KAIRO, saya punya masukan/keluhan untuk workspace ${window.activeWorkspaceName||''}: `);if(WA_BUSINESS)window.open(`https://wa.me/${WA_BUSINESS}?text=${msg}`,'_blank');else showToast('Nomor WhatsApp bisnis KAIRO belum dikonfigurasi.',true)};collapse.insertAdjacentElement('beforebegin',f)}
  setTimeout(decorateSidebar,1200);
 })();
 
@@ -4624,7 +4388,6 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
   ['Struk & wording sendiri',0,1,1],
   ['Pembagian profit / omzet',0,1,1],
   ['Auto Lock dashboard',0,1,1],
-  ['Akun','1 akun','Owner + Member','Sesuai kebutuhan'],
   ['Penyesuaian & pendampingan setup',0,0,1]
  ];
  const VISIBLE_ROWS=6; // the rest of the comparison opens with "Lihat semua fitur"
@@ -4693,13 +4456,11 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
    const side=document.querySelector('#saas-sidebar .saas-sidebar-nav');
    if(side&&!side.querySelector('[data-tab="promo"]')){const b=document.createElement('button');b.type='button';b.className='tab';b.dataset.tab='promo';b.innerHTML=icon;b.onclick=()=>openPromo();side.appendChild(b)}
    if(side){const order=['dashboard','input','promo','performance','customers','payout','cash'];order.forEach(k=>{const n=side.querySelector(`[data-tab="${k}"]`);if(n)side.appendChild(n)});const set=side.querySelector('#saas-settings-side-btn');const submenu=document.getElementById('saas-settings-submenu');if(set){side.appendChild(set);if(submenu)side.appendChild(submenu)}}
-   const top=document.querySelector('.v19-nav');if(top&&!top.querySelector('[data-tab="promo"]')){const b=document.createElement('button');b.type='button';b.className='tab';b.dataset.tab='promo';b.textContent='Promo';b.onclick=openPromo;top.appendChild(b)}
-   if(top){const order=['dashboard','input','promo','performance','customers','payout','cash'];order.forEach(k=>{const n=top.querySelector(`[data-tab="${k}"]`);if(n)top.appendChild(n)})}
  }
  function openPromo(){
    try{if(typeof openAppPage==='function')openAppPage('promo')}catch(e){}
    document.querySelectorAll('.section').forEach(x=>x.classList.toggle('active',x.id==='promo'));
-   document.querySelectorAll('#saas-sidebar .tab,.v19-nav .tab').forEach(x=>x.classList.toggle('active',x.dataset.tab==='promo'));
+   document.querySelectorAll('#saas-sidebar .tab').forEach(x=>x.classList.toggle('active',x.dataset.tab==='promo'));
    const t=document.querySelector('main.container .page-title'),sub=document.querySelector('main.container .page-sub');if(t)t.textContent='Promo';if(sub)sub.textContent='Kelola diskon package dan topik untuk workspace aktif.';
    renderPromos();window.scrollTo({top:0,behavior:'auto'});
  }
@@ -4785,35 +4546,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
       btn.setAttribute('aria-disabled','false');
     });
   }
-  function moveBasicPlanFrame(){
-    const headerMeta=document.querySelector('#app-shell .header .workspace-meta');
-    const sideMeta=document.querySelector('#saas-sidebar .saas-side-meta');
-    const upgrade=document.getElementById('kairo-basic-upgrade');
-    let frame=document.getElementById('kairo-basic-header-frame');
-    if(!basic()){
-      frame?.remove();
-      sideMeta?.classList.remove('kairo-basic-meta-moved');
-      upgrade?.classList.remove('kairo-basic-upgrade-moved');
-      return;
-    }
-    if(!headerMeta||!sideMeta||!upgrade)return;
-    if(!frame){
-      frame=document.createElement('div');frame.id='kairo-basic-header-frame';frame.className='kairo-basic-header-frame';
-      const rolePlan=document.getElementById('saas-side-role-plan')?.textContent||'OWNER · GRATIS';
-      const validity=document.getElementById('saas-side-status')?.textContent||'Masa berlaku: Belum ditentukan';
-      const upgradeTitle=upgrade.querySelector('strong')?.textContent||'Siap melangkah lebih jauh?';
-      const upgradeText=(upgrade.innerText||'').replace(upgradeTitle,'').trim();
-      frame.innerHTML=`<div class="kairo-basic-header-status"><span class="saas-side-dot"></span><div><strong>${rolePlan}</strong><small>${validity}</small></div></div><div class="kairo-basic-header-upgrade"><span class="kairo-basic-header-arrow">↗</span><div><strong>${upgradeTitle}</strong><small>${upgradeText}</small></div></div>`;
-      headerMeta.appendChild(frame);
-    }else{
-      const a=frame.querySelector('.kairo-basic-header-status strong'),b=frame.querySelector('.kairo-basic-header-status small');
-      if(a)a.textContent=document.getElementById('saas-side-role-plan')?.textContent||'OWNER · GRATIS';
-      if(b)b.textContent=document.getElementById('saas-side-status')?.textContent||'Masa berlaku: Belum ditentukan';
-    }
-    sideMeta.classList.add('kairo-basic-meta-moved');
-    upgrade.classList.add('kairo-basic-upgrade-moved');
-  }
-  function refresh82(){basicPerformance();dedupeSettingsLocks();moveBasicPlanFrame()}
+  function refresh82(){basicPerformance();dedupeSettingsLocks()}
   const oldHyd=window.hydrateSaasUi||hydrateSaasUi;window.hydrateSaasUi=function(){const r=oldHyd.apply(this,arguments);setTimeout(refresh82,20);return r};try{hydrateSaasUi=window.hydrateSaasUi}catch(e){}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(refresh82,220),{once:true});else setTimeout(refresh82,220);
   setTimeout(refresh82,1100);
@@ -4836,18 +4569,16 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
   function headerBasic83(){
     const meta=document.querySelector('#app-shell .header .workspace-meta');
     if(!meta)return;
-    document.getElementById('kairo-basic-header-frame')?.remove();
     let upgrade=document.getElementById('kairo-basic-header-upgrade-v83');
     const workspace=document.getElementById('saas-workspace-pill');
     const plan=document.getElementById('saas-plan-pill');
-    const role=document.getElementById('saas-role-pill');
     if(!isBasic83()){
       upgrade?.remove();
-      [workspace,plan,role].forEach(x=>x?.classList.remove('kairo-header-card-v83'));
+      [workspace,plan].forEach(x=>x?.classList.remove('kairo-header-card-v83'));
       plan?.classList.remove('kairo-plan-card-v83');
       return;
     }
-    [workspace,plan,role].forEach(x=>x?.classList.add('kairo-header-card-v83'));
+    [workspace,plan].forEach(x=>x?.classList.add('kairo-header-card-v83'));
     plan?.classList.add('kairo-plan-card-v83');
     const raw=activeWorkspaceSubscription?.current_period_end||activeWorkspaceSubscription?.expires_at||activeWorkspaceSubscription?.end_date||activeWorkspaceSubscription?.valid_until||activeWorkspaceSubscription?.trial_ends_at;
     const validity=raw?new Date(raw).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}):'Belum ditentukan';
@@ -4913,15 +4644,10 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
   function unifiedHeader86(){
     const meta=document.querySelector('#app-shell .header .workspace-meta');
     if(!meta)return;
-    // The old sidebar plan/status frame is retired for every package.
-    document.querySelector('#saas-sidebar .saas-side-meta')?.classList.add('kairo-plan-meta-retired-v86');
-    document.getElementById('kairo-basic-header-frame')?.remove();
-    document.getElementById('kairo-basic-upgrade')?.classList.add('kairo-basic-upgrade-moved');
 
     const workspace=document.getElementById('saas-workspace-pill');
     const plan=document.getElementById('saas-plan-pill');
-    const role=document.getElementById('saas-role-pill');
-    [workspace,plan,role].forEach(x=>x?.classList.add('kairo-header-card-v83'));
+    [workspace,plan].forEach(x=>x?.classList.add('kairo-header-card-v83'));
     plan?.classList.add('kairo-plan-card-v83');
 
     const p=plan86();
@@ -5000,8 +4726,8 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
   function navTo(tab){
     const history=tab==='history';
     if(history)tab='dashboard';
-    if(tab==='settings') document.getElementById('saas-settings-btn')?.click();
-    else document.querySelector(`#saas-sidebar .tab[data-tab="${tab}"],.v19-nav .tab[data-tab="${tab}"]`)?.click();
+    if(tab==='settings') document.getElementById('saas-settings-side-btn')?.click();
+    else document.querySelector(`#saas-sidebar .tab[data-tab="${tab}"]`)?.click();
     setHistoryMode(history&&document.querySelector('.section.active')?.id==='dashboard');
     if(history)window.scrollTo({top:0,behavior:'auto'});
     closeMore();closeNotif();
@@ -5076,7 +4802,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
     window.kairoNotifications?.render();
   }
   function desktopLogo(){
-    return document.querySelector('#app-shell .header .brand-logo')?.getAttribute('src')||document.querySelector('#saas-sidebar .brand-logo')?.getAttribute('src')||'';
+    return document.querySelector('#saas-sidebar .brand-logo')?.getAttribute('src')||'';
   }
   function mobileAutoLockValue(){return localStorage.getItem('kairo_autolock_minutes_v1')??'10'}
   function mobileAutoLockLabel(v=mobileAutoLockValue()){return ({'5':'5 menit','10':'10 menit','30':'30 menit','0':'Always On'})[String(v)]||'10 menit'}
@@ -5233,7 +4959,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
       if(!document.getElementById('seller-app-premium-js')){
         const script=document.createElement('script');
         script.id='seller-app-premium-js';
-        script.src='assets/templates/seller-app-premium.js?v=20.10.147';
+        script.src='assets/templates/seller-app-premium.js?v=20.10.148';
         script.defer=true;
         document.body.appendChild(script);
       }

@@ -695,7 +695,6 @@
 
   async function saveSellerSetting(baseRow,price,cost){
     if(!sellerSettingsReady)throw new Error('Migration Seller App Premium belum diterapkan / belum bisa diakses.');
-    if(!isWorkspaceAdmin())throw new Error('Hanya Owner/Admin yang bisa mengubah Produk.');
     const row={...baseRow,price:Math.max(0,Number(price||0)),cost:Math.max(0,Number(cost||0))};
     const payload={workspace_id:requireWorkspaceId(),item_key:rowKey(baseRow),category:baseRow.category,product:baseRow.product,variant:baseRow.variant,duration:baseRow.duration,price:row.price,cost:row.cost,updated_at:new Date().toISOString()};
     const {error}=await db.from('seller_product_settings').upsert(payload,{onConflict:'workspace_id,item_key'});
@@ -718,7 +717,6 @@
 
   async function addCustomSellerProduct(form){
     if(!sellerSettingsReady)throw new Error('Migration Seller App Premium belum diterapkan / belum bisa diakses.');
-    if(!isWorkspaceAdmin())throw new Error('Hanya Owner/Admin yang bisa menambah Produk.');
     const fd=new FormData(form);
     const category=String(fd.get('category')||'').trim();
     const product=String(fd.get('product')||'').trim().toUpperCase();
@@ -967,8 +965,8 @@
         const plan=sellerPlan();
         if(plan!=='pro'){e.preventDefault();e.stopImmediatePropagation();try{showToast('Performance tersedia di paket Pro.',true)}catch(_e){};return}
       }
-      if(e.target.closest('#saas-settings-btn,#saas-settings-side-btn,[data-settings-category="packages"]'))setTimeout(()=>{installSellerSettings();cleanupSellerSettings();syncSellerToolbar()},40);
-      if(e.target.closest('#app-shell [data-tab],.kairo-mobile-orders-main,#saas-settings-btn,#saas-settings-side-btn')){
+      if(e.target.closest('#saas-settings-side-btn,[data-settings-category="packages"]'))setTimeout(()=>{installSellerSettings();cleanupSellerSettings();syncSellerToolbar()},40);
+      if(e.target.closest('#app-shell [data-tab],.kairo-mobile-orders-main,#saas-settings-side-btn')){
         setTimeout(()=>{syncSellerTemplateChrome();syncSellerUserFacingWording()},40);setTimeout(()=>{syncSellerTemplateChrome();syncSellerUserFacingWording()},180);
       }
       if(e.target.closest('[data-tab="dashboard"]')){
