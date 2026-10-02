@@ -66,10 +66,21 @@ const TRINE_MAGIC_WORKSPACE_ID="e43c8ee6-f4a7-4e10-8d00-dc34fdaf1dc2";
 function isKairoAdminWorkspace(){
   return String(activeWorkspaceId||"")===TRINE_MAGIC_WORKSPACE_ID || (activePlatformAdmin && String(activeWorkspaceName||"").trim().toLowerCase()==="trine magic");
 }
+// admin/ has no login form of its own: it only opens from this tab, which hands it the current
+// session token on request (same origin, only to the window opened here, only for a platform admin).
+let kairoAdminWindow=null;
 function openKairoAdmin(){
-  const notReady=()=>showToast("Admin panel KAIRO sedang disiapkan.","info");
-  fetch("admin/",{method:"HEAD",cache:"no-store"}).then(r=>{if(r.ok)window.open("admin/","_blank","noopener");else notReady()}).catch(notReady);
+  kairoAdminWindow=window.open("admin/","_blank");
+  if(!kairoAdminWindow)showToast("Browser memblokir tab baru. Izinkan pop-up untuk KAIRO, lalu coba lagi.","warning");
 }
+window.addEventListener("message",async e=>{
+  if(e.origin!==location.origin||e.data?.type!=="kairo-admin-token-request"||!kairoAdminWindow||e.source!==kairoAdminWindow)return;
+  let token=null,exp=0;
+  if(activePlatformAdmin&&isKairoAdminWorkspace()){
+    try{const {data}=await db.auth.getSession();token=data?.session?.access_token||null;exp=data?.session?.expires_at||0;}catch(_e){}
+  }
+  e.source.postMessage({type:"kairo-admin-token",token,exp},location.origin);
+});
 function ensureKairoAppSwitcher(){
   const icon='<span class="saas-nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4.5 6v5.2c0 4.7 3.1 8.9 7.5 9.8 4.4-.9 7.5-5.1 7.5-9.8V6L12 3Z"/><path d="M9 12.2 11 14l4-4"/></svg></span>';
   let side=document.getElementById("kairo-app-switcher"), more=document.getElementById("kairo-admin-more-item");
@@ -533,6 +544,17 @@ function dismissToast(item){
   clearTimeout(item._timer);item.classList.add("is-leaving");
   setTimeout(()=>item.remove(),200);
 }
+// Errors users hit (script errors and red "Gagal" pop-ups) are reported so KAIRO Admin can list them
+// under "Perlu Perhatian". Only the message, file/line and page are sent; never form or order data.
+const kairoReportedErrors=new Set();
+function reportClientError(message,source,line){
+  const msg=String(message||"").trim();
+  if(!activeAuthUserId||!msg||kairoReportedErrors.size>=10)return;
+  const key=msg+"|"+source+"|"+line;if(kairoReportedErrors.has(key))return;kairoReportedErrors.add(key);
+  db.rpc("report_client_error",{p_workspace_id:activeWorkspaceId||null,p_page:document.querySelector("main.container > .section.active")?.id||"",p_message:msg.slice(0,500),p_source:String(source||"").replace(location.origin,"").slice(0,200),p_line:Number(line)||0,p_user_agent:navigator.userAgent.slice(0,200)}).then(()=>{},()=>{});
+}
+window.addEventListener("error",e=>{if(e.message&&(!e.filename||e.filename.startsWith(location.origin))&&!/ResizeObserver loop|^Script error\.?$/.test(e.message))reportClientError(e.message,e.filename,e.lineno);});
+window.addEventListener("unhandledrejection",e=>reportClientError(e.reason?.message||e.reason,"promise",0));
 function showToast(message, error=false){
   const host=document.getElementById("toast");if(!host)return;
   // Plan-lock notices ("… tersedia di paket Pro", "Upgrade ke paket …") are passed as errors
@@ -540,6 +562,7 @@ function showToast(message, error=false){
   const planLock=/tersedia (mulai|di|untuk) paket|upgrade ke paket/i.test(String(message??""));
   const variant=typeof error==="string"&&TOAST_VARIANTS[error]?error:(error?(planLock?"warning":"error"):"success");
   const {title,icon}=TOAST_VARIANTS[variant];
+  if(variant==="error")reportClientError(message,"toast",0);
   const item=document.createElement("div");
   item.className=`kairo-toast is-${variant}`;
   item.setAttribute("role",variant==="error"?"alert":"status");
