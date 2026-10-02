@@ -73,8 +73,8 @@ URL live: `https://trinemagic.github.io/kairo-ui-v2-review/`
 | `assets/kairo-runtime.js` | Lazy loader lama | Tidak dimuat oleh `index.html` saat ini. |
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
-Versi terakhir: `kairo.css?v=20.10.149`, `kairo-v3.css?v=3.15.0`,
-`kairo-v3.js?v=3.15.0`, `kairo-app.js?v=20.10.155`.
+Versi terakhir: `kairo.css?v=20.10.149`, `kairo-v3.css?v=3.16.1`,
+`kairo-v3.js?v=3.15.0`, `kairo-app.js?v=20.10.157`.
 
 **Halaman app** = `main.container > section.section` dengan id:
 `dashboard`, `performance`, `input` (Orders), `customers`, `promo` (dibuat via JS),
@@ -131,6 +131,14 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   Warna status seller di dark (badge expired/H-x/Aktif, "Sisa Rp…", Tersinkron) di-override
   di `kairo-v3.css`; tombol teal seller pakai teks `--v3-on-primary` seperti `.btn-green`.
 - **Performance:** semua mengikuti filter tanggal utama (`getRange()`).
+- **Petty Cash › Riwayat Pengeluaran & Riwayat Pemasukan:** satu filter tanggal bersama
+  (`cashHistoryFilter`; dropdown `[data-cash-filter]` di atas tiap tabel, selalu sinkron, termasuk
+  tanggal `[data-cash-from]/[data-cash-to]`): Semua, Hari ini, Kemarin, 7 hari, Bulan ini, Bulan
+  lalu, Pilih tanggal + ringkasan "N catatan · Total". `renderCashHistories()` membaca
+  `allCashExpenses()/allCashInjections()`, tidak ikut filter Dashboard (tersembunyi di halaman
+  ini). `cashExpenses/cashInjections` tetap ikut periode karena dipakai Export Excel.
+- **Dark mode `.history-filter-date`** (Riwayat Transaksi & Petty Cash) di-override di v3 —
+  dulu latar putih + teks terang (kontras 1,1).
 - **Orders:** setelah simpan berhasil, form kosong total termasuk Platform & Metode
   Pembayaran (owner: user wajib pilih ulang tiap order). `tx-payment` punya opsi
   kosong "-- Pilih Metode Pembayaran --" + `required`, jadi tidak jatuh ke QRIS.
