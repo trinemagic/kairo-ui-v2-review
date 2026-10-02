@@ -68,7 +68,9 @@
     if (restoreFocus && loginReturnFocus instanceof HTMLElement) loginReturnFocus.focus({ preventScroll: true });
   }
 
-  async function openSignup() {
+  async function openSignup(event) {
+    // Pricing buttons preselect a plan in the signup table (data-signup-plan="pro" | "custom").
+    window.__kairoSignupPlan = event?.currentTarget?.dataset?.signupPlan || 'basic';
     closeLogin({ restoreFocus: false });
     try { await window.__kairoEnsureRuntime?.(); } catch (_) { return; }
     const started = Date.now();

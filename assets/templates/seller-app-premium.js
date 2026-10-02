@@ -816,7 +816,7 @@
     if(!mounted)return;
     const topicCanvas=document.getElementById('topicChart');const card=topicCanvas?.closest('.card');if(card)card.classList.add('seller-template-hidden');
     const plan=sellerPlan();
-    const allowed=plan==='plus'||plan==='pro';
+    const allowed=plan==='pro';
     document.body.classList.toggle('seller-performance-locked',!allowed);
     document.querySelectorAll('[data-tab="performance"]').forEach(el=>{
       el.classList.toggle('seller-performance-locked-nav',!allowed);el.setAttribute('aria-disabled',allowed?'false':'true');
@@ -965,7 +965,7 @@
       const perfTarget=e.target.closest('[data-tab="performance"]');
       if(perfTarget){
         const plan=sellerPlan();
-        if(!['plus','pro'].includes(plan)){e.preventDefault();e.stopImmediatePropagation();try{showToast('Performance tersedia untuk paket PLUS dan PRO.',true)}catch(_e){};return}
+        if(plan!=='pro'){e.preventDefault();e.stopImmediatePropagation();try{showToast('Performance tersedia di paket Pro.',true)}catch(_e){};return}
       }
       if(e.target.closest('#saas-settings-btn,#saas-settings-side-btn,[data-settings-category="packages"]'))setTimeout(()=>{installSellerSettings();cleanupSellerSettings();syncSellerToolbar()},40);
       if(e.target.closest('#app-shell [data-tab],.kairo-mobile-orders-main,#saas-settings-btn,#saas-settings-side-btn')){

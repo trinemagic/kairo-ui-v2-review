@@ -622,6 +622,21 @@ html.kairo-v3 #app-shell main.container:has(> section.section.active:is(#input, 
   display: none !important;
 }
 
+/* Page enter animation (kairo.css sectionIn) used fill-mode "both", so a finished page kept a
+   transform and trapped every position:fixed child inside it (e.g. the mobile Orders tool menu
+   opened ~1,400px below the screen). Keep the entrance, drop the leftover transform. */
+html.kairo-v3 #app-shell .section.active {
+  animation-fill-mode: backwards;
+}
+
+@media (max-width: 700px) {
+  /* Orders "Manual / Autofill" picker opens as a sheet above the bottom nav. */
+  html.kairo-v3 #input .orders-tool-menu {
+    top: auto !important;
+    bottom: calc(92px + env(safe-area-inset-bottom)) !important;
+  }
+}
+
 /* Alert pop-ups (showToast): stack fixed at the top right so it stays in view while scrolling. */
 html.kairo-v3 .kairo-toast-stack {
   position: fixed;
@@ -3463,23 +3478,51 @@ html.kairo-v3 .kairo-lp-price-action {
   cursor: pointer;
 }
 
-html.kairo-v3 .kairo-lp-price-action.is-disabled {
-  border-color: var(--kairo-entry-line);
-  background: var(--kairo-sky-050);
-  color: var(--kairo-entry-muted);
-  cursor: default;
+html.kairo-v3 .kairo-lp-price-action.is-secondary {
+  border-color: var(--kairo-delft);
+  background: var(--kairo-white);
+  color: var(--kairo-delft);
 }
 
-html.kairo-v3 .kairo-lp-price-card.is-featured .kairo-lp-price-action.is-disabled {
-  border-color: rgba(255, 255, 255, .17);
-  background: rgba(255, 255, 255, .08);
-  color: #d7e2e8;
+/* Feature list inside each pricing card. */
+html.kairo-v3 .kairo-lp-price-list {
+  display: grid;
+  gap: 9px;
+  margin: 20px 0 24px;
+  padding: 0;
+  list-style: none;
+}
+
+html.kairo-v3 .kairo-lp-price-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  color: var(--kairo-delft);
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.45;
+}
+
+html.kairo-v3 .kairo-lp-price-list svg {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  margin-top: 1px;
+  fill: none;
+  stroke: var(--kairo-turquoise);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+html.kairo-v3 .kairo-lp-price-card.is-featured .kairo-lp-price-list li {
+  color: #eef5f8;
 }
 
 html.kairo-v3 .kairo-lp-price-card > small {
-  margin-top: 13px;
+  margin-top: 12px;
   color: var(--kairo-entry-muted);
-  font-size: 8px;
+  font-size: 11px;
   line-height: 1.5;
 }
 
@@ -4185,3 +4228,117 @@ html.kairo-v3 .kairo-entry :focus-visible {
   }
 }
 
+
+/* Signup plan picker — cards in the landing pricing style (white / delft featured / white),
+   then a collapsible comparison of only what differs. Markup: plan-compare block in kairo-app.js. */
+html.kairo-v3 .kairo-pp-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; align-items: stretch; padding-top: 10px; }
+html.kairo-v3 .kairo-pp-card {
+  position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 0;
+  padding: 20px 18px 16px; text-align: left; font: inherit; color: var(--kairo-delft); cursor: pointer;
+  background: var(--kairo-white); border: 1px solid var(--kairo-entry-line); border-radius: 20px;
+  box-shadow: var(--kairo-entry-shadow-soft); transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease;
+}
+html.kairo-v3 .kairo-pp-card:hover { transform: translateY(-2px); box-shadow: var(--kairo-entry-shadow); }
+html.kairo-v3 .kairo-pp-card:focus-visible { outline: 3px solid color-mix(in srgb, var(--kairo-turquoise) 45%, transparent); outline-offset: 2px; }
+html.kairo-v3 .kairo-pp-card.is-featured { background: var(--kairo-delft); border-color: var(--kairo-delft); color: #fff; }
+html.kairo-v3 .kairo-pp-card.selected { border-color: var(--kairo-turquoise); box-shadow: 0 0 0 3px color-mix(in srgb, var(--kairo-turquoise) 28%, transparent), var(--kairo-entry-shadow); }
+html.kairo-v3 .kairo-pp-badge {
+  position: absolute; top: -11px; left: 18px; padding: 4px 10px; border-radius: 999px;
+  background: var(--kairo-gold); color: var(--kairo-delft); font-size: 10px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase;
+}
+html.kairo-v3 .kairo-pp-check {
+  position: absolute; top: 16px; right: 16px; width: 24px; height: 24px; border-radius: 50%;
+  display: grid; place-items: center; border: 1.5px solid var(--kairo-entry-line); background: var(--kairo-white); color: transparent;
+}
+html.kairo-v3 .kairo-pp-card.is-featured .kairo-pp-check { border-color: rgba(255, 255, 255, .35); background: transparent; }
+html.kairo-v3 .kairo-pp-card.selected .kairo-pp-check { border-color: var(--kairo-turquoise); background: var(--kairo-turquoise); color: var(--kairo-delft); }
+html.kairo-v3 .kairo-pp-check svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+html.kairo-v3 .kairo-pp-name { font-size: 15px; font-weight: 800; }
+html.kairo-v3 .kairo-pp-price { margin: 10px 0 6px; padding-right: 26px; font-size: 22px; line-height: 1.15; font-weight: 800; letter-spacing: -.02em; }
+html.kairo-v3 .kairo-pp-copy { font-size: 12.5px; line-height: 1.5; color: var(--kairo-entry-muted); }
+html.kairo-v3 .kairo-pp-card.is-featured .kairo-pp-copy { color: #c9dbe6; }
+html.kairo-v3 .kairo-pp-points { list-style: none; margin: 14px 0 16px; padding: 0; display: grid; gap: 8px; }
+html.kairo-v3 .kairo-pp-points li { display: flex; gap: 8px; align-items: flex-start; font-size: 12.5px; font-weight: 700; line-height: 1.4; }
+html.kairo-v3 .kairo-pp-points svg,
+html.kairo-v3 .kairo-pp-included svg { flex: none; width: 15px; height: 15px; margin-top: 1px; fill: none; stroke: var(--kairo-turquoise-dark); stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+html.kairo-v3 .kairo-pp-card.is-featured .kairo-pp-points svg { stroke: var(--kairo-turquoise); }
+html.kairo-v3 .kairo-pp-foot {
+  margin-top: auto; width: 100%; padding-top: 12px; border-top: 1px solid var(--kairo-entry-line);
+  font-size: 11px; font-weight: 700; color: var(--kairo-entry-muted);
+}
+html.kairo-v3 .kairo-pp-card.is-featured .kairo-pp-foot { border-color: rgba(255, 255, 255, .16); color: #c9dbe6; }
+
+html.kairo-v3 .kairo-pp-compare { margin-top: 16px; border: 1px solid var(--kairo-entry-line); border-radius: 18px; background: var(--kairo-white); overflow: hidden; }
+html.kairo-v3 .kairo-pp-compare-title { padding: 14px 18px 4px; font-size: 13px; font-weight: 800; color: var(--kairo-delft); }
+html.kairo-v3 .kairo-pp-compare:not(.is-open) .is-extra,
+html.kairo-v3 .kairo-pp-compare:not(.is-open) .kairo-pp-included { display: none; }
+html.kairo-v3 .kairo-pp-included { padding: 14px 18px 16px; border-top: 1px solid var(--kairo-entry-line); background: var(--kairo-sky-050); }
+html.kairo-v3 .kairo-pp-included strong { display: block; margin-bottom: 9px; font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--kairo-turquoise-dark); }
+html.kairo-v3 .kairo-pp-more {
+  display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; min-height: 46px; padding: 10px 16px;
+  border: 0; border-top: 1px solid var(--kairo-entry-line); background: var(--kairo-white);
+  font: inherit; font-size: 13px; font-weight: 800; color: var(--kairo-turquoise-dark); cursor: pointer;
+}
+html.kairo-v3 .kairo-pp-more:hover { background: var(--kairo-sky-050); }
+html.kairo-v3 .kairo-pp-more:focus-visible { outline: 3px solid color-mix(in srgb, var(--kairo-turquoise) 45%, transparent); outline-offset: -3px; }
+html.kairo-v3 .kairo-pp-more svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; transition: transform .18s ease; }
+html.kairo-v3 .kairo-pp-more[aria-expanded="true"] svg { transform: rotate(180deg); }
+html.kairo-v3 .kairo-pp-included ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px 16px; }
+html.kairo-v3 .kairo-pp-included li { display: flex; gap: 7px; font-size: 12.5px; font-weight: 600; color: var(--kairo-delft); }
+html.kairo-v3 .kairo-pp-table-wrap { background: var(--kairo-white); }
+html.kairo-v3 .kairo-pp-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+html.kairo-v3 .kairo-pp-table th,
+html.kairo-v3 .kairo-pp-table td { padding: 11px 10px; border-bottom: 1px solid var(--kairo-entry-line); font-size: 12.5px; text-align: center; vertical-align: middle; color: var(--kairo-delft); background: transparent; white-space: normal; overflow-wrap: anywhere; }
+html.kairo-v3 .kairo-pp-table tbody tr:last-child > * { border-bottom: 0; }
+html.kairo-v3 .kairo-pp-table th[scope="row"],
+html.kairo-v3 .kairo-pp-table thead th:first-child { width: 40%; padding-left: 18px; text-align: left; font-weight: 600; }
+html.kairo-v3 .kairo-pp-table thead th { font-size: 12px; font-weight: 800; }
+html.kairo-v3 .kairo-pp-table thead th:first-child { color: var(--kairo-entry-muted); }
+html.kairo-v3 .kairo-pp-table .is-selected { background: color-mix(in srgb, var(--kairo-turquoise) 9%, transparent); }
+html.kairo-v3 .kairo-pp-table thead .is-selected { color: var(--kairo-turquoise-dark); }
+html.kairo-v3 .kairo-pp-yes,
+html.kairo-v3 .kairo-pp-no { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; }
+html.kairo-v3 .kairo-pp-yes { background: color-mix(in srgb, var(--kairo-turquoise) 16%, #fff); color: var(--kairo-turquoise-dark); }
+html.kairo-v3 .kairo-pp-no { color: #9aaab6; }
+html.kairo-v3 .kairo-pp-yes svg,
+html.kairo-v3 .kairo-pp-no svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2.8; stroke-linecap: round; stroke-linejoin: round; }
+html.kairo-v3 .kairo-pp-note { font-size: 11.5px; font-weight: 700; line-height: 1.3; }
+
+@media (max-width: 760px) {
+  /* Phone: compact header and card so the form starts sooner. */
+  html.kairo-v3 #kairo-account-page { padding: 16px 12px 28px; }
+  html.kairo-v3 .kairo-account-top { align-items: center; margin-bottom: 14px; }
+  html.kairo-v3 .kairo-account-brand strong { font-size: 17px; }
+  html.kairo-v3 .kairo-account-brand span { font-size: 10px; }
+  html.kairo-v3 .kairo-back { flex: none; padding: 9px 12px; font-size: 12px; white-space: nowrap; }
+  html.kairo-v3 .kairo-account-card { padding: 20px 16px; border-radius: 20px; }
+  html.kairo-v3 .kairo-account-card h2 { font-size: 21px; }
+  /* Plan cards: unselected = name, price and one line; details only on the chosen plan. */
+  html.kairo-v3 .kairo-pp-grid { grid-template-columns: 1fr; gap: 10px; }
+  html.kairo-v3 .kairo-pp-card { padding: 14px 14px 12px; border-radius: 16px; }
+  html.kairo-v3 .kairo-pp-card.is-featured { margin-top: 6px; }
+  html.kairo-v3 .kairo-pp-check { top: 13px; right: 13px; }
+  html.kairo-v3 .kairo-pp-name { font-size: 13px; }
+  html.kairo-v3 .kairo-pp-price { margin: 4px 0 2px; font-size: 19px; }
+  html.kairo-v3 .kairo-pp-card:not(.selected) .kairo-pp-copy,
+  html.kairo-v3 .kairo-pp-card:not(.selected) .kairo-pp-points { display: none; }
+  html.kairo-v3 .kairo-pp-card:not(.selected) .kairo-pp-foot { margin-top: 2px; padding-top: 0; border-top: 0; }
+  html.kairo-v3 .kairo-pp-points { margin: 10px 0 12px; gap: 7px; }
+  html.kairo-v3 .kairo-pp-copy { font-size: 12px; }
+  html.kairo-v3 .kairo-pp-included ul { grid-template-columns: 1fr; }
+  html.kairo-v3 .kairo-pp-compare-title { padding: 12px 14px 2px; }
+  html.kairo-v3 .kairo-pp-included { padding: 12px 14px 14px; }
+  html.kairo-v3 .kairo-pp-table th,
+  html.kairo-v3 .kairo-pp-table td { padding: 10px 4px; font-size: 11.5px; }
+  html.kairo-v3 .kairo-pp-table th[scope="row"],
+  html.kairo-v3 .kairo-pp-table thead th:first-child { width: 38%; padding-left: 14px; }
+  html.kairo-v3 .kairo-pp-note { font-size: 10.5px; }
+  /* Business type options: one compact row each (kairo.css sets these with !important). */
+  html.kairo-v3 .kairo-business-grid { gap: 8px !important; }
+  html.kairo-v3 .kairo-business-option { min-height: 0 !important; padding: 12px 40px 12px 12px !important; align-items: center !important; }
+  html.kairo-v3 .kairo-business-icon { width: 36px !important; height: 36px !important; border-radius: 11px !important; }
+  html.kairo-v3 .kairo-business-icon svg { width: 20px !important; height: 20px !important; }
+  html.kairo-v3 .kairo-business-option strong { font-size: 13px !important; }
+  html.kairo-v3 .kairo-business-option small { font-size: 11px !important; }
+  html.kairo-v3 .kairo-business-option.selected::before { top: 50% !important; right: 12px !important; transform: translateY(-50%); }
+}
