@@ -73,8 +73,8 @@ URL live: `https://trinemagic.github.io/kairo-ui-v2-review/`
 | `assets/kairo-runtime.js` | Lazy loader lama | Tidak dimuat oleh `index.html` saat ini. |
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
-Versi terakhir: `kairo.css?v=20.10.150`, `kairo-v3.css?v=3.17.0`,
-`kairo-v3.js?v=3.15.0`, `kairo-app.js?v=20.10.158`.
+Versi terakhir: `kairo.css?v=20.10.151`, `kairo-v3.css?v=3.18.0`,
+`kairo-v3.js?v=3.16.0`, `kairo-app.js?v=20.10.159`.
 
 **Halaman app** = `main.container > section.section` dengan id:
 `dashboard`, `performance`, `input` (Orders), `customers`, `promo` (dibuat via JS),
@@ -124,6 +124,15 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
 - **Warna layout:** `kairo-v3.js` memetakan `--brand-primary/--brand-accent` ke token
   v3. Default lama `#696F41/#EA97A9` = "belum diatur" (tetap tampilan KAIRO).
   Reset = `#25B9B0` / `#173A59`.
+- **Living Origami (latar app):** gradient + origami terbang (kairo.css + `mountOrigami()` di
+  kairo-app.js) dinyalakan lagi di v3 (dulu `display:none` sejak upload 20–21 Sep). Warna ikut
+  `--v3-primary`/`--v3-accent` (token baru, diisi `syncLayoutColors()` dari warna aksen
+  workspace; default navy). Opacity 0,62 (dark 0,5; HP 0,48/0,4), skala 0,55–1, tanpa
+  drop-shadow, 9/6/4 burung (desktop/lite/HP kecil). Jalur terbang pakai Web Animations API
+  (`d._drift`) dengan transform pasti — **jangan** kembali ke keyframes ber-`var()` (memaksa
+  recalc style tiap frame). Pause saat tab tersembunyi; diam bila prefers-reduced-motion.
+  Biaya terukur: +0,3% CPU desktop, +0,9% CPU HP (CPU 4× lambat). Kartu tembus pandang sudah
+  dicoba & ditolak (kontras light turun).
 - **Pop-up alert (`showToast`)**: tumpukan kartu di kanan atas, `position:fixed` (ikut layar saat
   scroll), tepat di bawah header desktop yang sticky (`--kairo-toast-top` dihitung tiap muncul;
   HP 16px). Ikon + judul per jenis (Berhasil/Info/Perhatian/Gagal), pesan, tombol X; maks 4,
