@@ -510,7 +510,6 @@
 
   function bindLayoutColorReset() {
     q('#settings-color-reset')?.addEventListener('click', () => {
-      if (typeof window.canManageSettings === 'function' && !window.canManageSettings()) return;
       [['#settings-primary-text', '#settings-primary-color', KAIRO_IDENTITY.primary], ['#settings-accent-text', '#settings-accent-color', KAIRO_IDENTITY.accent]]
         .forEach(([textSel, colorSel, value]) => {
           const text = q(textSel);
@@ -628,7 +627,7 @@
     q('.kairo-notif-open', wrap).addEventListener('click', () => {
       toggleNotifications(false);
       if (window.innerWidth <= 900 && typeof window.kairoOpenMobileHistory === 'function') return window.kairoOpenMobileHistory();
-      q('#saas-sidebar .tab[data-tab="dashboard"], .v19-nav .tab[data-tab="dashboard"]')?.click();
+      q('#saas-sidebar .tab[data-tab="dashboard"]')?.click();
       setTimeout(() => q('#transaction-history-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 250);
     });
     document.addEventListener('click', event => { if (!wrap.contains(event.target)) toggleNotifications(false); });
@@ -776,4 +775,28 @@
   document.addEventListener('input', clear, true);
   document.addEventListener('change', clear, true);
   document.addEventListener('reset', event => { if (event.target.id === 'tx-form') event.target.querySelectorAll('.' + MISSING).forEach(g => g.classList.remove(MISSING)); }, true);
+})();
+
+// Dashboard upgrade hint for Gratis workspaces: one slim card under the stat cards, hidden on Pro,
+// and the X hides it for 7 days on this device (per workspace).
+(function () {
+  const HIDE_DAYS = 7;
+  const key = () => { let id = ''; try { id = activeWorkspaceId || ''; } catch (_e) {} return 'kairo_upgrade_hint_hidden_until_v1_' + (id || 'default'); };
+  const isFree = () => { let p = document.documentElement.dataset.workspacePlan || ''; try { p = p || activeWorkspacePlan; } catch (_e) {} return String(p || 'basic').toLowerCase() === 'basic'; };
+  const dismissed = () => { try { return Number(localStorage.getItem(key()) || 0) > Date.now(); } catch (_e) { return false; } };
+  function sync() {
+    const hint = document.getElementById('kairo-upgrade-hint');
+    if (!hint) return;
+    hint.hidden = !document.body.classList.contains('authenticated') || !isFree() || dismissed();
+  }
+  document.addEventListener('click', event => {
+    if (event.target.closest('#kairo-upgrade-hint [data-upgrade-cta]')) window.kairoRequestUpgrade?.();
+    if (event.target.closest('#kairo-upgrade-hint [data-upgrade-close]')) {
+      try { localStorage.setItem(key(), String(Date.now() + HIDE_DAYS * 86400000)); } catch (_e) {}
+      sync();
+    }
+  });
+  new MutationObserver(sync).observe(document.documentElement, { attributes: true, attributeFilter: ['data-workspace-plan'] });
+  new MutationObserver(sync).observe(document.body, { attributes: true, attributeFilter: ['class'] });
+  sync();
 })();

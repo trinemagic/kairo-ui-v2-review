@@ -27,8 +27,8 @@ yang diawali titik). Tetap: **jangan pernah menulis rahasia di sini.**
   (contoh: sketsa Open Store harus diputar 90° ke kiri dulu sebelum dianalisis).
 - **Referensi komponen React/shadcn/Tailwind** (mis. dari 21st.dev): project ini
   BUKAN React. Tiru tampilannya dengan HTML/CSS/JS yang ada; jelaskan ke owner.
-- **Berlaku untuk semua paket** (BASIC / PLUS / PRO) kecuali owner bilang lain —
-  uji ketiganya bila perubahannya bisa terpengaruh paket.
+- **Berlaku untuk semua paket** (Gratis / Pro) kecuali owner bilang lain —
+  uji keduanya (+ template seller) bila perubahannya bisa terpengaruh paket.
 - **Laporan akhir** selalu memisahkan **sudah dicek** vs **belum dicek** dengan jujur
   (mis. Safari, Supabase asli, login sungguhan). Jangan klaim sesuatu sudah jalan
   kalau belum diuji.
@@ -77,11 +77,11 @@ URL live: `https://trinemagic.github.io/kairo-ui-v2-review/`
 | `assets/kairo-v3.css` | Lapisan presentasi baru, semua rule di-scope `html.kairo-v3` | Tempat utama perubahan UI. Token warna `--v3-*` (light) dan override `body.saas-dark`. |
 | `assets/kairo-v3.js` | Helper presentasi (IIFE) | Landing pages, login dialog, Ingat saya, history table, notifikasi, warna layout, jam. |
 | `assets/fonts/` | Plus Jakarta Sans self-hosted (OFL) | Jangan kembali ke Google Fonts. |
-| `assets/kairo-runtime.js` | Lazy loader lama | Tidak dimuat oleh `index.html` saat ini. |
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
-Versi terakhir: `kairo.css?v=20.10.154`, `kairo-v3.css?v=3.22.1`,
-`kairo-v3.js?v=3.18.0`, `kairo-app.js?v=20.10.167`.
+Versi terakhir: `kairo.css?v=20.10.156`, `kairo-v3.css?v=3.23.0`,
+`kairo-v3.js?v=3.19.0`, `kairo-app.js?v=20.10.169`; template seller dimuat dari kairo-app.js
+(`seller-app-premium.js?v=20.10.148`, `.css?v=20.10.150`) — naikkan juga bila file template diubah.
 
 **Halaman app** = `main.container > section.section` dengan id:
 `dashboard`, `performance`, `input` (Orders), `customers`, `promo` (dibuat via JS),
@@ -213,7 +213,37 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
 
 ---
 
+- **Akses workspace (owner Okt 2026): 1 workspace = 1 akun owner.** Tidak ada role admin/staff lagi.
+  `loadActiveWorkspaceForUser()` hanya memakai keanggotaan `role='owner'`; akun lain ditolak dengan
+  pesan "Workspace hanya bisa dibuka dengan akun pemiliknya…" lalu sign out. Semua cek/tampilan role
+  (pill OWNER, "Role Kamu", catatan Staff, `requireWorkspaceRole`, `isWorkspaceAdmin`) sudah dihapus.
+  Tim yang ikut mencatat memakai akun owner (FAQ 05). SQL sisi DB: `.claude/sql/2026-10-owner-only-workspaces.sql`
+  (owner yang menjalankan; status dijalankan/belum: tanya owner).
+- **Ajakan upgrade (Gratis):** `#kairo-upgrade-hint` di Dashboard di bawah kartu statistik (menggantikan
+  carousel paket lama yang tersembunyi). Tombol → `window.kairoRequestUpgrade()` (WhatsApp bila
+  `WA_BUSINESS` diisi, kalau belum: toast info). X = sembunyi 7 hari per workspace
+  (`kairo_upgrade_hint_hidden_until_v1_<workspace>`). Kartu header "Siap melangkah lebih jauh?/Paket Pro
+  aktif" (`kairo-basic-header-upgrade-v83`) dan kembarannya di HP (`#kairo-mobile-plan-card`) sudah
+  dihapus (owner) — banner ini satu-satunya ajakan upgrade.
+- **Sidebar** membuat tombol menunya sendiri di `buildSidebar()` (header lama "TRINE MAGIC" + tab bar
+  `.v19-nav`, tombol `#saas-settings-btn`, info paket sidebar `.saas-side-meta`, kotak
+  `#kairo-basic-upgrade` sudah dihapus). Settings = `#saas-settings-side-btn` → `openWorkspaceSettings()`.
+- **`#settings-category-select` (tersembunyi) JANGAN dihapus:** dia "mesin" perpindahan kategori
+  Settings (submenu sidebar, template seller, kunci paket semua lewat `change` di select ini).
+- Dibersihkan Okt 2026: CSS/JS layar login & daftar lama (`#auth-screen`, `.auth-card`, form
+  `#signup-form`), carousel paket, `kairo-runtime.js`, file sampah `app-logos/.../a`.
+- **Tombol "KAIRO Admin"** (`ensureKairoAppSwitcher()`): hanya di workspace Trine Magic
+  (`TRINE_MAGIC_WORKSPACE_ID`, atau nama "Trine Magic" + `is_platform_admin`). Desktop: di bawah
+  Settings di sidebar (`#kairo-app-switcher`); HP: menu More (`#kairo-admin-more-item`). Klik → cek
+  `admin/` (HEAD); kalau belum ada → toast "Admin panel KAIRO sedang disiapkan", kalau ada → tab baru.
+  Owner: nanti jadi admin panel KAIRO Workspaces (tampilannya akan diubah).
+
 ## 4. Jebakan yang sudah pernah terjadi
+
+- Teks `\n` literal di CSS membuat browser membuang satu blok `@media` utuh (pernah terjadi di
+  kairo.css v20.10.82). Setelah edit CSS lewat skrip, cek `grep -c '\\n' assets/*.css` = 0.
+- Membersihkan CSS lama: pakai pemindai aturan yang paham `@media` + komentar, lalu pastikan setiap
+  aturan yang hilang memang menyebut class/ID yang sudah tidak ada di HTML/JS.
 
 - `body.auth-locked` dari `kairo.css` menyembunyikan semua `header`/`main` → konten
   landing butuh override di `#kairo-entry`. `#app-shell` disembunyikan saat locked.
