@@ -4606,7 +4606,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
  const DASH='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 12h10"/></svg>';
  const PLANS=[
   {id:'basic',name:'Gratis',price:'Rp0',copy:'Mulai merapikan pencatatan usaha tanpa biaya.',points:['Catat order & riwayat transaksi','Struk, Petty Cash & Withdraw','Dashboard, Performance & notifikasi'],foot:'Langsung aktif setelah daftar'},
-  {id:'pro',name:'Pro',price:'Semua fitur KAIRO',badge:'Paling lengkap',copy:'Operasional, otomatisasi, dan branding usaha dalam satu dashboard.',points:['Semua fitur Gratis','Customer Database, Autofill & Promo','Open / Close Store, Export Excel','Branding, struk & pembagian profit'],foot:'Aktif setelah konfirmasi via WhatsApp'},
+  {id:'pro',name:'Pro',price:'Rp43.000<small>/bulan</small>',deal:'<span>6 bulan</span><s aria-label="Harga normal Rp258.000">Rp258.000</s><b>Rp238.000</b>',badge:'Paling lengkap',copy:'Semua fitur KAIRO: operasional, otomatisasi, dan branding usaha.',points:['Semua fitur Gratis','Customer Database, Autofill & Promo','Open / Close Store, Export Excel','Branding, struk & pembagian profit'],foot:'Aktif setelah konfirmasi via WhatsApp'},
   {id:'custom',name:'Custom',price:'Pro + penyesuaian',copy:'Semua fitur Pro, disesuaikan dengan alur bisnismu.',points:['Semua fitur Pro','Penyesuaian alur bisnis','Pendampingan setup'],foot:'Aktif sebagai paket Pro'}
  ];
  const INCLUDED=['Dashboard & notifikasi order','Catat order manual','Riwayat transaksi & struk','Petty Cash','Withdraw','Package & harga','Warna layout & dark mode','Template sesuai jenis usaha'];
@@ -4633,7 +4633,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
    return `<td data-plan-column="${plan}">${body}</td>`;
  }
  function markup(selected){
-   const cards=PLANS.map(p=>`<button type="button" class="kairo-pp-card${p.badge?' is-featured':''}" data-kairo-plan="${p.id}" aria-pressed="${p.id===selected}">${p.badge?`<span class="kairo-pp-badge">${p.badge}</span>`:''}<span class="kairo-pp-check" aria-hidden="true">${TICK}</span><span class="kairo-pp-name">${p.name}</span><strong class="kairo-pp-price">${p.price}</strong><span class="kairo-pp-copy">${p.copy}</span><ul class="kairo-pp-points">${p.points.map(x=>`<li>${TICK}<span>${esc(x)}</span></li>`).join('')}</ul><span class="kairo-pp-foot">${p.foot}</span></button>`).join('');
+   const cards=PLANS.map(p=>`<button type="button" class="kairo-pp-card${p.badge?' is-featured':''}" data-kairo-plan="${p.id}" aria-pressed="${p.id===selected}">${p.badge?`<span class="kairo-pp-badge">${p.badge}</span>`:''}<span class="kairo-pp-check" aria-hidden="true">${TICK}</span><span class="kairo-pp-name">${p.name}</span><strong class="kairo-pp-price">${p.price}</strong>${p.deal?`<span class="kairo-pp-deal">${p.deal}</span>`:''}<span class="kairo-pp-copy">${p.copy}</span><ul class="kairo-pp-points">${p.points.map(x=>`<li>${TICK}<span>${esc(x)}</span></li>`).join('')}</ul><span class="kairo-pp-foot">${p.foot}</span></button>`).join('');
    const head=PLANS.map(p=>`<th scope="col" data-plan-column="${p.id}">${p.name}</th>`).join('');
    const more=ROWS.length-VISIBLE_ROWS;
    const rows=ROWS.map((r,i)=>`<tr${i>=VISIBLE_ROWS?' class="is-extra"':''}><th scope="row">${esc(r[0])}</th>${cell(r[1],'basic')}${cell(r[2],'pro')}${cell(r[3],'custom')}</tr>`).join('');
