@@ -73,7 +73,7 @@ URL live: `https://trinemagic.github.io/kairo-ui-v2-review/`
 | `assets/kairo-runtime.js` | Lazy loader lama | Tidak dimuat oleh `index.html` saat ini. |
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
-Versi terakhir: `kairo.css?v=20.10.153`, `kairo-v3.css?v=3.21.0`,
+Versi terakhir: `kairo.css?v=20.10.153`, `kairo-v3.css?v=3.21.1`,
 `kairo-v3.js?v=3.18.0`, `kairo-app.js?v=20.10.165`.
 
 **Halaman app** = `main.container > section.section` dengan id:
@@ -93,7 +93,7 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   tenant, auth, "belum final"). Pricing Gratis (Rp0) / Pro / Custom dengan daftar fitur; tombol
   Pro/Custom membuka form daftar dengan paket terpilih (`data-signup-plan` → `window.__kairoSignupPlan`).
   Harga Pro (owner Okt 2026): **Rp43.000/bulan**; paket 6 bulan harga normal Rp258.000 dicoret →
-  **Rp238.000** (hemat Rp20.000) — tampil di Pricing landing, kartu Pro halaman Daftar, FAQ 03.
+  **Rp238.000** (tanpa badge "Hemat" — owner) — tampil di Pricing landing, kartu Pro halaman Daftar, FAQ 03.
   Belum ada pilihan durasi saat daftar (dibahas via WA). Kontak WA, testimoni, S&K/Privasi masih
   menunggu data owner. FAQ 8 poin fokus fitur
   unggulan (tanpa poin dark mode — owner). Jangan klaim fitur yang belum ada (mis. "Owner Menu
