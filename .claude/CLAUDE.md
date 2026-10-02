@@ -73,8 +73,8 @@ URL live: `https://trinemagic.github.io/kairo-ui-v2-review/`
 | `assets/kairo-runtime.js` | Lazy loader lama | Tidak dimuat oleh `index.html` saat ini. |
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
-Versi terakhir: `kairo.css?v=20.10.153`, `kairo-v3.css?v=3.21.1`,
-`kairo-v3.js?v=3.18.0`, `kairo-app.js?v=20.10.165`.
+Versi terakhir: `kairo.css?v=20.10.154`, `kairo-v3.css?v=3.21.2`,
+`kairo-v3.js?v=3.18.0`, `kairo-app.js?v=20.10.166`.
 
 **Halaman app** = `main.container > section.section` dengan id:
 `dashboard`, `performance`, `input` (Orders), `customers`, `promo` (dibuat via JS),
@@ -112,8 +112,9 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   kairo-app.js harus sesuai `FEATURE_MIN_PLAN` (jangan tulis fitur yang belum ada). Nilai
   terpilih tetap di `#kairo-selected-plan`. Tabel compare lama & latar gelap sudah dihapus.
 - **Autofill Orders di HP:** dulu menu muncul di luar layar (transform sisa animasi `sectionIn`
-  + `top` desktop). Fix: `animation-fill-mode:backwards` untuk section aktif + menu mobile
-  `top:auto;bottom:…`. Tombol yang terkunci paket pakai `aria-disabled`, bukan `disabled`
+  + `top` desktop). Fix: `animation-fill-mode:backwards` untuk section aktif. Menu Manual/Autofill di HP
+  sekarang dropdown tepat di bawah tombol seperti desktop (bukan sheet `position:fixed` di atas
+  bottom nav — owner lapor tidak bisa ganti ke Autofill di HP; dugaan Safari). Tombol yang terkunci paket pakai `aria-disabled`, bukan `disabled`
   (tombol disabled menelan klik → pesan "tersedia di paket Pro" tidak muncul).
 - **Login:** "Ingat saya" menyimpan **username saja** (`kairo_remember_username_v1`);
   `persistSession:false` sengaja (wajib login tiap buka) — jangan diubah tanpa izin.
@@ -163,7 +164,7 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
 - **Pop-up alert (`showToast`)**: tumpukan kartu di kanan atas, `position:fixed` (ikut layar saat
   scroll), tepat di bawah header desktop yang sticky (`--kairo-toast-top` dihitung tiap muncul;
   HP 16px). Ikon + judul per jenis (Berhasil/Info/Perhatian/Gagal), pesan, tombol X; maks 4,
-  hilang 4,5 dtk (error/warning 7 dtk), jeda saat hover/fokus. Signature lama tetap:
+  semua hilang sendiri dalam **5 dtk** (owner), jeda saat hover/fokus. Signature lama tetap:
   `showToast(msg, error)`; `error` boleh juga 'success'|'info'|'warning'|'error'. Pesan kunci paket
   (`tersedia mulai/di/untuk paket`, `Upgrade ke paket`) yang dikirim sebagai error otomatis jadi warning. Gaya lama
   `.toast` di kairo.css sudah dihapus; elemen `#toast` = wadah `.kairo-toast-stack`.

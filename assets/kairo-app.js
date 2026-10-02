@@ -4299,7 +4299,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
  document.addEventListener('click',e=>{
    const cust=e.target.closest('[data-tab="customers"],.saas-mobile-nav-btn[data-mobile-tab="customers"]');if(cust&&!canUseFeature('customer_database')){e.preventDefault();e.stopImmediatePropagation();showToast(lockedMsg('customer_database'),true);return;}
    const shift=e.target.closest('#open-shift-btn,#close-shift-btn');if(shift&&!canUseFeature('open_close_store')){e.preventDefault();e.stopImmediatePropagation();showToast(lockedMsg('open_close_store'),true);return;}
-   const auto=e.target.closest('#smart-sales-open');if(auto&&!canUseFeature('autofill_orders')){e.preventDefault();e.stopImmediatePropagation();showToast(lockedMsg('autofill_orders'),true);return;}
+   const auto=e.target.closest('#smart-sales-open');if(auto&&!canUseFeature('autofill_orders')){e.preventDefault();e.stopImmediatePropagation();const menu=document.getElementById('orders-tool-menu');if(menu){menu.hidden=true;document.getElementById('orders-tool-trigger')?.setAttribute('aria-expanded','false')}showToast(lockedMsg('autofill_orders'),true);return;}
    const set=e.target.closest('.saas-settings-submenu-btn');if(set&&['profit','receipt'].includes(set.dataset.settingsCategory)&&!pro()){e.preventDefault();e.stopImmediatePropagation();showToast('Menu ini tersedia di paket Pro.',true);return;}
  },true);
  // Wrap export: Gratis blocked, Pro normal.

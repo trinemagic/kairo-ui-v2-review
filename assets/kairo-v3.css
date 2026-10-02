@@ -629,12 +629,11 @@ html.kairo-v3 #app-shell .section.active {
   animation-fill-mode: backwards;
 }
 
+/* Orders "Manual / Autofill" picker: on phones too it drops down right under its button, like
+   desktop (it used to be a sheet fixed above the bottom nav, far from the button). */
+html.kairo-v3 #input .orders-tool-item { touch-action: manipulation; }
 @media (max-width: 700px) {
-  /* Orders "Manual / Autofill" picker opens as a sheet above the bottom nav. */
-  html.kairo-v3 #input .orders-tool-menu {
-    top: auto !important;
-    bottom: calc(92px + env(safe-area-inset-bottom)) !important;
-  }
+  html.kairo-v3 #input .orders-tool-menu { width: min(360px, calc(100vw - 56px)); }
 }
 
 /* Alert pop-ups (showToast): stack fixed at the top right so it stays in view while scrolling. */
