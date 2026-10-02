@@ -1618,54 +1618,66 @@ function renderCashExpenses(){
   const cashBalanceEl=document.getElementById("cash-balance");
   cashBalanceEl.textContent=rupiah(financialSnapshot.cashBalance);
   cashBalanceEl.style.color=financialSnapshot.cashBalance<0 ? "#c62828" : "";
-  renderCashExpenseHistory();
-  document.getElementById("cash-injection-table").innerHTML=cashInjections.length ? cashInjections.map(e=>`<tr><td>${escapeHtml(e.injection_date||"-")}</td><td>${escapeHtml(e.source||"-")}</td><td>${escapeHtml(e.description||"-")}</td><td><strong>${rupiah(e.amount)}</strong></td></tr>`).join("") : `<tr><td colspan="4" class="empty">Belum ada pemasukan kas dari luar pendapatan pada periode ini.</td></tr>`;
+  renderCashHistories();
 }
 
-// Petty Cash "Riwayat Pengeluaran" has its own date filter. The page hides the Dashboard period
-// filter, so the list no longer follows it; `cashExpenses` (period-based, used by Export Excel)
-// is left untouched.
-let cashExpenseFilter="all";
-function cashExpenseFilterRange(){
+// Petty Cash "Riwayat Pengeluaran" and "Riwayat Pemasukan" share one date filter of their own
+// (shown above each table, kept in sync). The page hides the Dashboard period filter, so these
+// lists no longer follow it; the period-based `cashExpenses`/`cashInjections` (used by Export
+// Excel) are left untouched.
+let cashHistoryFilter="all";
+function cashHistoryRange(){
   const today=new Date(),iso=localISODate,shift=n=>{const d=new Date(today);d.setDate(d.getDate()+n);return iso(d)};
-  switch(cashExpenseFilter){
+  switch(cashHistoryFilter){
     case "today":return {from:iso(today),to:iso(today)};
     case "yesterday":return {from:shift(-1),to:shift(-1)};
     case "7days":return {from:shift(-6),to:iso(today)};
     case "month":return {from:iso(new Date(today.getFullYear(),today.getMonth(),1)),to:iso(today)};
     case "lastmonth":return {from:iso(new Date(today.getFullYear(),today.getMonth()-1,1)),to:iso(new Date(today.getFullYear(),today.getMonth(),0))};
     case "custom":{
-      let from=document.getElementById("cash-expense-from")?.value||"",to=document.getElementById("cash-expense-to")?.value||"";
+      let from=document.querySelector("[data-cash-from]")?.value||"",to=document.querySelector("[data-cash-to]")?.value||"";
       if(from&&to&&from>to)[from,to]=[to,from];
       return {from,to};
     }
     default:return {from:"",to:""};
   }
 }
-async function renderCashExpenseHistory(){
-  const table=document.getElementById("cash-expense-table");if(!table)return;
-  const {from,to}=cashExpenseFilterRange();
+async function renderCashHistoryTable({tableId,summaryId,colspan,load,dateKey,row,empty}){
+  const table=document.getElementById(tableId);if(!table)return;
+  const {from,to}=cashHistoryRange();
   let rows=[];
-  try{rows=(await allCashExpenses()).filter(e=>{const d=String(e.expense_date||"");return (!from||d>=from)&&(!to||d<=to)});}
-  catch(err){table.innerHTML=`<tr><td colspan="3" class="empty">${escapeHtml(err.message||"Gagal memuat riwayat pengeluaran.")}</td></tr>`;return;}
-  table.innerHTML=rows.length?rows.map(e=>`<tr><td>${escapeHtml(e.expense_date||"-")}</td><td>${escapeHtml(e.description||"-")}</td><td><strong>${rupiah(e.amount)}</strong></td></tr>`).join(""):`<tr><td colspan="3" class="empty">Tidak ada pengeluaran kas pada periode ini.</td></tr>`;
-  const summary=document.getElementById("cash-expense-filter-summary");
+  try{rows=(await load()).filter(e=>{const d=String(e[dateKey]||"");return (!from||d>=from)&&(!to||d<=to)});}
+  catch(err){table.innerHTML=`<tr><td colspan="${colspan}" class="empty">${escapeHtml(err.message||"Gagal memuat riwayat kas.")}</td></tr>`;return;}
+  table.innerHTML=rows.length?rows.map(row).join(""):`<tr><td colspan="${colspan}" class="empty">${empty}</td></tr>`;
+  const summary=document.getElementById(summaryId);
   if(summary)summary.textContent=`${rows.length} catatan · Total ${rupiah(rows.reduce((sum,e)=>sum+Number(e.amount||0),0))}`;
 }
-(function wireCashExpenseFilter(){
-  const select=document.getElementById("cash-expense-filter"),custom=document.getElementById("cash-expense-custom");
-  if(!select)return;
-  select.addEventListener("change",()=>{
-    cashExpenseFilter=select.value||"all";
-    if(custom)custom.hidden=cashExpenseFilter!=="custom";
-    if(cashExpenseFilter==="custom"){
-      const today=todayISO(),fromEl=document.getElementById("cash-expense-from"),toEl=document.getElementById("cash-expense-to");
-      if(fromEl&&!fromEl.value)fromEl.value=localISODate(new Date(new Date().getFullYear(),new Date().getMonth(),1));
-      if(toEl&&!toEl.value)toEl.value=today;
+function renderCashHistories(){
+  renderCashHistoryTable({tableId:"cash-expense-table",summaryId:"cash-expense-filter-summary",colspan:3,load:allCashExpenses,dateKey:"expense_date",empty:"Tidak ada pengeluaran kas pada periode ini.",
+    row:e=>`<tr><td>${escapeHtml(e.expense_date||"-")}</td><td>${escapeHtml(e.description||"-")}</td><td><strong>${rupiah(e.amount)}</strong></td></tr>`});
+  renderCashHistoryTable({tableId:"cash-injection-table",summaryId:"cash-injection-filter-summary",colspan:4,load:allCashInjections,dateKey:"injection_date",empty:"Tidak ada pemasukan kas pada periode ini.",
+    row:e=>`<tr><td>${escapeHtml(e.injection_date||"-")}</td><td>${escapeHtml(e.source||"-")}</td><td>${escapeHtml(e.description||"-")}</td><td><strong>${rupiah(e.amount)}</strong></td></tr>`});
+}
+(function wireCashHistoryFilter(){
+  const selects=[...document.querySelectorAll("[data-cash-filter]")];
+  if(!selects.length)return;
+  const sync=()=>{
+    selects.forEach(sel=>{sel.value=cashHistoryFilter;});
+    document.querySelectorAll("[data-cash-custom]").forEach(box=>{box.hidden=cashHistoryFilter!=="custom";});
+  };
+  selects.forEach(sel=>sel.addEventListener("change",()=>{
+    cashHistoryFilter=sel.value||"all";
+    if(cashHistoryFilter==="custom"){
+      const first=localISODate(new Date(new Date().getFullYear(),new Date().getMonth(),1)),today=todayISO();
+      document.querySelectorAll("[data-cash-from]").forEach(el=>{if(!el.value)el.value=first;});
+      document.querySelectorAll("[data-cash-to]").forEach(el=>{if(!el.value)el.value=today;});
     }
-    renderCashExpenseHistory();
-  });
-  ["cash-expense-from","cash-expense-to"].forEach(id=>document.getElementById(id)?.addEventListener("change",renderCashExpenseHistory));
+    sync();renderCashHistories();
+  }));
+  ["data-cash-from","data-cash-to"].forEach(attr=>document.querySelectorAll(`[${attr}]`).forEach(input=>input.addEventListener("change",()=>{
+    document.querySelectorAll(`[${attr}]`).forEach(other=>{if(other!==input)other.value=input.value;});
+    renderCashHistories();
+  })));
 })();
 
 /* =========================
