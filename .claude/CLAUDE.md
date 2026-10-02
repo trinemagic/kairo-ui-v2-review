@@ -242,7 +242,7 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   `trinemagic/trine-magic-dashboard/admin` (yang lama tidak diubah). Tombol keluar = tutup tab admin. Paket tampil Gratis/Pro
   (`plus` dll dihitung Pro; pilihan paket di modal hanya basic/pro; harga `plus` disembunyikan). Tabel jadi kartu di
   ≤640px (label kolom otomatis dari `thead`, `labelCells()`). Tes: stub `window.supabase` + data contoh di
-  scratchpad (route `**/supabase-js@2*` dan `**/chart.umd.min.js`). Cache `admin.css?v=1.2.0`, `admin.js?v=1.2.0`.
+  scratchpad (route `**/supabase-js@2*` dan `**/chart.umd.min.js`). Cache `admin.css?v=1.3.0`, `admin.js?v=1.3.0`.
   **Akses (owner Okt 2026): tanpa form login.** admin/ hanya jalan bila dibuka dari tombol KAIRO Admin di dashboard
   Trine Magic: `openKairoAdmin()` membuka tab (tanpa `noopener`), admin minta token lewat `postMessage`
   (`kairo-admin-token-request` → `kairo-admin-token`, cek origin + window yang dibuka), dashboard hanya menjawab bila
@@ -256,6 +256,12 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   `kairo_admin_db_limit_mb` di localStorage, koneksi, cache hit, waktu respons, tabel terbesar; CPU/RAM/bandwidth hanya
   di laporan Supabase). SQL: `.claude/sql/2026-10-admin-panel-v2.sql` (**sudah dijalankan owner Okt 2026**, sukses).
   SQL panjang: kirim sebagai file + link raw GitHub, bukan blok kode di chat (owner: tampilan chat pecah).
+- **Admin › Template (owner Okt 2026):** daftar template usaha dari form daftar (`TEMPLATES` di admin.js — **perbarui
+  bila ada template baru**): Seller App Premium (`digital_subscription`, tampilan khusus), Jasa Online
+  (`service_consultation`, tampilan dasar), Online Shop & Digital Product (belum ada tampilan khusus → user melihat
+  tampilan Jasa Online). Jumlah workspace/Pro/aktif per template dari `business_template` di
+  `platform_admin_workspace_activity` (SQL `.claude/sql/2026-10-admin-templates.sql`, **sudah dijalankan owner Okt 2026**). Preview dashboard
+  `admin/previews/*.webp` dibuat ulang dengan `.claude/testing/shoot-templates.js`. Cache admin `?v=1.3.0`.
 - **Laporan error user** (kairo-app.js, di atas `showToast`): `reportClientError()` mengirim pesan error script
   (file sendiri saja) + toast merah "Gagal" (bukan pesan kunci paket) ke RPC `report_client_error` beserta
   baris/kolom, stack trace (toast: stack pemanggil `showToast`) dan versi `kairo-app.js?v=`; maks 10/sesi, tanpa data

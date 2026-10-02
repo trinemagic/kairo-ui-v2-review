@@ -42,6 +42,7 @@ const PAGES={
   sales:['Penjualan','Catat dan pantau pembayaran paket'],
   renewals:['Renewal','Workspace yang masa aktifnya segera habis'],
   plans:['Harga Paket','Harga bulanan & tahunan per paket'],
+  templates:['Template','Template usaha yang ada di KAIRO Workspaces + preview dashboard'],
   expenses:['Pengeluaran','Biaya operasional dan laba bersih'],
   analytics:['Analitik','Performa paket dan subscription'],
   crm:['CRM & Follow-up','Kontak customer dan tindak lanjut'],
@@ -108,7 +109,7 @@ async function load(){
   const [o,w,a,b,s,series,prices,ex,an,pp,rq,cr,fu,ps]=calls.map(x=>x.error?null:x.data);
   overview=o||{};all=w||[];activity=a||[];business=b||{};sales=s||[];expenses=ex||[];analytics=an||{};planPerf=pp||[];renewals=rq||[];crm=cr||[];followups=fu||[];platformSettings=ps||{};
   await loadExtras();
-  renderOverview(series||[]);renderWorkspaces();renderSales();renderActivity();renderPrices(prices||[]);fillWorkspaceSelect();renderExpenses();renderAnalytics();renderRenewals();renderCrm();renderFollowups();renderPlatformSettings();fillFollowWorkspace();renderCustom();renderServer();renderIssues();renderNavCounts();
+  renderOverview(series||[]);renderWorkspaces();renderSales();renderActivity();renderPrices(prices||[]);fillWorkspaceSelect();renderExpenses();renderAnalytics();renderRenewals();renderCrm();renderFollowups();renderPlatformSettings();fillFollowWorkspace();renderCustom();renderServer();renderTemplates();renderIssues();renderNavCounts();
   if(failed.length)toast(`Sebagian data gagal dimuat (${failed.length}): ${failed[0]}`,true);
 }
 
@@ -339,6 +340,61 @@ async function saveSale(){
     const {error}=await db.rpc('platform_admin_record_sale',{p_workspace_id:$('sWorkspace').value,p_customer_name:$('sCustomer').value,p_plan:$('sPlan').value,p_billing_period:$('sPeriod').value,p_amount:+$('sAmount').value||0,p_payment_method:$('sMethod').value,p_payment_status:$('sStatus').value,p_paid_at:iso('sPaid'),p_period_start:iso('sStart'),p_period_end:iso('sEnd'),p_notes:$('sNotes').value});
     if(error)throw error;closeModal('saleModal');toast('Penjualan berhasil dicatat');await load();
   }catch(e){$('sError').textContent=e.message;}
+}
+
+/* ── Template usaha (data tetap; perbarui di sini setiap ada template baru) ── */
+const TEMPLATES=[
+  {key:'digital_subscription',name:'Seller App Premium',desc:'Kelola seller aplikasi premium dan paket berlangganan.',kind:'custom',preview:'seller-app-premium',
+   features:['Katalog app premium siap pakai (Netflix, Spotify, ChatGPT, Canva, dll) lengkap dengan logo','Orders pakai keranjang: produk, varian, durasi','Pantau masa aktif langganan customer (Akan Expired)','Piutang / pembayaran sebagian (Piutang Aktif)','Dashboard 5 kartu termasuk Profit','Settings › Produk: atur harga; paket Gratis maks 3 produk custom'],
+   files:['assets/templates/seller-app-premium.js','assets/templates/seller-app-premium.css']},
+  {key:'service_consultation',name:'Jasa Online',desc:'Joki / Tarot Reading / Wording / jasa online lainnya.',kind:'base',preview:'jasa-online',
+   features:['Orders: Package + Add-on + Topik','Start Reading + status On Progress / Done','Notifikasi order On Progress ≥ 5 menit','Open / Close Store (sesi kerja)','Bagi hasil partner & Withdraw','Struk yang bisa diatur'],
+   files:['assets/kairo-app.js (tampilan dasar KAIRO)'],
+   note:'Tampilan dasar KAIRO (asal mula dari dashboard Trine Magic). Akun lama yang tidak tercatat templatenya juga tampil seperti ini.'},
+  {key:'online_shop',name:'Online Shop',desc:'Kreasikan produkmu sendiri pada dashboard.',kind:'none',preview:'jasa-online',features:[],files:[],
+   note:'Belum ada tampilan khusus. User yang memilih ini sekarang melihat tampilan Jasa Online (ada istilah Start Reading & Topik).'},
+  {key:'digital_product',name:'Digital Product',desc:'Produk digital, file, akses, atau layanan digital.',kind:'none',preview:'jasa-online',features:[],files:[],
+   note:'Belum ada tampilan khusus. User yang memilih ini sekarang melihat tampilan Jasa Online (ada istilah Start Reading & Topik).'}
+];
+const TPL_KIND={custom:['Tampilan khusus','b-ok'],base:['Tampilan dasar','b-info'],none:['Belum ada tampilan khusus','b-warn']};
+function templateUsage(){
+  const byWs=Object.fromEntries(all.map(w=>[w.workspace_id,w])),known=new Set(TEMPLATES.map(t=>t.key)),use={};
+  TEMPLATES.forEach(t=>use[t.key]=[]);use.__none=[];
+  wsActivity.forEach(a=>{const w=byWs[a.workspace_id];if(!w)return;const k=known.has(a.business_template)?a.business_template:'__none';use[k].push({w,a});});
+  return use;
+}
+function renderTemplates(){
+  const hasData=wsActivity.length>0&&wsActivity.some(a=>'business_template' in a);
+  $('tplNeedSql').classList.toggle('hidden',hasData);
+  const use=hasData?templateUsage():null;
+  setText('tplTotal',TEMPLATES.length);setText('tplCustom',TEMPLATES.filter(t=>t.kind==='custom').length);setText('tplBase',TEMPLATES.filter(t=>t.kind==='base').length);setText('tplNone',TEMPLATES.filter(t=>t.kind==='none').length);
+  setText('navTemplates',TEMPLATES.length);
+  const stat=list=>list?{n:list.length,pro:list.filter(x=>planKey(x.w.plan)==='pro').length,active:list.filter(x=>Number(x.a.tx_30d)>0).length}:{n:'—',pro:'—',active:'—'};
+  // catatan analisa
+  const notes=[];
+  if(use){
+    const ranked=TEMPLATES.map(t=>[t,use[t.key].length]).sort((a,b)=>b[1]-a[1]);
+    if(ranked[0][1])notes.push(['ok',`Paling banyak dipakai: <b>${esc(ranked[0][0].name)}</b> (${ranked[0][1]} workspace).`]);
+    const noneUsers=TEMPLATES.filter(t=>t.kind==='none').reduce((a,t)=>a+use[t.key].length,0);
+    if(noneUsers)notes.push(['warn',`<b>${noneUsers} workspace</b> memilih template yang belum punya tampilan khusus (Online Shop / Digital Product) — mereka melihat tampilan Jasa Online.`]);
+    if(use.__none.length)notes.push(['warn',`${use.__none.length} workspace tidak tercatat templatenya (akun lama / dibuat manual) — tampil sebagai Jasa Online.`]);
+    TEMPLATES.forEach(t=>{const l=use[t.key];if(l.length&&!l.some(x=>Number(x.a.tx_30d)>0))notes.push(['warn',`Semua workspace <b>${esc(t.name)}</b> tidak mencatat transaksi 30 hari terakhir.`]);});
+  }
+  notes.push(['warn',`${TEMPLATES.filter(t=>t.kind==='none').length} dari ${TEMPLATES.length} template di form daftar belum punya tampilan khusus.`]);
+  $('tplNotes').innerHTML=notes.map(([k,t])=>`<li class="${k}"><svg><use href="#i-${k==='ok'?'check':'alert'}"/></svg><span>${t}</span></li>`).join('');
+  $('tplGrid').innerHTML=TEMPLATES.map((t,i)=>{
+    const st=stat(use&&use[t.key]),list=use?use[t.key]:[],fb=t.kind==='none';
+    return `<article class="widget tpl-card">
+      <button class="tpl-thumb${fb?' is-fallback':''}" data-tpl="${i}" aria-label="Perbesar preview ${esc(t.name)}"><img src="previews/${t.preview}-desktop.webp" alt="" loading="lazy"><img class="tpl-phone" src="previews/${t.preview}-mobile.webp" alt="" loading="lazy">${fb?'<span class="tpl-flag">Sementara memakai tampilan Jasa Online</span>':''}</button>
+      <div class="tpl-title"><h2>${esc(t.name)}</h2><span class="badge ${TPL_KIND[t.kind][1]}">${TPL_KIND[t.kind][0]}</span></div>
+      <p class="tpl-desc">${esc(t.desc)} <code>${esc(t.key)}</code></p>
+      <div class="tpl-stats"><div><b>${st.n}</b><span>Workspace</span></div><div><b>${st.pro}</b><span>Paket Pro</span></div><div><b>${st.active}</b><span>Aktif 30 hari</span></div></div>
+      ${t.features.length?`<ul class="tpl-feat">${t.features.map(f=>`<li>${esc(f)}</li>`).join('')}</ul>`:''}
+      ${t.note?`<p class="tpl-note">${esc(t.note)}</p>`:''}
+      ${t.files.length?`<div class="tpl-files">File: ${t.files.map(f=>`<code>${esc(f)}</code>`).join(', ')}</div>`:''}
+      ${list.length?`<details><summary>Lihat ${list.length} workspace</summary><ul>${list.map(x=>`<li>${esc(x.w.workspace_name)} · ${planKey(x.w.plan)==='pro'?'Pro':'Gratis'}${Number(x.a.tx_30d)?` · ${x.a.tx_30d} transaksi/30 hari`:' · belum ada transaksi 30 hari'}</li>`).join('')}</ul></details>`:''}
+    </article>`;}).join('');
+  $('tplGrid').querySelectorAll('.tpl-thumb').forEach(b=>b.onclick=()=>{const t=TEMPLATES[+b.dataset.tpl];setText('tplModalTitle',t.name);setText('tplModalSub',t.kind==='none'?'Belum ada tampilan khusus — ini tampilan yang dilihat user sekarang (Jasa Online).':'Halaman Dashboard utama (data contoh)');$('tplShotDesk').src=`previews/${t.preview}-desktop.webp`;$('tplShotMob').src=`previews/${t.preview}-mobile.webp`;openModal('tplModal');});
 }
 
 /* ── Salin detail masalah (untuk ditempel ke chat & dianalisa) ── */

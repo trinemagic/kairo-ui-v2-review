@@ -7,10 +7,10 @@
 <meta name="color-scheme" content="dark">
 <title>KAIRO Admin</title>
 <link rel="icon" type="image/svg+xml" href="../assets/kairo-mark.svg">
-<link rel="stylesheet" href="admin.css?v=1.2.0">
+<link rel="stylesheet" href="admin.css?v=1.3.0">
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
-<script defer src="admin.js?v=1.2.0"></script>
+<script defer src="admin.js?v=1.3.0"></script>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -37,6 +37,7 @@
   <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></symbol>
   <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
   <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></symbol>
+  <symbol id="i-layout" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 9v11"/></symbol>
   <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4.5 4.5L19 7"/></symbol>
 </svg>
 
@@ -62,6 +63,7 @@
       <button class="nav-item" data-page="sales"><svg><use href="#i-cart"/></svg><span>Penjualan</span></button>
       <button class="nav-item" data-page="renewals"><svg><use href="#i-repeat"/></svg><span>Renewal</span><em id="navRenew" class="nav-count is-warn"></em></button>
       <button class="nav-item" data-page="plans"><svg><use href="#i-tag"/></svg><span>Harga Paket</span></button>
+      <button class="nav-item" data-page="templates"><svg><use href="#i-layout"/></svg><span>Template</span><em id="navTemplates" class="nav-count"></em></button>
       <p class="side-label">Keuangan</p>
       <button class="nav-item" data-page="expenses"><svg><use href="#i-wallet"/></svg><span>Pengeluaran</span></button>
       <button class="nav-item" data-page="analytics"><svg><use href="#i-chart"/></svg><span>Analitik</span></button>
@@ -188,6 +190,19 @@
           <div class="w-head"><h2>Antrean Renewal (60 hari)</h2><div class="w-tools"><button id="exportRenewals" class="btn btn-ghost"><svg><use href="#i-down"/></svg>CSV</button></div></div>
           <div class="table-wrap"><table><thead><tr><th>Workspace</th><th>Owner</th><th>Paket</th><th>Subscription</th><th>Berlaku sampai</th><th>Sisa</th><th></th></tr></thead><tbody id="renewRows"></tbody></table><p id="renewEmpty" class="empty hidden">Tidak ada renewal dalam 60 hari.</p></div>
         </div>
+      </section>
+
+      <!-- TEMPLATES -->
+      <section class="page" data-page="templates" hidden>
+        <div id="tplNeedSql" class="notice hidden">Jumlah pemakaian per template tampil setelah SQL <b>admin templates</b> dijalankan di Supabase.</div>
+        <div class="kpi-row four">
+          <div class="widget kpi"><span>Template di form daftar</span><b id="tplTotal">0</b></div>
+          <div class="widget kpi"><span>Punya tampilan khusus</span><b id="tplCustom">0</b></div>
+          <div class="widget kpi"><span>Tampilan dasar</span><b id="tplBase">0</b></div>
+          <div class="widget kpi"><span>Belum ada tampilan khusus</span><b id="tplNone" class="t-warn">0</b></div>
+        </div>
+        <div class="widget"><div class="w-head"><h2>Catatan Analisa</h2><span class="muted">Dihitung dari data workspace</span></div><ul id="tplNotes" class="tpl-notes"></ul></div>
+        <div id="tplGrid" class="tpl-grid"></div>
       </section>
 
       <!-- PLANS -->
@@ -399,6 +414,14 @@
     </div>
     <div class="actions"><button id="saveFollow" class="btn btn-primary">Simpan Follow-up</button></div>
     <div id="fError" class="err"></div>
+  </div>
+</div>
+
+<!-- Modal: preview template -->
+<div id="tplModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="tplModalTitle">
+  <div class="modal modal-preview">
+    <div class="modal-head"><div><h3 id="tplModalTitle">Preview</h3><p id="tplModalSub" class="muted"></p></div><button class="close" data-close="tplModal" aria-label="Tutup">×</button></div>
+    <div class="tpl-shots"><figure><img id="tplShotDesk" alt="Preview dashboard desktop"><figcaption>Desktop</figcaption></figure><figure class="is-phone"><img id="tplShotMob" alt="Preview dashboard HP"><figcaption>HP</figcaption></figure></div>
   </div>
 </div>
 
