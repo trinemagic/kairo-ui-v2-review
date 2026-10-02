@@ -2215,8 +2215,6 @@ body.kairo-basic-plan #performance>.grid-main:first-of-type>.card:first-child{wi
   .kairo-header-card-v83{min-height:38px!important;padding:7px 11px!important;border:1px solid color-mix(in srgb,var(--brand-primary) 13%,var(--line))!important;border-radius:12px!important;background:color-mix(in srgb,var(--brand-primary) 3%,var(--white))!important;box-shadow:0 3px 12px rgba(45,55,72,.035)!important;align-items:center!important;justify-content:center!important;white-space:nowrap!important}
   .kairo-plan-card-v83{flex-direction:column!important;align-items:flex-start!important;gap:1px!important;line-height:1.05!important}
   .kairo-plan-card-v83 strong{font-size:9px!important}.kairo-plan-card-v83 small{font-size:7px!important;color:var(--muted)!important;font-weight:650!important}
-  .kairo-basic-header-upgrade-v83{min-height:38px;max-width:430px;min-width:260px;display:flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid color-mix(in srgb,var(--brand-primary) 16%,var(--line));border-radius:12px;background:linear-gradient(135deg,color-mix(in srgb,var(--brand-primary) 6%,var(--white)),color-mix(in srgb,var(--brand-accent) 6%,var(--white)));box-shadow:0 3px 12px rgba(45,55,72,.035)}
-  .kairo-basic-header-upgrade-v83 svg{width:18px;height:18px;flex:none;fill:none;stroke:var(--brand-primary);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.kairo-basic-header-upgrade-v83 div{min-width:0}.kairo-basic-header-upgrade-v83 strong{display:block;font-size:8.5px;line-height:1.15;color:var(--ink)}.kairo-basic-header-upgrade-v83 small{display:block;margin-top:2px;font-size:6.8px;line-height:1.2;color:var(--muted);white-space:normal}
 }
 /* one consistent lock icon per Settings submenu */
 .saas-settings-submenu-btn .kairo-lock-v83{margin-left:auto;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto}.saas-settings-submenu-btn .kairo-lock-v83 svg{width:15px!important;height:15px!important;fill:none!important;stroke:currentColor!important;stroke-width:1.9!important;stroke-linecap:round;stroke-linejoin:round}
@@ -2272,8 +2270,6 @@ body.kairo-basic-plan #performance #kairo-basic-daily-sales-v83{display:block!im
   .workspace-meta .kairo-header-card-v83{font-size:11px!important;line-height:1.2!important}
   .workspace-meta .kairo-header-card-v83 strong{font-size:11px!important;line-height:1.15!important}
   .workspace-meta .kairo-header-card-v83 small{font-size:8px!important;line-height:1.15!important}
-  .workspace-meta .kairo-basic-header-upgrade-v83 strong{font-size:10px!important;line-height:1.15!important}
-  .workspace-meta .kairo-basic-header-upgrade-v83 small{font-size:8px!important;line-height:1.2!important}
 }
 
 
@@ -2466,12 +2462,9 @@ body.saas-dark #settings .receipt-template-section{background:#252b32;border-col
   .kairo-mobile-brand-id{display:flex;align-items:center;gap:10px;min-width:0}
   .kairo-mobile-brand-logo{width:38px!important;height:38px!important;border-radius:12px!important;object-fit:cover;flex:0 0 38px;border:1px solid color-mix(in srgb,var(--brand-accent) 35%,var(--line))!important;box-shadow:0 5px 18px color-mix(in srgb,var(--brand-primary) 15%,transparent)!important}
   .kairo-mobile-brand-id>div{min-width:0}.kairo-mobile-brand-id strong{display:block;font-size:13px;line-height:1.15;letter-spacing:.08em;color:var(--ink);white-space:nowrap}.kairo-mobile-brand-id small{display:block;margin-top:3px;font-size:9px;font-weight:750;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:uppercase;letter-spacing:.06em}
-  .kairo-mobile-plan-card{display:grid;grid-template-columns:38px minmax(0,1fr) 20px;align-items:center;gap:10px;padding:11px 12px;border-radius:15px;border:1px solid color-mix(in srgb,var(--brand-accent) 24%,var(--line));background:linear-gradient(135deg,color-mix(in srgb,var(--brand-primary) 9%,var(--card)),color-mix(in srgb,var(--brand-accent) 6%,var(--card)));box-shadow:0 7px 22px rgba(20,28,36,.07);overflow:hidden}
-  .kairo-mobile-plan-icon{width:38px;height:38px;display:grid;place-items:center;border-radius:11px;background:color-mix(in srgb,var(--brand-primary) 10%,var(--card));color:var(--brand-primary)}.kairo-mobile-plan-icon svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-  .kairo-mobile-plan-card>div{min-width:0}.kairo-mobile-plan-card strong{display:block;font-size:12px;color:var(--ink);line-height:1.2}.kairo-mobile-plan-card small{display:block;margin-top:3px;font-size:9px;color:var(--muted);line-height:1.35;white-space:normal}.kairo-mobile-plan-chevron{font-size:22px;color:var(--brand-accent);text-align:right}
 
   /* Retire the desktop plan/header furniture on mobile only; prevents the oversized PRO frame bug. */
-  #app-shell .workspace-meta,#kairo-basic-header-upgrade-v83{display:none!important}
+  #app-shell .workspace-meta{display:none!important}
 
   /* Kairo mobile bottom nav: More → Dashboard → Orders → Promo → Settings */
   #saas-mobile-bottom{left:10px!important;right:10px!important;bottom:max(8px,env(safe-area-inset-bottom))!important;height:70px!important;display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;align-items:end!important;overflow:visible!important;padding:7px 8px 6px!important;border-radius:22px!important;background:color-mix(in srgb,var(--card) 92%,transparent)!important;border:1px solid color-mix(in srgb,var(--brand-accent) 15%,var(--line))!important;box-shadow:0 15px 38px rgba(16,26,36,.20),inset 0 1px 0 rgba(255,255,255,.08)!important;backdrop-filter:blur(22px) saturate(125%)!important;-webkit-backdrop-filter:blur(22px) saturate(125%)!important}
@@ -2503,7 +2496,7 @@ body.saas-dark #settings .receipt-template-section{background:#252b32;border-col
 
   /* Dark mode inherits the active workspace theme instead of hard-coded GoPay colors. */
   body.saas-dark #saas-mobile-bottom,body.saas-dark .kairo-mobile-more-panel{background:color-mix(in srgb,#171a1f 93%,var(--brand-primary))!important;border-color:color-mix(in srgb,var(--brand-accent) 18%,#343a42)!important}
-  body.saas-dark .kairo-mobile-plan-card,body.saas-dark .kairo-mobile-settings-link,body.saas-dark .kairo-mobile-more-item{background:color-mix(in srgb,#20252c 94%,var(--brand-primary))!important;border-color:color-mix(in srgb,var(--brand-accent) 13%,#3a424c)!important}
+  body.saas-dark .kairo-mobile-settings-link,body.saas-dark .kairo-mobile-more-item{background:color-mix(in srgb,#20252c 94%,var(--brand-primary))!important;border-color:color-mix(in srgb,var(--brand-accent) 13%,#3a424c)!important}
 }
 @media (max-width:520px){
   #saas-mobile-bottom{left:7px!important;right:7px!important}.kairo-mobile-orders-main{width:74px!important;height:74px!important}.kairo-mobile-more-panel{left:7px;right:7px}.kairo-mobile-brand-id strong{font-size:12px}
@@ -2516,16 +2509,6 @@ body.saas-dark #settings .receipt-template-section{background:#252b32;border-col
   .saas-mobile-nav-btn:not(.kairo-mobile-orders-main)>span:first-child{flex:0 0 25px!important}
   .saas-mobile-nav-btn:not(.kairo-mobile-orders-main)>span:last-child{display:block!important;min-height:10px!important;line-height:10px!important;margin:0!important;font-family:inherit!important;font-style:normal!important}
   .kairo-mobile-orders-main{align-self:center!important;transform:translateY(-13px)!important}
-  .kairo-mobile-plan-card{grid-template-columns:38px minmax(0,1fr) 20px!important;overflow:visible!important}
-  .kairo-mobile-plan-card.kairo-mobile-plan-expanded{grid-template-rows:auto auto!important}
-  .kairo-mobile-plan-actions{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding-top:10px;margin-top:2px;border-top:1px solid color-mix(in srgb,var(--brand-accent) 15%,var(--line))}
-  .kairo-mobile-plan-action{min-width:0;height:42px;border:1px solid color-mix(in srgb,var(--brand-primary) 14%,var(--line));border-radius:12px;background:color-mix(in srgb,var(--brand-primary) 4%,var(--card));color:var(--ink);display:flex;align-items:center;justify-content:center;gap:6px;padding:0 8px;font-size:9px;font-weight:800}
-  .kairo-mobile-plan-action svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}
-  .kairo-mobile-plan-action small{font-size:8px!important;margin:0!important;color:inherit!important;white-space:nowrap!important;overflow:hidden;text-overflow:ellipsis}
-  .kairo-mobile-plan-action.kairo-mobile-theme-action{color:var(--brand-primary)}
-  .kairo-mobile-plan-action.kairo-mobile-lock-action{color:var(--brand-accent)}
-  .kairo-mobile-plan-action.kairo-mobile-profile-action{color:var(--ink)}
-  body.saas-dark .kairo-mobile-plan-action{background:rgba(255,255,255,.045);border-color:rgba(255,255,255,.1)}
 }
 
 
@@ -2548,8 +2531,6 @@ body.saas-dark #settings .receipt-template-section{background:#252b32;border-col
   .kairo-mobile-lock-option,.kairo-mobile-profile-item{width:100%;border:0;background:transparent;color:var(--ink);border-radius:11px;padding:8px 9px;display:flex;align-items:center;gap:9px;text-align:left}.kairo-mobile-lock-option:hover,.kairo-mobile-lock-option.active,.kairo-mobile-profile-item:hover{background:color-mix(in srgb,var(--brand-primary) 7%,var(--card))}
   .kairo-mobile-lock-option>span{width:8px;height:8px;border-radius:50%;border:2px solid color-mix(in srgb,var(--brand-primary) 35%,var(--line));flex:0 0 auto}.kairo-mobile-lock-option.active>span{background:var(--brand-primary);border-color:var(--brand-primary);box-shadow:0 0 0 3px color-mix(in srgb,var(--brand-primary) 10%,transparent)}
   .kairo-mobile-lock-option strong{font-size:9.5px}.kairo-mobile-lock-option small{font-size:7.5px!important;color:var(--muted)!important;margin-top:2px!important}.kairo-mobile-profile-item{font-size:9px;font-weight:800}.kairo-mobile-profile-item.danger{color:#a54858}.kairo-mobile-profile-item .saas-menu-icon{width:18px}
-  .kairo-mobile-plan-card{padding:9px 10px!important;grid-template-columns:32px minmax(0,1fr) 18px!important;gap:8px!important;border-radius:14px!important}.kairo-mobile-plan-icon{width:32px!important;height:32px!important;border-radius:10px!important}.kairo-mobile-plan-icon svg{width:18px!important;height:18px!important}.kairo-mobile-plan-card strong{font-size:11px!important}.kairo-mobile-plan-card small{font-size:8px!important}
-  .kairo-mobile-plan-actions{display:none!important}
 
   /* compact continuous frame: flat sides + soft raised crown around Orders */
   #saas-mobile-bottom{left:9px!important;right:9px!important;bottom:max(7px,env(safe-area-inset-bottom))!important;height:58px!important;padding:5px 7px!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;align-items:center!important;isolation:isolate}

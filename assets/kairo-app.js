@@ -58,12 +58,33 @@ async function loadPlatformAccess(){
 }
 
 function isTrineMagicWorkspace(){
-  return String(activeWorkspaceId||"")==="e43c8ee6-f4a7-4e10-8d00-dc34fdaf1dc2" || String(activeWorkspaceName||"").trim().toLowerCase()==="trine magic";
+  return String(activeWorkspaceId||"")===TRINE_MAGIC_WORKSPACE_ID || String(activeWorkspaceName||"").trim().toLowerCase()==="trine magic";
 }
-// The "KAIRO Admin" shortcut (admin/) used to sit in the retired sidebar plan box and was never
-// visible; the admin/ page is not part of this site, so no shortcut is mounted.
+// "KAIRO Admin" shortcut — only inside the Trine Magic workspace (the future KAIRO Workspaces admin
+// panel lives at admin/). Desktop: under Settings in the sidebar; phone: in the More sheet.
+const TRINE_MAGIC_WORKSPACE_ID="e43c8ee6-f4a7-4e10-8d00-dc34fdaf1dc2";
+function isKairoAdminWorkspace(){
+  return String(activeWorkspaceId||"")===TRINE_MAGIC_WORKSPACE_ID || (activePlatformAdmin && String(activeWorkspaceName||"").trim().toLowerCase()==="trine magic");
+}
+function openKairoAdmin(){
+  const notReady=()=>showToast("Admin panel KAIRO sedang disiapkan.","info");
+  fetch("admin/",{method:"HEAD",cache:"no-store"}).then(r=>{if(r.ok)window.open("admin/","_blank","noopener");else notReady()}).catch(notReady);
+}
 function ensureKairoAppSwitcher(){
-  document.getElementById("kairo-app-switcher")?.remove();
+  const icon='<span class="saas-nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4.5 6v5.2c0 4.7 3.1 8.9 7.5 9.8 4.4-.9 7.5-5.1 7.5-9.8V6L12 3Z"/><path d="M9 12.2 11 14l4-4"/></svg></span>';
+  let side=document.getElementById("kairo-app-switcher"), more=document.getElementById("kairo-admin-more-item");
+  if(!isKairoAdminWorkspace()){side?.remove();more?.remove();return;}
+  const settings=document.getElementById("saas-settings-side-btn");
+  if(!side&&settings){
+    side=document.createElement("button");side.type="button";side.id="kairo-app-switcher";side.className="saas-settings-side-btn kairo-admin-side-btn";
+    side.innerHTML=`${icon}<span class="saas-nav-label">KAIRO Admin</span>`;side.title="Admin panel KAIRO Workspaces";side.addEventListener("click",openKairoAdmin);
+    settings.insertAdjacentElement("afterend",side);
+  }
+  const grid=document.querySelector("#kairo-mobile-more-sheet .kairo-mobile-more-grid");
+  if(!more&&grid){
+    more=document.createElement("button");more.type="button";more.id="kairo-admin-more-item";more.className="saas-mobile-nav-btn kairo-mobile-more-item";
+    more.innerHTML=`${icon.replace('class="saas-nav-icon"','')}<span>KAIRO Admin</span>`;more.addEventListener("click",openKairoAdmin);grid.appendChild(more);
+  }
 }
 
 let activePlanEntitlements = new Map();
@@ -4569,11 +4590,9 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
   function headerBasic83(){
     const meta=document.querySelector('#app-shell .header .workspace-meta');
     if(!meta)return;
-    let upgrade=document.getElementById('kairo-basic-header-upgrade-v83');
     const workspace=document.getElementById('saas-workspace-pill');
     const plan=document.getElementById('saas-plan-pill');
     if(!isBasic83()){
-      upgrade?.remove();
       [workspace,plan].forEach(x=>x?.classList.remove('kairo-header-card-v83'));
       plan?.classList.remove('kairo-plan-card-v83');
       return;
@@ -4583,13 +4602,6 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
     const raw=activeWorkspaceSubscription?.current_period_end||activeWorkspaceSubscription?.expires_at||activeWorkspaceSubscription?.end_date||activeWorkspaceSubscription?.valid_until||activeWorkspaceSubscription?.trial_ends_at;
     const validity=raw?new Date(raw).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}):'Belum ditentukan';
     if(plan) plan.innerHTML=`<strong>GRATIS</strong><small>Masa berlaku: ${validity}</small>`;
-    if(!upgrade){
-      upgrade=document.createElement('div');
-      upgrade.id='kairo-basic-header-upgrade-v83';
-      upgrade.className='kairo-basic-header-upgrade-v83';
-      upgrade.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 17 9 12l4 4 7-9"/><path d="M14 7h6v6"/></svg><div><strong>Siap melangkah lebih jauh?</strong><small>Upgrade ke Pro untuk membuka seluruh fitur KAIRO dan pengelolaan usaha yang lebih lengkap.</small></div>';
-      meta.appendChild(upgrade);
-    }
   }
 
   function ensureBasicDailyTable83(){
@@ -4653,16 +4665,6 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
     const p=plan86();
     if(plan)plan.innerHTML=`<strong>${planLabel(p)}</strong><small>Masa berlaku: ${validity86()}</small>`;
 
-    let card=document.getElementById('kairo-basic-header-upgrade-v83');
-    if(!card){
-      card=document.createElement('div');
-      card.id='kairo-basic-header-upgrade-v83';
-      card.className='kairo-basic-header-upgrade-v83';
-      meta.appendChild(card);
-    }
-    let title='Siap melangkah lebih jauh?', copy='Upgrade ke Pro untuk membuka seluruh fitur KAIRO dan pengelolaan usaha yang lebih lengkap.';
-    if(canonicalPlan(p)==='pro'){title='Paket Pro aktif';copy='Seluruh fitur KAIRO tersedia untuk workspace ini.';}
-    card.innerHTML=`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 17 9 12l4 4 7-9"/><path d="M14 7h6v6"/></svg><div><strong>${title}</strong><small>${copy}</small></div>`;
   }
   const prior=window.hydrateSaasUi||hydrateSaasUi;
   window.hydrateSaasUi=function(){const r=prior.apply(this,arguments);setTimeout(unifiedHeader86,35);return r};
@@ -4790,6 +4792,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
     });
     wrap.querySelector('.kairo-mobile-more-backdrop')?.addEventListener('click',closeMore);
     wrap.querySelector('.kairo-mobile-sheet-close')?.addEventListener('click',closeMore);
+    if(typeof ensureKairoAppSwitcher==='function')ensureKairoAppSwitcher();
   }
   function buildNotifSheet(){
     document.getElementById('kairo-mobile-notif-sheet')?.remove();
@@ -4825,7 +4828,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
     document.getElementById('kairo-mobile-brandbar')?.remove();
     const main=document.querySelector('#app-shell main.container,#app-shell .container');if(!main)return;
     const wrap=document.createElement('div');wrap.id='kairo-mobile-brandbar';
-    wrap.innerHTML=`<div class="kairo-mobile-brand-top"><div class="kairo-mobile-brand-id"><img class="brand-logo kairo-mobile-brand-logo" alt="Logo workspace" src="${esc(desktopLogo())}"><div><strong>KAIRO WORKSPACES</strong><small id="kairo-mobile-workspace-name">Workspace</small></div></div><div class="kairo-mobile-header-actions"><button type="button" class="kairo-mobile-auto-lock" data-mobile-header-action="lock" aria-expanded="false">${icons.lock}<span><small>AUTO LOCK</small><strong>10 menit</strong></span>${icons.more}</button><button type="button" class="kairo-mobile-icon-action kairo-mobile-theme-action" data-mobile-header-action="theme" aria-label="Ganti mode tampilan"><span class="kairo-mobile-theme-icon"></span></button><button type="button" class="kairo-mobile-avatar-action" data-mobile-header-action="profile" aria-label="Buka profil">G</button></div></div><div id="kairo-mobile-plan-card" class="kairo-mobile-plan-card"><span class="kairo-mobile-plan-icon">${icons.performance}</span><div><strong>Paket aktif</strong><small>Status paket workspace aktif.</small></div><span class="kairo-mobile-plan-chevron">›</span></div>`;
+    wrap.innerHTML=`<div class="kairo-mobile-brand-top"><div class="kairo-mobile-brand-id"><img class="brand-logo kairo-mobile-brand-logo" alt="Logo workspace" src="${esc(desktopLogo())}"><div><strong>KAIRO WORKSPACES</strong><small id="kairo-mobile-workspace-name">Workspace</small></div></div><div class="kairo-mobile-header-actions"><button type="button" class="kairo-mobile-auto-lock" data-mobile-header-action="lock" aria-expanded="false">${icons.lock}<span><small>AUTO LOCK</small><strong>10 menit</strong></span>${icons.more}</button><button type="button" class="kairo-mobile-icon-action kairo-mobile-theme-action" data-mobile-header-action="theme" aria-label="Ganti mode tampilan"><span class="kairo-mobile-theme-icon"></span></button><button type="button" class="kairo-mobile-avatar-action" data-mobile-header-action="profile" aria-label="Buka profil">G</button></div></div>`;
     main.insertBefore(wrap,main.firstChild);
     const actions=wrap.querySelector('.kairo-mobile-header-actions');
     const lockMenu=buildMobileLockMenu(actions),profileMenu=buildMobileProfileMenu(actions);
@@ -4839,14 +4842,6 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
   function syncPlan(){
     const name=document.getElementById('kairo-mobile-workspace-name');if(name)name.textContent=(typeof activeWorkspaceName!=='undefined'&&activeWorkspaceName)||'Workspace';
     const logo=document.querySelector('.kairo-mobile-brand-logo');if(logo&&desktopLogo())logo.src=desktopLogo();
-    const card=document.getElementById('kairo-mobile-plan-card');if(card){
-      const p=String((typeof activeWorkspacePlan!=='undefined'&&activeWorkspacePlan)||'basic').toUpperCase();
-      const source=document.getElementById('kairo-basic-header-upgrade-v83');
-      const title=source?.querySelector('strong')?.textContent?.trim()||`Paket ${p} aktif`;
-      const copy=source?.querySelector('small')?.textContent?.trim()||'Status paket workspace aktif.';
-      const mainCopy=card.querySelector(':scope > div:not(.kairo-mobile-plan-actions)');
-      if(mainCopy){mainCopy.querySelector('strong').textContent=title;mainCopy.querySelector('small').textContent=copy}
-    }
     const dark=document.body.classList.contains('saas-dark');
     const theme=document.querySelector('[data-mobile-header-action="theme"]');
     if(theme)theme.querySelector('.kairo-mobile-theme-icon').innerHTML=dark?icons.sun:icons.moon;

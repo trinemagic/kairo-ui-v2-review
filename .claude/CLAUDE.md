@@ -79,8 +79,8 @@ URL live: `https://trinemagic.github.io/kairo-ui-v2-review/`
 | `assets/fonts/` | Plus Jakarta Sans self-hosted (OFL) | Jangan kembali ke Google Fonts. |
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
-Versi terakhir: `kairo.css?v=20.10.155`, `kairo-v3.css?v=3.23.0`,
-`kairo-v3.js?v=3.19.0`, `kairo-app.js?v=20.10.168`; template seller dimuat dari kairo-app.js
+Versi terakhir: `kairo.css?v=20.10.156`, `kairo-v3.css?v=3.23.0`,
+`kairo-v3.js?v=3.19.0`, `kairo-app.js?v=20.10.169`; template seller dimuat dari kairo-app.js
 (`seller-app-premium.js?v=20.10.148`, `.css?v=20.10.150`) — naikkan juga bila file template diubah.
 
 **Halaman app** = `main.container > section.section` dengan id:
@@ -222,16 +222,21 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
 - **Ajakan upgrade (Gratis):** `#kairo-upgrade-hint` di Dashboard di bawah kartu statistik (menggantikan
   carousel paket lama yang tersembunyi). Tombol → `window.kairoRequestUpgrade()` (WhatsApp bila
   `WA_BUSINESS` diisi, kalau belum: toast info). X = sembunyi 7 hari per workspace
-  (`kairo_upgrade_hint_hidden_until_v1_<workspace>`). Header masih punya kartu non-klik
-  "Siap melangkah lebih jauh?" (`kairo-basic-header-upgrade-v83`).
+  (`kairo_upgrade_hint_hidden_until_v1_<workspace>`). Kartu header "Siap melangkah lebih jauh?/Paket Pro
+  aktif" (`kairo-basic-header-upgrade-v83`) dan kembarannya di HP (`#kairo-mobile-plan-card`) sudah
+  dihapus (owner) — banner ini satu-satunya ajakan upgrade.
 - **Sidebar** membuat tombol menunya sendiri di `buildSidebar()` (header lama "TRINE MAGIC" + tab bar
   `.v19-nav`, tombol `#saas-settings-btn`, info paket sidebar `.saas-side-meta`, kotak
   `#kairo-basic-upgrade` sudah dihapus). Settings = `#saas-settings-side-btn` → `openWorkspaceSettings()`.
 - **`#settings-category-select` (tersembunyi) JANGAN dihapus:** dia "mesin" perpindahan kategori
   Settings (submenu sidebar, template seller, kunci paket semua lewat `change` di select ini).
 - Dibersihkan Okt 2026: CSS/JS layar login & daftar lama (`#auth-screen`, `.auth-card`, form
-  `#signup-form`), carousel paket, `kairo-runtime.js`, file sampah `app-logos/.../a`. Shortcut
-  "KAIRO Admin" (`admin/`, tidak ada di repo) tidak dipasang lagi (dulu juga tidak pernah tampil).
+  `#signup-form`), carousel paket, `kairo-runtime.js`, file sampah `app-logos/.../a`.
+- **Tombol "KAIRO Admin"** (`ensureKairoAppSwitcher()`): hanya di workspace Trine Magic
+  (`TRINE_MAGIC_WORKSPACE_ID`, atau nama "Trine Magic" + `is_platform_admin`). Desktop: di bawah
+  Settings di sidebar (`#kairo-app-switcher`); HP: menu More (`#kairo-admin-more-item`). Klik → cek
+  `admin/` (HEAD); kalau belum ada → toast "Admin panel KAIRO sedang disiapkan", kalau ada → tab baru.
+  Owner: nanti jadi admin panel KAIRO Workspaces (tampilannya akan diubah).
 
 ## 4. Jebakan yang sudah pernah terjadi
 
