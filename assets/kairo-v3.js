@@ -710,3 +710,70 @@
     if (!event.target.closest('#kairo-entry-nav')) mobileMenu(false);
   }, true);
 })();
+
+// Orders: when a required field is missed, scroll to the first one, focus it and give it a
+// short shake + red outline (instead of the browser's small bubble). Covers the native
+// required fields and the package/topic checks that kairo-app.js does on submit.
+(function () {
+  const MISSING = 'kairo-field-missing';
+  const reduced = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  const groupOf = el => el.closest('.form-group, .full, .seller-app-field') || el;
+  const labelOf = el => (groupOf(el).querySelector('.label, label')?.textContent || '').replace(/\(.*?\)/g, '').trim();
+  let batch = null;
+  // Replace the previous reminder instead of stacking a new one on every tap.
+  const dropReminder = () => document.querySelectorAll('#toast .kairo-toast').forEach(t => {
+    if (/Lengkapi dulu:/.test(t.textContent)) { clearTimeout(t._timer); t.remove(); }
+  });
+
+  function point(el) {
+    const group = groupOf(el);
+    if (!group.offsetParent) return;
+    const rect = group.getBoundingClientRect();
+    const inView = rect.top >= 80 && rect.bottom <= window.innerHeight - 100;
+    if (!inView) group.scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: 'center' });
+    const focusable = el.matches('select') ? group.querySelector('.sh-select-trigger') || el : el.matches('input,textarea') ? el : group.querySelector('input,button');
+    try { focusable?.focus({ preventScroll: true }); } catch (_e) {}
+    group.classList.remove('kairo-field-shake');
+    setTimeout(() => { void group.offsetWidth; group.classList.add('kairo-field-shake'); }, inView ? 0 : 320);
+    setTimeout(() => group.classList.remove('kairo-field-shake'), (inView ? 0 : 320) + 600);
+  }
+
+  document.addEventListener('invalid', event => {
+    const field = event.target;
+    if (field.form?.id !== 'tx-form') return;
+    event.preventDefault();
+    groupOf(field).classList.add(MISSING);
+    if (batch) { batch.push(field); return; }
+    batch = [field];
+    setTimeout(() => {
+      const fields = batch; batch = null;
+      point(fields[0]);
+      const names = [...new Set(fields.map(labelOf).filter(Boolean))];
+      dropReminder();
+      if (typeof window.showToast === 'function') window.showToast(`Lengkapi dulu: ${names.join(', ')}.`, 'warning');
+    }, 0);
+  }, true);
+
+  // Runs before the app's own submit handler, which then shows its error message.
+  document.addEventListener('submit', event => {
+    if (event.target.id !== 'tx-form' || typeof window.calculateTotal !== 'function') return;
+    let order; try { order = window.calculateTotal(); } catch (_e) { return; }
+    const target = !order?.packages?.length ? document.getElementById('tx-packages') : !order?.topics?.length ? document.getElementById('tx-topics') : null;
+    dropReminder();
+    if (!target || !target.offsetParent) return;
+    groupOf(target).classList.add(MISSING);
+    point(target);
+  }, true);
+
+  const clear = event => {
+    if (!event.target.closest?.('#tx-form')) return;
+    const group = event.target.closest('.' + MISSING);
+    if (!group) return;
+    const field = group.querySelector('input:not([type=hidden]),select,textarea');
+    const ok = group.querySelector('.master-list') ? group.querySelector('input[type=checkbox]:checked') : !field || field.checkValidity();
+    if (ok) group.classList.remove(MISSING);
+  };
+  document.addEventListener('input', clear, true);
+  document.addEventListener('change', clear, true);
+  document.addEventListener('reset', event => { if (event.target.id === 'tx-form') event.target.querySelectorAll('.' + MISSING).forEach(g => g.classList.remove(MISSING)); }, true);
+})();

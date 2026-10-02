@@ -4343,6 +4343,27 @@ html.kairo-v3 .kairo-pp-note { font-size: 11.5px; font-weight: 700; line-height:
   html.kairo-v3 .kairo-business-option.selected::before { top: 50% !important; right: 12px !important; transform: translateY(-50%); }
 }
 
+/* Orders: missed required field — red outline + short shake (kairo-v3.js). */
+@keyframes kairoFieldShake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-7px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(2px); }
+}
+html.kairo-v3 #tx-form .kairo-field-shake { animation: kairoFieldShake .45s ease; }
+html.kairo-v3 #tx-form .kairo-field-missing > .label,
+html.kairo-v3 #tx-form .kairo-field-missing > label { color: var(--v3-danger) !important; }
+html.kairo-v3 #tx-form .kairo-field-missing .input:not(.master-list *),
+html.kairo-v3 #tx-form .kairo-field-missing .sh-select-trigger,
+html.kairo-v3 #tx-form .kairo-field-missing .master-list {
+  border-color: var(--v3-danger) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--v3-danger) 18%, transparent) !important;
+}
+html.kairo-v3 #tx-form .kairo-field-missing .master-list { border: 1px solid var(--v3-danger) !important; border-radius: 14px; }
+@media (prefers-reduced-motion: reduce) { html.kairo-v3 #tx-form .kairo-field-shake { animation: none; } }
+html.kairo-v3 body.saas-dark #tx-form .kairo-field-missing { --v3-danger: #ff7d82; }
+
 /* Pro price: monthly price + 6-month deal (normal price struck through). */
 html.kairo-v3 .kairo-lp-price-card > strong > span { margin-left: 2px; font-size: 15px; font-weight: 700; letter-spacing: 0; color: var(--kairo-entry-muted); }
 html.kairo-v3 .kairo-lp-price-card.is-featured > strong > span { color: #c6d5de; }

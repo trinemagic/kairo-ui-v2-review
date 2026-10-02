@@ -73,8 +73,8 @@ URL live: `https://trinemagic.github.io/kairo-ui-v2-review/`
 | `assets/kairo-runtime.js` | Lazy loader lama | Tidak dimuat oleh `index.html` saat ini. |
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
-Versi terakhir: `kairo.css?v=20.10.153`, `kairo-v3.css?v=3.20.1`,
-`kairo-v3.js?v=3.17.0`, `kairo-app.js?v=20.10.164`.
+Versi terakhir: `kairo.css?v=20.10.153`, `kairo-v3.css?v=3.21.0`,
+`kairo-v3.js?v=3.18.0`, `kairo-app.js?v=20.10.165`.
 
 **Halaman app** = `main.container > section.section` dengan id:
 `dashboard`, `performance`, `input` (Orders), `customers`, `promo` (dibuat via JS),
@@ -92,7 +92,10 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   Copy landing ditulis untuk pelanggan: **jangan** ada catatan internal/teknis (Supabase,
   tenant, auth, "belum final"). Pricing Gratis (Rp0) / Pro / Custom dengan daftar fitur; tombol
   Pro/Custom membuka form daftar dengan paket terpilih (`data-signup-plan` → `window.__kairoSignupPlan`).
-  Harga Pro, kontak, testimoni, S&K/Privasi masih menunggu data owner. FAQ 8 poin fokus fitur
+  Harga Pro (owner Okt 2026): **Rp43.000/bulan**; paket 6 bulan harga normal Rp258.000 dicoret →
+  **Rp238.000** (hemat Rp20.000) — tampil di Pricing landing, kartu Pro halaman Daftar, FAQ 03.
+  Belum ada pilihan durasi saat daftar (dibahas via WA). Kontak WA, testimoni, S&K/Privasi masih
+  menunggu data owner. FAQ 8 poin fokus fitur
   unggulan (tanpa poin dark mode — owner). Jangan klaim fitur yang belum ada (mis. "Owner Menu
   Lock" hanya baris tabel, belum ada fiturnya).
 - **Paket (keputusan owner Okt 2026):** hanya **Gratis** dan **Pro**. `canonicalPlan()`/`planLabel()`
@@ -182,6 +185,10 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
 - **Orders:** setelah simpan berhasil, form kosong total termasuk Platform & Metode
   Pembayaran (owner: user wajib pilih ulang tiap order). `tx-payment` punya opsi
   kosong "-- Pilih Metode Pembayaran --" + `required`, jadi tidak jatuh ke QRIS.
+- **Orders — data wajib terlewat:** `invalid` (capture) di `#tx-form` → scroll ke field pertama,
+  fokus, getar `.kairo-field-shake` + outline merah `.kairo-field-missing` (hilang saat diisi), toast
+  kuning "Lengkapi dulu: …" (menggantikan yang lama, bukan menumpuk). Package/Topik kosong dicek
+  lewat `calculateTotal()` sebelum handler app (kairo-v3.js). Juga jalan di template seller.
 - **Dark mode hover tabel:** sorotan gelap solid (`--v3-sky`) — jangan biarkan
   `tr:hover` dari `kairo.css` (latar hampir putih) tembus.
 
