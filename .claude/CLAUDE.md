@@ -73,8 +73,8 @@ URL live: `https://trinemagic.github.io/kairo-ui-v2-review/`
 | `assets/kairo-runtime.js` | Lazy loader lama | Tidak dimuat oleh `index.html` saat ini. |
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
-Versi terakhir: `kairo.css?v=20.10.149`, `kairo-v3.css?v=3.16.1`,
-`kairo-v3.js?v=3.15.0`, `kairo-app.js?v=20.10.157`.
+Versi terakhir: `kairo.css?v=20.10.150`, `kairo-v3.css?v=3.17.0`,
+`kairo-v3.js?v=3.15.0`, `kairo-app.js?v=20.10.158`.
 
 **Halaman app** = `main.container > section.section` dengan id:
 `dashboard`, `performance`, `input` (Orders), `customers`, `promo` (dibuat via JS),
@@ -124,6 +124,12 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
 - **Warna layout:** `kairo-v3.js` memetakan `--brand-primary/--brand-accent` ke token
   v3. Default lama `#696F41/#EA97A9` = "belum diatur" (tetap tampilan KAIRO).
   Reset = `#25B9B0` / `#173A59`.
+- **Pop-up alert (`showToast`)**: tumpukan kartu di kanan atas, `position:fixed` (ikut layar saat
+  scroll), tepat di bawah header desktop yang sticky (`--kairo-toast-top` dihitung tiap muncul;
+  HP 16px). Ikon + judul per jenis (Berhasil/Info/Perhatian/Gagal), pesan, tombol X; maks 4,
+  hilang 4,5 dtk (error/warning 7 dtk), jeda saat hover/fokus. Signature lama tetap:
+  `showToast(msg, error)`; `error` boleh juga 'success'|'info'|'warning'|'error'. Gaya lama
+  `.toast` di kairo.css sudah dihapus; elemen `#toast` = wadah `.kairo-toast-stack`.
 - **Notifikasi** (lonceng di samping dark mode): order On Progress ≥5 menit
   (24 jam terakhir), ≥30 menit merah. Seen: `kairo_notif_seen_v1_<workspace>`.
 - **Dark mode:** sudah diaudit 0 temuan kontras (juga template seller: menu, keranjang Orders,
