@@ -576,6 +576,96 @@ html.kairo-v3 #app-shell main.container:has(> section.section.active:is(#input, 
   display: none !important;
 }
 
+/* Petty Cash: own date filter above "Riwayat Pengeluaran". */
+html.kairo-v3 .cash-expense-filter-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 18px 0 10px;
+}
+
+html.kairo-v3 .cash-expense-filter-copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+html.kairo-v3 .cash-expense-filter-copy strong {
+  color: var(--v3-ink);
+  font-size: 13px;
+}
+
+html.kairo-v3 .cash-expense-filter-copy small {
+  color: var(--v3-muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+html.kairo-v3 .cash-expense-filter-controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+html.kairo-v3 .cash-expense-filter-controls .history-filter-select {
+  flex: 0 0 auto;
+  min-width: 180px;
+}
+
+html.kairo-v3 .cash-expense-custom {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+html.kairo-v3 .cash-expense-custom[hidden] {
+  display: none;
+}
+
+html.kairo-v3 .cash-expense-custom span {
+  color: var(--v3-muted);
+  font-size: 12px;
+}
+
+html.kairo-v3 .cash-expense-custom .history-filter-date {
+  flex: 0 0 auto;
+  width: 150px;
+}
+
+@media (max-width: 640px) {
+  html.kairo-v3 .cash-expense-filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  html.kairo-v3 .cash-expense-filter-controls,
+  html.kairo-v3 .cash-expense-filter-controls .history-filter-select {
+    width: 100%;
+  }
+
+  html.kairo-v3 .cash-expense-custom {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    width: 100%;
+  }
+
+  html.kairo-v3 .cash-expense-custom .history-filter-date {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+/* Date fields next to the history/petty-cash filter selects: kairo.css gives them a near-white
+   fill with no dark-mode rule, so their light text was unreadable in dark mode. */
+html.kairo-v3 body.saas-dark .history-filter-date {
+  border-color: var(--v3-line);
+  background: var(--v3-surface);
+  color: var(--v3-ink);
+  color-scheme: dark;
+}
+
 /* Refresh / Export Excel: SVG icons instead of glyphs (iOS draws ⬇ as an emoji). */
 html.kairo-v3 #app-shell main.container > .toolbar .btn:is(.kairo-refresh-btn, [onclick^="exportExcel"]) {
   display: inline-flex;
