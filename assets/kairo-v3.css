@@ -622,6 +622,21 @@ html.kairo-v3 #app-shell main.container:has(> section.section.active:is(#input, 
   display: none !important;
 }
 
+/* Page enter animation (kairo.css sectionIn) used fill-mode "both", so a finished page kept a
+   transform and trapped every position:fixed child inside it (e.g. the mobile Orders tool menu
+   opened ~1,400px below the screen). Keep the entrance, drop the leftover transform. */
+html.kairo-v3 #app-shell .section.active {
+  animation-fill-mode: backwards;
+}
+
+@media (max-width: 700px) {
+  /* Orders "Manual / Autofill" picker opens as a sheet above the bottom nav. */
+  html.kairo-v3 #input .orders-tool-menu {
+    top: auto !important;
+    bottom: calc(92px + env(safe-area-inset-bottom)) !important;
+  }
+}
+
 /* Alert pop-ups (showToast): stack fixed at the top right so it stays in view while scrolling. */
 html.kairo-v3 .kairo-toast-stack {
   position: fixed;
