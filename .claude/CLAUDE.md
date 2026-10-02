@@ -37,6 +37,10 @@ yang diawali titik). Tetap: **jangan pernah menulis rahasia di sini.**
   `sb_publishable_…` (memang publik, dilindungi RLS). Tidak boleh ada `service_role`
   atau secret key di repo.
 
+- **Perubahan Supabase (owner Okt 2026):** Claude tidak mengubah database. Kalau perlu tabel/kolom/
+  RLS/data baru, tulis **SQL siap tempel** (aman diulang: `if not exists`, `on conflict`) + penjelasan
+  singkat; owner yang menjalankan di SQL Editor Supabase. Jangan pernah minta key/password.
+
 ### Git, PR, merge
 - Kerja di branch sesi yang ditentukan sistem (format `claude/...`). Jangan push ke
   `main` langsung.
@@ -54,6 +58,9 @@ yang diawali titik). Tetap: **jangan pernah menulis rahasia di sini.**
   localStorage baru (jika ada). Pola ini sudah dipakai di PR #1–#14.
 - GitHub Pages deploy otomatis dari `main` (± 1–2 menit). Ingatkan owner hard
   refresh (Cmd+Shift+R).
+  Deploy bisa macet (PR #28: langkah "Deploy to GitHub Pages" >8 menit). Kalau owner bilang
+  fix belum jalan, cek dulu status run `pages build and deployment` (actions_list) sebelum
+  mencari bug lain. `index.html` di-cache browser ±10 menit oleh GitHub Pages.
 
 ---
 
