@@ -26,6 +26,7 @@ html.kairo-v3{
   --v3-primary:#25b9b0;
   --v3-primary-dark:#168f8a;
   --v3-primary-soft:#e6f8f6;
+  --v3-accent:#173a59;
   --v3-on-primary:#082f35;
   --v3-sky:#f1f9fb;
   --v3-sky-strong:#b8dfe9;
@@ -60,8 +61,52 @@ html.kairo-v3 body.authenticated {
   color: var(--v3-ink) !important;
 }
 
-html.kairo-v3 body.authenticated .living-origami-bg {
-  display: none !important;
+/* Living Origami background (kairo.css + kairo-app.js), in the KAIRO / workspace layout colours
+   and tuned to read through the gaps between cards. Kept light: no drop-shadow filters, few
+   cranes on phones, paused while the tab is hidden (kairo-app.js) or with reduced motion. */
+html.kairo-v3 .living-origami-bg {
+  --brand-primary: var(--v3-primary);
+  --brand-accent: var(--v3-accent);
+  background:
+    radial-gradient(circle at 12% 10%, color-mix(in srgb, var(--v3-primary) 22%, transparent), transparent 38%),
+    radial-gradient(circle at 88% 14%, color-mix(in srgb, var(--v3-accent) 14%, transparent), transparent 40%),
+    radial-gradient(circle at 70% 92%, color-mix(in srgb, var(--v3-primary) 14%, transparent), transparent 42%),
+    linear-gradient(150deg, color-mix(in srgb, var(--v3-primary) 6%, var(--v3-canvas)), color-mix(in srgb, var(--v3-accent) 6%, var(--v3-canvas)));
+}
+
+html.kairo-v3 body.saas-dark .living-origami-bg {
+  background:
+    radial-gradient(circle at 12% 10%, color-mix(in srgb, var(--v3-primary) 20%, transparent), transparent 38%),
+    radial-gradient(circle at 88% 14%, color-mix(in srgb, #5b8fd6 14%, transparent), transparent 40%),
+    radial-gradient(circle at 70% 92%, color-mix(in srgb, var(--v3-primary) 12%, transparent), transparent 42%),
+    var(--v3-canvas);
+}
+
+html.kairo-v3 .origami-part {
+  filter: none;
+}
+
+html.kairo-v3 body.authenticated .origami-drifter {
+  opacity: .62 !important;
+}
+
+html.kairo-v3 body.authenticated.saas-dark .origami-drifter {
+  opacity: .5 !important;
+}
+
+/* Dark mode: navy wings would vanish on the dark canvas, so they use a lighter blue. */
+html.kairo-v3 body.saas-dark .living-origami-bg {
+  --brand-accent: #8fb6e8;
+}
+
+@media (max-width: 760px) {
+  html.kairo-v3 body.authenticated .origami-drifter {
+    opacity: .48 !important;
+  }
+
+  html.kairo-v3 body.authenticated.saas-dark .origami-drifter {
+    opacity: .4 !important;
+  }
 }
 
 html.kairo-v3 #app-shell .header {

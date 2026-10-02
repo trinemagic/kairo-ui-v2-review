@@ -2012,7 +2012,7 @@ body.saas-dark .living-origami-bg{background:
 }
 #app-shell{position:relative;z-index:1;background:transparent!important}
 #saas-sidebar,.header,#saas-mobile-bottom,.mobile-bottom-nav{z-index:70}
-.origami-drifter{position:absolute;left:0;top:50%;width:86px;height:64px;animation-name:origamiDrift;animation-timing-function:linear;animation-iteration-count:infinite;transform-style:preserve-3d;will-change:transform;opacity:.36}
+.origami-drifter{position:absolute;left:0;top:50%;width:86px;height:64px;transform-style:preserve-3d;will-change:transform;opacity:.36}
 body.saas-dark .origami-drifter{opacity:.28}
 .origami-crane{position:relative;width:86px;height:64px;transform-style:preserve-3d;animation:origamiBob 3.6s ease-in-out infinite}
 .origami-part{position:absolute;transform-origin:center;backface-visibility:hidden;filter:drop-shadow(0 8px 16px color-mix(in srgb,var(--brand-primary) 18%,transparent))}
@@ -2021,7 +2021,6 @@ body.saas-dark .origami-drifter{opacity:.28}
 .origami-wing-right{right:4px;top:8px;width:44px;height:34px;background:linear-gradient(215deg,color-mix(in srgb,var(--brand-primary) 88%,white 12%),var(--brand-accent));clip-path:polygon(0 50%,100% 0,82% 100%);transform-origin:0 50%;animation:origamiFlapRight 2.5s ease-in-out infinite}
 .origami-tail{left:40px;top:39px;width:34px;height:14px;background:linear-gradient(90deg,var(--brand-primary),var(--brand-accent));clip-path:polygon(0 45%,100% 0,74% 100%);transform:rotateZ(14deg)}
 .origami-head{left:51px;top:16px;width:26px;height:10px;background:linear-gradient(90deg,var(--brand-accent),var(--brand-primary));clip-path:polygon(0 35%,100% 0,78% 100%);transform:rotateZ(-18deg)}
-@keyframes origamiDrift{0%{transform:translateX(-14vw) translateY(var(--y-start)) rotateZ(var(--r-start)) scale(var(--scale))}100%{transform:translateX(114vw) translateY(var(--y-end)) rotateZ(var(--r-end)) scale(var(--scale))}}
 @keyframes origamiBob{0%,100%{transform:translateY(-7px)}50%{transform:translateY(7px)}}
 @keyframes origamiFlapLeft{0%,100%{transform:perspective(180px) rotateY(-30deg) rotateX(10deg)}50%{transform:perspective(180px) rotateY(-64deg) rotateX(-18deg)}}
 @keyframes origamiFlapRight{0%,100%{transform:perspective(180px) rotateY(30deg) rotateX(10deg)}50%{transform:perspective(180px) rotateY(64deg) rotateX(-18deg)}}
