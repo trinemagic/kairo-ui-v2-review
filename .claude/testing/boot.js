@@ -6,8 +6,8 @@ const path = require('path');
 const MOCK = fs.readFileSync(path.join(__dirname, 'mockdb.js'), 'utf8');
 const BASE = process.env.KAIRO_URL || 'http://localhost:8123/index.html';
 
-async function bootApp(browser, { width = 1440, height = 900, mobile = false, plan = 'pro', seed = '', template = '' } = {}) {
-  const ctx = await browser.newContext({ viewport: { width, height }, isMobile: mobile, hasTouch: mobile });
+async function bootApp(browser, { width = 1440, height = 900, mobile = false, plan = 'pro', seed = '', template = '', dsf = 1, workspaceName = 'Trine Magic' } = {}) {
+  const ctx = await browser.newContext({ viewport: { width, height }, isMobile: mobile, hasTouch: mobile, deviceScaleFactor: dsf });
   const page = await ctx.newPage();
   page.errs = [];
   page.on('pageerror', e => page.errs.push(e.message));
@@ -17,15 +17,15 @@ async function bootApp(browser, { width = 1440, height = 900, mobile = false, pl
   if (fs.existsSync(chart)) await page.route('**/npm/chart.js', r => r.fulfill({ contentType: 'application/javascript', body: fs.readFileSync(chart, 'utf8') }));
   await page.goto(BASE);
   await page.waitForTimeout(1500);
-  await page.evaluate(({ plan, seed }) => {
+  await page.evaluate(({ plan, seed, workspaceName }) => {
     const T = window.__db.tables; // eslint-disable-line no-unused-vars
     eval(seed);
-    activeWorkspaceId = 'w1'; activeWorkspaceRole = 'owner'; activeWorkspacePlan = plan; activeWorkspaceName = 'Trine Magic';
+    activeWorkspaceId = 'w1'; activeWorkspaceRole = 'owner'; activeWorkspacePlan = plan; activeWorkspaceName = workspaceName; window.activeWorkspaceName = workspaceName;
     try { activeWorkspaceBranding = window.__db.tables.workspace_branding?.[0] || {}; } catch (e) {}
     document.body.classList.remove('auth-locked');
     document.body.classList.add('authenticated');
     try { window.hydrateSaasUi && window.hydrateSaasUi(); } catch (e) { console.warn(e); }
-  }, { plan, seed });
+  }, { plan, seed, workspaceName });
   await page.waitForTimeout(500);
   // template: 'seller' loads Seller App Premium the way kairo-app.js does for
   // business_template=digital_subscription (the mock session has no user metadata).

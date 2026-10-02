@@ -80,7 +80,7 @@ URL live: `https://trinemagic.github.io/kairo-ui-v2-review/`
 | `assets/kairo-runtime.js` | Lazy loader lama | Tidak dimuat oleh `index.html` saat ini. |
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
-Versi terakhir: `kairo.css?v=20.10.154`, `kairo-v3.css?v=3.21.2`,
+Versi terakhir: `kairo.css?v=20.10.154`, `kairo-v3.css?v=3.22.0`,
 `kairo-v3.js?v=3.18.0`, `kairo-app.js?v=20.10.167`.
 
 **Halaman app** = `main.container > section.section` dengan id:
@@ -93,7 +93,12 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
 
 ## 3. Yang sudah dibangun (jangan dirusak)
 
-- **Landing:** Home (Hero+CTA+FAQ), halaman hash `#features #solutions #pricing #about`,
+- **Landing:** Home (Hero + `#home-highlights` "Kenapa KAIRO" 4 kartu `.kairo-lp-feature-list` +
+  `#home-plans` ringkasan Gratis/Pro + CTA + FAQ), halaman hash `#features #solutions #pricing #about`,
+  `#features` = showcase screenshot asli (`assets/landing/*.webp`, data contoh nama netral "Toko Demo",
+  dibuat ulang dengan `.claude/testing/shoot-landing.js`) + "Fitur lainnya"; label `.kairo-lp-pro-tag`
+  untuk fitur Pro. Meta SEO/Open Graph + favicon di `<head>`; gambar preview link
+  `assets/og/kairo-og.jpg` (1200×630), URL absolut github.io (ganti bila pindah domain).
   `#masuk` = langsung form login. Badge "kini hadir…" sudah dihapus (owner: jangan
   wording khas AI).
   Copy landing ditulis untuk pelanggan: **jangan** ada catatan internal/teknis (Supabase,

@@ -30,6 +30,8 @@ node audit-contrast.js light light  # audit kontras (light)
 - `contrast-lib.js` — pemindai kontras bersama (`lowContrast(page, rootSelector)`).
 - `seed-seller.js` — seed.js + transaksi Seller App Premium (status Baru/Diproses/Selesai,
   piutang, durasi yang segera expired).
+- `shoot-landing.js` — buat ulang screenshot halaman Features (`assets/landing/*.webp`) dari data
+  contoh (workspace "Toko Demo", partner "Partner A/B"). `bootApp` punya opsi `dsf` dan `workspaceName`.
 - `audit-seller.js` — template seller: dashboard (riwayat penuh + hover kartu), keranjang Orders,
   Customers + dialog riwayat (+ hover baris), Settings › Produk. `node audit-seller.js dark|light`.
 - Template seller untuk script lain: `SELLER=1 node audit-contrast.js seller-dark`,
