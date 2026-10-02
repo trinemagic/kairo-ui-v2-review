@@ -4599,56 +4599,56 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
 
 
 (()=>{
- const ICONS={
-  basic:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="3"/><path d="M8 8h8M8 12h5M8 16h7"/><circle cx="17.2" cy="17.2" r="2.2"/></svg>',
-  pro:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V12M10 20V8M16 20V5M21 20V3"/><path d="m3 9 6-4 6 3 6-6"/></svg>',
-  custom:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/><circle cx="12" cy="12" r="3.2"/></svg>'
- };
- // Columns: Gratis (basic), Pro, Custom (= Pro + tailoring; requested and badged as Pro).
- const ROWS=[
-  ['Manual Orders',1,1,1],
-  ['Petty Cash & Withdrawal',1,1,1],
-  ['Performance','Penjualan harian + filter','Full','Full'],
-  ['Add-on & Harga',0,1,1],
-  ['Customer Database',0,1,1],
-  ['Open / Close Store',0,1,1],
-  ['Excel Export',0,1,1],
-  ['Autofill Orders',0,1,1],
-  ['Custom Branding',0,1,1],
-  ['Struk & Wording',0,'Full + template unlimited','Full + template unlimited'],
-  ['Auto Lock',0,1,1],
-  ['Promo',0,1,1],
-  ['Advanced Profit Sharing',0,1,1],
-  ['Business Insights & Analytics',0,1,1],
-  ['Akun Dashboard','1 akun','2 akun · Owner + Member','Sesuai kebutuhan'],
-  ['Owner Menu Lock',0,1,1],
-  ['Penyesuaian & pendampingan khusus',0,0,1]
- ];
+ // Signup plan picker: three selectable cards in the landing pricing style, plus a short
+ // comparison listing only what differs between plans. Content follows the features that
+ // actually exist per plan (FEATURE_MIN_PLAN); Custom is requested and badged as Pro.
+ const TICK='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.2 4.2L19 7"/></svg>';
+ const DASH='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 12h10"/></svg>';
  const PLANS=[
-  ['basic','Gratis','Mulai & Catat','Fondasi untuk mulai mencatat order dan arus kas secara rapi.'],
-  ['pro','Pro','Semua Fitur','Semua fitur KAIRO terbuka: operasional, otomatisasi, branding, insight, dan akses tim.'],
-  ['custom','Custom','Sesuai Kebutuhan','Semua fitur Pro plus penyesuaian khusus. Aktif sebagai paket Pro.']
+  {id:'basic',name:'Gratis',price:'Rp0',copy:'Mulai merapikan pencatatan usaha tanpa biaya.',points:['Catat order & riwayat transaksi','Struk, Petty Cash & Withdraw','Dashboard, Performance & notifikasi'],foot:'Langsung aktif setelah daftar'},
+  {id:'pro',name:'Pro',price:'Semua fitur KAIRO',badge:'Paling lengkap',copy:'Operasional, otomatisasi, dan branding usaha dalam satu dashboard.',points:['Semua fitur Gratis','Customer Database, Autofill & Promo','Open / Close Store, Export Excel','Branding, struk & pembagian profit'],foot:'Aktif setelah konfirmasi via WhatsApp'},
+  {id:'custom',name:'Custom',price:'Pro + penyesuaian',copy:'Semua fitur Pro, disesuaikan dengan alur bisnismu.',points:['Semua fitur Pro','Penyesuaian alur bisnis','Pendampingan setup'],foot:'Aktif sebagai paket Pro'}
  ];
+ const INCLUDED=['Dashboard & notifikasi order','Catat order manual','Riwayat transaksi & struk','Petty Cash','Withdraw','Package & harga','Warna layout & dark mode','Template sesuai jenis usaha'];
+ // [feature, Gratis, Pro, Custom] — 1 = included, 0 = not included, text = note.
+ const ROWS=[
+  ['Performance & grafik','Ya · Seller App: Pro',1,1],
+  ['Customer Database',0,1,1],
+  ['Autofill Orders',0,1,1],
+  ['Promo & diskon otomatis',0,1,1],
+  ['Add-on produk',0,1,1],
+  ['Open / Close Store',0,1,1],
+  ['Export Excel',0,1,1],
+  ['Branding workspace (logo & slogan)',0,1,1],
+  ['Struk & wording sendiri',0,1,1],
+  ['Pembagian profit / omzet',0,1,1],
+  ['Auto Lock dashboard',0,1,1],
+  ['Akun','1 akun','Owner + Member','Sesuai kebutuhan'],
+  ['Penyesuaian & pendampingan setup',0,0,1]
+ ];
+ const esc=v=>String(v).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
  function cell(v,plan){
-   const body=v===1?'<span class="kairo-plan-check">✓</span>':v===0?'<span class="kairo-plan-dash">—</span>':`<span class="kairo-plan-note">${v}</span>`;
-   return `<div class="kairo-plan-cell" data-plan-column="${plan}">${body}</div>`;
+   const body=v===1?`<span class="kairo-pp-yes" aria-label="Termasuk">${TICK}</span>`:v===0?`<span class="kairo-pp-no" aria-label="Tidak termasuk">${DASH}</span>`:`<span class="kairo-pp-note">${esc(v)}</span>`;
+   return `<td data-plan-column="${plan}">${body}</td>`;
  }
  function markup(selected){
-   return `<div class="kairo-plan-feature-name">Benefit KAIRO</div>${PLANS.map(p=>`<div class="kairo-plan-head ${p[0]===selected?'selected':''}" data-kairo-plan="${p[0]}"><div class="kairo-plan-icon">${ICONS[p[0]]}</div><strong>${p[1]}</strong><small><b>${p[2]}</b><br>${p[3]}</small></div>`).join('')}${ROWS.map(r=>`<div class="kairo-plan-feature-name">${r[0]}</div>${cell(r[1],'basic')}${cell(r[2],'pro')}${cell(r[3],'custom')}`).join('')}`;
+   const cards=PLANS.map(p=>`<button type="button" class="kairo-pp-card${p.badge?' is-featured':''}" data-kairo-plan="${p.id}" aria-pressed="${p.id===selected}">${p.badge?`<span class="kairo-pp-badge">${p.badge}</span>`:''}<span class="kairo-pp-check" aria-hidden="true">${TICK}</span><span class="kairo-pp-name">${p.name}</span><strong class="kairo-pp-price">${p.price}</strong><span class="kairo-pp-copy">${p.copy}</span><ul class="kairo-pp-points">${p.points.map(x=>`<li>${TICK}<span>${esc(x)}</span></li>`).join('')}</ul><span class="kairo-pp-foot">${p.foot}</span></button>`).join('');
+   const head=PLANS.map(p=>`<th scope="col" data-plan-column="${p.id}">${p.name}</th>`).join('');
+   const rows=ROWS.map(r=>`<tr><th scope="row">${esc(r[0])}</th>${cell(r[1],'basic')}${cell(r[2],'pro')}${cell(r[3],'custom')}</tr>`).join('');
+   return `<div class="kairo-pp-grid" role="group" aria-label="Pilih paket">${cards}</div><details class="kairo-pp-compare"><summary><span>Bandingkan semua fitur</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="kairo-pp-included"><strong>Sudah termasuk di semua paket</strong><ul>${INCLUDED.map(x=>`<li>${TICK}<span>${esc(x)}</span></li>`).join('')}</ul></div><div class="kairo-pp-table-wrap"><table class="kairo-pp-table"><thead><tr><th scope="col">Fitur</th>${head}</tr></thead><tbody>${rows}</tbody></table></div></details>`;
  }
- function paint(table,plan){
-   table.querySelectorAll('.kairo-plan-head').forEach(h=>h.classList.toggle('selected',h.dataset.kairoPlan===plan));
-   const palette={basic:['#d5b43e','rgba(223,184,60,.10)'],pro:['#2f9aa4','rgba(89,185,167,.10)'],custom:['#3b5b8b','rgba(59,91,139,.10)']}[plan]||['#2f9aa4','rgba(47,154,164,.08)'];
-   table.querySelectorAll('.kairo-plan-cell').forEach(c=>{const on=c.dataset.planColumn===plan;c.classList.toggle('selected-plan-col',on);if(on){c.style.setProperty('--selected-accent',palette[0]);c.style.setProperty('--selected-soft',palette[1])}});
+ function paint(root,plan){
+   root.querySelectorAll('[data-kairo-plan]').forEach(h=>{const on=h.dataset.kairoPlan===plan;h.classList.toggle('selected',on);h.setAttribute('aria-pressed',String(on))});
+   root.querySelectorAll('[data-plan-column]').forEach(c=>c.classList.toggle('is-selected',c.dataset.planColumn===plan));
  }
  function upgrade(){
-   const table=document.querySelector('.kairo-plan-compare');
+   const root=document.querySelector('.kairo-plan-compare');
    const hidden=document.getElementById('kairo-selected-plan');
-   if(!table||!hidden||table.dataset.v201061==='1')return;
+   if(!root||!hidden||root.dataset.ready==='1')return;
    const selected=hidden.value||'basic';
-   table.dataset.v201061='1';table.innerHTML=markup(selected);paint(table,selected);
-   table.querySelectorAll('[data-kairo-plan]').forEach(h=>h.addEventListener('click',()=>{
-      hidden.value=h.dataset.kairoPlan;paint(table,h.dataset.kairoPlan);
+   root.dataset.ready='1';root.innerHTML=markup(selected);paint(root,selected);
+   root.querySelectorAll('[data-kairo-plan]').forEach(h=>h.addEventListener('click',()=>{
+      hidden.value=h.dataset.kairoPlan;paint(root,h.dataset.kairoPlan);
       const b=document.getElementById('kairo-signup-submit');if(b)b.textContent=hidden.value==='basic'?'Buat Akun':'Buat Akun dan Konfirmasi ke WA';
    }));
  }
@@ -4674,16 +4674,6 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
  function currentPlan(){try{return String(window.activeWorkspacePlan||activeWorkspacePlan||document.documentElement.dataset.workspacePlan||'basic').toLowerCase()}catch(e){return 'basic'}}
  function wid(){try{return typeof requireWorkspaceId==='function'?requireWorkspaceId():window.activeWorkspaceId||activeWorkspaceId}catch(e){return window.activeWorkspaceId||null}}
-
- function wirePlanHover(){
-   document.querySelectorAll('.kairo-plan-compare').forEach(table=>{
-    if(table.dataset.hoverV62)return;table.dataset.hoverV62='1';
-    const clear=()=>table.querySelectorAll('.hover-plan-col').forEach(x=>x.classList.remove('hover-plan-col'));
-    const preview=plan=>{clear();table.querySelectorAll(`[data-kairo-plan="${plan}"],[data-plan-column="${plan}"]`).forEach(x=>x.classList.add('hover-plan-col'))};
-    table.addEventListener('mouseover',e=>{const h=e.target.closest('[data-kairo-plan]');const c=e.target.closest('[data-plan-column]');const p=h?.dataset.kairoPlan||c?.dataset.planColumn;if(p)preview(p)});
-    table.addEventListener('mouseleave',clear);
-   });
- }
 
  function ensurePromoSection(){
    if(document.getElementById('promo'))return;
@@ -4723,7 +4713,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
    document.getElementById('promo-list')?.addEventListener('click',async e=>{const del=e.target.closest('[data-promo-delete]'),tog=e.target.closest('[data-promo-toggle]');try{if(del){const {error}=await db.from('promotions').delete().eq('id',del.dataset.promoDelete).eq('workspace_id',wid());if(error)throw error;showToast('Promo dihapus.')}else if(tog){const {error}=await db.from('promotions').update({is_active:tog.dataset.next==='true',updated_at:new Date().toISOString()}).eq('id',tog.dataset.promoToggle).eq('workspace_id',wid());if(error)throw error;showToast('Status promo diperbarui.')}else return;await renderPromos()}catch(err){showToast(err.message||'Gagal memperbarui promo.',true)}});
  }
 
- function boot(){wirePlanHover();ensurePromoSection();ensurePromoNav();setTimeout(()=>{wirePlanHover();ensurePromoNav()},900)}
+ function boot(){ensurePromoSection();ensurePromoNav();setTimeout(ensurePromoNav,900)}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
  /* v20.10.66: removed global body MutationObserver here. ensurePromoNav() reorders existing nav nodes with appendChild; observing body childList caused a self-triggering mutation loop and could freeze the page. boot() already initializes this UI. */
 })();

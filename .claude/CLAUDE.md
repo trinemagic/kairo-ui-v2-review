@@ -73,8 +73,8 @@ URL live: `https://trinemagic.github.io/kairo-ui-v2-review/`
 | `assets/kairo-runtime.js` | Lazy loader lama | Tidak dimuat oleh `index.html` saat ini. |
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
-Versi terakhir: `kairo.css?v=20.10.151`, `kairo-v3.css?v=3.19.0`,
-`kairo-v3.js?v=3.17.0`, `kairo-app.js?v=20.10.161`.
+Versi terakhir: `kairo.css?v=20.10.153`, `kairo-v3.css?v=3.20.0`,
+`kairo-v3.js?v=3.17.0`, `kairo-app.js?v=20.10.163`.
 
 **Halaman app** = `main.container > section.section` dengan id:
 `dashboard`, `performance`, `input` (Orders), `customers`, `promo` (dibuat via JS),
@@ -100,6 +100,16 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   → `pro`, tampil "PRO". `PLAN_RANK={basic:1,pro:2}`, fitur eks-PLUS sekarang min `pro`. Daftar
   akun: tabel Gratis/Pro/Custom; pilih Custom → `requested_plan:'pro'`, `requested_variant:'custom'`.
   Entitlement DB dibaca dari baris `plan='basic'|'pro'` (baris `plus` tidak dipakai lagi).
+- **Halaman Daftar (`#kairo-account-page`):** latar terang gaya landing. Pilih paket = 3 kartu
+  `.kairo-pp-card` (Gratis putih / Pro delft + badge gold / Custom putih, `[data-kairo-plan]`,
+  centang saat dipilih) + `<details>` "Bandingkan semua fitur" (daftar "Sudah termasuk di semua
+  paket" + tabel hanya fitur pembeda). Data `PLANS/INCLUDED/ROWS` di blok plan-compare
+  kairo-app.js harus sesuai `FEATURE_MIN_PLAN` (jangan tulis fitur yang belum ada). Nilai
+  terpilih tetap di `#kairo-selected-plan`. Tabel compare lama & latar gelap sudah dihapus.
+- **Autofill Orders di HP:** dulu menu muncul di luar layar (transform sisa animasi `sectionIn`
+  + `top` desktop). Fix: `animation-fill-mode:backwards` untuk section aktif + menu mobile
+  `top:auto;bottom:…`. Tombol yang terkunci paket pakai `aria-disabled`, bukan `disabled`
+  (tombol disabled menelan klik → pesan "tersedia di paket Pro" tidak muncul).
 - **Login:** "Ingat saya" menyimpan **username saja** (`kairo_remember_username_v1`);
   `persistSession:false` sengaja (wajib login tiap buka) — jangan diubah tanpa izin.
 - **Riwayat Transaksi:** 7 kolom (Tanggal, Start Reading, Nama, Status, Paket=kode,
