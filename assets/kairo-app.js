@@ -531,7 +531,10 @@ function dismissToast(item){
 }
 function showToast(message, error=false){
   const host=document.getElementById("toast");if(!host)return;
-  const variant=typeof error==="string"&&TOAST_VARIANTS[error]?error:(error?"error":"success");
+  // Plan-lock notices ("… tersedia mulai paket PLUS", "Upgrade ke paket …") are passed as errors
+  // by many callers, but they are not failures: show them as a yellow "Perhatian".
+  const planLock=/tersedia (mulai|di|untuk) paket|upgrade ke paket/i.test(String(message??""));
+  const variant=typeof error==="string"&&TOAST_VARIANTS[error]?error:(error?(planLock?"warning":"error"):"success");
   const {title,icon}=TOAST_VARIANTS[variant];
   const item=document.createElement("div");
   item.className=`kairo-toast is-${variant}`;
