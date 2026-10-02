@@ -1130,7 +1130,8 @@ async function loadPageData(tabName=currentAppPage(),options={}){
       await Promise.all([fetchTransactions(),fetchMonthlyRevenueComparison(),fetchPlatformAnalytics()]);
       await ensureChartLibrary();renderCharts();
     }else if(tabName==='input'){
-      await ensureMasters();await Promise.all([fetchTransactions(),fetchHistoryTransactions()]);
+      // Customer directory feeds the name suggestions on the order form (existing customers).
+      await ensureMasters();await Promise.all([fetchTransactions(),fetchHistoryTransactions(),loadCustomerDirectory()]);
     }else if(tabName==='customers'){
       await loadCustomerDirectory();renderCustomerDatabase();
     }else if(tabName==='payout'){
