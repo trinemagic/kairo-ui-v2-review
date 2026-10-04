@@ -81,7 +81,7 @@ domain = pengguna login ulang & pengaturan browser (Ingat saya, dark mode) mulai
 | `assets/fonts/` | Plus Jakarta Sans self-hosted (OFL) | Jangan kembali ke Google Fonts. |
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
-Versi terakhir: `kairo.css?v=20.10.156`, `kairo-v3.css?v=3.23.0`,
+Versi terakhir: `kairo.css?v=20.10.156`, `kairo-v3.css?v=3.24.0`,
 `kairo-v3.js?v=3.20.0`, `kairo-app.js?v=20.10.177`; template seller dimuat dari kairo-app.js
 (`seller-app-premium.js?v=20.10.148`, `.css?v=20.10.150`) — naikkan juga bila file template diubah.
 
@@ -185,8 +185,10 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   `showToast(msg, error)`; `error` boleh juga 'success'|'info'|'warning'|'error'. Pesan kunci paket
   (`tersedia mulai/di/untuk paket`, `Upgrade ke paket`) yang dikirim sebagai error otomatis jadi warning. Gaya lama
   `.toast` di kairo.css sudah dihapus; elemen `#toast` = wadah `.kairo-toast-stack`.
-- **Notifikasi** (lonceng di samping dark mode): order On Progress ≥5 menit
-  (24 jam terakhir), ≥30 menit merah. Seen: `kairo_notif_seen_v1_<workspace>`.
+- **Notifikasi** (lonceng di samping dark mode): order On Progress ≥5 menit, ≥30 menit merah. **Tanpa batas
+  waktu** (owner Okt 2026): tetap tampil sampai order dicentang selesai; titik merah (berdenyut, `.is-urgent`) tidak
+  hilang selama ada order ≥30 menit walau daftar sudah dibuka. ≥24 jam ditulis "X hari Y jam".
+  Seen (untuk order <30 menit): `kairo_notif_seen_v1_<workspace>`.
 - **Dark mode:** sudah diaudit 0 temuan kontras (juga template seller: menu, keranjang Orders,
   Settings › Produk, dialog riwayat customer, hover); transisi tema pakai View Transitions.
   Warna status seller di dark (badge expired/H-x/Aktif, "Sisa Rp…", Tersinkron) di-override
@@ -355,5 +357,3 @@ cd .claude/testing && node example.js                                # lihat REA
   tersembunyi. Ukur dengan CDP `Performance.getMetrics` (LayoutCount/TaskDuration).
 - Light mode bottom nav: label abu-abu 3,8 dan label aktif pink 2,0 (warna lama kairo.css) —
   belum diubah, ikut keputusan light mode.
-- Kriteria notifikasi (24 jam, seen per perangkat) adalah keputusan Claude — owner
-  boleh minta ubah.

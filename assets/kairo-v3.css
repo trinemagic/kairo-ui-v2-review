@@ -502,6 +502,21 @@ html.kairo-v3 .kairo-notif-dot[hidden] {
   display: none;
 }
 
+/* Order 30+ menit masih On Progress: titik merah berdenyut sampai order dicentang selesai. */
+html.kairo-v3 .kairo-notif-dot.is-urgent {
+  animation: kairoNotifPulse 1.6s ease-out infinite;
+}
+
+@keyframes kairoNotifPulse {
+  0% { box-shadow: 0 0 0 0 rgba(229, 72, 77, .55); }
+  70% { box-shadow: 0 0 0 7px rgba(229, 72, 77, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(229, 72, 77, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.kairo-v3 .kairo-notif-dot.is-urgent { animation: none; }
+}
+
 html.kairo-v3 .kairo-notif-panel {
   position: absolute;
   top: calc(100% + 8px);
