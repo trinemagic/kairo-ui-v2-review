@@ -397,3 +397,13 @@ a.btn{text-decoration:none}
 }
 @media (max-width:380px){.stat-grid{grid-template-columns:1fr}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* Hapus akun & workspace (permanen) */
+.danger-zone{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:18px;padding:12px 14px;border:1px solid rgba(255,138,141,.35);border-radius:12px;background:rgba(255,138,141,.06)}
+.danger-zone div{display:grid;gap:2px}.danger-zone span{color:var(--muted);font-size:12.5px}
+.danger-box{margin:4px 0 14px;padding:12px 14px;border:1px solid rgba(255,138,141,.45);border-radius:12px;background:rgba(255,138,141,.08);font-size:13.5px;line-height:1.5}
+.danger-box p{margin:0 0 8px}.danger-box ul{margin:0 0 8px;padding-left:18px}.danger-box li{margin:2px 0}
+.btn-danger-solid{background:#d9545b;border-color:#d9545b;color:#fff}
+.btn-danger-solid:hover:not(:disabled){background:#c4434a}
+.btn-danger-solid:disabled{opacity:.45;cursor:not-allowed}
+@media (max-width:640px){.danger-zone{flex-direction:column;align-items:stretch}}

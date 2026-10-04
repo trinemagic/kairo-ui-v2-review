@@ -332,6 +332,37 @@ function saleFromWorkspace(){
   if(a){$('sPeriod').value=a.requested_period;$('sAmount').value=a.requested_period==='semiannual'?238000:43000;}
   syncSaleEnd();
 }
+// Hapus akun & workspace permanen (SQL 2026-10-admin-delete-workspace). Pengaman: daftar isi yang akan hilang,
+// ketik username/slug/nama, tombol baru aktif 5 detik kemudian; server mengecek ulang ketikan + menolak Trine Magic/admin.
+const DEL_LABEL={transactions:'transaksi',customers:'customer',cash_expenses:'pengeluaran kas',cash_injections:'pemasukan kas',payouts:'withdraw',workspace_members:'anggota workspace',reading_shifts:'sesi Open Store',package_masters:'paket/produk',addon_masters:'add-on',topic_masters:'topik',promotions:'promo',profit_share_rules:'aturan pembagian profit',profit_share_versions:'riwayat pembagian profit',workspace_branding:'pengaturan branding',workspace_subscriptions:'data langganan',platform_custom_requests:'request Custom (admin)'};
+const delLabel=t=>DEL_LABEL[t]||(/sale/.test(t)?`catatan penjualan admin (${t})`:/followup/.test(t)?`follow-up admin (${t})`:t);
+let delTimer=null,delWord='',delReady=false;
+function delSync(){const ok=delReady&&$('delConfirm').value.trim().toLowerCase()===delWord.toLowerCase();$('doDelete').disabled=!ok;}
+async function openDelete(){
+  if(!selected)return;
+  delWord=String(selected.owner_username||selected.slug||selected.workspace_name||'').trim();delReady=false;clearInterval(delTimer);
+  setText('delName',selected.workspace_name||'—');setText('delWord',delWord);setText('delAuth','');
+  $('delConfirm').value='';$('delError').textContent='';$('doDelete').disabled=true;$('doDelete').textContent='Hapus permanen';
+  $('delList').innerHTML='<li>Memuat isi workspace…</li>';
+  closeModal('workspaceModal');openModal('deleteModal');
+  const {data,error}=await db.rpc('platform_admin_delete_preview',{p_workspace_id:selected.workspace_id});
+  if(error){$('delList').innerHTML='';$('delError').textContent=/Could not find|does not exist/i.test(error.message)?'Fitur hapus aktif setelah SQL .claude/sql/2026-10-admin-delete-workspace.sql dijalankan.':error.message;return;}
+  const rows=(data||[]).filter(r=>r.table_name!=='akun login owner'),auth=(data||[]).find(r=>r.table_name==='akun login owner');
+  $('delList').innerHTML=rows.length?rows.map(r=>`<li><b>${Number(r.row_count).toLocaleString('id-ID')}</b> ${esc(delLabel(r.table_name))}</li>`).join(''):'<li>Workspace kosong (tidak ada data).</li>';
+  setText('delAuth',auth&&+auth.row_count?`Akun login owner (${delWord||'—'}) ikut dihapus, jadi user tidak bisa login lagi dan harus daftar ulang.`:'Akun login owner tidak dihapus (masih dipakai workspace lain).');
+  let n=5;$('doDelete').textContent=`Hapus permanen (${n})`;
+  delTimer=setInterval(()=>{n--;if(n>0){$('doDelete').textContent=`Hapus permanen (${n})`;return;}clearInterval(delTimer);$('doDelete').textContent='Hapus permanen';delReady=true;delSync();},1000);
+}
+async function doDelete(){
+  if($('doDelete').disabled||!selected)return;
+  if(!confirm(`Terakhir kali: hapus permanen workspace "${selected.workspace_name}" beserta semua datanya?`))return;
+  $('doDelete').disabled=true;$('doDelete').textContent='Menghapus…';
+  const {data,error}=await db.rpc('platform_admin_delete_workspace',{p_workspace_id:selected.workspace_id,p_confirm:$('delConfirm').value.trim()});
+  if(error){$('delError').textContent=error.message;$('doDelete').textContent='Hapus permanen';delSync();return;}
+  closeModal('deleteModal');selected=null;
+  toast(data?.note||`Workspace dihapus (${Number(data?.deleted_rows||0).toLocaleString('id-ID')} baris data${data?.auth_user_deleted?', akun login ikut dihapus':''}).`,!!data?.note);
+  await load();
+}
 function openSale(workspaceId){
   $('sPaid').value=todayISO();$('sStart').value=$('sPaid').value;$('sError').textContent='';
   if(typeof workspaceId==='string')$('sWorkspace').value=workspaceId;
@@ -645,6 +676,7 @@ document.querySelectorAll('.modal-backdrop').forEach(m=>m.addEventListener('mous
 document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;const open=[...document.querySelectorAll('.modal-backdrop:not(.hidden)')].pop();if(open)closeModal(open.id);else setNav(false);});
 $('saveSub').onclick=saveSubscription;$('add30').onclick=()=>extend(30);$('add365').onclick=()=>extend(365);
 document.querySelectorAll('.wsStatus').forEach(b=>b.onclick=()=>setWsStatus(b.dataset.status));
+$('openDelete').onclick=openDelete;$('doDelete').onclick=doDelete;$('delConfirm').oninput=delSync;
 $('newSale').onclick=openSale;$('sPeriod').onchange=syncSaleEnd;$('sStart').onchange=syncSaleEnd;
 $('sWorkspace').onchange=saleFromWorkspace;
 $('saveSale').onclick=saveSale;
