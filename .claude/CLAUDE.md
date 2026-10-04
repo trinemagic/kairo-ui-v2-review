@@ -80,7 +80,7 @@ URL live: `https://trinemagic.github.io/kairo-ui-v2-review/`
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
 Versi terakhir: `kairo.css?v=20.10.156`, `kairo-v3.css?v=3.23.0`,
-`kairo-v3.js?v=3.19.0`, `kairo-app.js?v=20.10.171`; template seller dimuat dari kairo-app.js
+`kairo-v3.js?v=3.19.0`, `kairo-app.js?v=20.10.172`; template seller dimuat dari kairo-app.js
 (`seller-app-premium.js?v=20.10.148`, `.css?v=20.10.150`) — naikkan juga bila file template diubah.
 
 **Halaman app** = `main.container > section.section` dengan id:
@@ -271,6 +271,13 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   Teksnya (`errorReport()`/`serverReport()`) = pesan, lokasi file:baris:kolom, halaman, versi app, jumlah kejadian,
   workspace, browser, stack trace. Owner menempelkannya ke chat → cari baris itu di versi `kairo-app.js` yang
   disebut (cek `git log` untuk versi tersebut bila sudah berubah).
+
+- **WhatsApp bisnis (owner Okt 2026, sementara):** `WA_BUSINESS='6287794545507'` (0877-9454-5507) di kairo-app.js,
+  juga diisi ke `window.__KAIRO_BUSINESS_WA` untuk tombol konfirmasi setelah daftar.
+- **Backup + keep-alive Supabase (owner Okt 2026: belum mau upgrade Pro):** `.claude/backup/backup.yml` + README.
+  Dipasang owner di repo PRIVATE terpisah (secrets: SUPABASE_DB_URL session pooler, BACKUP_PASSPHRASE, SUPABASE_URL,
+  SUPABASE_ANON_KEY). Harian 7 hari / mingguan 35 hari (artifact) / bulanan permanen (`monthly/`), terenkripsi
+  gpg AES-256. Keep-alive memanggil RPC `is_username_available` - jangan hapus/ubah fungsi itu tanpa update workflow.
 
 ## 4. Jebakan yang sudah pernah terjadi
 

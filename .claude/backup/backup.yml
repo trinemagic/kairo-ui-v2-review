@@ -1,0 +1,96 @@
+# KAIRO - backup harian/mingguan/bulanan + keep-alive Supabase (paket gratis).
+# Pasang di repo PRIVATE (mis. trinemagic/kairo-backups) sebagai .github/workflows/backup.yml.
+# JANGAN dipasang di repo publik: hasil backup berisi data pelanggan.
+#
+# Secrets yang diisi owner di repo private (Settings > Secrets and variables > Actions):
+#   SUPABASE_DB_URL      connection string "Session pooler" dari Supabase > Connect (berisi password DB)
+#   BACKUP_PASSPHRASE    kata sandi untuk mengunci file backup (simpan juga di tempat aman, wajib untuk restore)
+#   SUPABASE_URL         https://sbjmvsiwngmfxfktxbgr.supabase.co
+#   SUPABASE_ANON_KEY    key sb_publishable_... (sama dengan di aplikasi)
+#
+# Jadwal: setiap hari 02.10 WIB.
+#   - Harian  : disimpan 7 hari  (Actions > run > Artifacts)
+#   - Mingguan: tiap Minggu, disimpan 35 hari
+#   - Bulanan : tiap tanggal 1, disimpan permanen di folder monthly/ repo ini
+# Setiap run juga memanggil API + database Supabase, jadi proyek gratis tidak "tidur".
+
+name: kairo-backup
+on:
+  schedule:
+    - cron: '10 19 * * *'      # 19.10 UTC = 02.10 WIB
+  workflow_dispatch: {}        # tombol "Run workflow" untuk backup manual / uji coba
+
+permissions:
+  contents: write
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Keep-alive (panggil API Supabase)
+        run: |
+          code=$(curl -s -o /dev/null -w '%{http_code}' -X POST "$SUPABASE_URL/rest/v1/rpc/is_username_available" \
+            -H "apikey: $SUPABASE_ANON_KEY" -H "Content-Type: application/json" -d '{"p_username":"kairo-keepalive"}')
+          echo "Supabase API status: $code"
+          test "$code" = "200"
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Dump database (roles, schema, data)
+        run: |
+          mkdir -p dump
+          supabase db dump --db-url "$SUPABASE_DB_URL" -f dump/roles.sql --role-only
+          supabase db dump --db-url "$SUPABASE_DB_URL" -f dump/schema.sql
+          supabase db dump --db-url "$SUPABASE_DB_URL" -f dump/data.sql --use-copy --data-only
+          ls -la dump
+
+      - name: Kompres + kunci dengan passphrase
+        id: pack
+        run: |
+          test -n "$BACKUP_PASSPHRASE"
+          day=$(TZ=Asia/Jakarta date +%F)
+          name="kairo-$day.tar.gz.gpg"
+          tar -czf - -C dump . | gpg --batch --yes --pinentry-mode loopback --passphrase "$BACKUP_PASSPHRASE" \
+            --symmetric --cipher-algo AES256 -o "$name"
+          rm -rf dump
+          echo "file=$name" >> "$GITHUB_OUTPUT"
+          echo "day=$day" >> "$GITHUB_OUTPUT"
+          echo "dow=$(TZ=Asia/Jakarta date +%u)" >> "$GITHUB_OUTPUT"
+          echo "dom=$(TZ=Asia/Jakarta date +%d)" >> "$GITHUB_OUTPUT"
+          ls -la "$name"
+
+      - name: Simpan backup harian (7 hari)
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily-${{ steps.pack.outputs.day }}
+          path: ${{ steps.pack.outputs.file }}
+          retention-days: 7
+
+      - name: Simpan backup mingguan (35 hari, tiap Minggu)
+        if: steps.pack.outputs.dow == '7'
+        uses: actions/upload-artifact@v4
+        with:
+          name: weekly-${{ steps.pack.outputs.day }}
+          path: ${{ steps.pack.outputs.file }}
+          retention-days: 35
+
+      - name: Simpan backup bulanan (permanen, tiap tanggal 1)
+        if: steps.pack.outputs.dom == '01'
+        run: |
+          mkdir -p monthly
+          mv "${{ steps.pack.outputs.file }}" monthly/
+          git config user.name "kairo-backup-bot"
+          git config user.email "kairo-backup-bot@users.noreply.github.com"
+          git add monthly
+          git commit -m "Backup bulanan ${{ steps.pack.outputs.day }}"
+          git push

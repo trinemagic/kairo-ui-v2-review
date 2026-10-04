@@ -4382,7 +4382,8 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
 
 
 (()=>{
- const WA_BUSINESS=''; // isi nomor bisnis KAIRO format internasional, contoh 62812xxxx
+ const WA_BUSINESS='6287794545507'; // nomor bisnis KAIRO (sementara, owner Okt 2026), format internasional tanpa +
+ window.__KAIRO_BUSINESS_WA=WA_BUSINESS; // dipakai tombol "Konfirmasi Pembelian via WhatsApp" setelah daftar
  // The plan table itself is rendered by the plan-compare block below (PLANS/ROWS); this only
  // inserts its shell and the selected plan, which the landing pricing buttons can preset.
  function planCompare(){const pre=['basic','pro','custom'].includes(window.__kairoSignupPlan)?window.__kairoSignupPlan:'basic';return `<div class="kairo-plan-compare-wrap"><div class="kairo-plan-compare"></div></div><input type="hidden" id="kairo-selected-plan" value="${pre}">`}
