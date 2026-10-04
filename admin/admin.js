@@ -173,6 +173,8 @@ function renderChart(series){
       scales:{x:{grid:{display:false},ticks:{color:'#aebccb'}},y:{grid:{color:'rgba(255,255,255,.07)'},border:{display:false},ticks:{color:'#aebccb',callback:v=>'Rp '+new Intl.NumberFormat('id-ID',{notation:'compact'}).format(v)}}}}});
 }
 
+// Duration a user picked when signing up for Pro (needs SQL 2026-10-admin-requested-period).
+function requestedPro(id){const a=wsActivity.find(x=>x.workspace_id===id);return a&&a.requested_plan==='pro'&&a.requested_variant!=='custom'&&PERIOD[a.requested_period]?a:null;}
 function renderWorkspaces(){
   const q=$('search').value.trim().toLowerCase(),now=Date.now(),d30=now+30*864e5;
   const r=all.filter(x=>{
@@ -181,7 +183,7 @@ function renderWorkspaces(){
     if(activeFilter==='expiring')return x.valid_until&&+new Date(x.valid_until)>=now&&+new Date(x.valid_until)<=d30;
     if(activeFilter==='issue')return isIssue(x);
     return true;});
-  $('rows').innerHTML=r.map(x=>`<tr class="click" data-id="${esc(x.workspace_id)}" tabindex="0"><td><b>${esc(x.workspace_name)}</b><br><small>${esc(x.slug||'')}</small></td><td>${esc(x.owner_username||'—')}</td><td>${planBadge(x.plan)}</td><td>${badge(SUB,x.subscription_status)}</td><td>${badge(WS,x.workspace_status)}</td><td>${dateID(x.valid_until)}</td><td class="${remainClass(x.valid_until)}">${esc(remain(x.valid_until))}</td></tr>`).join('');
+  $('rows').innerHTML=r.map(x=>`<tr class="click" data-id="${esc(x.workspace_id)}" tabindex="0"><td><b>${esc(x.workspace_name)}</b><br><small>${esc(x.slug||'')}</small></td><td>${esc(x.owner_username||'—')}</td><td>${planBadge(x.plan)}${planKey(x.plan)!=='pro'&&requestedPro(x.workspace_id)?`<br><small>Daftar Pro ${esc(PERIOD[requestedPro(x.workspace_id).requested_period])}</small>`:''}</td><td>${badge(SUB,x.subscription_status)}</td><td>${badge(WS,x.workspace_status)}</td><td>${dateID(x.valid_until)}</td><td class="${remainClass(x.valid_until)}">${esc(remain(x.valid_until))}</td></tr>`).join('');
   $('empty').classList.toggle('hidden',r.length>0);
   $('rows').querySelectorAll('tr').forEach(tr=>{tr.onclick=()=>openWorkspace(tr.dataset.id);tr.onkeydown=e=>{if(e.key==='Enter')openWorkspace(tr.dataset.id);};});
 }
@@ -324,10 +326,16 @@ async function setWsStatus(status){
   const {error}=await db.rpc('platform_admin_update_workspace_status',{p_workspace_id:selected.workspace_id,p_status:status});
   if(error)return toast(error.message,true);closeModal('workspaceModal');toast('Status workspace diperbarui');await load();
 }
-function openSale(){
+function saleFromWorkspace(){
+  const o=$('sWorkspace').selectedOptions[0];if(!o)return;
+  const a=requestedPro(o.value);$('sPlan').value=a?'pro':o.dataset.plan||'basic';
+  if(a){$('sPeriod').value=a.requested_period;$('sAmount').value=a.requested_period==='semiannual'?238000:43000;}
+  syncSaleEnd();
+}
+function openSale(workspaceId){
   $('sPaid').value=todayISO();$('sStart').value=$('sPaid').value;$('sError').textContent='';
-  const o=$('sWorkspace').selectedOptions[0];if(o)$('sPlan').value=o.dataset.plan||'basic';
-  syncSaleEnd();openModal('saleModal');
+  if(typeof workspaceId==='string')$('sWorkspace').value=workspaceId;
+  saleFromWorkspace();openModal('saleModal');
 }
 function syncSaleEnd(){
   if(!$('sStart').value)return;
@@ -454,6 +462,7 @@ function computeIssues(){
   const out=[],now=Date.now(),today=todayISO(),act=Object.fromEntries(wsActivity.map(a=>[a.workspace_id,a]));
   const openFollow=new Set(followups.filter(f=>f.status==='open').map(f=>f.workspace_name));
   const customWs=new Set(customReqs.map(r=>r.workspace_id).filter(Boolean));
+  const soldWs=new Set(sales.flatMap(x=>[x.workspace_id,x.workspace_name]).filter(Boolean));
   const add=(sev,title,ws,detail,since,action,copy)=>out.push({sev,title,ws,detail,since,action,copy});
   all.forEach(w=>{
     const ss=String(w.subscription_status||'').toLowerCase(),wst=String(w.workspace_status||'').toLowerCase(),until=w.valid_until?+new Date(w.valid_until):null,pro=planKey(w.plan)==='pro';
@@ -467,6 +476,8 @@ function computeIssues(){
       const created=a.workspace_created_at?+new Date(a.workspace_created_at):null,last=a.last_tx_at?+new Date(a.last_tx_at):null;
       if(!last&&created&&created<now-3*DAY)add('med','Belum pernah mencatat transaksi',w,`Daftar ${Math.floor((now-created)/DAY)} hari lalu — mungkin bingung memulai`,a.workspace_created_at,{label:'Follow-up',run:()=>openFollow(w.workspace_id,'Bantu mulai catat transaksi pertama')});
       else if(last&&last<now-14*DAY)add(pro?'med':'low','Tidak ada transaksi 14+ hari',w,`Transaksi terakhir ${dateID(a.last_tx_at)}`,a.last_tx_at,{label:'Follow-up',run:()=>openFollow(w.workspace_id,'Cek kenapa berhenti mencatat')});
+      const rp=requestedPro(w.workspace_id);
+      if(rp&&!soldWs.has(w.workspace_id)&&!soldWs.has(w.workspace_name))add('med','Daftar Pro, pembayaran belum dicatat',w,`Pilih ${PERIOD[rp.requested_period]}${rp.owner_phone?` · WA ${rp.owner_phone}`:''}`,a.workspace_created_at,{label:'Catat',run:()=>openSale(w.workspace_id)});
       if(a.requested_variant==='custom'&&!customWs.has(w.workspace_id))add('med','Daftar paket Custom, request belum dicatat',w,a.owner_phone?`WA ${a.owner_phone}`:'Hubungi owner untuk detail kebutuhan',a.workspace_created_at,{label:'Catat',run:()=>openCustom(null,{workspace_id:w.workspace_id,customer_name:w.owner_username||'',contact:a.owner_phone||''})});
     }
   });
@@ -635,7 +646,7 @@ document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;const open=[.
 $('saveSub').onclick=saveSubscription;$('add30').onclick=()=>extend(30);$('add365').onclick=()=>extend(365);
 document.querySelectorAll('.wsStatus').forEach(b=>b.onclick=()=>setWsStatus(b.dataset.status));
 $('newSale').onclick=openSale;$('sPeriod').onchange=syncSaleEnd;$('sStart').onchange=syncSaleEnd;
-$('sWorkspace').onchange=()=>{const o=$('sWorkspace').selectedOptions[0];if(o)$('sPlan').value=o.dataset.plan||'basic';};
+$('sWorkspace').onchange=saleFromWorkspace;
 $('saveSale').onclick=saveSale;
 $('newExpense').onclick=()=>{$('eDate').value=todayISO();$('eError').textContent='';openModal('expenseModal');};
 $('saveExpense').onclick=saveExpense;

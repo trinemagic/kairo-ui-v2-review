@@ -11,7 +11,7 @@
 # Jadwal: setiap hari 02.10 WIB.
 #   - Harian  : disimpan 7 hari  (Actions > run > Artifacts)
 #   - Mingguan: tiap Minggu, disimpan 35 hari
-#   - Bulanan : tiap tanggal 1, disimpan permanen di folder monthly/ repo ini
+#   - Bulanan : tiap tanggal 1, disimpan 90 hari (lalu terhapus otomatis, sesuai Kebijakan Privasi)
 # Setiap run juga memanggil API + database Supabase, jadi proyek gratis tidak "tidur".
 
 name: kairo-backup
@@ -21,7 +21,7 @@ on:
   workflow_dispatch: {}        # tombol "Run workflow" untuk backup manual / uji coba
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   backup:
@@ -84,13 +84,10 @@ jobs:
           path: ${{ steps.pack.outputs.file }}
           retention-days: 35
 
-      - name: Simpan backup bulanan (permanen, tiap tanggal 1)
+      - name: Simpan backup bulanan (90 hari, tiap tanggal 1)
         if: steps.pack.outputs.dom == '01'
-        run: |
-          mkdir -p monthly
-          mv "${{ steps.pack.outputs.file }}" monthly/
-          git config user.name "kairo-backup-bot"
-          git config user.email "kairo-backup-bot@users.noreply.github.com"
-          git add monthly
-          git commit -m "Backup bulanan ${{ steps.pack.outputs.day }}"
-          git push
+        uses: actions/upload-artifact@v4
+        with:
+          name: monthly-${{ steps.pack.outputs.day }}
+          path: ${{ steps.pack.outputs.file }}
+          retention-days: 90

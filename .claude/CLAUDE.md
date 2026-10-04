@@ -81,8 +81,8 @@ domain = pengguna login ulang & pengaturan browser (Ingat saya, dark mode) mulai
 | `assets/fonts/` | Plus Jakarta Sans self-hosted (OFL) | Jangan kembali ke Google Fonts. |
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
-Versi terakhir: `kairo.css?v=20.10.156`, `kairo-v3.css?v=3.23.0`,
-`kairo-v3.js?v=3.19.0`, `kairo-app.js?v=20.10.177`; template seller dimuat dari kairo-app.js
+Versi terakhir: `kairo.css?v=20.10.156`, `kairo-v3.css?v=3.27.0`,
+`kairo-v3.js?v=3.21.0`, `kairo-app.js?v=20.10.178`; template seller dimuat dari kairo-app.js
 (`seller-app-premium.js?v=20.10.148`, `.css?v=20.10.150`) — naikkan juga bila file template diubah.
 
 **Halaman app** = `main.container > section.section` dengan id:
@@ -111,8 +111,11 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   Pro/Custom membuka form daftar dengan paket terpilih (`data-signup-plan` → `window.__kairoSignupPlan`).
   Harga Pro (owner Okt 2026): **Rp43.000/bulan**; paket 6 bulan harga normal Rp258.000 dicoret →
   **Rp238.000** (tanpa badge "Hemat" — owner) — tampil di Pricing landing, kartu Pro halaman Daftar, FAQ 03.
-  Belum ada pilihan durasi saat daftar (dibahas via WA). Kontak WA, testimoni, S&K/Privasi masih
-  menunggu data owner. FAQ 8 poin fokus fitur
+  **Pilihan durasi Pro saat daftar (owner Okt 2026):** kotak "Durasi paket Pro" (`.kairo-pp-period`, hanya saat Pro
+  dipilih): 1 bulan Rp43.000 / 6 bulan ~~Rp258.000~~ Rp238.000 → `#kairo-selected-period` → metadata signup
+  `requested_period` ('monthly'|'semiannual', sama dengan billing_period admin) + disebut di pesan WA konfirmasi. Halaman **`#syarat` (S&K) & `#privasi`** (`.kairo-lp-legal`, berlaku 5 Okt 2026) +
+  footer berisi link keduanya, WhatsApp 0877-9454-5507, ©. Headline hero: "Pencatatan usaha yang rapi untuk seller & jasa
+  online." Belum ada: testimoni, medsos, kebijakan refund (menunggu owner). FAQ 8 poin fokus fitur
   unggulan (tanpa poin dark mode — owner). Jangan klaim fitur yang belum ada (mis. "Owner Menu
   Lock" hanya baris tabel, belum ada fiturnya).
 - **Paket (keputusan owner Okt 2026):** hanya **Gratis** dan **Pro**. `canonicalPlan()`/`planLabel()`
@@ -185,8 +188,10 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   `showToast(msg, error)`; `error` boleh juga 'success'|'info'|'warning'|'error'. Pesan kunci paket
   (`tersedia mulai/di/untuk paket`, `Upgrade ke paket`) yang dikirim sebagai error otomatis jadi warning. Gaya lama
   `.toast` di kairo.css sudah dihapus; elemen `#toast` = wadah `.kairo-toast-stack`.
-- **Notifikasi** (lonceng di samping dark mode): order On Progress ≥5 menit
-  (24 jam terakhir), ≥30 menit merah. Seen: `kairo_notif_seen_v1_<workspace>`.
+- **Notifikasi** (lonceng di samping dark mode): order On Progress ≥5 menit, ≥30 menit merah. **Tanpa batas
+  waktu** (owner Okt 2026): tetap tampil sampai order dicentang selesai; titik merah (berdenyut, `.is-urgent`) tidak
+  hilang selama ada order ≥30 menit walau daftar sudah dibuka. ≥24 jam ditulis "X hari Y jam".
+  Seen (untuk order <30 menit): `kairo_notif_seen_v1_<workspace>`.
 - **Dark mode:** sudah diaudit 0 temuan kontras (juga template seller: menu, keranjang Orders,
   Settings › Produk, dialog riwayat customer, hover); transisi tema pakai View Transitions.
   Warna status seller di dark (badge expired/H-x/Aktif, "Sisa Rp…", Tersinkron) di-override
@@ -210,6 +215,10 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   fokus, getar `.kairo-field-shake` + outline merah `.kairo-field-missing` (hilang saat diisi), toast
   kuning "Lengkapi dulu: …" (menggantikan yang lama, bukan menumpuk). Package/Topik kosong dicek
   lewat `calculateTotal()` sebelum handler app (kairo-v3.js). Juga jalan di template seller.
+- **Kontras light mode (owner Okt 2026):** blok di akhir `kairo-v3.css` (`body:not(.saas-dark)`): `--muted #526175`,
+  `--v3-muted #4e6475`, `--danger/--btn-danger #a3384a`, tombol `.btn-gold` (Export Excel) digelapkan, teks pill/badge
+  & menu aktif = warna brand dicampur gelap (brand tetap dipakai), placeholder select, bottom nav HP (label 6,3+), plus
+  template seller (status, "Lihat Semua", total keranjang). Audit light & dark, dasar & seller: 0 temuan.
 - **Dark mode hover tabel:** sorotan gelap solid (`--v3-sky`) — jangan biarkan
   `tr:hover` dari `kairo.css` (latar hampir putih) tembus.
 
@@ -244,7 +253,7 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   `trinemagic/trine-magic-dashboard/admin` (yang lama tidak diubah). Tombol keluar = tutup tab admin. Paket tampil Gratis/Pro
   (`plus` dll dihitung Pro; pilihan paket di modal hanya basic/pro; harga `plus` disembunyikan). Tabel jadi kartu di
   ≤640px (label kolom otomatis dari `thead`, `labelCells()`). Tes: stub `window.supabase` + data contoh di
-  scratchpad (route `**/supabase-js@2*` dan `**/chart.umd.min.js`). Cache `admin.css?v=1.3.0`, `admin.js?v=1.3.0`.
+  scratchpad (route `**/supabase-js@2*` dan `**/chart.umd.min.js`). Cache `admin.css?v=1.3.0`, `admin.js?v=1.4.0`.
   **Akses (owner Okt 2026): tanpa form login.** admin/ hanya jalan bila dibuka dari tombol KAIRO Admin di dashboard
   Trine Magic: `openKairoAdmin()` membuka tab (tanpa `noopener`), admin minta token lewat `postMessage`
   (`kairo-admin-token-request` → `kairo-admin-token`, cek origin + window yang dibuka), dashboard hanya menjawab bila
@@ -257,13 +266,16 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   status request dihitung SQL dari poinnya), **Kapasitas Server** (ukuran DB vs batas paket — pilihan batas disimpan
   `kairo_admin_db_limit_mb` di localStorage, koneksi, cache hit, waktu respons, tabel terbesar; CPU/RAM/bandwidth hanya
   di laporan Supabase). SQL: `.claude/sql/2026-10-admin-panel-v2.sql` (**sudah dijalankan owner Okt 2026**, sukses).
+  **Durasi Pro saat daftar** (`requestedPro()`): tabel Workspaces menulis "Daftar Pro 6 bulan" di bawah badge Gratis, Perlu
+  Perhatian "Daftar Pro, pembayaran belum dicatat" (tombol Catat = Catat Penjualan terisi Pro + durasi + nominal). Butuh SQL
+  `.claude/sql/2026-10-admin-requested-period.sql`; sebelum dijalankan, info ini tidak muncul (tanpa error).
   SQL panjang: kirim sebagai file + link raw GitHub, bukan blok kode di chat (owner: tampilan chat pecah).
 - **Admin › Template (owner Okt 2026):** daftar template usaha dari form daftar (`TEMPLATES` di admin.js — **perbarui
   bila ada template baru**): Seller App Premium (`digital_subscription`, tampilan khusus), Jasa Online
   (`service_consultation`, tampilan dasar), Online Shop & Digital Product (belum ada tampilan khusus → user melihat
   tampilan Jasa Online). Jumlah workspace/Pro/aktif per template dari `business_template` di
   `platform_admin_workspace_activity` (SQL `.claude/sql/2026-10-admin-templates.sql`, **sudah dijalankan owner Okt 2026**). Preview dashboard
-  `admin/previews/*.webp` dibuat ulang dengan `.claude/testing/shoot-templates.js`. Cache admin `?v=1.3.0`.
+  `admin/previews/*.webp` dibuat ulang dengan `.claude/testing/shoot-templates.js`. Cache admin `?v=1.3.0` (admin.js 1.4.0).
 - **Laporan error user** (kairo-app.js, di atas `showToast`): `reportClientError()` mengirim pesan error script
   (file sendiri saja) + toast merah "Gagal" (bukan pesan kunci paket) ke RPC `report_client_error` beserta
   baris/kolom, stack trace (toast: stack pemanggil `showToast`) dan versi `kairo-app.js?v=`; maks 10/sesi, tanpa data
@@ -285,7 +297,8 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
 - Repo lama `trinemagic/trine-magic-dashboard` sudah dijadikan **private** oleh owner (Okt 2026) - website lamanya offline.
 - **Backup + keep-alive Supabase (owner Okt 2026: belum mau upgrade Pro):** `.claude/backup/backup.yml` + README.
   Dipasang owner di repo PRIVATE terpisah (secrets: SUPABASE_DB_URL session pooler, BACKUP_PASSPHRASE, SUPABASE_URL,
-  SUPABASE_ANON_KEY). Harian 7 hari / mingguan 35 hari (artifact) / bulanan permanen (`monthly/`), terenkripsi
+  SUPABASE_ANON_KEY). Harian 7 hari / mingguan 35 hari / bulanan 90 hari (semua artifact; owner Okt 2026: tidak ada yang permanen supaya
+  permintaan hapus data terpenuhi - Kebijakan Privasi menyebut 90 hari), terenkripsi
   gpg AES-256. Keep-alive memanggil RPC `is_username_available` - jangan hapus/ubah fungsi itu tanpa update workflow.
   **Terpasang Okt 2026** di repo private `trinemagic/kairo-backups` (4 secrets diisi owner); run pertama 4 Okt 2026 sukses
   (data.sql ±540 KB, file terkunci ±116 KB). Status run bisa dicek via actions_list repo itu.
@@ -345,15 +358,7 @@ cd .claude/testing && node example.js                                # lihat REA
 
 - Semua perubahan belum diuji di **Safari** dan dengan **Supabase/login asli**.
 - Penyebab "tidak bisa tambah topik" di DB asli belum terkonfirmasi.
-- Bila Open/Close Store masih terkunci untuk PRO: cek tabel `saas_plan_entitlements`
-  (`plan='pro'`, `feature_key='open_close_store'`, `enabled`).
-- Light mode: beberapa teks abu-abu kontras ±4.0 (sedikit di bawah 4.5) — belum
-  diubah, tunggu keputusan owner.
 - Performa (audit Okt 2026): idle di luar Dashboard 0 re-layout; di Dashboard 1×/detik (jam).
   Header Dashboard hanya ditulis ulang bila nama/workspace/tanggal berubah (dulu tiap
   perubahan class body); jam berhenti saat tidak terlihat; cek notifikasi dilewati saat tab
   tersembunyi. Ukur dengan CDP `Performance.getMetrics` (LayoutCount/TaskDuration).
-- Light mode bottom nav: label abu-abu 3,8 dan label aktif pink 2,0 (warna lama kairo.css) —
-  belum diubah, ikut keputusan light mode.
-- Kriteria notifikasi (24 jam, seen per perangkat) adalah keputusan Claude — owner
-  boleh minta ubah.

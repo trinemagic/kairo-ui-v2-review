@@ -106,7 +106,7 @@
     items.forEach(item => observer.observe(item));
   }
 
-  const landingPages = ['home', 'features', 'solutions', 'pricing', 'about', 'masuk'];
+  const landingPages = ['home', 'features', 'solutions', 'pricing', 'about', 'masuk', 'syarat', 'privasi'];
 
   function showLandingPage(root) {
     const hash = location.hash.slice(1);
@@ -124,7 +124,9 @@
 
   function bindLandingPages(root) {
     showLandingPage(root);
-    if (!location.hash && rememberedUsername()) openLogin();
+    // "Ingat saya": open the login form straight away on the home page. Phones usually reopen the
+    // last address with "#home" (from the landing menu), so that counts as home too.
+    if (rememberedUsername() && ['', '#', '#home'].includes(location.hash)) openLogin();
     // kairo-app.js wraps the password field (show/hide eye) during boot, which drops focus
     // from a dialog that is already open. Restore it once the wrapper is in place.
     const form = q('#login-form', root);
@@ -521,11 +523,11 @@
     });
   }
 
-  // Notifications: orders still "On Progress" 5+ minutes after Start Reading (last 24h).
+  // Notifications: orders still "On Progress" 5+ minutes after Start Reading. They stay listed
+  // (red after 30 minutes) until the order is marked done - no time limit (owner, Okt 2026).
   // Reads the app's cached transactions (kept fresh by its realtime sync); no extra queries.
   const NOTIFY_AFTER_MIN = 5;
   const NOTIFY_URGENT_MIN = 30;
-  const NOTIFY_WINDOW_H = 24;
   let notifyItems = [];
 
   function notifySeenKey() {
@@ -546,7 +548,7 @@
     const now = Date.now();
     return rows.filter(tx => (tx.reading_status || 'done') !== 'done' && tx.reading_started_at)
       .map(tx => ({ tx, minutes: Math.floor((now - new Date(tx.reading_started_at).getTime()) / 60000) }))
-      .filter(({ minutes }) => minutes >= NOTIFY_AFTER_MIN && minutes <= NOTIFY_WINDOW_H * 60)
+      .filter(({ minutes }) => minutes >= NOTIFY_AFTER_MIN)
       .sort((a, b) => b.minutes - a.minutes)
       .map(({ tx, minutes }) => ({
         id: String(tx.id),
@@ -560,6 +562,7 @@
   function notifyAge(minutes) {
     if (minutes < 60) return `${minutes} menit`;
     const h = Math.floor(minutes / 60);
+    if (h >= 24) return `${Math.floor(h / 24)} hari ${h % 24} jam`;
     return `${h} jam ${minutes % 60} menit`;
   }
 
@@ -567,11 +570,13 @@
   // bottom-nav button + sheet (#kairo-mobile-notif-btn/#kairo-mobile-notif-list) alike.
   function renderNotifications() {
     const seen = notifySeen();
-    const unseen = notifyItems.some(item => !seen.has(notifyStage(item)));
+    // The red dot stays while any order is 30+ minutes On Progress, even after the list was opened.
+    const urgent = notifyItems.some(item => item.urgent);
+    const unseen = urgent || notifyItems.some(item => !seen.has(notifyStage(item)));
     const label = notifyItems.length ? `Notifikasi: ${notifyItems.length} order belum tuntas` : 'Notifikasi';
     qa('#kairo-notif-btn, #kairo-mobile-notif-btn').forEach(btn => {
       const dot = q('.kairo-notif-dot', btn);
-      if (dot) dot.hidden = !unseen;
+      if (dot) { dot.hidden = !unseen; dot.classList.toggle('is-urgent', urgent); }
       btn.setAttribute('aria-label', label);
     });
     const html = notifyItems.length

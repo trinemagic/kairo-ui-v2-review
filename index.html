@@ -34,7 +34,7 @@
 <link rel="preload" as="font" type="font/woff2" href="assets/fonts/plus-jakarta-sans-latin-wght-normal.woff2" crossorigin>
 
 <!-- Stable auth boot order. Feature-heavy libraries remain lazy inside kairo-app.js. -->
-<script defer src="assets/kairo-v3.js?v=3.19.0"></script>
+<script defer src="assets/kairo-v3.js?v=3.21.0"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 
@@ -81,7 +81,7 @@
 
 
 <link rel="stylesheet" href="assets/kairo.css?v=20.10.156">
-<link rel="stylesheet" href="assets/kairo-v3.css?v=3.23.0">
+<link rel="stylesheet" href="assets/kairo-v3.css?v=3.27.0">
 </head>
 
 <body class="auth-locked">
@@ -116,8 +116,8 @@
     <section id="home" class="kairo-lp-hero">
       <div class="kairo-entry-container kairo-lp-hero-grid">
         <div class="kairo-lp-hero-copy" data-kairo-reveal>
-          <h1>Kelola bisnismu dalam satu workspace yang <mark>lebih rapi.</mark></h1>
-          <p>Catat order, pantau omzet, kelola customer, subscription, dan buat struk profesional tanpa sistem yang ribet.</p>
+          <h1>Pencatatan usaha yang rapi untuk <mark>seller &amp; jasa online.</mark></h1>
+          <p>Catat order, pantau omzet, kelola customer dan langganan, sampai buat struk profesional. Semua dari satu workspace di browser, tanpa sistem yang ribet.</p>
           <div class="kairo-lp-actions">
             <button type="button" class="kairo-button kairo-button-primary kairo-button-large" data-v3-signup>Coba KAIRO Gratis</button>
             <a class="kairo-button kairo-button-text kairo-button-large" href="#about">Lihat Cara Kerjanya <span aria-hidden="true">↓</span></a>
@@ -401,10 +401,92 @@
       </div>
     </section>
 
+    <section id="syarat" class="kairo-lp-legal" aria-labelledby="syarat-title">
+      <div class="kairo-entry-container kairo-lp-legal-inner">
+        <h2 id="syarat-title">Syarat &amp; Ketentuan</h2>
+        <p class="kairo-lp-legal-date">Berlaku sejak 5 Oktober 2026</p>
+        <p>Dengan membuat akun atau memakai KAIRO Workspaces ("KAIRO"), kamu menyetujui ketentuan berikut.</p>
+        <h3>1. Tentang layanan</h3>
+        <p>KAIRO adalah aplikasi pencatatan usaha berbasis browser untuk mencatat order, customer, kas, struk, dan laporan usaha.</p>
+        <h3>2. Akun &amp; workspace</h3>
+        <ul>
+          <li>Satu akun untuk satu workspace milik pemilik akun. Tim yang ikut mencatat memakai akun pemilik, atas tanggung jawab pemilik.</li>
+          <li>Isi data pendaftaran dengan benar dan jaga kerahasiaan password. Aktivitas yang dilakukan dari akunmu menjadi tanggung jawabmu.</li>
+          <li>Kabari kami lewat WhatsApp bila kamu menduga akunmu dipakai orang lain.</li>
+        </ul>
+        <h3>3. Paket &amp; pembayaran</h3>
+        <ul>
+          <li>Paket Gratis bisa dipakai tanpa biaya.</li>
+          <li>Paket Pro Rp43.000/bulan, atau Rp238.000 untuk 6 bulan. Pro aktif setelah pembayaran dikonfirmasi lewat WhatsApp dan berlaku selama masa aktif yang dibayar.</li>
+          <li>Bila tidak diperpanjang, fitur khusus Pro berhenti sampai paket diperpanjang. Data usaha yang sudah dicatat tidak ikut dihapus.</li>
+          <li>Harga bisa berubah dan akan diumumkan lebih dulu. Perubahan harga tidak berlaku untuk masa aktif yang sudah dibayar.</li>
+        </ul>
+        <h3>4. Paket Custom</h3>
+        <p>Kebutuhan khusus di paket Custom dibahas dan disepakati lewat WhatsApp sebelum dikerjakan, termasuk biaya dan perkiraan waktunya.</p>
+        <h3>5. Data usahamu</h3>
+        <p>Data yang kamu catat di KAIRO adalah milikmu. Kamu bertanggung jawab atas kebenaran isinya. Pengguna Pro bisa mengekspor data ke Excel sebagai salinan.</p>
+        <h3>6. Hal yang tidak boleh dilakukan</h3>
+        <ul>
+          <li>Menyimpan atau menyebarkan konten yang melanggar hukum.</li>
+          <li>Mencoba membobol, mengganggu, atau membebani layanan secara sengaja.</li>
+          <li>Menjual ulang atau membagikan akses KAIRO tanpa izin.</li>
+        </ul>
+        <h3>7. Ketersediaan layanan</h3>
+        <p>Kami berusaha menjaga KAIRO tetap bisa dipakai setiap saat, tetapi gangguan atau pemeliharaan bisa terjadi. Sejauh diizinkan hukum, KAIRO tidak bertanggung jawab atas kerugian tidak langsung akibat gangguan layanan.</p>
+        <h3>8. Penangguhan &amp; berhenti</h3>
+        <p>Kami dapat menangguhkan akun yang melanggar ketentuan ini. Kamu bisa berhenti memakai KAIRO kapan saja dan meminta penghapusan akun lewat WhatsApp.</p>
+        <h3>9. Perubahan ketentuan</h3>
+        <p>Ketentuan ini bisa diperbarui. Versi terbaru selalu ada di halaman ini beserta tanggal berlakunya.</p>
+        <h3>10. Kontak</h3>
+        <p>WhatsApp <a href="https://wa.me/6287794545507" target="_blank" rel="noopener">0877-9454-5507</a>.</p>
+      </div>
+    </section>
+
+    <section id="privasi" class="kairo-lp-legal" aria-labelledby="privasi-title">
+      <div class="kairo-entry-container kairo-lp-legal-inner">
+        <h2 id="privasi-title">Kebijakan Privasi</h2>
+        <p class="kairo-lp-legal-date">Berlaku sejak 5 Oktober 2026</p>
+        <p>Halaman ini menjelaskan data apa yang dikumpulkan KAIRO Workspaces ("KAIRO"), untuk apa, dan bagaimana kami menjaganya.</p>
+        <h3>1. Data yang kami kumpulkan</h3>
+        <ul>
+          <li><strong>Data akun:</strong> nama, username, email, nomor WhatsApp, nama usaha, jenis usaha, dan paket yang dipilih.</li>
+          <li><strong>Data usaha:</strong> semua yang kamu catat, seperti order, customer, kas, dan pengaturan workspace.</li>
+          <li><strong>Data teknis:</strong> pesan error aplikasi, halaman tempat error terjadi, dan jenis browser/perangkat. Isi formulir dan data transaksi tidak ikut dikirim.</li>
+        </ul>
+        <h3>2. Untuk apa data dipakai</h3>
+        <ul>
+          <li>Menjalankan layanan dan menampilkan data di workspace-mu.</li>
+          <li>Mengaktifkan dan memperpanjang paket, serta menanggapi keluhan atau masukan.</li>
+          <li>Menemukan dan memperbaiki error.</li>
+          <li>Mengirim informasi penting tentang layanan.</li>
+        </ul>
+        <h3>3. Penyimpanan &amp; keamanan</h3>
+        <p>Data disimpan di server cloud yang terlindungi. Setiap workspace terpisah dan hanya bisa dibuka dengan akun pemiliknya. Dashboard selalu meminta login setiap kali dibuka. Kami juga membuat salinan cadangan (backup) terenkripsi secara berkala.</p>
+        <h3>4. Berbagi data</h3>
+        <p>Kami tidak menjual atau menyewakan datamu. Data hanya diproses oleh penyedia infrastruktur yang dibutuhkan untuk menjalankan KAIRO, atau dibuka bila diwajibkan hukum.</p>
+        <h3>5. Penyimpanan di perangkatmu</h3>
+        <p>Pilihan "Ingat saya" menyimpan username (bukan password) di browser-mu. Pengaturan tampilan seperti dark mode juga disimpan di browser. KAIRO tidak memakai cookie iklan atau pelacak.</p>
+        <h3>6. Hak kamu</h3>
+        <p>Kamu bisa meminta salinan, perbaikan, atau penghapusan akun dan data lewat WhatsApp. Salinan cadangan (backup) terenkripsi bisa masih menyimpan data tersebut paling lama 90 hari, lalu terhapus otomatis.</p>
+        <h3>7. Perubahan kebijakan</h3>
+        <p>Kebijakan ini bisa diperbarui. Versi terbaru selalu ada di halaman ini beserta tanggal berlakunya.</p>
+        <h3>8. Kontak</h3>
+        <p>WhatsApp <a href="https://wa.me/6287794545507" target="_blank" rel="noopener">0877-9454-5507</a>.</p>
+      </div>
+    </section>
+
     <div class="kairo-entry-container kairo-lp-footer-wrap">
       <footer class="kairo-lp-footer">
         <a class="kairo-entry-brand" href="#home" aria-label="KAIRO Workspaces — kembali ke awal"><img src="assets/kairo-mark.svg" alt="" width="32" height="32"><span><strong>KAIRO</strong><small>WORKSPACES</small></span></a>
-        <p>Workspace yang lebih rapi untuk bisnis yang terus bergerak.</p>
+        <div class="kairo-lp-footer-mid">
+          <p>Workspace yang lebih rapi untuk bisnis yang terus bergerak.</p>
+          <nav class="kairo-lp-footer-links" aria-label="Informasi">
+            <a href="#syarat">Syarat &amp; Ketentuan</a>
+            <a href="#privasi">Kebijakan Privasi</a>
+            <a href="https://wa.me/6287794545507" target="_blank" rel="noopener">WhatsApp 0877-9454-5507</a>
+          </nav>
+          <small>© 2026 KAIRO Workspaces</small>
+        </div>
         <a href="#home" data-kairo-top>Kembali ke atas ↑</a>
       </footer>
     </div>
@@ -1142,6 +1224,6 @@
 
 
 
-<script defer src="assets/kairo-app.js?v=20.10.177"></script>
+<script defer src="assets/kairo-app.js?v=20.10.178"></script>
 </body>
 </html>
