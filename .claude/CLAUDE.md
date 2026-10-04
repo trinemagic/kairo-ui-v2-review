@@ -67,7 +67,9 @@ yang diawali titik). Tetap: **jangan pernah menulis rahasia di sini.**
 ## 2. Arsitektur
 
 Situs statis di GitHub Pages: **tanpa build, tanpa package.json, tanpa React.**
-URL live: `https://trinemagic.github.io/kairo-ui-v2-review/`
+URL live: **`https://kairoworkspaces.my.id/`** (domain sendiri via file `CNAME`, dipasang owner Okt 2026;
+alamat lama `trinemagic.github.io/kairo-ui-v2-review/` dialihkan GitHub ke domain ini). localStorage per domain - pindah
+domain = pengguna login ulang & pengaturan browser (Ingat saya, dark mode) mulai dari awal sekali.
 
 | File | Peran | Catatan |
 |---|---|---|
@@ -100,7 +102,7 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   Tanggal/Produk/Kategori; owner: **jangan** pakai contoh jasa tarot / kolom "Start Reading"; screenshot Orders
   dipotong sebelum field Topik) + "Fitur lainnya"; label `.kairo-lp-pro-tag`
   untuk fitur Pro. Meta SEO/Open Graph + favicon di `<head>`; gambar preview link
-  `assets/og/kairo-og.jpg` (1200×630), URL absolut github.io (ganti bila pindah domain).
+  `assets/og/kairo-og.jpg` (1200×630), URL absolut `https://kairoworkspaces.my.id/` (ganti bila pindah domain lagi).
   Badge kuning kecil di atas judul section (`.kairo-lp-eyebrow`) sudah dihapus semua (owner) — jangan
   ditambah lagi. `#masuk` = langsung form login. Badge "kini hadir…" sudah dihapus (owner: jangan
   wording khas AI).
