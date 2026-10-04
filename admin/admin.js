@@ -29,6 +29,37 @@ async function accessToken(){
   catch(e){session=null;gate(e.message==='no-opener'?'no-opener':'no-session');throw e;}
 }
 const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{accessToken,auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
+// Log Aktivitas: setiap aksi admin yang berhasil dicatat lewat platform_admin_log_activity
+// (SQL .claude/sql/2026-10-admin-activity-log.sql). Gagal mencatat tidak menggagalkan aksinya.
+const PLAN_TXT=v=>String(v||'').toLowerCase()==='pro'?'Pro':'Gratis';
+const LOG_ACTIONS={
+  platform_admin_update_subscription:a=>['Ubah subscription',a.p_workspace_id,`${PLAN_TXT(a.p_plan)} · ${a.p_status||''}${a.p_valid_until?' · s/d '+String(a.p_valid_until).slice(0,10):''}`],
+  platform_admin_update_workspace_status:a=>['Ubah status workspace',a.p_workspace_id,a.p_status],
+  platform_admin_delete_workspace:a=>['Hapus akun & workspace',a.p_workspace_id,'Permanen'],
+  platform_admin_record_sale:a=>['Catat penjualan',a.p_workspace_id,`${PLAN_TXT(a.p_plan)} · Rp${Number(a.p_amount||0).toLocaleString('id-ID')} · ${a.p_payment_status||''}`],
+  platform_admin_update_sale_status:a=>{const x=sales.find(v=>String(v.id)===String(a.p_sale_id));return ['Ubah status pembayaran',x?.workspace_id||null,a.p_status,x?.workspace_name];},
+  platform_admin_update_plan_price:a=>['Ubah harga paket',null,`${PLAN_TXT(a.p_plan)} · bulanan Rp${Number(a.p_monthly||0).toLocaleString('id-ID')}`],
+  platform_admin_record_expense:a=>['Catat pengeluaran',null,`${a.p_category||''} · Rp${Number(a.p_amount||0).toLocaleString('id-ID')}`],
+  platform_admin_delete_expense:()=>['Hapus pengeluaran',null,null],
+  platform_admin_save_workspace_meta:a=>['Simpan CRM',a.p_workspace_id,a.p_mark_contacted?'Ditandai sudah dihubungi':null],
+  platform_admin_create_followup:a=>['Buat follow-up',a.p_workspace_id,a.p_title],
+  platform_admin_set_followup_status:a=>['Ubah status follow-up',null,a.p_status],
+  platform_admin_save_settings:()=>['Ubah pengaturan admin',null,null],
+  platform_admin_save_custom_request:a=>[a.p_id?'Ubah request Custom':'Catat request Custom',a.p_workspace_id,a.p_title],
+  platform_admin_delete_custom_request:()=>['Hapus request Custom',null,null]
+};
+const rawRpc=db.rpc.bind(db);
+db.rpc=async(fn,args)=>{
+  const make=LOG_ACTIONS[fn];let entry=null;
+  // Ambil nama workspace SEBELUM aksi (setelah dihapus, workspace sudah tidak ada di daftar).
+  if(make){try{const [action,wsId,detail,wsName]=make(args||{});entry={action,wsId,detail,name:wsName||(wsId?all.find(x=>String(x.workspace_id)===String(wsId))?.workspace_name:null)||null};}catch(_e){}}
+  const r=await rawRpc(fn,args);
+  if(entry&&!r.error){try{
+    const {action,wsId,detail,name}=entry;
+    await rawRpc('platform_admin_log_activity',{p_action:action,p_workspace_id:wsId||null,p_workspace_name:name,p_detail:detail==null?null:String(detail)});
+  }catch(_e){}}
+  return r;
+};
 
 let activeFilter='all',all=[],sales=[],expenses=[],renewals=[],planPerf=[],analytics={},crm=[],followups=[],platformSettings={},activity=[],business={},overview={};
 let selected=null,selectedCrm=null,revenueChart=null;
@@ -218,7 +249,7 @@ function renderSales(){
     if(error)return toast(error.message,true);toast('Status pembayaran diperbarui');await load();});
 }
 
-function activityItem(x){return `<li><b>${esc(x.workspace_name||'KAIRO')}</b><small>${esc(String(x.action||'').replaceAll('_',' '))} · ${x.created_at?new Date(x.created_at).toLocaleString('id-ID',{dateStyle:'medium',timeStyle:'short'}):'—'}</small></li>`;}
+function activityItem(x){return `<li><b>${esc(x.workspace_name||'KAIRO')}</b><small>${esc(String(x.action||'').replaceAll('_',' '))}${x.detail?' · '+esc(x.detail):''} · ${x.created_at?new Date(x.created_at).toLocaleString('id-ID',{dateStyle:'medium',timeStyle:'short'}):'—'}</small></li>`;}
 function renderActivity(){
   const none='<li class="empty-li">Belum ada aktivitas admin.</li>';
   $('activity').innerHTML=activity.length?activity.map(activityItem).join(''):none;
