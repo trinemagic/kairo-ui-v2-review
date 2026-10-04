@@ -282,7 +282,7 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   `.claude/sql/2026-10-admin-requested-period.sql` (**sudah dijalankan owner Okt 2026**).
   **Hapus akun & workspace (owner Okt 2026):** modal Workspace > "Hapus..." > layar peringatan (isi yang akan hilang dari
   `platform_admin_delete_preview`, akun login ikut terhapus), ketik username owner/slug/nama, tombol aktif setelah 5 detik + confirm()
-  terakhir > `platform_admin_delete_workspace(id, ketikan)`. SQL `.claude/sql/2026-10-admin-delete-workspace.sql`: semua tabel public
+  terakhir > `platform_admin_delete_workspace(id, ketikan)`. SQL `.claude/sql/2026-10-admin-delete-workspace.sql` (**sudah dijalankan owner Okt 2026**): semua tabel public
   ber-`workspace_id` + tabel anak via foreign key, diulang per putaran; atomik (gagal = tidak ada yang terhapus); server cek ulang
   ketikan; menolak Trine Magic, workspace milik platform admin (`platform_admins`), dan workspace akun yang login. Owner auth user dihapus
   bila tidak punya workspace lain (kalau Supabase menolak: pesan "hapus manual di Authentication"). Catatan penjualan admin untuk
