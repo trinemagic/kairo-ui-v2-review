@@ -67,7 +67,9 @@ yang diawali titik). Tetap: **jangan pernah menulis rahasia di sini.**
 ## 2. Arsitektur
 
 Situs statis di GitHub Pages: **tanpa build, tanpa package.json, tanpa React.**
-URL live: `https://trinemagic.github.io/kairo-ui-v2-review/`
+URL live: **`https://kairoworkspaces.my.id/`** (domain sendiri via file `CNAME`, dipasang owner Okt 2026;
+alamat lama `trinemagic.github.io/kairo-ui-v2-review/` dialihkan GitHub ke domain ini). localStorage per domain - pindah
+domain = pengguna login ulang & pengaturan browser (Ingat saya, dark mode) mulai dari awal sekali.
 
 | File | Peran | Catatan |
 |---|---|---|
@@ -80,7 +82,7 @@ URL live: `https://trinemagic.github.io/kairo-ui-v2-review/`
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
 Versi terakhir: `kairo.css?v=20.10.156`, `kairo-v3.css?v=3.23.0`,
-`kairo-v3.js?v=3.19.0`, `kairo-app.js?v=20.10.176`; template seller dimuat dari kairo-app.js
+`kairo-v3.js?v=3.19.0`, `kairo-app.js?v=20.10.177`; template seller dimuat dari kairo-app.js
 (`seller-app-premium.js?v=20.10.148`, `.css?v=20.10.150`) — naikkan juga bila file template diubah.
 
 **Halaman app** = `main.container > section.section` dengan id:
@@ -100,7 +102,7 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   Tanggal/Produk/Kategori; owner: **jangan** pakai contoh jasa tarot / kolom "Start Reading"; screenshot Orders
   dipotong sebelum field Topik) + "Fitur lainnya"; label `.kairo-lp-pro-tag`
   untuk fitur Pro. Meta SEO/Open Graph + favicon di `<head>`; gambar preview link
-  `assets/og/kairo-og.jpg` (1200×630), URL absolut github.io (ganti bila pindah domain).
+  `assets/og/kairo-og.jpg` (1200×630), URL absolut `https://kairoworkspaces.my.id/` (ganti bila pindah domain lagi).
   Badge kuning kecil di atas judul section (`.kairo-lp-eyebrow`) sudah dihapus semua (owner) — jangan
   ditambah lagi. `#masuk` = langsung form login. Badge "kini hadir…" sudah dihapus (owner: jangan
   wording khas AI).
@@ -276,7 +278,8 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   juga diisi ke `window.__KAIRO_BUSINESS_WA` untuk tombol konfirmasi setelah daftar.
   Tombol sidebar "Ada masukan/keluhan? Tell us" membuka WA dengan `feedbackMessage()` (owner Okt 2026): ditulis dari sisi
   user ("Halo admin Kairo Workspaces! ..."), Nama Pengguna Dashboard (`window.kairoUsername`, diisi saat login) & Nama
-  Workspaces terisi otomatis, user tinggal isi Keluhan/Masukan.
+  Workspaces terisi otomatis, user tinggal isi Keluhan/Masukan; sebelum penutup ada pengingat "Sertakan bukti screenshot
+  halaman/notifikasi error di dashboard kalau ada".
   Di HP (tombol sidebar disembunyikan ≤900px) ada item **"Masukan / Keluhan"** di menu More (`#kairo-feedback-more-item`,
   dibuat di `buildMore()`), memanggil `window.kairoOpenFeedback()` yang sama.
 - Repo lama `trinemagic/trine-magic-dashboard` sudah dijadikan **private** oleh owner (Okt 2026) - website lamanya offline.
