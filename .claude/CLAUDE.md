@@ -82,7 +82,7 @@ domain = pengguna login ulang & pengaturan browser (Ingat saya, dark mode) mulai
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
 Versi terakhir: `kairo.css?v=20.10.156`, `kairo-v3.css?v=3.28.0`,
-`kairo-v3.js?v=3.21.0`, `kairo-app.js?v=20.10.179`; template seller dimuat dari kairo-app.js
+`kairo-v3.js?v=3.21.0`, `kairo-app.js?v=20.10.180`; template seller dimuat dari kairo-app.js
 (`seller-app-premium.js?v=20.10.149`, `.css?v=20.10.150`) — naikkan juga bila file template diubah.
 
 **Halaman app** = `main.container > section.section` dengan id:
@@ -344,6 +344,10 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   hanya memperbarui label saat `change` → setelah reset, dispatch `change`.
 - Saat tes, `document.querySelector('.btn-green')` pertama adalah tombol login di
   dialog, bukan Refresh — pakai selector yang spesifik.
+- Realtime Supabase (`startRealtimeSync`): `db.removeChannel()` memicu callback status `CLOSED` secara sinkron. Dulu
+  callback itu memanggil `removeChannel` lagi -> berulang ribuan kali -> "Maximum call stack size exceeded" (laporan error
+  Safari iPhone/Mac Okt 2026, saat koneksi putus/tab tidur). Sekarang: kosongkan `realtimeChannel` dulu, baru hapus; callback
+  mengabaikan channel yang bukan `realtimeChannel` aktif. Jangan balik ke pola lama.
 - Topik: tabel `topic_masters` mungkin tidak punya kolom `code`; simpan topik sudah
   retry tanpa `code`. Belum diverifikasi di DB asli.
 
