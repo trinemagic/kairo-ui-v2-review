@@ -81,9 +81,9 @@ domain = pengguna login ulang & pengaturan browser (Ingat saya, dark mode) mulai
 | `assets/fonts/` | Plus Jakarta Sans self-hosted (OFL) | Jangan kembali ke Google Fonts. |
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
-Versi terakhir: `kairo.css?v=20.10.156`, `kairo-v3.css?v=3.27.0`,
-`kairo-v3.js?v=3.21.0`, `kairo-app.js?v=20.10.178`; template seller dimuat dari kairo-app.js
-(`seller-app-premium.js?v=20.10.148`, `.css?v=20.10.150`) — naikkan juga bila file template diubah.
+Versi terakhir: `kairo.css?v=20.10.156`, `kairo-v3.css?v=3.28.0`,
+`kairo-v3.js?v=3.21.0`, `kairo-app.js?v=20.10.179`; template seller dimuat dari kairo-app.js
+(`seller-app-premium.js?v=20.10.149`, `.css?v=20.10.150`) — naikkan juga bila file template diubah.
 
 **Halaman app** = `main.container > section.section` dengan id:
 `dashboard`, `performance`, `input` (Orders), `customers`, `promo` (dibuat via JS),
@@ -118,6 +118,17 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   online." Belum ada: testimoni, medsos, kebijakan refund (menunggu owner). FAQ 8 poin fokus fitur
   unggulan (tanpa poin dark mode — owner). Jangan klaim fitur yang belum ada (mis. "Owner Menu
   Lock" hanya baris tabel, belum ada fiturnya).
+- **Riwayat paket Gratis = 60 hari (owner Okt 2026, opsi "Gabungan"):** fitur `full_history` (min `pro`, bisa di-override
+  `saas_plan_entitlements`). `historyCutoff()`/`clampHistoryFrom()` di kairo-app.js: `getRange()` (Dashboard, Performance, Withdraw,
+  Petty Cash periode), `fetchHistoryTransactions()` dan `renderCashHistoryTable()` tidak menampilkan data < hari ini-59. **Ringkasan saldo**
+  (`fetchFinancialSnapshot`, perbandingan bulanan, notifikasi) tetap dari semua data - saldo Gratis = Pro. `historyAllTransactions`
+  = riwayat tanpa potongan 60 hari, dipakai template seller untuk **Akan Expired & Piutang** (`reminderTransactions()`), supaya langganan
+  3/6 bulan lama tetap diingatkan. Notice `.kairo-history-limit` ("N catatan lebih lama... Upgrade ke Pro") hanya muncul bila memang
+  ada data tersembunyi (Riwayat Transaksi, riwayat seller, Petty Cash). Copy: pricing/home/daftar/FAQ 03/S&K/Privasi.
+  **Fase 2 BELUM dibuat:** hapus permanen data Gratis >12 bulan + pemberitahuan 30 hari (sudah tertulis di S&K). Wajib sebelum data
+  Gratis tertua berumur 12 bulan (± Sep 2027). Jebakan: Saldo Kas & saldo partner dihitung kumulatif dari SEMUA transaksi/kas/payout -
+  sebelum menghapus, simpan "saldo awal" (ringkasan yang dihapus) supaya saldo tidak berubah; piutang/langganan seller yang masih aktif
+  jangan ikut terhapus.
 - **Paket (keputusan owner Okt 2026):** hanya **Gratis** dan **Pro**. `canonicalPlan()`/`planLabel()`
   (kairo-app.js): DB `basic`/`free` → internal `basic`, tampil "GRATIS"; `plus`/`custom`/`enterprise`
   → `pro`, tampil "PRO". `PLAN_RANK={basic:1,pro:2}`, fitur eks-PLUS sekarang min `pro`. Daftar
@@ -253,7 +264,7 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   `trinemagic/trine-magic-dashboard/admin` (yang lama tidak diubah). Tombol keluar = tutup tab admin. Paket tampil Gratis/Pro
   (`plus` dll dihitung Pro; pilihan paket di modal hanya basic/pro; harga `plus` disembunyikan). Tabel jadi kartu di
   ≤640px (label kolom otomatis dari `thead`, `labelCells()`). Tes: stub `window.supabase` + data contoh di
-  scratchpad (route `**/supabase-js@2*` dan `**/chart.umd.min.js`). Cache `admin.css?v=1.3.0`, `admin.js?v=1.4.0`.
+  scratchpad (route `**/supabase-js@2*` dan `**/chart.umd.min.js`). Cache `admin.css?v=1.4.0`, `admin.js?v=1.5.0`.
   **Akses (owner Okt 2026): tanpa form login.** admin/ hanya jalan bila dibuka dari tombol KAIRO Admin di dashboard
   Trine Magic: `openKairoAdmin()` membuka tab (tanpa `noopener`), admin minta token lewat `postMessage`
   (`kairo-admin-token-request` → `kairo-admin-token`, cek origin + window yang dibuka), dashboard hanya menjawab bila
@@ -268,14 +279,21 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   di laporan Supabase). SQL: `.claude/sql/2026-10-admin-panel-v2.sql` (**sudah dijalankan owner Okt 2026**, sukses).
   **Durasi Pro saat daftar** (`requestedPro()`): tabel Workspaces menulis "Daftar Pro 6 bulan" di bawah badge Gratis, Perlu
   Perhatian "Daftar Pro, pembayaran belum dicatat" (tombol Catat = Catat Penjualan terisi Pro + durasi + nominal). Butuh SQL
-  `.claude/sql/2026-10-admin-requested-period.sql`; sebelum dijalankan, info ini tidak muncul (tanpa error).
+  `.claude/sql/2026-10-admin-requested-period.sql` (**sudah dijalankan owner Okt 2026**).
+  **Hapus akun & workspace (owner Okt 2026):** modal Workspace > "Hapus..." > layar peringatan (isi yang akan hilang dari
+  `platform_admin_delete_preview`, akun login ikut terhapus), ketik username owner/slug/nama, tombol aktif setelah 5 detik + confirm()
+  terakhir > `platform_admin_delete_workspace(id, ketikan)`. SQL `.claude/sql/2026-10-admin-delete-workspace.sql`: semua tabel public
+  ber-`workspace_id` + tabel anak via foreign key, diulang per putaran; atomik (gagal = tidak ada yang terhapus); server cek ulang
+  ketikan; menolak Trine Magic, workspace milik platform admin (`platform_admins`), dan workspace akun yang login. Owner auth user dihapus
+  bila tidak punya workspace lain (kalau Supabase menolak: pesan "hapus manual di Authentication"). Catatan penjualan admin untuk
+  workspace itu ikut terhapus (terlihat di daftar peringatan).
   SQL panjang: kirim sebagai file + link raw GitHub, bukan blok kode di chat (owner: tampilan chat pecah).
 - **Admin › Template (owner Okt 2026):** daftar template usaha dari form daftar (`TEMPLATES` di admin.js — **perbarui
   bila ada template baru**): Seller App Premium (`digital_subscription`, tampilan khusus), Jasa Online
   (`service_consultation`, tampilan dasar), Online Shop & Digital Product (belum ada tampilan khusus → user melihat
   tampilan Jasa Online). Jumlah workspace/Pro/aktif per template dari `business_template` di
   `platform_admin_workspace_activity` (SQL `.claude/sql/2026-10-admin-templates.sql`, **sudah dijalankan owner Okt 2026**). Preview dashboard
-  `admin/previews/*.webp` dibuat ulang dengan `.claude/testing/shoot-templates.js`. Cache admin `?v=1.3.0` (admin.js 1.4.0).
+  `admin/previews/*.webp` dibuat ulang dengan `.claude/testing/shoot-templates.js`. Cache admin: lihat di atas.
 - **Laporan error user** (kairo-app.js, di atas `showToast`): `reportClientError()` mengirim pesan error script
   (file sendiri saja) + toast merah "Gagal" (bukan pesan kunci paket) ke RPC `report_client_error` beserta
   baris/kolom, stack trace (toast: stack pemanggil `showToast`) dan versi `kairo-app.js?v=`; maks 10/sesi, tanpa data
