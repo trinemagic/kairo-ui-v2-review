@@ -81,7 +81,7 @@ domain = pengguna login ulang & pengaturan browser (Ingat saya, dark mode) mulai
 | `assets/fonts/` | Plus Jakarta Sans self-hosted (OFL) | Jangan kembali ke Google Fonts. |
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
-Versi terakhir: `kairo.css?v=20.10.156`, `kairo-v3.css?v=3.24.0`,
+Versi terakhir: `kairo.css?v=20.10.156`, `kairo-v3.css?v=3.25.0`,
 `kairo-v3.js?v=3.20.0`, `kairo-app.js?v=20.10.177`; template seller dimuat dari kairo-app.js
 (`seller-app-premium.js?v=20.10.148`, `.css?v=20.10.150`) — naikkan juga bila file template diubah.
 
@@ -212,6 +212,10 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   fokus, getar `.kairo-field-shake` + outline merah `.kairo-field-missing` (hilang saat diisi), toast
   kuning "Lengkapi dulu: …" (menggantikan yang lama, bukan menumpuk). Package/Topik kosong dicek
   lewat `calculateTotal()` sebelum handler app (kairo-v3.js). Juga jalan di template seller.
+- **Kontras light mode (owner Okt 2026):** blok di akhir `kairo-v3.css` (`body:not(.saas-dark)`): `--muted #526175`,
+  `--v3-muted #4e6475`, `--danger/--btn-danger #a3384a`, tombol `.btn-gold` (Export Excel) digelapkan, teks pill/badge
+  & menu aktif = warna brand dicampur gelap (brand tetap dipakai), placeholder select, bottom nav HP (label 6,3+), plus
+  template seller (status, "Lihat Semua", total keranjang). Audit light & dark, dasar & seller: 0 temuan.
 - **Dark mode hover tabel:** sorotan gelap solid (`--v3-sky`) — jangan biarkan
   `tr:hover` dari `kairo.css` (latar hampir putih) tembus.
 
@@ -349,11 +353,7 @@ cd .claude/testing && node example.js                                # lihat REA
 - Penyebab "tidak bisa tambah topik" di DB asli belum terkonfirmasi.
 - Bila Open/Close Store masih terkunci untuk PRO: cek tabel `saas_plan_entitlements`
   (`plan='pro'`, `feature_key='open_close_store'`, `enabled`).
-- Light mode: beberapa teks abu-abu kontras ±4.0 (sedikit di bawah 4.5) — belum
-  diubah, tunggu keputusan owner.
 - Performa (audit Okt 2026): idle di luar Dashboard 0 re-layout; di Dashboard 1×/detik (jam).
   Header Dashboard hanya ditulis ulang bila nama/workspace/tanggal berubah (dulu tiap
   perubahan class body); jam berhenti saat tidak terlihat; cek notifikasi dilewati saat tab
   tersembunyi. Ukur dengan CDP `Performance.getMetrics` (LayoutCount/TaskDuration).
-- Light mode bottom nav: label abu-abu 3,8 dan label aktif pink 2,0 (warna lama kairo.css) —
-  belum diubah, ikut keputusan light mode.

@@ -4474,3 +4474,59 @@ html.kairo-v3 :is(.kairo-upgrade-hint-cta, .kairo-upgrade-hint-close):focus-visi
   html.kairo-v3 .kairo-upgrade-hint-close { grid-column: 3; grid-row: 1; }
   html.kairo-v3 .kairo-upgrade-hint-cta { grid-column: 1 / -1; grid-row: 2; width: 100%; min-height: 40px; }
 }
+
+/* ---- Kontras light mode (owner Okt 2026): teks minimal 4.5:1 terhadap latarnya. ----
+   Hanya light mode; dark mode sudah diaudit terpisah. Warna brand tetap dipakai, cuma
+   dicampur lebih gelap untuk teks supaya terbaca di latar tint-nya sendiri. */
+html.kairo-v3 body:not(.saas-dark) {
+  --muted: #526175;
+  --v3-muted: #4e6475;
+  --danger: #a3384a;
+  --btn-danger: #a3384a;
+}
+html.kairo-v3 body:not(.saas-dark) #app-shell .btn-gold {
+  background: color-mix(in srgb, var(--brand-blend) 68%, #1f2937) !important;
+}
+html.kairo-v3 body:not(.saas-dark) #app-shell .reading-status-pill.progress,
+html.kairo-v3 body:not(.saas-dark) #app-shell .customer-db-rank,
+html.kairo-v3 body:not(.saas-dark) #customer-history-modal .reading-status-pill.progress,
+html.kairo-v3 body:not(.saas-dark) #app-shell .badge {
+  color: color-mix(in srgb, var(--brand-accent) 42%, #1f2937) !important;
+}
+html.kairo-v3 body:not(.saas-dark) #app-shell .reading-status-pill.done,
+html.kairo-v3 body:not(.saas-dark) #app-shell .customer-db-repeat,
+html.kairo-v3 body:not(.saas-dark) #customer-history-modal .reading-status-pill.done {
+  color: color-mix(in srgb, var(--brand-primary) 52%, #1f2937) !important;
+}
+html.kairo-v3 body:not(.saas-dark) .saas-settings-submenu-btn.active {
+  color: color-mix(in srgb, var(--brand-accent) 42%, var(--ink)) !important;
+}
+html.kairo-v3 body:not(.saas-dark) .sh-select-trigger.placeholder {
+  color: #6c5a61;
+}
+html.kairo-v3 body:not(.saas-dark) #kairo-v3-dashboard-head small {
+  color: color-mix(in srgb, var(--v3-primary-dark) 72%, #000);
+}
+html.kairo-v3 body:not(.saas-dark) #saas-mobile-bottom .saas-mobile-nav-btn.active:not(.kairo-mobile-orders-main) {
+  color: color-mix(in srgb, var(--brand-accent) 42%, #2b1a21) !important;
+}
+/* Template Seller (light): status, tombol "Lihat Semua", dan total keranjang. */
+html.kairo-v3 body.seller-app-premium:not(.saas-dark) .seller-cart-total strong,
+html.kairo-v3 body.seller-app-premium:not(.saas-dark) .seller-history-toggle,
+html.kairo-v3 body.seller-app-premium:not(.saas-dark) .seller-order-status-pill.is-new {
+  color: #0f6f6b;
+}
+html.kairo-v3 body.seller-app-premium:not(.saas-dark) .seller-expiry-badge.is-active,
+html.kairo-v3 body.seller-app-premium:not(.saas-dark) .seller-history-expiry.is-active,
+html.kairo-v3 body.seller-app-premium:not(.saas-dark) .seller-order-status-pill.is-done {
+  color: #1f6655;
+}
+html.kairo-v3 body.seller-app-premium:not(.saas-dark) .seller-expiry-badge.is-urgent,
+html.kairo-v3 body.seller-app-premium:not(.saas-dark) .seller-history-expiry.is-urgent {
+  color: #96461f;
+}
+html.kairo-v3 body.seller-app-premium:not(.saas-dark) .seller-expiry-badge.is-soon,
+html.kairo-v3 body.seller-app-premium:not(.saas-dark) .seller-history-expiry.is-soon,
+html.kairo-v3 body.seller-app-premium:not(.saas-dark) .seller-order-status-pill.is-progress {
+  color: color-mix(in srgb, var(--gold, #C9A45C) 45%, #3f2a05);
+}
