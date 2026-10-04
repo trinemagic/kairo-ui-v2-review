@@ -253,7 +253,7 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   `trinemagic/trine-magic-dashboard/admin` (yang lama tidak diubah). Tombol keluar = tutup tab admin. Paket tampil Gratis/Pro
   (`plus` dll dihitung Pro; pilihan paket di modal hanya basic/pro; harga `plus` disembunyikan). Tabel jadi kartu di
   ≤640px (label kolom otomatis dari `thead`, `labelCells()`). Tes: stub `window.supabase` + data contoh di
-  scratchpad (route `**/supabase-js@2*` dan `**/chart.umd.min.js`). Cache `admin.css?v=1.3.0`, `admin.js?v=1.3.0`.
+  scratchpad (route `**/supabase-js@2*` dan `**/chart.umd.min.js`). Cache `admin.css?v=1.3.0`, `admin.js?v=1.4.0`.
   **Akses (owner Okt 2026): tanpa form login.** admin/ hanya jalan bila dibuka dari tombol KAIRO Admin di dashboard
   Trine Magic: `openKairoAdmin()` membuka tab (tanpa `noopener`), admin minta token lewat `postMessage`
   (`kairo-admin-token-request` → `kairo-admin-token`, cek origin + window yang dibuka), dashboard hanya menjawab bila
@@ -266,13 +266,16 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   status request dihitung SQL dari poinnya), **Kapasitas Server** (ukuran DB vs batas paket — pilihan batas disimpan
   `kairo_admin_db_limit_mb` di localStorage, koneksi, cache hit, waktu respons, tabel terbesar; CPU/RAM/bandwidth hanya
   di laporan Supabase). SQL: `.claude/sql/2026-10-admin-panel-v2.sql` (**sudah dijalankan owner Okt 2026**, sukses).
+  **Durasi Pro saat daftar** (`requestedPro()`): tabel Workspaces menulis "Daftar Pro 6 bulan" di bawah badge Gratis, Perlu
+  Perhatian "Daftar Pro, pembayaran belum dicatat" (tombol Catat = Catat Penjualan terisi Pro + durasi + nominal). Butuh SQL
+  `.claude/sql/2026-10-admin-requested-period.sql`; sebelum dijalankan, info ini tidak muncul (tanpa error).
   SQL panjang: kirim sebagai file + link raw GitHub, bukan blok kode di chat (owner: tampilan chat pecah).
 - **Admin › Template (owner Okt 2026):** daftar template usaha dari form daftar (`TEMPLATES` di admin.js — **perbarui
   bila ada template baru**): Seller App Premium (`digital_subscription`, tampilan khusus), Jasa Online
   (`service_consultation`, tampilan dasar), Online Shop & Digital Product (belum ada tampilan khusus → user melihat
   tampilan Jasa Online). Jumlah workspace/Pro/aktif per template dari `business_template` di
   `platform_admin_workspace_activity` (SQL `.claude/sql/2026-10-admin-templates.sql`, **sudah dijalankan owner Okt 2026**). Preview dashboard
-  `admin/previews/*.webp` dibuat ulang dengan `.claude/testing/shoot-templates.js`. Cache admin `?v=1.3.0`.
+  `admin/previews/*.webp` dibuat ulang dengan `.claude/testing/shoot-templates.js`. Cache admin `?v=1.3.0` (admin.js 1.4.0).
 - **Laporan error user** (kairo-app.js, di atas `showToast`): `reportClientError()` mengirim pesan error script
   (file sendiri saja) + toast merah "Gagal" (bukan pesan kunci paket) ke RPC `report_client_error` beserta
   baris/kolom, stack trace (toast: stack pemanggil `showToast`) dan versi `kairo-app.js?v=`; maks 10/sesi, tanpa data
@@ -294,7 +297,8 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
 - Repo lama `trinemagic/trine-magic-dashboard` sudah dijadikan **private** oleh owner (Okt 2026) - website lamanya offline.
 - **Backup + keep-alive Supabase (owner Okt 2026: belum mau upgrade Pro):** `.claude/backup/backup.yml` + README.
   Dipasang owner di repo PRIVATE terpisah (secrets: SUPABASE_DB_URL session pooler, BACKUP_PASSPHRASE, SUPABASE_URL,
-  SUPABASE_ANON_KEY). Harian 7 hari / mingguan 35 hari (artifact) / bulanan permanen (`monthly/`), terenkripsi
+  SUPABASE_ANON_KEY). Harian 7 hari / mingguan 35 hari / bulanan 90 hari (semua artifact; owner Okt 2026: tidak ada yang permanen supaya
+  permintaan hapus data terpenuhi - Kebijakan Privasi menyebut 90 hari), terenkripsi
   gpg AES-256. Keep-alive memanggil RPC `is_username_available` - jangan hapus/ubah fungsi itu tanpa update workflow.
   **Terpasang Okt 2026** di repo private `trinemagic/kairo-backups` (4 secrets diisi owner); run pertama 4 Okt 2026 sukses
   (data.sql ±540 KB, file terkunci ±116 KB). Status run bisa dicek via actions_list repo itu.
@@ -354,8 +358,6 @@ cd .claude/testing && node example.js                                # lihat REA
 
 - Semua perubahan belum diuji di **Safari** dan dengan **Supabase/login asli**.
 - Penyebab "tidak bisa tambah topik" di DB asli belum terkonfirmasi.
-- Bila Open/Close Store masih terkunci untuk PRO: cek tabel `saas_plan_entitlements`
-  (`plan='pro'`, `feature_key='open_close_store'`, `enabled`).
 - Performa (audit Okt 2026): idle di luar Dashboard 0 re-layout; di Dashboard 1×/detik (jam).
   Header Dashboard hanya ditulis ulang bila nama/workspace/tanggal berubah (dulu tiap
   perubahan class body); jam berhenti saat tidak terlihat; cek notifikasi dilewati saat tab

@@ -8,7 +8,7 @@ Satu workflow GitHub Actions (`backup.yml`) yang jalan tiap hari 02.10 WIB:
    AES-256 dengan passphrase:
    - harian: artifact 7 hari
    - mingguan (Minggu): artifact 35 hari
-   - bulanan (tanggal 1): file permanen di folder `monthly/`
+   - bulanan (tanggal 1): disimpan 90 hari, lalu terhapus otomatis (semua ada di Actions > run > Artifacts)
 
 **Wajib di repo PRIVATE** (mis. `trinemagic/kairo-backups`). Artifact repo publik bisa diunduh orang lain.
 
