@@ -81,7 +81,7 @@ domain = pengguna login ulang & pengaturan browser (Ingat saya, dark mode) mulai
 | `assets/fonts/` | Plus Jakarta Sans self-hosted (OFL) | Jangan kembali ke Google Fonts. |
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
-Versi terakhir: `kairo.css?v=20.10.156`, `kairo-v3.css?v=3.28.0`,
+Versi terakhir: `kairo.css?v=20.10.156`, `kairo-v3.css?v=3.29.0`,
 `kairo-v3.js?v=3.21.0`, `kairo-app.js?v=20.10.180`; template seller dimuat dari kairo-app.js
 (`seller-app-premium.js?v=20.10.149`, `.css?v=20.10.150`) — naikkan juga bila file template diubah.
 
@@ -192,7 +192,7 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   recalc style tiap frame). Pause saat tab tersembunyi; diam bila prefers-reduced-motion.
   Biaya terukur: +0,3% CPU desktop, +0,9% CPU HP (CPU 4× lambat). Kartu tembus pandang sudah
   dicoba & ditolak (kontras light turun).
-- **Pop-up alert (`showToast`)**: tumpukan kartu di kanan atas, `position:fixed` (ikut layar saat
+- **Pop-up alert (`showToast`)**: latar diwarnai tipis sesuai jenis (`--toast-tone`, 9% light / 16% dark) + garis aksen kiri 4px supaya beda dari kartu menu (owner Okt 2026; admin sama). Tumpukan kartu di kanan atas, `position:fixed` (ikut layar saat
   scroll), tepat di bawah header desktop yang sticky (`--kairo-toast-top` dihitung tiap muncul;
   HP 16px). Ikon + judul per jenis (Berhasil/Info/Perhatian/Gagal), pesan, tombol X; maks 4,
   semua hilang sendiri dalam **5 dtk** (owner), jeda saat hover/fokus. Signature lama tetap:
@@ -264,7 +264,7 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   `trinemagic/trine-magic-dashboard/admin` (yang lama tidak diubah). Tombol keluar = tutup tab admin. Paket tampil Gratis/Pro
   (`plus` dll dihitung Pro; pilihan paket di modal hanya basic/pro; harga `plus` disembunyikan). Tabel jadi kartu di
   ≤640px (label kolom otomatis dari `thead`, `labelCells()`). Tes: stub `window.supabase` + data contoh di
-  scratchpad (route `**/supabase-js@2*` dan `**/chart.umd.min.js`). Cache `admin.css?v=1.5.0`, `admin.js?v=1.6.0`. Pop-up admin (`toast(msg, true|'success'|'info'|'warning'|'error')`) = gaya dashboard: kartu bertumpuk kanan atas di bawah topbar, ikon+judul, X, 5 dtk, jeda saat hover. "Sebagian data gagal dimuat" kuning + menyebut fungsi & pesan error DB (juga di console). Modal Workspace membaca baris dari daftar (`all`), bukan RPC `platform_admin_workspace_detail` (tidak ada di DB asli).
+  scratchpad (route `**/supabase-js@2*` dan `**/chart.umd.min.js`). Cache `admin.css?v=1.6.0`, `admin.js?v=1.7.0`. **Log Aktivitas (Okt 2026):** fungsi `platform_admin_activity` tidak pernah ada di DB asli -> dibuat lewat `.claude/sql/2026-10-admin-activity-log.sql` (tabel `platform_admin_activity_log` tanpa FK, RLS tanpa policy, maks 5000 baris; `platform_admin_log_activity`). admin.js membungkus `db.rpc`: aksi di `LOG_ACTIONS` yang sukses otomatis dicatat (nama workspace diambil sebelum aksi). Pop-up admin (`toast(msg, true|'success'|'info'|'warning'|'error')`) = gaya dashboard: kartu bertumpuk kanan atas di bawah topbar, ikon+judul, X, 5 dtk, jeda saat hover. "Sebagian data gagal dimuat" kuning + menyebut fungsi & pesan error DB (juga di console). Modal Workspace membaca baris dari daftar (`all`), bukan RPC `platform_admin_workspace_detail` (tidak ada di DB asli).
   **Akses (owner Okt 2026): tanpa form login.** admin/ hanya jalan bila dibuka dari tombol KAIRO Admin di dashboard
   Trine Magic: `openKairoAdmin()` membuka tab (tanpa `noopener`), admin minta token lewat `postMessage`
   (`kairo-admin-token-request` → `kairo-admin-token`, cek origin + window yang dibuka), dashboard hanya menjawab bila

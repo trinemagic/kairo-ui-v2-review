@@ -659,15 +659,17 @@ html.kairo-v3 .kairo-toast-stack {
 }
 
 html.kairo-v3 .kairo-toast {
+  --toast-tone: #2b6cb0;
   display: flex;
   align-items: flex-start;
   gap: 12px;
   padding: 14px 12px 14px 16px;
-  border: 1px solid var(--v3-line);
+  border: 1px solid color-mix(in srgb, var(--toast-tone) 38%, var(--v3-line));
   border-radius: 12px;
-  background: var(--v3-surface);
+  /* Beda dari kartu menu (owner Okt 2026): latar diwarnai tipis sesuai jenis + garis aksen kiri. */
+  background: color-mix(in srgb, var(--toast-tone) 9%, var(--v3-surface));
   color: var(--v3-ink);
-  box-shadow: 0 12px 32px rgba(15, 35, 55, .16);
+  box-shadow: inset 4px 0 0 var(--toast-tone), 0 14px 34px rgba(15, 35, 55, .22);
   pointer-events: auto;
   animation: kairo-toast-in .22s cubic-bezier(.2, .7, .2, 1);
   transition: opacity .2s ease, transform .2s ease;
@@ -695,18 +697,19 @@ html.kairo-v3 .kairo-toast-icon {
   stroke-linejoin: round;
 }
 
-html.kairo-v3 .kairo-toast.is-success .kairo-toast-icon { color: #0f7b5f; }
-html.kairo-v3 .kairo-toast.is-info .kairo-toast-icon { color: var(--v3-ink); }
-html.kairo-v3 .kairo-toast.is-warning .kairo-toast-icon { color: #a15c07; }
-html.kairo-v3 .kairo-toast.is-error .kairo-toast-icon { color: #c8323a; }
 
-html.kairo-v3 body.saas-dark .kairo-toast {
-  box-shadow: 0 14px 36px rgba(0, 0, 0, .45);
-}
 
-html.kairo-v3 body.saas-dark .kairo-toast.is-success .kairo-toast-icon { color: #4fd1a5; }
-html.kairo-v3 body.saas-dark .kairo-toast.is-warning .kairo-toast-icon { color: #f5b83d; }
-html.kairo-v3 body.saas-dark .kairo-toast.is-error .kairo-toast-icon { color: #ff7d82; }
+
+html.kairo-v3 .kairo-toast.is-success { --toast-tone: #0f7b5f; }
+html.kairo-v3 .kairo-toast.is-info { --toast-tone: #2b6cb0; }
+html.kairo-v3 .kairo-toast.is-warning { --toast-tone: #b26a00; }
+html.kairo-v3 .kairo-toast.is-error { --toast-tone: #c8323a; }
+html.kairo-v3 body.saas-dark .kairo-toast { background: color-mix(in srgb, var(--toast-tone) 16%, var(--v3-surface)); box-shadow: inset 4px 0 0 var(--toast-tone), 0 16px 40px rgba(0, 0, 0, .55); }
+html.kairo-v3 body.saas-dark .kairo-toast.is-success { --toast-tone: #4fd1a5; }
+html.kairo-v3 body.saas-dark .kairo-toast.is-info { --toast-tone: #7fb2ff; }
+html.kairo-v3 body.saas-dark .kairo-toast.is-warning { --toast-tone: #f5b83d; }
+html.kairo-v3 body.saas-dark .kairo-toast.is-error { --toast-tone: #ff7d82; }
+html.kairo-v3 .kairo-toast-icon { color: var(--toast-tone); }
 
 html.kairo-v3 .kairo-toast-copy {
   display: grid;
