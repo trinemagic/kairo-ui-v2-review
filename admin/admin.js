@@ -301,9 +301,10 @@ async function saveExpense(){
 }
 
 function fillWorkspaceSelect(){$('sWorkspace').innerHTML=all.map(x=>`<option value="${esc(x.workspace_id)}" data-plan="${planKey(x.plan)}">${esc(x.workspace_name)} — ${planKey(x.plan)==='pro'?'Pro':'Gratis'}</option>`).join('');}
-async function openWorkspace(id){
-  const {data,error}=await db.rpc('platform_admin_workspace_detail',{p_workspace_id:id});
-  if(error)return toast(error.message,true);
+// The workspace list already carries everything this dialog shows (the old detail RPC does not exist in the database).
+function openWorkspace(id){
+  const data=all.find(x=>String(x.workspace_id)===String(id));
+  if(!data)return toast('Workspace tidak ditemukan. Coba refresh.',true);
   selected=data;
   setText('mName',data.workspace_name);setText('mSlug',data.slug||'');setText('mOwner',data.owner_username||'—');
   $('mWsStatus').innerHTML=badge(WS,data.workspace_status);
