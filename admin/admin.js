@@ -72,8 +72,29 @@ const PERIOD={monthly:'1 bulan',quarterly:'3 bulan',semiannual:'6 bulan',annual:
 const CAT={hosting:'Hosting',domain:'Domain',tools:'Tools',marketing:'Marketing',fee:'Biaya admin',operational:'Operasional',other:'Lainnya'};
 const badge=(map,v)=>{const k=String(v||'').toLowerCase(),m=map[k];return m?`<span class="badge ${m[1]}">${esc(m[0])}</span>`:`<span class="badge b-mute">${esc(v||'—')}</span>`;};
 
-let toastTimer;
-function toast(msg,isError){const t=$('toast');t.textContent=msg;t.classList.toggle('is-error',!!isError);t.classList.remove('hidden');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.add('hidden'),3200);}
+// Pop-up sama dengan dashboard KAIRO: kartu bertumpuk di kanan atas (di bawah topbar), ikon + judul per jenis,
+// tombol X, maks 4, hilang sendiri 5 detik (jeda saat hover/fokus). toast(pesan, true|'success'|'info'|'warning'|'error').
+const TOAST_KINDS={
+  success:{title:'Berhasil',icon:'<circle cx="12" cy="12" r="9"/><path d="m8.5 12.2 2.4 2.4 4.6-5"/>'},
+  info:{title:'Info',icon:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5.5"/><path d="M12 7.6h.01"/>'},
+  warning:{title:'Perhatian',icon:'<path d="M10.3 4.2 2.9 17.1A2 2 0 0 0 4.6 20h14.8a2 2 0 0 0 1.7-2.9L13.7 4.2a2 2 0 0 0-3.4 0Z"/><path d="M12 9.5v4"/><path d="M12 16.8h.01"/>'},
+  error:{title:'Gagal',icon:'<circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5"/><path d="M12 16.4h.01"/>'}
+};
+function dismissToast(item){if(!item||item.classList.contains('is-leaving'))return;clearTimeout(item._timer);item.classList.add('is-leaving');setTimeout(()=>item.remove(),200);}
+function toast(msg,kind){
+  const host=$('toast');if(!host)return;
+  const variant=typeof kind==='string'&&TOAST_KINDS[kind]?kind:(kind?'error':'success'),{title,icon}=TOAST_KINDS[variant];
+  const item=document.createElement('div');item.className=`toast-card is-${variant}`;item.setAttribute('role',variant==='error'?'alert':'status');
+  item.innerHTML=`<svg class="toast-icon" viewBox="0 0 24 24" aria-hidden="true">${icon}</svg><div class="toast-copy"><strong>${title}</strong><span></span></div><button type="button" class="toast-close" aria-label="Tutup notifikasi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>`;
+  item.querySelector('.toast-copy span').textContent=String(msg??'');
+  item.querySelector('.toast-close').onclick=()=>dismissToast(item);
+  const start=()=>{clearTimeout(item._timer);item._timer=setTimeout(()=>dismissToast(item),5000);};
+  item.addEventListener('mouseenter',()=>clearTimeout(item._timer));item.addEventListener('mouseleave',start);
+  item.addEventListener('focusin',()=>clearTimeout(item._timer));item.addEventListener('focusout',start);
+  const bar=document.querySelector('.topbar')?.getBoundingClientRect();
+  host.style.setProperty('--toast-top',bar&&bar.height&&bar.bottom>0?`${Math.round(bar.bottom+10)}px`:'16px');
+  host.prepend(item);[...host.querySelectorAll('.toast-card:not(.is-leaving)')].slice(4).forEach(dismissToast);start();
+}
 function remain(v){if(!v)return'—';const d=Math.ceil((+new Date(v)-Date.now())/864e5);return d<0?`${Math.abs(d)} hari lewat`:d===0?'Hari ini':`${d} hari`;}
 function remainClass(v){if(!v)return'';const d=Math.ceil((+new Date(v)-Date.now())/864e5);return d<0?'t-danger':d<=7?'t-warn':'';}
 
@@ -105,12 +126,13 @@ async function boot(){
 async function load(){
   const specs=[['platform_admin_overview'],['platform_admin_workspaces'],['platform_admin_activity',{p_limit:100}],['platform_admin_business_overview'],['platform_admin_sales',{p_limit:500}],['platform_admin_revenue_series',{p_months:12}],['platform_admin_plan_prices'],['platform_admin_expenses',{p_limit:500}],['platform_admin_analytics'],['platform_admin_plan_performance'],['platform_admin_renewal_queue',{p_days:60}],['platform_admin_crm_rows'],['platform_admin_followups',{p_limit:500}],['platform_admin_get_settings']];
   const calls=await Promise.all(specs.map(([fn,args])=>db.rpc(fn,args).then(r=>r,e=>({error:e}))));
-  const failed=calls.map((c,i)=>c.error?specs[i][0]:null).filter(Boolean);
+  const failed=calls.map((c,i)=>c.error?`${specs[i][0]}: ${c.error.message||c.error}`:null).filter(Boolean);
+  failed.forEach(f=>console.warn('Admin load:',f));
   const [o,w,a,b,s,series,prices,ex,an,pp,rq,cr,fu,ps]=calls.map(x=>x.error?null:x.data);
   overview=o||{};all=w||[];activity=a||[];business=b||{};sales=s||[];expenses=ex||[];analytics=an||{};planPerf=pp||[];renewals=rq||[];crm=cr||[];followups=fu||[];platformSettings=ps||{};
   await loadExtras();
   renderOverview(series||[]);renderWorkspaces();renderSales();renderActivity();renderPrices(prices||[]);fillWorkspaceSelect();renderExpenses();renderAnalytics();renderRenewals();renderCrm();renderFollowups();renderPlatformSettings();fillFollowWorkspace();renderCustom();renderServer();renderTemplates();renderIssues();renderNavCounts();
-  if(failed.length)toast(`Sebagian data gagal dimuat (${failed.length}): ${failed[0]}`,true);
+  if(failed.length)toast(`Sebagian data gagal dimuat (${failed.length}). ${failed[0]}`,'warning');
 }
 
 /* Fitur v2 (butuh SQL admin panel v2). Gagal = tampilkan catatan, bukan error merah. */
@@ -288,7 +310,7 @@ function fullBackup(){
   download(`kairo-platform-backup-${todayISO()}.json`,new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
 }
 function csv(name,rows){
-  if(!rows.length)return toast('Belum ada data untuk diexport');
+  if(!rows.length)return toast('Belum ada data untuk diexport','info');
   const keys=Object.keys(rows[0]),q=v=>'"'+String(v??'').replaceAll('"','""')+'"';
   const body=[keys.map(q).join(','),...rows.map(r=>keys.map(k=>q(r[k])).join(','))].join('\n');
   download(name,new Blob(['﻿'+body],{type:'text/csv;charset=utf-8'}));
@@ -361,7 +383,7 @@ async function doDelete(){
   const {data,error}=await db.rpc('platform_admin_delete_workspace',{p_workspace_id:selected.workspace_id,p_confirm:$('delConfirm').value.trim()});
   if(error){$('delError').textContent=error.message;$('doDelete').textContent='Hapus permanen';delSync();return;}
   closeModal('deleteModal');selected=null;
-  toast(data?.note||`Workspace dihapus (${Number(data?.deleted_rows||0).toLocaleString('id-ID')} baris data${data?.auth_user_deleted?', akun login ikut dihapus':''}).`,!!data?.note);
+  toast(data?.note||`Workspace dihapus (${Number(data?.deleted_rows||0).toLocaleString('id-ID')} baris data${data?.auth_user_deleted?', akun login ikut dihapus':''}).`,data?.note?'warning':'success');
   await load();
 }
 function openSale(workspaceId){
@@ -603,7 +625,7 @@ function renderCustom(){
 }
 function fillCustomWorkspace(){$('cuWorkspace').innerHTML='<option value="">— Belum punya workspace —</option>'+all.map(x=>`<option value="${esc(x.workspace_id)}">${esc(x.workspace_name)}</option>`).join('');}
 function openCustom(id,preset){
-  if(needSql.custom)return toast('Menu Request Custom aktif setelah SQL admin panel v2 dijalankan.',true);
+  if(needSql.custom)return toast('Menu Request Custom aktif setelah SQL admin panel v2 dijalankan.','info');
   customEditing=id?customReqs.find(r=>r.id===id)||null:null;
   const r=customEditing||Object.assign({workspace_id:'',customer_name:'',contact:'',title:'',detail:'',price:'',start_date:todayISO(),due_date:''},preset||{});
   fillCustomWorkspace();

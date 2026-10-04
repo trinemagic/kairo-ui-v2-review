@@ -220,8 +220,20 @@ td .table-btn+.table-btn{margin-left:6px}
 .detail-grid div>span{display:block;font-size:12px;color:var(--muted)}
 
 /* Toast */
-.toast{position:fixed;right:20px;bottom:20px;z-index:80;max-width:min(380px,calc(100vw - 32px));padding:12px 16px;border-radius:12px;background:#163652;border:1px solid var(--line);box-shadow:0 16px 40px rgba(0,0,0,.4);font-weight:600}
-.toast.is-error{border-color:rgba(255,138,141,.5);color:#ffd2d3}
+/* Pop-up (sama dengan dashboard KAIRO, versi gelap) */
+.toast-stack{position:fixed;top:calc(var(--toast-top,16px) + env(safe-area-inset-top));right:16px;z-index:200;display:flex;flex-direction:column;gap:10px;width:min(360px,calc(100vw - 32px));pointer-events:none}
+.toast-card{display:flex;align-items:flex-start;gap:12px;padding:14px 12px 14px 16px;border:1px solid var(--line);border-radius:12px;background:#163652;color:var(--text);box-shadow:0 14px 36px rgba(0,0,0,.45);pointer-events:auto;animation:toast-in .22s cubic-bezier(.2,.7,.2,1);transition:opacity .2s ease,transform .2s ease}
+.toast-card.is-leaving{opacity:0;transform:translateX(16px)}
+@keyframes toast-in{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+.toast-icon{flex:0 0 auto;width:20px;height:20px;margin-top:1px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.toast-card.is-success .toast-icon{color:#4fd1a5}.toast-card.is-info .toast-icon{color:var(--text)}.toast-card.is-warning .toast-icon{color:#f5b83d}.toast-card.is-error .toast-icon{color:#ff7d82}
+.toast-copy{display:grid;flex:1 1 auto;gap:2px;min-width:0}
+.toast-copy strong{font-size:13px;font-weight:750;line-height:1.35}
+.toast-copy span{color:var(--muted);font-size:12px;line-height:1.45;overflow-wrap:anywhere}
+.toast-close{display:grid;flex:0 0 auto;width:28px;height:28px;margin:-4px -2px 0 0;place-items:center;border:0;border-radius:8px;background:transparent;color:var(--muted);cursor:pointer}
+.toast-close:hover,.toast-close:focus-visible{background:rgba(255,255,255,.08);color:var(--text)}
+.toast-close svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+@media (prefers-reduced-motion:reduce){.toast-card{animation:none;transition:none}}
 
 .chips{display:flex;gap:6px;flex-wrap:wrap}
 .chip{border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--muted);border-radius:999px;padding:6px 14px;font-size:13px;font-weight:600;white-space:nowrap}
