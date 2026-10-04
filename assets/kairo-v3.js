@@ -106,7 +106,7 @@
     items.forEach(item => observer.observe(item));
   }
 
-  const landingPages = ['home', 'features', 'solutions', 'pricing', 'about', 'masuk'];
+  const landingPages = ['home', 'features', 'solutions', 'pricing', 'about', 'masuk', 'syarat', 'privasi'];
 
   function showLandingPage(root) {
     const hash = location.hash.slice(1);

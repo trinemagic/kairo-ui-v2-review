@@ -2209,9 +2209,23 @@ html.kairo-v3 #kairo-entry[data-page="home"] .kairo-landing-main > :is(#home, #h
 html.kairo-v3 #kairo-entry[data-page="features"] .kairo-landing-main > :is(#features, .kairo-lp-cta),
 html.kairo-v3 #kairo-entry[data-page="solutions"] .kairo-landing-main > :is(#solutions, .kairo-lp-cta),
 html.kairo-v3 #kairo-entry[data-page="pricing"] .kairo-landing-main > :is(#pricing, .kairo-lp-cta),
-html.kairo-v3 #kairo-entry[data-page="about"] .kairo-landing-main > :is(#about, .kairo-lp-cta) {
+html.kairo-v3 #kairo-entry[data-page="about"] .kairo-landing-main > :is(#about, .kairo-lp-cta),
+html.kairo-v3 #kairo-entry[data-page="syarat"] .kairo-landing-main > #syarat,
+html.kairo-v3 #kairo-entry[data-page="privasi"] .kairo-landing-main > #privasi {
   display: block;
 }
+
+/* Halaman Syarat & Ketentuan / Kebijakan Privasi (link di footer). */
+html.kairo-v3 .kairo-lp-legal { padding: clamp(56px, 7vw, 88px) 0 8px; background: var(--kairo-white); }
+html.kairo-v3 .kairo-lp-legal-inner { max-width: 760px; }
+html.kairo-v3 .kairo-lp-legal h2 { margin: 0; color: var(--kairo-delft); font-size: clamp(28px, 4vw, 38px); letter-spacing: -.02em; }
+html.kairo-v3 .kairo-lp-legal-date { margin: 8px 0 22px; color: var(--kairo-entry-muted); font-size: 13px; font-weight: 700; }
+html.kairo-v3 .kairo-lp-legal h3 { margin: 26px 0 8px; color: var(--kairo-delft); font-size: 16px; }
+html.kairo-v3 .kairo-lp-legal p,
+html.kairo-v3 .kairo-lp-legal li { color: #3f5568; font-size: 14px; line-height: 1.7; }
+html.kairo-v3 .kairo-lp-legal p { margin: 0 0 10px; }
+html.kairo-v3 .kairo-lp-legal ul { margin: 0 0 10px; padding-left: 20px; display: grid; gap: 6px; }
+html.kairo-v3 .kairo-lp-legal a { color: var(--kairo-delft); font-weight: 700; }
 
 /* Logged out, #app-shell only holds hidden header/main; kairo.css forces it visible
    with a 100vh min-height, which left an empty screen below the landing footer. */
@@ -3631,6 +3645,12 @@ html.kairo-v3 .kairo-lp-footer p {
   text-align: center;
 }
 
+html.kairo-v3 .kairo-lp-footer-mid { display: grid; justify-items: center; gap: 8px; }
+html.kairo-v3 .kairo-lp-footer-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 16px; }
+html.kairo-v3 .kairo-lp-footer-links a { color: var(--kairo-delft); font-size: 11px; font-weight: 700; text-decoration: none; }
+html.kairo-v3 .kairo-lp-footer-links a:hover { text-decoration: underline; }
+html.kairo-v3 .kairo-lp-footer-mid small { color: var(--kairo-entry-muted); font-size: 10.5px; }
+
 html.kairo-v3 .kairo-lp-footer > a:last-child {
   justify-self: end;
   color: var(--kairo-delft);
@@ -4172,6 +4192,9 @@ html.kairo-v3 .kairo-entry :focus-visible {
   html.kairo-v3 .kairo-lp-footer p {
     text-align: left;
   }
+
+  html.kairo-v3 .kairo-lp-footer-mid { justify-items: start; }
+  html.kairo-v3 .kairo-lp-footer-links { justify-content: flex-start; }
 
   html.kairo-v3 .kairo-lp-footer > a:last-child {
     justify-self: start;
