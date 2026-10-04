@@ -124,7 +124,9 @@
 
   function bindLandingPages(root) {
     showLandingPage(root);
-    if (!location.hash && rememberedUsername()) openLogin();
+    // "Ingat saya": open the login form straight away on the home page. Phones usually reopen the
+    // last address with "#home" (from the landing menu), so that counts as home too.
+    if (rememberedUsername() && ['', '#', '#home'].includes(location.hash)) openLogin();
     // kairo-app.js wraps the password field (show/hide eye) during boot, which drops focus
     // from a dialog that is already open. Restore it once the wrapper is in place.
     const form = q('#login-form', root);

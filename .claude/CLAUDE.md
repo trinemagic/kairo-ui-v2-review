@@ -82,7 +82,7 @@ domain = pengguna login ulang & pengaturan browser (Ingat saya, dark mode) mulai
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
 Versi terakhir: `kairo.css?v=20.10.156`, `kairo-v3.css?v=3.23.0`,
-`kairo-v3.js?v=3.19.0`, `kairo-app.js?v=20.10.177`; template seller dimuat dari kairo-app.js
+`kairo-v3.js?v=3.20.0`, `kairo-app.js?v=20.10.177`; template seller dimuat dari kairo-app.js
 (`seller-app-premium.js?v=20.10.148`, `.css?v=20.10.150`) — naikkan juga bila file template diubah.
 
 **Halaman app** = `main.container > section.section` dengan id:
