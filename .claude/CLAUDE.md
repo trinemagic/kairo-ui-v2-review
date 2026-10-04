@@ -278,6 +278,8 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   Dipasang owner di repo PRIVATE terpisah (secrets: SUPABASE_DB_URL session pooler, BACKUP_PASSPHRASE, SUPABASE_URL,
   SUPABASE_ANON_KEY). Harian 7 hari / mingguan 35 hari (artifact) / bulanan permanen (`monthly/`), terenkripsi
   gpg AES-256. Keep-alive memanggil RPC `is_username_available` - jangan hapus/ubah fungsi itu tanpa update workflow.
+  **Terpasang Okt 2026** di repo private `trinemagic/kairo-backups` (4 secrets diisi owner); run pertama 4 Okt 2026 sukses
+  (data.sql ±540 KB, file terkunci ±116 KB). Status run bisa dicek via actions_list repo itu.
 
 ## 4. Jebakan yang sudah pernah terjadi
 
