@@ -4407,7 +4407,9 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
  // Pesan WhatsApp yang dikirim user lewat tombol "Ada masukan/keluhan?" (format owner, Okt 2026).
  // Nama pengguna & workspace terisi otomatis; user tinggal menulis keluhan/masukannya.
  function feedbackMessage(){return ['Halo admin Kairo Workspaces!','','Saya ingin menyampaikan keluhan/masukan:','',`Nama Pengguna Dashboard: ${window.kairoUsername||''}`,`Nama Workspaces: ${window.activeWorkspaceName||''}`,'Keluhan/Masukan: ','','Terima kasih, sukses selalu!'].join('\n');}
- function decorateSidebar(){const collapse=document.getElementById('saas-collapse-btn');if(!collapse||document.getElementById('kairo-feedback-link'))return;const f=document.createElement('button');f.id='kairo-feedback-link';f.className='kairo-feedback-link';f.type='button';f.innerHTML='<svg viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4V5Z"/><path d="M8 9h8M8 12h5"/></svg><span>Ada masukan/keluhan? <strong>Tell us</strong></span>';f.onclick=()=>{const msg=encodeURIComponent(feedbackMessage());if(WA_BUSINESS)window.open(`https://wa.me/${WA_BUSINESS}?text=${msg}`,'_blank');else showToast('Nomor WhatsApp bisnis KAIRO belum dikonfigurasi.',true)};collapse.insertAdjacentElement('beforebegin',f)}
+ function openFeedback(){const msg=encodeURIComponent(feedbackMessage());if(WA_BUSINESS)window.open(`https://wa.me/${WA_BUSINESS}?text=${msg}`,'_blank');else showToast('Nomor WhatsApp bisnis KAIRO belum dikonfigurasi.',true)}
+ window.kairoOpenFeedback=openFeedback; // juga dipakai item "Masukan / Keluhan" di menu More HP
+ function decorateSidebar(){const collapse=document.getElementById('saas-collapse-btn');if(!collapse||document.getElementById('kairo-feedback-link'))return;const f=document.createElement('button');f.id='kairo-feedback-link';f.className='kairo-feedback-link';f.type='button';f.innerHTML='<svg viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4V5Z"/><path d="M8 9h8M8 12h5"/></svg><span>Ada masukan/keluhan? <strong>Tell us</strong></span>';f.onclick=openFeedback;collapse.insertAdjacentElement('beforebegin',f)}
  setTimeout(decorateSidebar,1200);
 })();
 
@@ -4821,6 +4823,10 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
       const b=document.createElement('button');b.type='button';b.className='saas-mobile-nav-btn kairo-mobile-more-item';b.dataset.mobileTab=tab;
       b.innerHTML=`<span>${icons[tab]}</span><span>${labels[tab]}</span>`;b.addEventListener('click',()=>navTo(tab));grid.appendChild(b);
     });
+    // Sidebar "Ada masukan/keluhan?" is hidden on phones, so the same WhatsApp feedback lives here.
+    const fb=document.createElement('button');fb.type='button';fb.id='kairo-feedback-more-item';fb.className='saas-mobile-nav-btn kairo-mobile-more-item';
+    fb.innerHTML='<span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4V5Z"/><path d="M8 9h8M8 12h5"/></svg></span><span>Masukan / Keluhan</span>';
+    fb.addEventListener('click',()=>{closeMore();window.kairoOpenFeedback?.()});grid.appendChild(fb);
     wrap.querySelector('.kairo-mobile-more-backdrop')?.addEventListener('click',closeMore);
     wrap.querySelector('.kairo-mobile-sheet-close')?.addEventListener('click',closeMore);
     if(typeof ensureKairoAppSwitcher==='function')ensureKairoAppSwitcher();

@@ -80,7 +80,7 @@ URL live: `https://trinemagic.github.io/kairo-ui-v2-review/`
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
 Versi terakhir: `kairo.css?v=20.10.156`, `kairo-v3.css?v=3.23.0`,
-`kairo-v3.js?v=3.19.0`, `kairo-app.js?v=20.10.174`; template seller dimuat dari kairo-app.js
+`kairo-v3.js?v=3.19.0`, `kairo-app.js?v=20.10.175`; template seller dimuat dari kairo-app.js
 (`seller-app-premium.js?v=20.10.148`, `.css?v=20.10.150`) — naikkan juga bila file template diubah.
 
 **Halaman app** = `main.container > section.section` dengan id:
@@ -277,6 +277,8 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   Tombol sidebar "Ada masukan/keluhan? Tell us" membuka WA dengan `feedbackMessage()` (owner Okt 2026): ditulis dari sisi
   user ("Halo admin Kairo Workspaces! ..."), Nama Pengguna Dashboard (`window.kairoUsername`, diisi saat login) & Nama
   Workspaces terisi otomatis, user tinggal isi Keluhan/Masukan.
+  Di HP (tombol sidebar disembunyikan ≤900px) ada item **"Masukan / Keluhan"** di menu More (`#kairo-feedback-more-item`,
+  dibuat di `buildMore()`), memanggil `window.kairoOpenFeedback()` yang sama.
 - Repo lama `trinemagic/trine-magic-dashboard` sudah dijadikan **private** oleh owner (Okt 2026) - website lamanya offline.
 - **Backup + keep-alive Supabase (owner Okt 2026: belum mau upgrade Pro):** `.claude/backup/backup.yml` + README.
   Dipasang owner di repo PRIVATE terpisah (secrets: SUPABASE_DB_URL session pooler, BACKUP_PASSPHRASE, SUPABASE_URL,
