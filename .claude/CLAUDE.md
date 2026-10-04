@@ -81,8 +81,8 @@ domain = pengguna login ulang & pengaturan browser (Ingat saya, dark mode) mulai
 | `assets/fonts/` | Plus Jakarta Sans self-hosted (OFL) | Jangan kembali ke Google Fonts. |
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
-Versi terakhir: `kairo.css?v=20.10.156`, `kairo-v3.css?v=3.25.0`,
-`kairo-v3.js?v=3.20.0`, `kairo-app.js?v=20.10.177`; template seller dimuat dari kairo-app.js
+Versi terakhir: `kairo.css?v=20.10.156`, `kairo-v3.css?v=3.26.0`,
+`kairo-v3.js?v=3.20.0`, `kairo-app.js?v=20.10.178`; template seller dimuat dari kairo-app.js
 (`seller-app-premium.js?v=20.10.148`, `.css?v=20.10.150`) — naikkan juga bila file template diubah.
 
 **Halaman app** = `main.container > section.section` dengan id:
@@ -111,7 +111,9 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   Pro/Custom membuka form daftar dengan paket terpilih (`data-signup-plan` → `window.__kairoSignupPlan`).
   Harga Pro (owner Okt 2026): **Rp43.000/bulan**; paket 6 bulan harga normal Rp258.000 dicoret →
   **Rp238.000** (tanpa badge "Hemat" — owner) — tampil di Pricing landing, kartu Pro halaman Daftar, FAQ 03.
-  Belum ada pilihan durasi saat daftar (dibahas via WA). Kontak WA, testimoni, S&K/Privasi masih
+  **Pilihan durasi Pro saat daftar (owner Okt 2026):** kotak "Durasi paket Pro" (`.kairo-pp-period`, hanya saat Pro
+  dipilih): 1 bulan Rp43.000 / 6 bulan ~~Rp258.000~~ Rp238.000 → `#kairo-selected-period` → metadata signup
+  `requested_period` ('monthly'|'semiannual', sama dengan billing_period admin) + disebut di pesan WA konfirmasi. Kontak WA, testimoni, S&K/Privasi masih
   menunggu data owner. FAQ 8 poin fokus fitur
   unggulan (tanpa poin dark mode — owner). Jangan klaim fitur yang belum ada (mis. "Owner Menu
   Lock" hanya baris tabel, belum ada fiturnya).

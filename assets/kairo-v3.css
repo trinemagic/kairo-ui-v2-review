@@ -4246,6 +4246,23 @@ html.kairo-v3 .kairo-pp-foot {
 }
 html.kairo-v3 .kairo-pp-card.is-featured .kairo-pp-foot { border-color: rgba(255, 255, 255, .16); color: #c9dbe6; }
 
+/* Pro duration picker (1 bulan / 6 bulan) - only shown while Pro is selected. */
+html.kairo-v3 .kairo-pp-period { margin-top: 14px; padding: 14px 16px; border: 1px solid var(--kairo-entry-line); border-radius: 18px; background: var(--kairo-white); }
+html.kairo-v3 .kairo-pp-period[hidden] { display: none; }
+html.kairo-v3 .kairo-pp-period-title { display: block; margin-bottom: 10px; font-size: 13px; font-weight: 800; color: var(--kairo-delft); }
+html.kairo-v3 .kairo-pp-period-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+html.kairo-v3 .kairo-pp-period-options button {
+  display: grid; gap: 3px; justify-items: start; padding: 12px 14px; text-align: left; font: inherit; cursor: pointer;
+  color: var(--kairo-delft); background: var(--kairo-white); border: 1.5px solid var(--kairo-entry-line); border-radius: 14px;
+  transition: border-color .16s ease, box-shadow .16s ease;
+}
+html.kairo-v3 .kairo-pp-period-options button strong { font-size: 14px; font-weight: 800; }
+html.kairo-v3 .kairo-pp-period-options button span { font-size: 12.5px; font-weight: 700; color: var(--kairo-entry-muted); }
+html.kairo-v3 .kairo-pp-period-options button s { font-weight: 600; }
+html.kairo-v3 .kairo-pp-period-options button[aria-checked="true"] { border-color: var(--kairo-turquoise); box-shadow: 0 0 0 3px color-mix(in srgb, var(--kairo-turquoise) 24%, transparent); }
+html.kairo-v3 .kairo-pp-period-options button[aria-checked="true"] span { color: var(--kairo-delft); }
+html.kairo-v3 .kairo-pp-period-options button:focus-visible { outline: 3px solid color-mix(in srgb, var(--kairo-turquoise) 45%, transparent); outline-offset: 2px; }
+
 html.kairo-v3 .kairo-pp-compare { margin-top: 16px; border: 1px solid var(--kairo-entry-line); border-radius: 18px; background: var(--kairo-white); overflow: hidden; }
 html.kairo-v3 .kairo-pp-compare-title { padding: 14px 18px 4px; font-size: 13px; font-weight: 800; color: var(--kairo-delft); }
 html.kairo-v3 .kairo-pp-compare:not(.is-open) .is-extra,
