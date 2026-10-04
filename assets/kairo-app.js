@@ -333,6 +333,7 @@ async function handleAuthSession(session){
       return;
     }
     window.kairoDisplayName=session.user.user_metadata?.display_name || session.user.user_metadata?.username || "";
+    window.kairoUsername=session.user.user_metadata?.username || "";
     document.body.classList.remove("auth-locked");
     document.body.classList.add("authenticated");
     document.getElementById("user-email").textContent=session.user.user_metadata?.username || session.user.email || "";
@@ -4403,9 +4404,10 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
  // Basic-only upgrade frame + feedback in sidebar.
  // Upgrade request for Gratis workspaces (Dashboard banner): WhatsApp when the number is set.
  window.kairoRequestUpgrade=function(){const name=window.activeWorkspaceName||'';if(WA_BUSINESS){window.open(`https://wa.me/${WA_BUSINESS}?text=${encodeURIComponent(`Halo KAIRO, saya mau upgrade workspace ${name} ke paket Pro.`)}`,'_blank');return}showToast('Untuk upgrade ke Pro, hubungi tim KAIRO. Kontak WhatsApp segera tersedia di aplikasi.','info')};
- // Pesan pembuka WhatsApp untuk tombol "Ada masukan/keluhan?" (format dari owner, Okt 2026).
- const FEEDBACK_TEMPLATE=['Halo, selamat datang di CP admin Kairo Workspace!','','untuk menyampaikan keluhan/masukan, silakan isi berikut ini:','','Nama Pengguna Dashboard:','Nama Workspaces:','Keluhan/Masukan:','','Terima kasih, sukses selalu!','-admin Kairo Workspaces'].join('\n');
- function decorateSidebar(){const collapse=document.getElementById('saas-collapse-btn');if(!collapse||document.getElementById('kairo-feedback-link'))return;const f=document.createElement('button');f.id='kairo-feedback-link';f.className='kairo-feedback-link';f.type='button';f.innerHTML='<svg viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4V5Z"/><path d="M8 9h8M8 12h5"/></svg><span>Ada masukan/keluhan? <strong>Tell us</strong></span>';f.onclick=()=>{const msg=encodeURIComponent(FEEDBACK_TEMPLATE);if(WA_BUSINESS)window.open(`https://wa.me/${WA_BUSINESS}?text=${msg}`,'_blank');else showToast('Nomor WhatsApp bisnis KAIRO belum dikonfigurasi.',true)};collapse.insertAdjacentElement('beforebegin',f)}
+ // Pesan WhatsApp yang dikirim user lewat tombol "Ada masukan/keluhan?" (format owner, Okt 2026).
+ // Nama pengguna & workspace terisi otomatis; user tinggal menulis keluhan/masukannya.
+ function feedbackMessage(){return ['Halo admin Kairo Workspaces!','','Saya ingin menyampaikan keluhan/masukan:','',`Nama Pengguna Dashboard: ${window.kairoUsername||''}`,`Nama Workspaces: ${window.activeWorkspaceName||''}`,'Keluhan/Masukan: ','','Terima kasih, sukses selalu!'].join('\n');}
+ function decorateSidebar(){const collapse=document.getElementById('saas-collapse-btn');if(!collapse||document.getElementById('kairo-feedback-link'))return;const f=document.createElement('button');f.id='kairo-feedback-link';f.className='kairo-feedback-link';f.type='button';f.innerHTML='<svg viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4V5Z"/><path d="M8 9h8M8 12h5"/></svg><span>Ada masukan/keluhan? <strong>Tell us</strong></span>';f.onclick=()=>{const msg=encodeURIComponent(feedbackMessage());if(WA_BUSINESS)window.open(`https://wa.me/${WA_BUSINESS}?text=${msg}`,'_blank');else showToast('Nomor WhatsApp bisnis KAIRO belum dikonfigurasi.',true)};collapse.insertAdjacentElement('beforebegin',f)}
  setTimeout(decorateSidebar,1200);
 })();
 
