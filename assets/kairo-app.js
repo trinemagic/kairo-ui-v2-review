@@ -1232,8 +1232,9 @@ function stopRealtimeSync(){
   realtimeRefreshTimer=null; realtimeRetryTimer=null; livePollTimer=null;
   pendingRealtimeKeys.clear();
   if(realtimeChannel){
-    try{ db.removeChannel(realtimeChannel); }catch(e){ console.warn("Realtime cleanup:",e); }
-    realtimeChannel=null;
+    // Forget the channel before removing it: removing fires its CLOSED status callback, which must not remove it again.
+    const channel=realtimeChannel; realtimeChannel=null;
+    try{ Promise.resolve(db.removeChannel(channel)).catch(e=>console.warn("Realtime cleanup:",e)); }catch(e){ console.warn("Realtime cleanup:",e); }
   }
 }
 function scheduleRealtimeRetry(){
@@ -1250,13 +1251,18 @@ function startLiveFallbackPolling(){
 }
 function startRealtimeSync(){
   if(realtimeChannel) return;
-  realtimeChannel=db.channel("trine-magic-live-dashboard")
+  const channel=db.channel("trine-magic-live-dashboard");
+  realtimeChannel=channel;
+  channel
     .on("postgres_changes",{event:"*",schema:"public",table:"transactions",filter:`workspace_id=eq.${requireWorkspaceId()}`},()=>scheduleRealtimeRefresh('transactions'))
     .on("postgres_changes",{event:"*",schema:"public",table:"payouts",filter:`workspace_id=eq.${requireWorkspaceId()}`},()=>scheduleRealtimeRefresh('payouts'))
     .on("postgres_changes",{event:"*",schema:"public",table:"cash_expenses",filter:`workspace_id=eq.${requireWorkspaceId()}`},()=>scheduleRealtimeRefresh('cash_expenses'))
     .on("postgres_changes",{event:"*",schema:"public",table:"cash_injections",filter:`workspace_id=eq.${requireWorkspaceId()}`},()=>scheduleRealtimeRefresh('cash_injections'))
     .on("postgres_changes",{event:"*",schema:"public",table:"profit_share_versions",filter:`workspace_id=eq.${requireWorkspaceId()}`},async()=>{mastersWorkspaceId='';await ensureMasters();loadPageData(currentAppPage()).catch(()=>{})})
     .subscribe((status)=>{
+      // Ignore callbacks from a channel that was already replaced or removed. Removing a channel triggers CLOSED
+      // synchronously; calling removeChannel again from here looped until "Maximum call stack size exceeded" (Safari).
+      if(realtimeChannel!==channel) return;
       const statusEl=document.getElementById("connection-status");
       if(status==="SUBSCRIBED"){
         clearInterval(livePollTimer);livePollTimer=null;
@@ -1264,7 +1270,8 @@ function startRealtimeSync(){
       }else if(status==="CHANNEL_ERROR" || status==="TIMED_OUT" || status==="CLOSED"){
         console.warn("Supabase Realtime status:",status);
         if(statusEl) statusEl.textContent="Sinkronisasi...";
-        if(realtimeChannel){ try{ db.removeChannel(realtimeChannel); }catch(e){} realtimeChannel=null; }
+        realtimeChannel=null;
+        try{ Promise.resolve(db.removeChannel(channel)).catch(()=>{}); }catch(e){}
         startLiveFallbackPolling();
         scheduleRealtimeRetry();
       }
