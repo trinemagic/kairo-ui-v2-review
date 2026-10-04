@@ -108,7 +108,7 @@ const FEATURE_MIN_PLAN={
   customer_database:'pro',open_close_store:'pro',export_excel:'pro',autofill_orders:'pro',
   custom_branding:'pro',receipt_customization:'pro',multi_partner_profit_share:'pro',performance:'basic',
   advanced_analytics:'pro',advanced_profit_sharing:'pro',business_insights:'pro',advanced_customer_analytics:'pro',
-  advanced_reports:'pro',activity_log:'pro',granular_permissions:'pro',full_workspace_backup:'pro',multi_workspace:'pro',remove_saas_branding:'pro'
+  advanced_reports:'pro',activity_log:'pro',full_history:'pro',granular_permissions:'pro',full_workspace_backup:'pro',multi_workspace:'pro',remove_saas_branding:'pro'
 };
 function normalizedPlan(){return canonicalPlan(activeWorkspacePlan);}
 function planAtLeast(minPlan){return (PLAN_RANK[normalizedPlan()]||1)>=(PLAN_RANK[minPlan]||1);}
@@ -118,6 +118,26 @@ function featureAccessLevel(feature){
   return planAtLeast(FEATURE_MIN_PLAN[feature]||'basic')?'full':'none';
 }
 function canUseFeature(feature,minLevel='basic'){const level=featureAccessLevel(feature);return minLevel==='full'?level==='full':level!=='none';}
+// Paket Gratis: daftar & riwayat hanya 60 hari terakhir (owner Okt 2026). Data lama tetap tersimpan dan muncul lagi
+// setelah upgrade; ringkasan saldo (kas, partner) dan pengingat seller tetap dihitung dari semua data.
+const FREE_HISTORY_DAYS=60;
+function historyCutoff(){return canUseFeature('full_history')?null:dateOffsetISO(-(FREE_HISTORY_DAYS-1));}
+function clampHistoryFrom(from){const c=historyCutoff();return c&&(!from||from<c)?c:from;}
+async function renderHistoryLimitNotice(){
+  const cutoff=historyCutoff();let hidden=0;
+  if(cutoff){try{const [tx,ex,inj]=await Promise.all([allTransactions(),allCashExpenses(),allCashInjections()]);
+    hidden=tx.filter(r=>String(r.transaction_date||'')<cutoff).length+ex.filter(r=>String(r.expense_date||'')<cutoff).length+inj.filter(r=>String(r.injection_date||'')<cutoff).length;}catch(_e){}}
+  const hosts=[[document.getElementById('transaction-history-card'),'.history-card-toolbar'],[document.getElementById('seller-dashboard-history-card'),':scope > :first-child'],[document.getElementById('cash'),'.cash-filter-bar']];
+  hosts.forEach(([host,anchorSel])=>{
+    if(!host)return;let note=host.querySelector(':scope .kairo-history-limit');
+    if(!hidden){note?.remove();return;}
+    if(!note){note=document.createElement('div');note.className='kairo-history-limit';note.setAttribute('role','note');
+      const anchor=host.querySelector(anchorSel);if(anchor)anchor.insertAdjacentElement(anchorSel==='.cash-filter-bar'?'beforebegin':'afterend',note);else host.prepend(note);}
+    note.innerHTML=`<span>Paket Gratis menampilkan riwayat ${FREE_HISTORY_DAYS} hari terakhir. <b>${hidden} catatan lebih lama</b> tetap tersimpan dan bisa dibuka dengan paket Pro.</span><button type="button" class="kairo-history-limit-btn">Upgrade ke Pro</button>`;
+    note.querySelector('button').onclick=()=>window.kairoRequestUpgrade?.();
+  });
+}
+window.kairoRenderHistoryLimit=renderHistoryLimitNotice;
 async function loadPlanEntitlements(){
   activePlanEntitlements=new Map();
   try{const {data,error}=await db.from('saas_plan_entitlements').select('feature_key,access_level,enabled').eq('plan',normalizedPlan());if(error)throw error;(data||[]).forEach(r=>activePlanEntitlements.set(String(r.feature_key),r));}
@@ -384,6 +404,7 @@ let profitShareVersions = [];
 let profitShareVersionTableReady = true;
 let transactions = [];
 let historyTransactions = [];
+let historyAllTransactions = []; // same filter as historyTransactions but without the Gratis 60-day limit (seller reminders)
 let historyDateFilter = "all";
 let historyCustomDate = "";
 let shifts = [];
@@ -857,7 +878,7 @@ function getRange(){
     }
   }
 
-  return range;
+  return {...range,from:clampHistoryFrom(range.from)};
 }
 
 function monthRangeParts(date){
@@ -1096,8 +1117,10 @@ function historyFilterBounds(mode=historyDateFilter,customDate=historyCustomDate
 }
 
 async function fetchHistoryTransactions(){
-  const {from,to}=historyFilterBounds();
-  historyTransactions=(await allTransactions()).filter(row=>(!from||String(row.transaction_date||'')>=from)&&(!to||String(row.transaction_date||'')<=to));
+  const {from,to}=historyFilterBounds(),cutoff=historyCutoff();
+  historyAllTransactions=(await allTransactions()).filter(row=>(!from||String(row.transaction_date||'')>=from)&&(!to||String(row.transaction_date||'')<=to));
+  historyTransactions=cutoff?historyAllTransactions.filter(row=>String(row.transaction_date||'')>=cutoff):historyAllTransactions;
+  renderHistoryLimitNotice();
 }
 
 async function fetchPayouts(){
@@ -1698,7 +1721,8 @@ async function renderCashHistoryTable({tableId,summaryId,colspan,load,dateKey,ro
   const table=document.getElementById(tableId);if(!table)return;
   const {from,to}=cashHistoryRange();
   let rows=[];
-  try{rows=(await load()).filter(e=>{const d=String(e[dateKey]||"");return (!from||d>=from)&&(!to||d<=to)});}
+  const cutoff=historyCutoff();
+  try{rows=(await load()).filter(e=>{const d=String(e[dateKey]||"");return (!from||d>=from)&&(!to||d<=to)&&(!cutoff||d>=cutoff)});}
   catch(err){table.innerHTML=`<tr><td colspan="${colspan}" class="empty">${escapeHtml(err.message||"Gagal memuat riwayat kas.")}</td></tr>`;return;}
   table.innerHTML=rows.length?rows.map(row).join(""):`<tr><td colspan="${colspan}" class="empty">${empty}</td></tr>`;
   const summary=document.getElementById(summaryId);
@@ -1709,6 +1733,7 @@ function renderCashHistories(){
     row:e=>`<tr><td>${escapeHtml(e.expense_date||"-")}</td><td>${escapeHtml(e.description||"-")}</td><td><strong>${rupiah(e.amount)}</strong></td></tr>`});
   renderCashHistoryTable({tableId:"cash-injection-table",summaryId:"cash-injection-filter-summary",colspan:4,load:allCashInjections,dateKey:"injection_date",empty:"Tidak ada pemasukan kas pada periode ini.",
     row:e=>`<tr><td>${escapeHtml(e.injection_date||"-")}</td><td>${escapeHtml(e.source||"-")}</td><td>${escapeHtml(e.description||"-")}</td><td><strong>${rupiah(e.amount)}</strong></td></tr>`});
+  renderHistoryLimitNotice();
 }
 (function wireCashHistoryFilter(){
   const selects=[...document.querySelectorAll("[data-cash-filter]")];
@@ -4424,13 +4449,14 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
  const TICK='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.2 4.2L19 7"/></svg>';
  const DASH='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 12h10"/></svg>';
  const PLANS=[
-  {id:'basic',name:'Gratis',price:'Rp0',copy:'Mulai merapikan pencatatan usaha tanpa biaya.',points:['Catat order & riwayat transaksi','Struk, Petty Cash & Withdraw','Dashboard, Performance & notifikasi'],foot:'Langsung aktif setelah daftar'},
-  {id:'pro',name:'Pro',price:'Rp43.000<small>/bulan</small>',deal:'<span>6 bulan</span><s aria-label="Harga normal Rp258.000">Rp258.000</s><b>Rp238.000</b>',badge:'Paling lengkap',copy:'Semua fitur KAIRO: operasional, otomatisasi, dan branding usaha.',points:['Semua fitur Gratis','Customer Database, Autofill & Promo','Open / Close Store, Export Excel','Branding, struk & pembagian profit'],foot:'Aktif setelah konfirmasi via WhatsApp'},
+  {id:'basic',name:'Gratis',price:'Rp0',copy:'Mulai merapikan pencatatan usaha tanpa biaya.',points:['Catat order & riwayat 60 hari','Struk, Petty Cash & Withdraw','Dashboard, Performance & notifikasi'],foot:'Langsung aktif setelah daftar'},
+  {id:'pro',name:'Pro',price:'Rp43.000<small>/bulan</small>',deal:'<span>6 bulan</span><s aria-label="Harga normal Rp258.000">Rp258.000</s><b>Rp238.000</b>',badge:'Paling lengkap',copy:'Semua fitur KAIRO: operasional, otomatisasi, dan branding usaha.',points:['Semua fitur Gratis + riwayat tanpa batas','Customer Database, Autofill & Promo','Open / Close Store, Export Excel','Branding, struk & pembagian profit'],foot:'Aktif setelah konfirmasi via WhatsApp'},
   {id:'custom',name:'Custom',price:'Pro + penyesuaian',copy:'Semua fitur Pro, disesuaikan dengan alur bisnismu.',points:['Semua fitur Pro','Penyesuaian alur bisnis','Pendampingan setup'],foot:'Aktif sebagai paket Pro'}
  ];
- const INCLUDED=['Dashboard & notifikasi order','Catat order manual','Riwayat transaksi & struk','Petty Cash','Withdraw','Package & harga','Warna layout & dark mode','Template sesuai jenis usaha'];
+ const INCLUDED=['Dashboard & notifikasi order','Catat order manual','Struk transaksi','Petty Cash','Withdraw','Package & harga','Warna layout & dark mode','Template sesuai jenis usaha'];
  // [feature, Gratis, Pro, Custom] — 1 = included, 0 = not included, text = note.
  const ROWS=[
+  ['Riwayat transaksi','60 hari terakhir','Tanpa batas','Tanpa batas'],
   ['Performance & grafik','Ya · Seller App: Pro',1,1],
   ['Customer Database',0,1,1],
   ['Autofill Orders',0,1,1],
@@ -4999,7 +5025,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
       if(!document.getElementById('seller-app-premium-js')){
         const script=document.createElement('script');
         script.id='seller-app-premium-js';
-        script.src='assets/templates/seller-app-premium.js?v=20.10.148';
+        script.src='assets/templates/seller-app-premium.js?v=20.10.149';
         script.defer=true;
         document.body.appendChild(script);
       }

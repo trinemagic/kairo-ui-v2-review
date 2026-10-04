@@ -494,11 +494,14 @@
     if(row)row.appendChild(card);else dash.appendChild(card);
     return card;
   }
+  // Reminders (expiring accounts, unpaid orders) read every transaction, including ones older than the
+  // Gratis 60-day history window, so an old 3- or 6-month subscription is still flagged before it ends.
+  function reminderTransactions(){return typeof historyAllTransactions!=='undefined'&&Array.isArray(historyAllTransactions)&&historyAllTransactions.length?historyAllTransactions:(historyTransactions||[]);}
   function renderSellerExpiryTracker(){
     if(!mounted)return;
     const card=installSellerExpiryTracker();if(!card)return;
     const host=document.getElementById('seller-expiry-list');if(!host)return;
-    const txs=(historyTransactions||[]).filter(isSellerTx);
+    const txs=reminderTransactions().filter(isSellerTx);
     const entries=txs.flatMap(sellerExpiryEntriesForTx)
       .filter(x=>x.days>=-7&&x.days<=14)
       .sort((a,b)=>a.expiry-b.expiry||txStamp(b.tx)-txStamp(a.tx))
@@ -519,7 +522,7 @@
     return {total,paid,outstanding,isPartial:outstanding>0};
   }
   async function settleSellerPayment(transactionId,el){
-    const tx=(historyTransactions||[]).find(t=>String(t.id)===String(transactionId))||(transactions||[]).find(t=>String(t.id)===String(transactionId));
+    const tx=reminderTransactions().find(t=>String(t.id)===String(transactionId))||(transactions||[]).find(t=>String(t.id)===String(transactionId));
     if(!tx)return;
     const current=sellerPaymentMeta(tx);if(!current.outstanding)return;
     if(el)el.disabled=true;
@@ -529,7 +532,7 @@
       items[0].seller_payment_received=current.total;items[0].seller_payment_total=current.total;
       const {error}=await db.from('transactions').update({order_items:items}).eq('workspace_id',requireWorkspaceId()).eq('id',transactionId);
       if(error)throw error;
-      [transactions,historyTransactions].forEach(list=>{const row=Array.isArray(list)?list.find(t=>String(t.id)===String(transactionId)):null;if(row)row.order_items=items});
+      [transactions,historyTransactions,reminderTransactions()].forEach(list=>{const row=Array.isArray(list)?list.find(t=>String(t.id)===String(transactionId)):null;if(row)row.order_items=items});
       renderSellerHistory();renderSellerOutstandingTracker();
       try{showToast('Piutang ditandai lunas.')}catch(_e){}
     }catch(err){try{showToast('Gagal memperbarui pembayaran: '+(err?.message||err),true)}catch(_e){};if(el)el.disabled=false}
@@ -552,7 +555,7 @@
     if(!mounted)return;
     const card=installSellerOutstandingTracker();if(!card)return;
     const host=document.getElementById('seller-outstanding-list'),totalEl=document.getElementById('seller-outstanding-total');if(!host||!totalEl)return;
-    const rows=(historyTransactions||[]).filter(isSellerTx).map(tx=>({tx,payment:sellerPaymentMeta(tx)})).filter(x=>x.payment.outstanding>0).sort((a,b)=>txStamp(b.tx)-txStamp(a.tx));
+    const rows=reminderTransactions().filter(isSellerTx).map(tx=>({tx,payment:sellerPaymentMeta(tx)})).filter(x=>x.payment.outstanding>0).sort((a,b)=>txStamp(b.tx)-txStamp(a.tx));
     totalEl.textContent=rupiahLocal(rows.reduce((sum,x)=>sum+x.payment.outstanding,0));
     host.innerHTML=rows.length?rows.slice(0,8).map(({tx,payment})=>`<div class="seller-outstanding-row"><div class="seller-outstanding-copy"><strong>${esc(tx.customer_name||'-')}</strong><small>${esc(historyPackageText(tx))}</small></div><div class="seller-outstanding-money"><span>Dibayar ${rupiahLocal(payment.paid)}</span><strong>Sisa ${rupiahLocal(payment.outstanding)}</strong></div><button type="button" data-seller-settle-payment="${esc(tx.id)}">Tandai Lunas</button></div>`).join(''):'<div class="seller-outstanding-empty">Tidak ada piutang aktif.</div>';
   }
@@ -609,6 +612,7 @@
     }).join(''):'<div class="seller-history-empty">Belum ada transaksi Seller App Premium.</div>';
     const toggle=document.getElementById('seller-history-toggle');
     if(toggle){toggle.hidden=all.length<=limit&&!historyExpanded;toggle.textContent=historyExpanded?'Tampilkan Ringkas':'Lihat Semua'}
+    window.kairoRenderHistoryLimit?.();
   }
 
   function txLocalDay(t){
