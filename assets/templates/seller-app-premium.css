@@ -457,7 +457,7 @@ html.kairo-v3[data-ws-theme] body.seller-app-premium{
   --ws-k4-bg:var(--v3-primary-soft);--ws-k4-ink:var(--v3-primary-dark);
   --ws-k5-bg:var(--v3-primary-soft);--ws-k5-ink:var(--v3-primary-dark);
 }
-/* ---------- GIRLIE: lilac & berry, pill shapes, two-tone icons ---------- */
+/* ---------- LAVENDER (id girlie): lilac & berry, pill shapes, two-tone icons ---------- */
 html.kairo-v3[data-ws-theme=girlie] body.seller-app-premium:not(.saas-dark){
   --v3-canvas:color-mix(in srgb,var(--v3-primary) 4%,#fff);--v3-surface:#fff;--v3-surface-subtle:color-mix(in srgb,var(--v3-primary) 3%,#fff);
   --v3-line:color-mix(in srgb,var(--v3-primary) 14%,#fff);--v3-ink:color-mix(in srgb,var(--v3-primary) 28%,#170b24);--v3-ink-soft:color-mix(in srgb,var(--v3-primary) 30%,#2b1d3d);
@@ -490,7 +490,7 @@ html.kairo-v3[data-ws-theme=girlie] body.seller-app-premium.saas-dark{
   --ws-k2-bg:color-mix(in srgb,var(--v3-accent) 28%,#1b1424);--ws-k2-ink:color-mix(in srgb,var(--v3-accent) 35%,#fff);
   --ws-k3-bg:#173a2e;--ws-k3-ink:#8fdcb8;--ws-k4-bg:#3d3016;--ws-k4-ink:#f2cf7e;--ws-k5-bg:#1d3047;--ws-k5-ink:#a9c8ee;
 }
-/* ---------- WOOD CALM CUTE: walnut sidebar, paper cards, serif titles ---------- */
+/* ---------- KAYU (id wood): walnut sidebar, paper cards, serif titles ---------- */
 html.kairo-v3[data-ws-theme=wood] body.seller-app-premium:not(.saas-dark){
   --v3-canvas:color-mix(in srgb,var(--v3-primary) 7%,#f8f2e8);--v3-surface:#fffcf7;--v3-surface-subtle:color-mix(in srgb,var(--v3-primary) 5%,#fdf7ee);
   --v3-line:color-mix(in srgb,var(--v3-primary) 18%,#f4ecdf);--v3-ink:color-mix(in srgb,var(--v3-primary) 30%,#1f140c);--v3-ink-soft:color-mix(in srgb,var(--v3-primary) 35%,#33241a);
@@ -521,7 +521,7 @@ html.kairo-v3[data-ws-theme=wood] body.seller-app-premium.saas-dark{
   --ws-k1-bg:color-mix(in srgb,var(--v3-primary) 22%,#1f1813);--ws-k1-ink:color-mix(in srgb,var(--v3-primary) 35%,#fff);--ws-k2-bg:color-mix(in srgb,var(--v3-accent) 24%,#1f1813);--ws-k2-ink:color-mix(in srgb,var(--v3-accent) 35%,#fff);
   --ws-k3-bg:var(--ws-k1-bg);--ws-k3-ink:var(--ws-k1-ink);--ws-k4-bg:var(--ws-k2-bg);--ws-k4-ink:var(--ws-k2-ink);--ws-k5-bg:var(--ws-k1-bg);--ws-k5-ink:var(--ws-k1-ink);
 }
-/* ---------- CLOUDY CALM: sky-to-lavender wash, frosted cards, morning glow ---------- */
+/* ---------- AWAN (id cloudy): sky-to-lavender wash, frosted cards, morning glow ---------- */
 html.kairo-v3[data-ws-theme=cloudy] body.seller-app-premium:not(.saas-dark){
   --v3-canvas:color-mix(in srgb,var(--v3-primary) 8%,#f4f6fb);--v3-surface:rgba(255,255,255,.84);--v3-surface-subtle:color-mix(in srgb,var(--v3-primary) 4%,#f7f9fd);
   --v3-line:color-mix(in srgb,var(--v3-primary) 10%,#eef2f9);--v3-ink:color-mix(in srgb,var(--v3-primary) 30%,#141d2e);--v3-ink-soft:color-mix(in srgb,var(--v3-primary) 30%,#28344a);
@@ -553,7 +553,7 @@ html.kairo-v3[data-ws-theme=cloudy] body.seller-app-premium.saas-dark{
   --ws-k2-bg:color-mix(in srgb,var(--v3-accent) 30%,#1c253a);--ws-k2-ink:color-mix(in srgb,var(--v3-accent) 30%,#fff);
   --ws-k3-bg:#173a2e;--ws-k3-ink:#8fdcb8;--ws-k4-bg:#3a2a1c;--ws-k4-ink:#f2c29a;--ws-k5-bg:#3e2232;--ws-k5-ink:#f2aecb;
 }
-/* ---------- PINKY CHARM SWEET: rose & peach cream, tinted stat cards, soft pills ---------- */
+/* ---------- MAWAR (id pinky): rose & peach cream, tinted stat cards, soft pills ---------- */
 html.kairo-v3[data-ws-theme=pinky] body.seller-app-premium:not(.saas-dark){
   --v3-canvas:color-mix(in srgb,var(--v3-accent) 7%,#fff7f3);--v3-surface:#fffaf8;--v3-surface-subtle:color-mix(in srgb,var(--v3-primary) 4%,#fff6f2);
   --v3-line:color-mix(in srgb,var(--v3-primary) 15%,#fbefea);--v3-ink:color-mix(in srgb,var(--v3-primary) 32%,#22090f);--v3-ink-soft:color-mix(in srgb,var(--v3-primary) 35%,#3a1a22);
