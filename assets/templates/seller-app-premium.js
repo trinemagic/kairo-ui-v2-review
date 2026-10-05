@@ -633,6 +633,21 @@
     renderProducts();renderVariants();renderDurations();renderSelection();
   }
 
+  // Setup Wizard: katalog + simpan harga/modal banyak baris sekaligus (tabel yang sama dengan Settings › Produk).
+  window.kairoSellerCatalog={
+    ready:()=>sellerSettingsReady,rows:()=>allEffective(),rowKey,pretty,slug,iconBase:ICON_BASE,categories:CATEGORIES,
+    async saveMany(list){
+      if(!sellerSettingsReady)throw new Error('Migration Seller App Premium belum diterapkan / belum bisa diakses.');
+      const wid=requireWorkspaceId(),now=new Date().toISOString();
+      const payload=list.map(({row,price,cost})=>({workspace_id:wid,item_key:rowKey(row),category:row.category,product:row.product,variant:row.variant,duration:row.duration,price:Math.max(0,Number(price||0)),cost:Math.max(0,Number(cost||0)),updated_at:now}));
+      if(!payload.length)return 0;
+      const {error}=await db.from('seller_product_settings').upsert(payload,{onConflict:'workspace_id,item_key'});
+      if(error)throw error;
+      payload.forEach(x=>sellerSettings.set(x.item_key,x));
+      renderProducts();renderVariants();renderDurations();renderSelection();renderSellerSettingsProducts();
+      return payload.length;
+    }
+  };
   function sellerSettingsRows(){
     const q=settingsSearch.trim().toLowerCase();
     return allEffective().filter(x=>x.category===settingsCategory && (!q||pretty(x.product).toLowerCase().includes(q)||pretty(x.variant).toLowerCase().includes(q)||pretty(x.duration).toLowerCase().includes(q)));

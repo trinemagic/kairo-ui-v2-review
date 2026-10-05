@@ -370,6 +370,28 @@ async function confirmLogout(){
   }
 }
 
+/* Setup Wizard (owner Okt 2026): muncul untuk workspace Pro yang belum menyelesaikan setup (status di
+   workspace_branding.setup_state; Pro lama ditandai selesai lewat .claude/sql/2026-10-setup-wizard.sql).
+   File wizard hanya dimuat bila perlu. Kolom belum ada di database = wizard tidak muncul (aman). */
+let setupWizardLoader=null;
+function loadSetupWizard(){
+  if(window.kairoSetupWizard)return Promise.resolve(window.kairoSetupWizard);
+  if(!setupWizardLoader)setupWizardLoader=new Promise((resolve,reject)=>{
+    const v='1.0.0',css=document.createElement('link');css.rel='stylesheet';css.href=`assets/kairo-setup-wizard.css?v=${v}`;document.head.appendChild(css);
+    const js=document.createElement('script');js.src=`assets/kairo-setup-wizard.js?v=${v}`;js.onload=()=>resolve(window.kairoSetupWizard);js.onerror=()=>{setupWizardLoader=null;reject(new Error('Setup wizard gagal dimuat.'));};document.head.appendChild(js);
+  });
+  return setupWizardLoader;
+}
+async function maybeStartSetupWizard(){
+  try{
+    if(normalizedPlan()!=='pro'||isTrineMagicWorkspace())return;
+    let st=activeWorkspaceBranding&&('setup_state' in activeWorkspaceBranding)?activeWorkspaceBranding.setup_state:undefined;
+    if(st===undefined){const {data,error}=await db.from('workspace_branding').select('setup_state').eq('workspace_id',requireWorkspaceId()).maybeSingle();if(error)return;st=data?.setup_state;}
+    st=st||{};
+    if(st.completed_at||(st.dismissed_at&&Number(st.banner_logins||0)>=3))return;
+    (await loadSetupWizard())?.boot(st);
+  }catch(err){console.warn('Setup wizard:',err?.message||err);}
+}
 async function handleAuthSession(session){
   if(!session){ stopRealtimeSync(); delete document.documentElement.dataset.wsTheme; }
   if(session?.user){
@@ -404,6 +426,7 @@ async function handleAuthSession(session){
       void shell.offsetWidth;
       shell.classList.add("dashboard-enter");
       await init();
+      maybeStartSetupWizard();
     }
   }else{
     dashboardInitialized=false;
@@ -3501,6 +3524,18 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
   }
   function markThemePicker(id){document.querySelectorAll('#kairo-theme-picker [data-theme-opt]').forEach(o=>{const on=o.dataset.themeOpt===id;o.classList.toggle('is-active',on);o.setAttribute('aria-checked',on?'true':'false');});}
   window.kairoRenderThemePicker=renderThemePicker;
+  // Setup Wizard: preview a theme/colours live, revert, or save them (same columns as Settings › Identitas).
+  window.kairoThemeSetup={
+    themes:WORKSPACE_THEMES,allowed:workspaceThemeAllowed,validHex,
+    current(){const b=activeWorkspaceBranding||{},id=workspaceTheme(),th=WORKSPACE_THEMES[id],pick=(v,d,t)=>validHex(v)&&String(v).toUpperCase()!==d?String(v).toUpperCase():(t||'');return {theme:id,primary:pick(b.primary_color,DEFAULT_PRIMARY,th?.primary),accent:pick(b.accent_color,DEFAULT_ACCENT,th?.accent)};},
+    preview(id,primary,accent){if(WORKSPACE_THEMES[id])document.documentElement.dataset.wsTheme=id;setBrandVars(primary,accent);},
+    revert(){applyWorkspaceBrandingV204(activeWorkspaceBranding);},
+    async save(id,primary,accent){
+      const wid=requireWorkspaceId(),row={workspace_id:wid,theme:WORKSPACE_THEMES[id]?id:null,primary_color:safeColor(primary,DEFAULT_PRIMARY),accent_color:safeColor(accent,DEFAULT_ACCENT),updated_at:new Date().toISOString()};
+      const {error}=await db.from('workspace_branding').upsert(row,{onConflict:'workspace_id'});if(error)throw error;
+      activeWorkspaceBranding={...(activeWorkspaceBranding||{}),...row};applyWorkspaceBrandingV204(activeWorkspaceBranding);renderThemePicker();
+    }
+  };
   function formCancelOnEscape(){document.getElementById('workspace-settings-form')?.addEventListener('keydown',e=>{if(e.key==='Escape'){applyWorkspaceBrandingV204(savedBrandingSnapshot||activeWorkspaceBranding);hydrateSaasUi();}})}
 
   // Extend existing UI hydrator without replacing its backend behavior.
@@ -3738,22 +3773,64 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
  function startDrag(e){if(!cropState)return;drag={id:e.pointerId,startX:e.clientX,startY:e.clientY,x:cropState.x,y:cropState.y};e.currentTarget.setPointerCapture?.(e.pointerId)}
  function moveDrag(e){if(!drag||drag.id!==e.pointerId||!cropState)return;cropState.x=drag.x+(e.clientX-drag.startX);cropState.y=drag.y+(e.clientY-drag.startY);constrainCrop();renderCrop()}
  function endDrag(e){if(drag&&drag.id===e.pointerId)drag=null}
- async function croppedBlob(){
+ function croppedCanvas(){
    if(!cropState||!cropImg)throw new Error('Logo belum siap dicrop.');
-   const c=document.createElement('canvas');c.width=OUTPUT_SIZE;c.height=OUTPUT_SIZE;const ctx=c.getContext('2d');const factor=OUTPUT_SIZE/cropState.stageSize,sc=currentScale()*factor;ctx.clearRect(0,0,OUTPUT_SIZE,OUTPUT_SIZE);ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.drawImage(cropImg,cropState.x*factor,cropState.y*factor,cropImg.naturalWidth*sc,cropImg.naturalHeight*sc);return await new Promise((resolve,reject)=>c.toBlob(b=>b?resolve(b):reject(new Error('Gagal memproses logo.')),'image/png',0.95));
+   const c=document.createElement('canvas');c.width=OUTPUT_SIZE;c.height=OUTPUT_SIZE;const ctx=c.getContext('2d');const factor=OUTPUT_SIZE/cropState.stageSize,sc=currentScale()*factor;ctx.clearRect(0,0,OUTPUT_SIZE,OUTPUT_SIZE);ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.drawImage(cropImg,cropState.x*factor,cropState.y*factor,cropImg.naturalWidth*sc,cropImg.naturalHeight*sc);return c;
+ }
+ // Logo dikompres otomatis (owner Okt 2026): WebP 384px, kualitas/ukuran diturunkan bertahap sampai <=60 KB, jadi hemat
+ // storage tapi tetap tajam di sidebar, header, dan struk. Browser yang belum bisa membuat WebP memakai PNG 256px.
+ const LOGO_MAX_BYTES=60*1024;
+ const toBlob=(c,type,q)=>new Promise(r=>c.toBlob(b=>r(b),type,q));
+ function scaledCanvas(src,size){const c=document.createElement('canvas');c.width=c.height=size;const x=c.getContext('2d');x.imageSmoothingEnabled=true;x.imageSmoothingQuality='high';x.drawImage(src,0,0,size,size);return c;}
+ async function compressLogo(square){
+   let last=null;
+   for(const size of [384,320,256]){
+     const c=scaledCanvas(square,size);
+     for(const quality of [0.9,0.82,0.72,0.62]){
+       const b=await toBlob(c,'image/webp',quality);
+       if(!b||b.type!=='image/webp'){const png=await toBlob(scaledCanvas(square,256),'image/png');if(!png)throw new Error('Gagal memproses logo.');return png;}
+       last=b;if(b.size<=LOGO_MAX_BYTES)return b;
+     }
+   }
+   return last;
+ }
+ async function uploadLogoBlob(blob){
+   if(typeof canUseFeature==='function'&&!canUseFeature('custom_branding'))throw new Error('Upload logo tersedia untuk plan PRO.');
+   const wid=requireWorkspaceId(),ext=blob.type==='image/webp'?'webp':'png',path=`${wid}/logo.${ext}`;
+   const {error:upErr}=await db.storage.from(BUCKET).upload(path,blob,{contentType:blob.type,upsert:true,cacheControl:'3600'});if(upErr)throw upErr;
+   // Hapus file logo format lain supaya storage tidak menyimpan dua logo (abaikan bila tidak ada).
+   try{await db.storage.from(BUCKET).remove([`${wid}/logo.${ext==='webp'?'png':'webp'}`]);}catch(_e){}
+   const {data:pub}=db.storage.from(BUCKET).getPublicUrl(path);let url=pub?.publicUrl;if(!url)throw new Error('Public URL logo tidak tersedia.');url+=`?v=${Date.now()}`;
+   const {error:saveErr}=await db.from('workspace_branding').upsert({workspace_id:wid,logo_url:url,updated_at:new Date().toISOString()},{onConflict:'workspace_id'});if(saveErr)throw saveErr;
+   const input=q('settings-logo-url');if(input)input.value=url;
+   await loadWorkspaceSaasContext();hydrateSaasUi();if(typeof applyWorkspaceBrandingV204==='function')applyWorkspaceBrandingV204(activeWorkspaceBranding);updateLogoUploadPreview();
+   return url;
  }
  async function uploadCroppedLogo(){
    const btn=q('logo-crop-apply');const shell=q('settings-logo-upload-shell');
    try{
      if(typeof canUseFeature==='function'&&!canUseFeature('custom_branding'))throw new Error('Upload logo tersedia untuk plan PRO.');
      btn.disabled=true;btn.textContent='Mengupload...';shell?.classList.add('logo-upload-busy');
-     const blob=await croppedBlob(),wid=requireWorkspaceId(),path=`${wid}/logo.png`;
-     const {error:upErr}=await db.storage.from(BUCKET).upload(path,blob,{contentType:'image/png',upsert:true,cacheControl:'3600'});if(upErr)throw upErr;
-     const {data:pub}=db.storage.from(BUCKET).getPublicUrl(path);let url=pub?.publicUrl;if(!url)throw new Error('Public URL logo tidak tersedia.');url+=`?v=${Date.now()}`;
-     const {error:saveErr}=await db.from('workspace_branding').upsert({workspace_id:wid,logo_url:url,updated_at:new Date().toISOString()},{onConflict:'workspace_id'});if(saveErr)throw saveErr;
-     const input=q('settings-logo-url');if(input)input.value=url;closeCrop();await loadWorkspaceSaasContext();hydrateSaasUi();if(typeof applyWorkspaceBrandingV204==='function')applyWorkspaceBrandingV204(activeWorkspaceBranding);updateLogoUploadPreview();showToast('Logo workspace berhasil diupload dan disimpan.');
+     await uploadLogoBlob(await compressLogo(croppedCanvas()));
+     closeCrop();showToast('Logo workspace berhasil diupload dan disimpan.');
    }catch(err){console.error(err);showToast(err.message||'Gagal mengupload logo.',true)}finally{btn.disabled=false;btn.textContent='Gunakan Logo';shell?.classList.remove('logo-upload-busy');syncLogoUploadPermissions()}
  }
+ // Setup Wizard: logo tanpa crop manual, gambar dimuat utuh (contain) di kotak persegi lalu dikompres.
+ window.kairoLogoSetup={
+   allowed:()=>typeof canUseFeature!=='function'||canUseFeature('custom_branding'),
+   async upload(file){
+     if(!file||!['image/png','image/jpeg','image/webp'].includes(file.type))throw new Error('Format logo harus PNG, JPG, atau WebP.');
+     if(file.size>10*1024*1024)throw new Error('Ukuran foto maksimal 10 MB.');
+     const src=URL.createObjectURL(file);
+     try{
+       const img=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=()=>rej(new Error('Foto logo tidak bisa dibaca.'));i.src=src;});
+       const c=document.createElement('canvas');c.width=c.height=OUTPUT_SIZE;const x=c.getContext('2d'),k=Math.min(OUTPUT_SIZE/img.naturalWidth,OUTPUT_SIZE/img.naturalHeight),w=img.naturalWidth*k,h=img.naturalHeight*k;
+       x.imageSmoothingEnabled=true;x.imageSmoothingQuality='high';x.drawImage(img,(OUTPUT_SIZE-w)/2,(OUTPUT_SIZE-h)/2,w,h);
+       const blob=await compressLogo(c),url=await uploadLogoBlob(blob);
+       return {url,bytes:blob.size,type:blob.type};
+     }finally{URL.revokeObjectURL(src);}
+   }
+ };
  function wrapHydrate(){try{const original=window.hydrateSaasUi;if(typeof original==='function'&&!original.__logoCropWrapped){const wrapped=function(){const r=original.apply(this,arguments);setTimeout(()=>{updateLogoUploadPreview();syncLogoUploadPermissions()},0);return r};wrapped.__logoCropWrapped=true;window.hydrateSaasUi=wrapped}}catch(e){}}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{buildLogoUploader();wrapHydrate()});else{buildLogoUploader();wrapHydrate()}
 })();
@@ -3945,8 +4022,8 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
  }
  function move(id,delta){const i=draft.findIndex(x=>x.id===id),j=i+delta;if(i<0||j<0||j>=draft.length)return;[draft[i],draft[j]]=[draft[j],draft[i]];layoutDirty=true;renderRows();}
  function syncLegacyLabels(){const l={...labels()};draft.filter(x=>x.type==='builtin').forEach(x=>{if(x.key==='title')l.title=x.label||'';else if(x.key==='status'){l.status=x.label||'Status';l.status_value=x.value||'On Progress'}else if(x.key==='shift'){l.shift=x.label||'Shift';l.shift_active=x.activeValue||'Shift aktif';l.shift_none=x.noneValue||'Tanpa shift'}else if(x.key==='adjustment'){l.discount=x.discountLabel||'Diskon';l.markup=x.markupLabel||'Kenaikan Harga'}else if(x.key!=='footer')l[x.key]=x.label||l[x.key]||builtinNames[x.key]||x.key});return l;}
- async function saveLayout(){
-   const btn=document.getElementById('receipt-layout-save');const oldText=btn?.textContent;
+ async function saveLayout(opts){
+   const quiet=opts?.quiet===true,btn=document.getElementById('receipt-layout-save');const oldText=btn?.textContent;
    try{
      const wid=requireWorkspaceId();
      if(btn){btn.disabled=true;btn.textContent='Menyimpan…';}
@@ -3974,8 +4051,9 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
      try{localStorage.setItem(`trine_receipt_layout_v2_${wid}`,JSON.stringify(layoutPayload));}catch(e){}
      layoutDirty=false;draft=normalizeLayout(layoutPayload).map(x=>({...x}));designDraft={...designDraft};renderRows();applyDesignControls();
      try{await loadWorkspaceSaasContext();activeWorkspaceBranding={...(activeWorkspaceBranding||{}),receipt_layout:activeWorkspaceBranding?.receipt_layout||layoutPayload,receipt_labels:{...(activeWorkspaceBranding?.receipt_labels||{}),...labelsPayload}};}catch(refreshErr){console.warn('Receipt settings saved; context refresh skipped',refreshErr);}
-     showToast(savedLayout?'Layout, wording, dan desain struk tersimpan.':'Struk tersimpan lewat mode kompatibilitas. Layout tetap aktif.');
-   }catch(err){console.error('saveLayout failed',err);showToast(err?.message||err?.details||'Gagal menyimpan pengaturan struk.',true);}
+     if(!quiet)showToast(savedLayout?'Layout, wording, dan desain struk tersimpan.':'Struk tersimpan lewat mode kompatibilitas. Layout tetap aktif.');
+     return true;
+   }catch(err){console.error('saveLayout failed',err);if(quiet)throw err;showToast(err?.message||err?.details||'Gagal menyimpan pengaturan struk.',true);return false;}
    finally{if(btn){btn.disabled=false;btn.textContent=oldText||'Simpan Pengaturan Struk';}}
  }
  function readDesignControls(){
@@ -4110,6 +4188,29 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
  async function shareReceiptImage(){try{const blob=await receiptImageBlob(),file=new File([blob],'struk.png',{type:'image/png'});if(navigator.share&&(!navigator.canShare||navigator.canShare({files:[file]}))){await navigator.share({files:[file],title:'Struk '+(activeWorkspaceName||'')});showToast('Foto struk siap dibagikan.')}else{await saveReceiptImage();showToast('Browser ini belum mendukung share file langsung. PNG sudah disimpan.')}}catch(err){if(err?.name!=='AbortError')showToast(err.message||'Gagal membagikan foto struk.',true)}}
  function installImageButtons(){const copy=document.getElementById('copy-receipt');if(!copy||document.getElementById('save-receipt-image'))return;const save=document.createElement('button');save.type='button';save.id='save-receipt-image';save.className='btn btn-light receipt-image-btn';save.innerHTML='<svg viewBox="0 0 24 24"><path d="M12 3v12m0 0 4-4m-4 4-4-4"/><path d="M5 19h14"/></svg><span>Simpan PNG</span>';save.addEventListener('click',saveReceiptImage);copy.insertAdjacentElement('afterend',save);const share=document.createElement('button');share.type='button';share.id='share-receipt-image';share.className='btn btn-light receipt-image-btn';share.innerHTML='<svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="2"/><circle cx="6" cy="12" r="2"/><circle cx="18" cy="19" r="2"/><path d="m8 11 8-5m-8 7 8 5"/></svg><span>Bagikan Foto</span>';share.addEventListener('click',shareReceiptImage);save.insertAdjacentElement('afterend',share)}
  function init(){installPreview();installCopyHandler();installImageButtons();rebuildSettings();const oldHydrate=window.hydrateSaasUi;if(typeof oldHydrate==='function'){window.hydrateSaasUi=function(){const r=oldHydrate.apply(this,arguments);setTimeout(()=>{if(!layoutDirty){const stored=(()=>{try{return JSON.parse(localStorage.getItem(`trine_receipt_layout_v2_${requireWorkspaceId()}`)||'null')}catch(e){return null}})();const src=receiptStore()||stored;draft=normalizeLayout(src).map(x=>({...x}));designDraft={...defaultDesign(),...(src?.design||activeWorkspaceBranding?.receipt_labels?.__design||{})};renderRows();applyDesignControls()}installImageButtons()},0);return r}}}
+ // Setup Wizard: checklist bagian struk, template, footer, dan preview memakai mesin struk yang sama dengan Settings.
+ window.kairoReceiptSetup={
+   templates:RECEIPT_TEMPLATES.map(([id,name,desc])=>({id,name,desc})),
+   items:()=>(draft.length?draft:currentLayout()).filter(x=>x.type==='builtin'&&x.key!=='title').map(x=>({id:x.id,name:(x.key!=='adjustment'&&x.key!=='footer'&&x.label)||builtinNames[x.key]||x.key,enabled:x.enabled!==false})),
+   template:()=>normalizeTemplate(designDraft?.template||currentDesign().template),
+   footer:()=>currentReceiptFooter(),
+   preview(enabled,template,footer){
+     const seller=isSellerReceiptContext(),input=document.getElementById('settings-receipt-footer'),old=input?input.value:null,oldB=activeWorkspaceBranding?.receipt_footer;
+     const p=seller?{customer_name:'Nadia Putri',reading_started_at:new Date().toISOString(),reading_status:'done',shift_id:'preview-shift',platform:'WhatsApp',payment_method:'QRIS',order_items:[{name:'Netflix Premium — Sharing 1P — 1 Bulan',qty:1,subtotal:45000}],order_topics:[{name:'Streaming Apps'}],order_addons:[],price_adjustment_type:'discount',price_adjustment_mode:'nominal',price_adjustment_value:5000,price_adjustment_amount:-5000,tip_amount:0,total_price:40000}
+       :{customer_name:'Nadia Putri',reading_started_at:new Date().toISOString(),reading_status:'done',shift_id:'preview-shift',platform:'Instagram',payment_method:'QRIS',order_items:[{name:'Paket Reguler',qty:1,subtotal:25000}],order_topics:[{name:'Umum'}],order_addons:[],price_adjustment_type:'discount',price_adjustment_mode:'nominal',price_adjustment_value:3000,price_adjustment_amount:-3000,tip_amount:0,total_price:22000};
+     const layout=(draft.length?draft:currentLayout()).map(x=>({...x,...(x.key==='status'&&seller?{value:'Completed'}:{}),enabled:enabled&&x.id in enabled?!!enabled[x.id]:x.enabled!==false}));
+     try{if(input)input.value=footer;else if(activeWorkspaceBranding)activeWorkspaceBranding.receipt_footer=footer;return renderReceiptSurface(p,layout,{...defaultDesign(),...designDraft,template:normalizeTemplate(template)});}
+     finally{if(input)input.value=old;else if(activeWorkspaceBranding)activeWorkspaceBranding.receipt_footer=oldB;}
+   },
+   async save(enabled,template,footer){
+     if(!draft.length)draft=currentLayout().map(x=>({...x}));
+     draft.forEach(x=>{if(x.id in enabled)x.enabled=!!enabled[x.id];});
+     const t=document.getElementById('receipt-design-template');if(t)t.value=normalizeTemplate(template);
+     designDraft={...designDraft,template:normalizeTemplate(template)};
+     const f=document.getElementById('settings-receipt-footer');if(f)f.value=footer;else activeWorkspaceBranding={...(activeWorkspaceBranding||{}),receipt_footer:footer||null};
+     layoutDirty=true;await saveLayout({quiet:true});refreshTemplatePicker();
+   }
+ };
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(init,0));else setTimeout(init,0);
 })();
 
@@ -5219,7 +5320,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
       if(!document.getElementById('seller-app-premium-js')){
         const script=document.createElement('script');
         script.id='seller-app-premium-js';
-        script.src='assets/templates/seller-app-premium.js?v=20.10.151';
+        script.src='assets/templates/seller-app-premium.js?v=20.10.153';
         script.defer=true;
         document.body.appendChild(script);
       }
