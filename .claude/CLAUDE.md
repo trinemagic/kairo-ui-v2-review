@@ -82,8 +82,8 @@ domain = pengguna login ulang & pengaturan browser (Ingat saya, dark mode) mulai
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
 Versi terakhir: `kairo.css?v=20.10.157`, `kairo-v3.css?v=3.34.0`,
-`kairo-v3.js?v=3.24.0`, `kairo-app.js?v=20.10.190`; template seller dimuat dari kairo-app.js
-(`seller-app-premium.js?v=20.10.155`, `.css?v=20.10.153`) — naikkan juga bila file template diubah.
+`kairo-v3.js?v=3.24.0`, `kairo-app.js?v=20.10.191`; template seller dimuat dari kairo-app.js
+(`seller-app-premium.js?v=20.10.156`, `.css?v=20.10.154`) — naikkan juga bila file template diubah.
 Setup Wizard dimuat dari `loadSetupWizard()` di kairo-app.js (`kairo-setup-wizard.js/.css?v=1.0.2`, satu konstanta `v`).
 
 **Halaman app** = `main.container > section.section` dengan id:
@@ -134,7 +134,7 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   Pro aktif, 30 hari, 12 bulan). Saldo partner/Kas/omzet total TERUJI sama sebelum & sesudah (juga saat ringkasan lama diringkas ulang).
   Pro/Trine Magic = pemberitahuan dibatalkan. Langganan seller yang berakhir >= 30 hari lalu disimpan (`window.kairoSellerTxActiveUntil`).
   Baris ringkasan disembunyikan dari daftar (`isRollupTx/isRollupRow`: riwayat, periode, customer, penjualan per produk, notice 60 hari).
-  SQL `.claude/sql/2026-10-free-data-retention.sql` (BELUM dijalankan owner; tanpa SQL fitur diam). Keterbatasan: workspace yang tidak pernah
+  SQL `.claude/sql/2026-10-free-data-retention.sql` (**sudah dijalankan owner Okt 2026**). Keterbatasan: workspace yang tidak pernah
   login tidak dihapus; hak partner nonaktif masuk `__lainnya`; Kas dari data lama mengikuti aturan Gratis (0) saat diringkas.
 - **Kas / Petty Cash (owner Okt 2026):** fitur `petty_cash` = Pro. `cashActive()` = Pro && `workspace_branding.cash_enabled!==false`
   (saklar "Pakai Kas" di Settings › Pembagian Omzet; SQL `.claude/sql/2026-10-cash-toggle.sql`, default true). Kas tidak aktif:
@@ -219,7 +219,12 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   **sudah dijalankan owner Okt 2026**) + cache `kairo_ws_theme_v1` per workspace. Settings › Identitas: kartu "Tema Workspace" (`#kairo-theme-picker`,
   klik = pratinjau langsung, Simpan Pengaturan = simpan); tombol Reset warna kembali ke warna tema (bukan teal KAIRO). Anti-kedip: loader
   seller memberi `html.kairo-template-pending` (app disembunyikan + spinner) sampai event `kairo:seller-mounted` (failsafe 5 dtk).
-  Mode gelap tiap tema punya token sendiri. Ikon = set yang sama, dicat per tema (tebal garis + isian bentuk tertutup). Ornamen = 1 SVG
+  Mode gelap tiap tema punya token sendiri. **Ikon per tema (owner Okt 2026):** blok terakhir seller-app-premium.js (`SETS`, `SLOTS`)
+  mengganti isi `<svg>` menu sidebar, bottom nav HP, menu More dan ikon kartu statistik Dashboard dengan bentuk khusus tema (class `kti`,
+  ikon asli dipulihkan bila tema dilepas; dipicu MutationObserver `data-ws-theme` + DOM). Kelas di dalam ikon: `.b` isian lembut,
+  `.k` aksen (hati/bintang), `.f/.n` isi penuh, `.p` pasak, `.ko/.kl` = potongan -> dijadikan `<mask>` (tembus ke latar apa pun).
+  Kartu statistik: Omset=performance, Profit=profit, Transaksi=input(Orders), Saldo Kas=cash, Omzet Bulan Ini=subscriptions.
+  Ikon judul kartu (`.title-svg-icon`) tetap set lama, hanya dicat per tema. Mockup sumber: scratchpad (bukan repo). Ornamen = 1 SVG
   mask kecil di kartu sapaan Dashboard (`#kairo-v3-dashboard-head::after`), disembunyikan ≤900px. Tidak menambah kartu/fitur.
   Tahap 2 (Setup Wizard) sudah dibuat, lihat poin berikut.
 - **Setup Wizard (owner Okt 2026, tahap 2):** `assets/kairo-setup-wizard.js/.css`, dimuat lazy oleh `maybeStartSetupWizard()`
