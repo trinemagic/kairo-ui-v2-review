@@ -108,10 +108,10 @@ function planLabel(p){return canonicalPlan(p)==='pro'?'PRO':'GRATIS';}
    Saved in workspace_branding.theme; the theme's colours are the default brand colours, users may still change them
    in Settings and Reset returns to the theme's colours. Cached per workspace so a re-login paints it straight away. */
 const WORKSPACE_THEMES={
-  girlie:{name:'Girlie',desc:'Lilac & berry, playful modern',primary:'#7B3FC4',accent:'#C2306F'},
-  wood:{name:'Wood Calm Cute',desc:'Hangat, natural, cozy',primary:'#8A5A37',accent:'#5F7D58'},
-  cloudy:{name:'Cloudy Calm',desc:'Lapang, lembut, menenangkan',primary:'#2F4F8A',accent:'#6C63B5'},
-  pinky:{name:'Pinky Charm Sweet',desc:'Rose & peach, manis hangat',primary:'#B8405F',accent:'#C96A3A'}
+  girlie:{name:'Lavender',desc:'Ungu lembut & berry, ceria',primary:'#7B3FC4',accent:'#C2306F'},
+  wood:{name:'Kayu',desc:'Hangat, natural, cozy',primary:'#8A5A37',accent:'#5F7D58'},
+  cloudy:{name:'Awan',desc:'Biru lembut, lapang, tenang',primary:'#2F4F8A',accent:'#6C63B5'},
+  pinky:{name:'Mawar',desc:'Merah muda & peach, manis',primary:'#B8405F',accent:'#C96A3A'}
 };
 window.KAIRO_WORKSPACE_THEMES=WORKSPACE_THEMES;
 const WORKSPACE_THEME_CACHE_KEY='kairo_ws_theme_v1';
@@ -146,7 +146,7 @@ function clampHistoryFrom(from){const c=historyCutoff();return c&&(!from||from<c
 async function renderHistoryLimitNotice(){
   const cutoff=historyCutoff();let hidden=0;
   if(cutoff){try{const [tx,ex,inj]=await Promise.all([allTransactions(),allCashExpenses(),allCashInjections()]);
-    hidden=tx.filter(r=>String(r.transaction_date||'')<cutoff).length+ex.filter(r=>String(r.expense_date||'')<cutoff).length+inj.filter(r=>String(r.injection_date||'')<cutoff).length;}catch(_e){}}
+    hidden=tx.filter(r=>!isRollupRow(r)&&String(r.transaction_date||'')<cutoff).length+ex.filter(r=>!isRollupRow(r)&&String(r.expense_date||'')<cutoff).length+inj.filter(r=>!isRollupRow(r)&&String(r.injection_date||'')<cutoff).length;}catch(_e){}}
   const hosts=[[document.getElementById('transaction-history-card'),'.history-card-toolbar'],[document.getElementById('seller-dashboard-history-card'),':scope > :first-child'],[document.getElementById('cash'),'.cash-filter-bar']];
   hosts.forEach(([host,anchorSel])=>{
     if(!host)return;let note=host.querySelector(':scope .kairo-history-limit');
@@ -404,6 +404,91 @@ async function maybeStartSetupWizard(){
     (await loadSetupWizard())?.boot(st);
   }catch(err){console.warn('Setup wizard:',err?.message||err);}
 }
+/* Retensi data paket Gratis (owner Okt 2026, S&K): data > 12 bulan dihapus setelah pemberitahuan >= 30 hari.
+   Alur per login (hanya workspace Gratis): bila ada data yang akan berumur > 12 bulan dalam 30 hari -> simpan pemberitahuan
+   (workspace_branding.data_retention {notice_at, through, count}) + banner di Dashboard. Setelah 30 hari -> data sebelum `through`
+   diringkas jadi baris "Saldo awal" (penjualan, pencairan per partner, kas) lalu dihapus lewat RPC kairo_retention_apply (satu
+   transaksi DB, SQL .claude/sql/2026-10-free-data-retention.sql). Saldo partner & Kas tidak berubah. Pro = pemberitahuan dibatalkan.
+   Langganan seller yang masih/baru aktif (berakhir >= 30 hari lalu) tidak ikut dihapus. */
+const RETENTION_MONTHS=12,RETENTION_NOTICE_DAYS=30,ROLLUP_CODE='KAIRO_ROLLUP',ROLLUP_NOTE='[Saldo awal]';
+const isRollupTx=t=>String(t?.package_code||'').toUpperCase()===ROLLUP_CODE;
+const isRollupRow=r=>isRollupTx(r)||String(r?.notes||r?.description||'').startsWith(ROLLUP_NOTE);
+function retentionDate(d){const x=new Date(d);x.setMonth(x.getMonth()-RETENTION_MONTHS);return localISODate(x);}
+function retentionDayBefore(iso){const d=new Date(`${iso}T12:00:00`);d.setDate(d.getDate()-1);return localISODate(d);}
+function retentionKept(t){const end=window.kairoSellerTxActiveUntil?.(t);return Number.isFinite(end)&&end>=Date.now()-RETENTION_NOTICE_DAYS*864e5;}
+async function retentionRows(){
+  const [tx,po,ex,inj]=await Promise.all([allTransactions(),allPayouts(),allCashExpenses(),allCashInjections()]);
+  return {tx,po,ex,inj};
+}
+function retentionOld(rows,through){
+  const before=(r,col)=>String(r?.[col]||'').slice(0,10)<through;
+  return {tx:rows.tx.filter(t=>before(t,'transaction_date')&&!retentionKept(t)),po:rows.po.filter(r=>before(r,'payout_date')),ex:rows.ex.filter(r=>before(r,'expense_date')),inj:rows.inj.filter(r=>before(r,'injection_date'))};
+}
+async function saveRetentionState(state){
+  const {error}=await db.from('workspace_branding').upsert({workspace_id:requireWorkspaceId(),data_retention:state,updated_at:new Date().toISOString()},{onConflict:'workspace_id'});
+  if(error)throw error;activeWorkspaceBranding={...(activeWorkspaceBranding||{}),data_retention:state};
+}
+// Baris pengganti untuk data yang dihapus: hasil hitung saldo (partner, Kas, total pencairan, kas) sama dengan sebelum dihapus.
+function buildRetentionRollup(old,through){
+  const date=retentionDayBefore(through),label=`${ROLLUP_NOTE} Ringkasan data sebelum ${through}`,strip=r=>{const c={...r};delete c.id;delete c.created_at;delete c.updated_at;return c;};
+  const rows={transactions:[],payouts:[],cash_expenses:[],cash_injections:[]};
+  if(old.tx.length){
+    const parts=partners.filter(p=>!isKasName(p)),kas=partners.find(isKasName)||{id:null,partner_name:'Kas'};
+    const total=old.tx.reduce((s,t)=>s+Number(t.total_price||0),0),dist=old.tx.reduce((s,t)=>s+transactionProfitBreakdown(t).distributable,0);
+    const split=parts.map(p=>({partner_id:p.id||null,partner_name:p.partner_name,amount:Math.round(entitlementFromTransactions(old.tx,p)*100)/100}));
+    split.push({partner_id:kas.id||null,partner_name:'Kas',amount:Math.round(cashEntitlementFromTransactions(old.tx)*100)/100});
+    const rest=Math.round((dist-split.reduce((s,r)=>s+r.amount,0))*100)/100;
+    if(rest>0)split.push({partner_id:null,partner_name:'__lainnya',amount:rest});
+    const cost=Math.max(0,total-dist),base=strip(old.tx[0]);
+    rows.transactions.push({...base,transaction_date:date,reading_started_at:`${date}T12:00:00`,reading_status:'done',shift_id:null,customer_name:'Saldo awal',customer_id:null,social_name:null,whatsapp:null,
+      package_id:null,package_code:ROLLUP_CODE,package_price:total,package_qty:1,topic_id:null,topic_name:'',addon_id:null,addon_code:null,addon_price:0,addon_qty:0,
+      order_items:[{name:label,code:ROLLUP_CODE,qty:1,price:total,subtotal:total,cost_price:cost,cost_subtotal:cost,profit_share_mode:'manual',manual_profit_split:split}],order_topics:[],order_addons:[],
+      price_adjustment_amount:0,price_adjustment_value:0,tip_amount:0,total_price:total,notes:label});
+  }
+  const byPartner=new Map();old.po.forEach(p=>{const k=String(p.partner_id||p.partner_name||'-');const g=byPartner.get(k)||{...strip(p),amount:0};g.amount+=Number(p.amount||0);byPartner.set(k,g);});
+  byPartner.forEach(g=>rows.payouts.push({...g,payout_date:date,notes:label}));
+  if(old.ex.length)rows.cash_expenses.push({...strip(old.ex[0]),expense_date:date,amount:old.ex.reduce((s,r)=>s+Number(r.amount||0),0),description:label});
+  if(old.inj.length)rows.cash_injections.push({...strip(old.inj[0]),injection_date:date,amount:old.inj.reduce((s,r)=>s+Number(r.amount||0),0),source:'Saldo awal',description:label});
+  return rows;
+}
+async function applyRetention(through){
+  if(document.documentElement.dataset.businessTemplate==='digital_subscription'&&typeof window.kairoSellerTxActiveUntil!=='function')return false;
+  invalidateWorkspaceData();await loadMasters();
+  const old=retentionOld(await retentionRows(),through);
+  const userRows=old.tx.filter(t=>!isRollupTx(t)).length+[...old.po,...old.ex,...old.inj].filter(r=>!isRollupRow(r)).length;
+  const keep=(await allTransactions()).filter(t=>String(t.transaction_date||'').slice(0,10)<through&&retentionKept(t)).map(t=>String(t.id));
+  if(!userRows){await saveRetentionState({last_purge_at:new Date().toISOString(),last_through:through,deleted:{}});return true;}
+  const {data,error}=await db.rpc('kairo_retention_apply',{p_workspace_id:requireWorkspaceId(),p_through:through,p_keep_tx:keep,p_rows:buildRetentionRollup(old,through)});
+  if(error)throw error;
+  activeWorkspaceBranding={...(activeWorkspaceBranding||{}),data_retention:{last_purge_at:new Date().toISOString(),last_through:through,deleted:data||{}}};
+  invalidateWorkspaceData();await refreshAll();
+  showToast(`Data paket Gratis sebelum ${new Date(`${through}T12:00:00`).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})} sudah dihapus sesuai Syarat & Ketentuan. Saldo partner & Kas tidak berubah.`,'info');
+  return true;
+}
+function renderRetentionNotice(state){
+  const host=document.getElementById('kairo-upgrade-hint');let note=document.getElementById('kairo-retention-notice');
+  if(!state?.notice_at||!host){note?.remove();return;}
+  const at=new Date(Date.parse(state.notice_at)+RETENTION_NOTICE_DAYS*864e5),fmt=d=>d.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+  if(!note){note=document.createElement('div');note.id='kairo-retention-notice';note.className='kairo-history-limit kairo-retention-notice';note.setAttribute('role','note');host.before(note);}
+  note.innerHTML=`<span><b>Pemberitahuan paket Gratis:</b> ${Number(state.count)||0} catatan sebelum ${fmt(new Date(`${state.through}T12:00:00`))} akan dihapus permanen mulai <b>${fmt(at)}</b> (data lebih dari 12 bulan). Saldo partner & Kas tetap aman. Upgrade ke Pro sebelum tanggal itu supaya semua data tetap tersimpan.</span><button type="button" class="kairo-history-limit-btn">Upgrade ke Pro</button>`;
+  note.querySelector('button').onclick=()=>window.kairoRequestUpgrade?.();
+}
+async function maybeRunDataRetention(){
+  try{
+    let st=activeWorkspaceBranding&&('data_retention' in activeWorkspaceBranding)?activeWorkspaceBranding.data_retention:undefined;
+    if(st===undefined){const {data,error}=await db.from('workspace_branding').select('data_retention').eq('workspace_id',requireWorkspaceId()).maybeSingle();if(error)return;st=data?.data_retention;}
+    st=st||{};
+    if(normalizedPlan()==='pro'||isTrineMagicWorkspace()){if(st.notice_at)await saveRetentionState({cancelled_at:new Date().toISOString(),reason:'pro'});renderRetentionNotice(null);return;}
+    const now=Date.now();
+    if(st.notice_at&&Date.parse(st.notice_at)<=now-RETENTION_NOTICE_DAYS*864e5){if(await applyRetention(st.through))st=activeWorkspaceBranding?.data_retention||{};}
+    if(!st.notice_at){
+      const through=retentionDate(new Date(now+RETENTION_NOTICE_DAYS*864e5)),old=retentionOld(await retentionRows(),through);
+      const count=old.tx.filter(t=>!isRollupTx(t)).length+[...old.po,...old.ex,...old.inj].filter(r=>!isRollupRow(r)).length;
+      if(count>0){st={notice_at:new Date(now).toISOString(),through,count};await saveRetentionState(st);}
+    }
+    renderRetentionNotice(st.notice_at?st:null);
+  }catch(err){console.warn('Retensi data:',err?.message||err);}
+}
 async function handleAuthSession(session){
   if(!session){ stopRealtimeSync(); delete document.documentElement.dataset.wsTheme; }
   if(session?.user){
@@ -439,6 +524,7 @@ async function handleAuthSession(session){
       shell.classList.add("dashboard-enter");
       await init();
       maybeStartSetupWizard();
+      maybeRunDataRetention();
     }
   }else{
     dashboardInitialized=false;
@@ -1222,7 +1308,7 @@ document.getElementById("close-shift-btn")?.addEventListener("click",closeReadin
 
 async function fetchTransactions(){
   const {from,to}=getRange();
-  transactions=(await allTransactions()).filter(row=>(!from||String(row.transaction_date||'')>=from)&&(!to||String(row.transaction_date||'')<=to));
+  transactions=(await allTransactions()).filter(row=>!isRollupTx(row)&&(!from||String(row.transaction_date||'')>=from)&&(!to||String(row.transaction_date||'')<=to));
 }
 
 
@@ -1238,7 +1324,7 @@ function historyFilterBounds(mode=historyDateFilter,customDate=historyCustomDate
 
 async function fetchHistoryTransactions(){
   const {from,to}=historyFilterBounds(),cutoff=historyCutoff();
-  historyAllTransactions=(await allTransactions()).filter(row=>(!from||String(row.transaction_date||'')>=from)&&(!to||String(row.transaction_date||'')<=to));
+  historyAllTransactions=(await allTransactions()).filter(row=>!isRollupTx(row)&&(!from||String(row.transaction_date||'')>=from)&&(!to||String(row.transaction_date||'')<=to));
   historyTransactions=cutoff?historyAllTransactions.filter(row=>String(row.transaction_date||'')>=cutoff):historyAllTransactions;
   renderHistoryLimitNotice();
 }
@@ -1846,7 +1932,7 @@ function productSalesRange(){
 }
 async function renderProductSales(){
   const table=document.getElementById('product-sales-table'),select=document.getElementById('product-sales-product');if(!table||!select)return;
-  let rows=[];try{rows=await allTransactions();}catch(_e){}
+  let rows=[];try{rows=(await allTransactions()).filter(t=>!isRollupTx(t));}catch(_e){}
   const cutoff=historyCutoff(),itemsOf=t=>Array.isArray(t?.order_items)?t.order_items:[];
   const names=[...new Set(rows.filter(t=>!cutoff||String(t.transaction_date||'')>=cutoff).flatMap(t=>itemsOf(t).map(productSalesLabel)).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'id'));
   const keep=select.value;
@@ -1970,7 +2056,7 @@ async function loadCustomerDirectory(){
     ]);
 
     const byId={},legacy={};
-    (txRows||[]).forEach(t=>{
+    (txRows||[]).filter(t=>!isRollupTx(t)).forEach(t=>{
       const key=t.customer_id ? String(t.customer_id) : normalizeCustomerName(t.customer_name);
       const bucket=t.customer_id ? byId : legacy;
       if(!key)return;
@@ -5328,13 +5414,13 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
         const link=document.createElement('link');
         link.id='seller-app-premium-css';
         link.rel='stylesheet';
-        link.href='assets/templates/seller-app-premium.css?v=20.10.152';
+        link.href='assets/templates/seller-app-premium.css?v=20.10.153';
         document.head.appendChild(link);
       }
       if(!document.getElementById('seller-app-premium-js')){
         const script=document.createElement('script');
         script.id='seller-app-premium-js';
-        script.src='assets/templates/seller-app-premium.js?v=20.10.154';
+        script.src='assets/templates/seller-app-premium.js?v=20.10.155';
         script.defer=true;
         document.body.appendChild(script);
       }

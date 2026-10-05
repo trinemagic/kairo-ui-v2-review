@@ -474,6 +474,8 @@
   // Reminders (expiring accounts, Tracker Langganan) read every transaction, including ones older than the
   // Gratis 60-day history window, so an old 3- or 6-month subscription is still flagged before it ends.
   function reminderTransactions(){return typeof historyAllTransactions!=='undefined'&&Array.isArray(historyAllTransactions)&&historyAllTransactions.length?historyAllTransactions:(historyTransactions||[]);}
+  // Retensi data Gratis (kairo-app.js): langganan yang masih/baru saja aktif tidak boleh ikut terhapus.
+  window.kairoSellerTxActiveUntil=t=>{if(!isSellerTx(t))return null;const e=sellerExpiryEntriesForTx(t).map(x=>+x.expiry).filter(Number.isFinite);return e.length?Math.max(...e):null;};
   function renderSellerExpiryTracker(){
     if(!mounted)return;
     const card=installSellerExpiryTracker();if(!card)return;

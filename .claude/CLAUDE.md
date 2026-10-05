@@ -82,8 +82,8 @@ domain = pengguna login ulang & pengaturan browser (Ingat saya, dark mode) mulai
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
 Versi terakhir: `kairo.css?v=20.10.157`, `kairo-v3.css?v=3.34.0`,
-`kairo-v3.js?v=3.24.0`, `kairo-app.js?v=20.10.189`; template seller dimuat dari kairo-app.js
-(`seller-app-premium.js?v=20.10.154`, `.css?v=20.10.152`) — naikkan juga bila file template diubah.
+`kairo-v3.js?v=3.24.0`, `kairo-app.js?v=20.10.190`; template seller dimuat dari kairo-app.js
+(`seller-app-premium.js?v=20.10.155`, `.css?v=20.10.153`) — naikkan juga bila file template diubah.
 Setup Wizard dimuat dari `loadSetupWizard()` di kairo-app.js (`kairo-setup-wizard.js/.css?v=1.0.2`, satu konstanta `v`).
 
 **Halaman app** = `main.container > section.section` dengan id:
@@ -126,10 +126,16 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   = riwayat tanpa potongan 60 hari, dipakai template seller untuk **Akan Expired & Piutang** (`reminderTransactions()`), supaya langganan
   3/6 bulan lama tetap diingatkan. Notice `.kairo-history-limit` ("N catatan lebih lama... Upgrade ke Pro") hanya muncul bila memang
   ada data tersembunyi (Riwayat Transaksi, riwayat seller, Petty Cash). Copy: pricing/home/daftar/FAQ 03/S&K/Privasi.
-  **Fase 2 BELUM dibuat:** hapus permanen data Gratis >12 bulan + pemberitahuan 30 hari (sudah tertulis di S&K). Wajib sebelum data
-  Gratis tertua berumur 12 bulan (± Sep 2027). Jebakan: Saldo Kas & saldo partner dihitung kumulatif dari SEMUA transaksi/kas/payout -
-  sebelum menghapus, simpan "saldo awal" (ringkasan yang dihapus) supaya saldo tidak berubah; piutang/langganan seller yang masih aktif
-  jangan ikut terhapus.
+  **Fase 2 (hapus data Gratis >12 bulan) dibuat Okt 2026:** `maybeRunDataRetention()` (kairo-app.js, tiap login, hanya Gratis): bila ada data
+  yang 30 hari lagi berumur >12 bulan -> simpan pemberitahuan `workspace_branding.data_retention {notice_at, through, count}` + banner
+  `#kairo-retention-notice` di atas `#kairo-upgrade-hint`. >=30 hari kemudian -> data sebelum `through` diringkas `buildRetentionRollup()` jadi
+  baris "Saldo awal" (transaksi `package_code='KAIRO_ROLLUP'` dengan `manual_profit_split` = hak tiap partner + Kas + `__lainnya`; pencairan per
+  partner & kas berawalan `[Saldo awal]`) lalu RPC `kairo_retention_apply` menghapus + menyisipkan dalam SATU transaksi DB (cek pemilik, bukan
+  Pro aktif, 30 hari, 12 bulan). Saldo partner/Kas/omzet total TERUJI sama sebelum & sesudah (juga saat ringkasan lama diringkas ulang).
+  Pro/Trine Magic = pemberitahuan dibatalkan. Langganan seller yang berakhir >= 30 hari lalu disimpan (`window.kairoSellerTxActiveUntil`).
+  Baris ringkasan disembunyikan dari daftar (`isRollupTx/isRollupRow`: riwayat, periode, customer, penjualan per produk, notice 60 hari).
+  SQL `.claude/sql/2026-10-free-data-retention.sql` (BELUM dijalankan owner; tanpa SQL fitur diam). Keterbatasan: workspace yang tidak pernah
+  login tidak dihapus; hak partner nonaktif masuk `__lainnya`; Kas dari data lama mengikuti aturan Gratis (0) saat diringkas.
 - **Kas / Petty Cash (owner Okt 2026):** fitur `petty_cash` = Pro. `cashActive()` = Pro && `workspace_branding.cash_enabled!==false`
   (saklar "Pakai Kas" di Settings › Pembagian Omzet; SQL `.claude/sql/2026-10-cash-toggle.sql`, default true). Kas tidak aktif:
   `cashShareRateForDate`=0, `shareRuleFor` menormalisasi partner non-Kas jadi 100%, nominal manual Kas per produk diabaikan
@@ -204,7 +210,8 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   dibuat seller JS): 1 baris per pelanggan+produk+plan (perpanjangan menggantikan), filter ≤7 hari/Aktif/Expired/Semua, cari, WhatsApp
   (dari `tx.whatsapp`), Perpanjang -> Orders dengan nama terisi. Lonceng seller = `window.kairoSellerNotifications` (expired ≤3 hari s/d
   lewat 7 hari + order Baru/Diproses ≥5 mnt, merah ≥30 mnt/expired); judul panel "Pengingat", tanpa "Start Reading".
-- **Tema workspace Seller App Premium (owner Okt 2026, tahap 1):** Girlie / Wood Calm Cute / Cloudy Calm / Pinky Charm Sweet, hanya
+- **Tema workspace Seller App Premium (owner Okt 2026, tahap 1):** Lavender / Kayu / Awan / Mawar (id tetap girlie/wood/cloudy/pinky;
+  nama lama dari referensi owner diganti Okt 2026), hanya
   seller + Pro (`workspace_theme:'pro'`). Lapisan tampilan saja: `html[data-ws-theme]`, semua token tema di akhir
   `seller-app-premium.css` dan diturunkan dari `--v3-primary/--v3-accent` (warna workspace) lewat `color-mix`, jadi warna yang diubah
   user ikut ke sidebar/kartu/ornamen. `WORKSPACE_THEMES` (kairo-app.js) = warna bawaan tiap tema; bila warna tersimpan masih bawaan lama
