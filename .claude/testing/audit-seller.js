@@ -20,7 +20,7 @@ const go = (p, tab) => p.evaluate(async t => { openAppPage(t); await loadPageDat
     await go(p, 'dashboard'); await p.waitForTimeout(900);
     await p.evaluate(() => document.getElementById('seller-history-toggle')?.click()); await p.waitForTimeout(300);
     await shot('dashboard-all-history');
-    for (const sel of ['.seller-history-card', '.seller-expiry-row', '.seller-outstanding-row']) {
+    for (const sel of ['.seller-history-card', '.seller-expiry-row', '.seller-tracker-row']) {
       { const l = p.locator(sel).first(); await l.scrollIntoViewIfNeeded().catch(() => {}); await l.hover({ force: true }).catch(() => {}); } await p.waitForTimeout(200);
       out[`${vp}:hover ${sel}`] = await lowContrast(p, `#dashboard ${sel}:hover`);
     }

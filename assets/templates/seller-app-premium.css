@@ -434,37 +434,8 @@ body.saas-dark.seller-app-premium .seller-expiry-date>span{color:#aab9cc}
 
 
 /* v20.10.140 — Seller DP / outstanding payment */
-.seller-payment-panel{grid-column:1/-1;width:100%;box-sizing:border-box;margin:10px 0 0;padding:12px 14px;border:1px solid var(--seller-line);border-radius:var(--seller-radius-md);background:var(--seller-panel)}
 
-/* Seller dashboard paired operational trackers */
-.seller-dashboard-alert-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:stretch;width:100%;margin-top:16px}
-.seller-dashboard-alert-row>.seller-expiry-card,.seller-dashboard-alert-row>.seller-outstanding-card{margin-top:0;height:100%;min-width:0}
-@media(max-width:900px){.seller-dashboard-alert-row{grid-template-columns:1fr;gap:12px}.seller-dashboard-alert-row>.seller-expiry-card,.seller-dashboard-alert-row>.seller-outstanding-card{height:auto}}
-.seller-payment-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px}
-.seller-payment-head>div{display:grid;gap:2px}
-.seller-payment-head strong{font-size:11px;color:var(--seller-text)}
-.seller-payment-head small{font-size:9px;color:var(--seller-muted);line-height:1.4}
-.seller-payment-grid{display:grid;grid-template-columns:minmax(0,1fr) 180px;gap:10px;align-items:end}
-.seller-payment-grid label{display:grid;gap:5px}
-.seller-payment-grid label>span,.seller-payment-preview>span{font-size:8px;text-transform:uppercase;letter-spacing:.05em;color:var(--seller-muted);font-weight:800}
-.seller-payment-preview{min-height:40px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 12px;border:1px solid var(--seller-line);border-radius:var(--seller-radius-sm);background:var(--seller-panel-2)}
-.seller-payment-preview strong{font-size:11px;color:var(--seller-text)}
-.seller-outstanding-card{margin-top:16px;width:100%;max-width:none;box-sizing:border-box}
-.seller-outstanding-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
-.seller-outstanding-head .card-title{margin:0 0 3px}
-.seller-outstanding-head>strong{font-size:15px;color:var(--seller-text);white-space:nowrap}
-.seller-outstanding-list{display:grid;gap:8px}
-.seller-outstanding-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--seller-line);border-radius:var(--seller-radius-md);background:var(--seller-panel)}
-.seller-outstanding-copy{display:grid;gap:3px;min-width:0}
-.seller-outstanding-copy strong{font-size:11px;color:var(--seller-text)}
-.seller-outstanding-copy small{font-size:9px;color:var(--seller-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.seller-outstanding-money{display:grid;gap:2px;text-align:right;white-space:nowrap}
-.seller-outstanding-money span{font-size:8px;color:var(--seller-muted);font-weight:700}
-.seller-outstanding-money strong{font-size:10px;color:#a74750}
-.seller-outstanding-row>button,.seller-payment-settle-inline{min-height:30px;padding:0 10px;border:1px solid var(--seller-line);border-radius:var(--seller-radius-sm);background:var(--seller-panel-2);color:var(--seller-text);font:inherit;font-size:9px;font-weight:800;cursor:pointer}
-.seller-outstanding-row>button:disabled,.seller-payment-settle-inline:disabled{opacity:.55;cursor:wait}
-.seller-outstanding-empty{padding:14px 12px;border:1px dashed var(--seller-line);border-radius:var(--seller-radius-md);color:var(--seller-muted);font-size:10px;text-align:center}
-body.saas-dark.seller-app-premium .seller-payment-panel,body.saas-dark.seller-app-premium .seller-payment-preview,body.saas-dark.seller-app-premium .seller-outstanding-row{background:var(--seller-panel);border-color:var(--seller-line)}
-body.saas-dark.seller-app-premium .seller-payment-head strong,body.saas-dark.seller-app-premium .seller-payment-preview strong,body.saas-dark.seller-app-premium .seller-outstanding-head>strong,body.saas-dark.seller-app-premium .seller-outstanding-copy strong{color:#f3f7ff}
-body.saas-dark.seller-app-premium .seller-outstanding-row>button,body.saas-dark.seller-app-premium .seller-payment-settle-inline{background:var(--seller-panel-2);color:#f3f7ff;border-color:var(--seller-line)}
-@media(max-width:900px){.seller-payment-grid{grid-template-columns:1fr}.seller-outstanding-head{align-items:center}.seller-outstanding-row{grid-template-columns:1fr auto}.seller-outstanding-copy{grid-column:1/-1}.seller-outstanding-copy small{white-space:normal}.seller-outstanding-money{text-align:left}.seller-outstanding-row>button{justify-self:end}}
+/* Seller dashboard: Akan Expired card (full width) */
+.seller-dashboard-alert-row{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;align-items:stretch;width:100%;margin-top:16px}
+.seller-dashboard-alert-row>.seller-expiry-card{margin-top:0;height:100%;min-width:0}
+@media(max-width:900px){.seller-dashboard-alert-row{gap:12px}.seller-dashboard-alert-row>.seller-expiry-card{height:auto}}

@@ -5117,6 +5117,11 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
   document.addEventListener('click',e=>{
     if(e.target.closest('[data-tab="input"],[data-mobile-tab="input"],.kairo-mobile-orders-main,[data-settings-category="packages"]'))setTimeout(maybeBootSellerTemplate,0);
   },true);
+  // Muat template langsung setelah login (dulu baru dimuat saat menu Orders diklik, jadi tabel Akan Expired
+  // dan riwayat seller di Dashboard tidak muncul di awal, owner Okt 2026).
+  new MutationObserver(()=>{if(!sellerTemplateBooted&&document.body.classList.contains('authenticated'))maybeBootSellerTemplate();})
+    .observe(document.body,{attributes:true,attributeFilter:['class']});
+  if(document.body.classList.contains('authenticated'))maybeBootSellerTemplate();
 })();
 
 /* Auth boot handshake: presentation may safely release a queued login submit. */

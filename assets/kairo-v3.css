@@ -627,7 +627,7 @@ html.kairo-v3 .kairo-notif-open {
 /* Page toolbar: the period filter and Export Excel only apply to Dashboard,
    Performance and Withdraw. Orders, Customer Database, Promo, Petty Cash and
    Settings keep just Refresh. Plan-independent, so it applies to every package. */
-html.kairo-v3 #app-shell main.container:has(> section.section.active:is(#input, #customers, #promo, #cash, #settings)) > .toolbar :is(#period-group, #custom-range, .btn[onclick^="exportExcel"]) {
+html.kairo-v3 #app-shell main.container:has(> section.section.active:is(#input, #customers, #promo, #cash, #settings, #subscriptions)) > .toolbar :is(#period-group, #custom-range, .btn[onclick^="exportExcel"]) {
   display: none !important;
 }
 
@@ -1739,7 +1739,7 @@ html.kairo-v3 .kairo-tx-detail-card dd {
 }
 
 html.kairo-v3 #dashboard .seller-dashboard-alert-row {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--v3-card-gap);
   align-items: stretch;
 }
@@ -1750,7 +1750,6 @@ html.kairo-v3 #dashboard .seller-dashboard-alert-row > .card {
 }
 
 html.kairo-v3 #dashboard .seller-expiry-row,
-html.kairo-v3 #dashboard .seller-outstanding-row,
 html.kairo-v3 #dashboard .seller-history-card {
   border-color: var(--v3-line);
   border-radius: var(--v3-r-sm);
@@ -1758,14 +1757,12 @@ html.kairo-v3 #dashboard .seller-history-card {
 }
 
 html.kairo-v3 #dashboard .seller-expiry-list,
-html.kairo-v3 #dashboard .seller-outstanding-list,
 html.kairo-v3 #dashboard .seller-history-list {
   gap: 8px;
 }
 
 html.kairo-v3 #dashboard .seller-dashboard-history-head,
-html.kairo-v3 #dashboard .seller-expiry-head,
-html.kairo-v3 #dashboard .seller-outstanding-head {
+html.kairo-v3 #dashboard .seller-expiry-head {
   padding-bottom: 13px;
   border-bottom: 1px solid var(--v3-line);
 }
@@ -1891,7 +1888,6 @@ html.kairo-v3 body.saas-dark .saas-settings-side-btn.active {
 }
 
 html.kairo-v3 body.saas-dark .seller-expiry-row,
-html.kairo-v3 body.saas-dark .seller-outstanding-row,
 html.kairo-v3 body.saas-dark .seller-history-card {
   background: var(--v3-surface-subtle) !important;
   border-color: var(--v3-line) !important;
@@ -1914,8 +1910,7 @@ html.kairo-v3 body.saas-dark .seller-history-expiry.is-urgent {
 }
 
 html.kairo-v3 body.saas-dark .seller-expiry-badge.is-expired,
-html.kairo-v3 body.saas-dark .seller-history-expiry.is-expired,
-html.kairo-v3 body.saas-dark .seller-outstanding-money strong {
+html.kairo-v3 body.saas-dark .seller-history-expiry.is-expired {
   color: #f59aa2;
 }
 
@@ -2138,7 +2133,7 @@ html.kairo-v3 body.saas-dark .customer-contact-item strong {
   }
 
   /* Pages where Refresh is alone get a full-width button. */
-  html.kairo-v3 #app-shell main.container:has(> section.section.active:is(#input, #customers, #promo, #cash, #settings)) > .toolbar .kairo-refresh-btn,
+  html.kairo-v3 #app-shell main.container:has(> section.section.active:is(#input, #customers, #promo, #cash, #settings, #subscriptions)) > .toolbar .kairo-refresh-btn,
   html.kairo-v3 body.kairo-mobile-history #app-shell main.container > .toolbar .kairo-refresh-btn {
     grid-column: 1 / -1;
   }
@@ -4622,3 +4617,42 @@ html.kairo-v3 .kairo-switch input:focus-visible + span { outline: 3px solid colo
 html.kairo-v3 .kairo-switch input:disabled { cursor: not-allowed; }
 html.kairo-v3 .kairo-switch input:disabled + span { opacity: .55; }
 html.kairo-v3 .kairo-switch .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* Seller App Premium › Tracker Langganan (owner Okt 2026). */
+html.kairo-v3 .seller-tracker-card { display: grid; gap: 14px; }
+html.kairo-v3 .seller-tracker-head .card-title { margin: 0 0 3px; }
+html.kairo-v3 .seller-tracker-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+html.kairo-v3 .seller-tracker-stat { display: grid; gap: 2px; padding: 12px 14px; border: 1px solid var(--v3-line); border-radius: 12px; background: var(--v3-surface-subtle); }
+html.kairo-v3 .seller-tracker-stat span { color: var(--v3-ink-soft); font-size: 12px; }
+html.kairo-v3 .seller-tracker-stat b { color: var(--v3-ink); font-size: 22px; line-height: 1.2; }
+html.kairo-v3 .seller-tracker-stat.is-soon b { color: #a15c07; }
+html.kairo-v3 .seller-tracker-stat.is-expired b { color: #b42c36; }
+html.kairo-v3 body.saas-dark .seller-tracker-stat.is-soon b { color: #f5b83d; }
+html.kairo-v3 body.saas-dark .seller-tracker-stat.is-expired b { color: #ff8a8f; }
+html.kairo-v3 .seller-tracker-tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+html.kairo-v3 .seller-tracker-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+html.kairo-v3 .seller-tracker-chips button { min-height: 34px; padding: 0 12px; border: 1px solid var(--v3-line); border-radius: 999px; background: var(--v3-surface); color: var(--v3-ink); font: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer; }
+html.kairo-v3 .seller-tracker-chips button.is-active { border-color: var(--v3-primary); background: var(--v3-primary); color: var(--v3-on-primary); }
+html.kairo-v3 #seller-tracker-search { width: min(320px, 100%); min-height: 38px; }
+html.kairo-v3 .seller-tracker-list { display: grid; gap: 8px; }
+html.kairo-v3 .seller-tracker-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 14px; padding: 12px 14px; border: 1px solid var(--v3-line); border-radius: var(--v3-r-sm, 10px); background: var(--v3-surface-subtle); }
+html.kairo-v3 .seller-tracker-copy { display: grid; gap: 2px; min-width: 0; }
+html.kairo-v3 .seller-tracker-copy strong { color: var(--v3-ink); font-size: 13.5px; }
+html.kairo-v3 .seller-tracker-copy small { color: var(--v3-ink-soft); font-size: 12px; overflow-wrap: anywhere; }
+html.kairo-v3 .seller-tracker-when { display: grid; justify-items: end; gap: 4px; text-align: right; }
+html.kairo-v3 .seller-tracker-when span { color: var(--v3-ink-soft); font-size: 12px; white-space: nowrap; }
+html.kairo-v3 .seller-tracker-actions { display: flex; gap: 6px; }
+html.kairo-v3 .seller-tracker-btn { display: inline-flex; align-items: center; min-height: 34px; padding: 0 12px; border: 1px solid var(--v3-line); border-radius: 10px; background: var(--v3-surface); color: var(--v3-ink); font: inherit; font-size: 12.5px; font-weight: 700; text-decoration: none; cursor: pointer; white-space: nowrap; }
+html.kairo-v3 .seller-tracker-btn.is-primary { border-color: var(--v3-primary); background: var(--v3-primary); color: var(--v3-on-primary); }
+html.kairo-v3 .seller-tracker-btn:focus-visible, html.kairo-v3 .seller-tracker-chips button:focus-visible { outline: 3px solid color-mix(in srgb, var(--v3-primary) 45%, transparent); outline-offset: 2px; }
+html.kairo-v3 .seller-tracker-empty { padding: 18px 14px; border: 1px dashed var(--v3-line); border-radius: 12px; color: var(--v3-ink-soft); text-align: center; font-size: 13px; }
+@media (max-width: 640px) {
+  html.kairo-v3 .seller-tracker-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+  html.kairo-v3 .seller-tracker-stat { padding: 10px; }
+  html.kairo-v3 .seller-tracker-stat b { font-size: 18px; }
+  html.kairo-v3 .seller-tracker-stat span { font-size: 10.5px; }
+  html.kairo-v3 .seller-tracker-row { grid-template-columns: minmax(0, 1fr) auto; }
+  html.kairo-v3 .seller-tracker-actions { grid-column: 1 / -1; }
+  html.kairo-v3 .seller-tracker-actions > * { flex: 1; justify-content: center; }
+  html.kairo-v3 #seller-tracker-search { width: 100%; }
+}
