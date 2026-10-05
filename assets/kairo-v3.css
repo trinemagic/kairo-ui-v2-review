@@ -1003,6 +1003,17 @@ html.kairo-v3 #dashboard .kpi-grid {
   }
 }
 
+/* Kas tidak aktif (Gratis / Pro dengan Kas dimatikan): kartu Saldo Kas disembunyikan, grid menyesuaikan. */
+html.kairo-v3 #dashboard .kpi-grid > .kpi[hidden] { display: none !important; }
+@media (min-width: 1241px) {
+  html.kairo-v3 body.kairo-no-cash:not(.seller-app-premium) #dashboard .kpi-grid { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+  html.kairo-v3 body.kairo-no-cash.seller-app-premium #dashboard .kpi-grid > .kpi { grid-column: span 3; }
+}
+@media (max-width: 1240px) {
+  html.kairo-v3 body.kairo-no-cash:not(.seller-app-premium) #dashboard .kpi-grid > .kpi:last-child { grid-column: 1 / -1; }
+  html.kairo-v3 body.kairo-no-cash.seller-app-premium #dashboard .kpi-grid > .kpi:last-child { grid-column: auto; }
+}
+
 html.kairo-v3 #dashboard .kpi {
   display: grid;
   grid-template-columns: 40px minmax(0, 1fr);

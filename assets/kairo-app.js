@@ -108,7 +108,7 @@ const FEATURE_MIN_PLAN={
   customer_database:'pro',open_close_store:'pro',export_excel:'pro',autofill_orders:'pro',
   custom_branding:'pro',receipt_customization:'pro',multi_partner_profit_share:'pro',performance:'basic',
   advanced_analytics:'pro',advanced_profit_sharing:'pro',business_insights:'pro',advanced_customer_analytics:'pro',
-  advanced_reports:'pro',activity_log:'pro',full_history:'pro',granular_permissions:'pro',full_workspace_backup:'pro',multi_workspace:'pro',remove_saas_branding:'pro'
+  advanced_reports:'pro',activity_log:'pro',full_history:'pro',petty_cash:'pro',granular_permissions:'pro',full_workspace_backup:'pro',multi_workspace:'pro',remove_saas_branding:'pro'
 };
 function normalizedPlan(){return canonicalPlan(activeWorkspacePlan);}
 function planAtLeast(minPlan){return (PLAN_RANK[normalizedPlan()]||1)>=(PLAN_RANK[minPlan]||1);}
@@ -475,6 +475,13 @@ function activeShareVersionForDate(date){
   return profitShareVersions.filter(v=>kairoShareTime(v.effective_from)<=target).sort((a,b)=>kairoShareTime(b.effective_from)-kairoShareTime(a.effective_from))[0]||null;
 }
 function shareRuleFor(partner,date){
+  const pct=rawShareRuleFor(partner,date);
+  if(cashActive()) return pct;
+  if(isKasName(partner)) return 0;
+  const total=nonKasShareTotal(date);
+  return total>0?pct/total:0;
+}
+function rawShareRuleFor(partner,date){
   const v=activeShareVersionForDate(date);
   if(v){
     const rules=normalizeShareRules(v.rules);
@@ -484,7 +491,17 @@ function shareRuleFor(partner,date){
   }
   return Number(partner?.percentage||0);
 }
+// Kas (Petty Cash) hanya di Pro dan bisa dimatikan lewat Settings (workspace_branding.cash_enabled, owner Okt 2026).
+// Kas tidak aktif = tanpa potongan Kas: persentase partner lain dinormalisasi jadi 100%, jadi seluruh laba masuk Withdraw.
+function cashActive(){return canUseFeature('petty_cash')&&activeWorkspaceBranding?.cash_enabled!==false;}
+const isKasName=v=>String(v?.partner_name??v??'').toLowerCase()==='kas';
+function nonKasShareTotal(date){
+  const v=activeShareVersionForDate(date);
+  if(v){const rules=normalizeShareRules(v.rules);if(rules.length)return rules.filter(r=>!isKasName(r)).reduce((t,r)=>t+Number(r.percentage||0),0);}
+  return partners.filter(p=>!isKasName(p)).reduce((t,p)=>t+Number(p.percentage||0),0);
+}
 function cashShareRateForDate(date){
+  if(!cashActive()) return 0;
   const v=activeShareVersionForDate(date);
   if(v){ const r=normalizeShareRules(v.rules).find(x=>String(x.partner_name||'').toLowerCase()==='kas'); if(r) return Number(r.percentage||0); }
   const kas=partners.find(p=>String(p.partner_name||'').toLowerCase()==='kas');
@@ -494,7 +511,7 @@ function transactionProfitBreakdown(t){
   const items=[...(Array.isArray(t?.order_items)?t.order_items:[]),...(Array.isArray(t?.order_addons)?t.order_addons:[])];
   const hpp=items.reduce((sum,x)=>{const qty=Math.max(0,Number(x?.qty||0));const snap=Number(x?.cost_subtotal);return sum+(Number.isFinite(snap)?Math.max(0,snap):Math.max(0,Number(x?.cost_price||0))*qty);},0);
   const distributable=Math.max(0,Number(t?.total_price||0)-hpp),manual=[];
-  items.filter(x=>String(x?.profit_share_mode||'percentage')==='manual').forEach(x=>{const qty=Math.max(0,Number(x?.qty||0));(Array.isArray(x?.manual_profit_split)?x.manual_profit_split:[]).forEach(r=>{const amount=Math.max(0,Number(r?.amount||0))*qty;if(amount>0)manual.push({partner_id:r?.partner_id||null,partner_name:r?.partner_name||'',amount});});});
+  const noKas=!cashActive();items.filter(x=>String(x?.profit_share_mode||'percentage')==='manual').forEach(x=>{const qty=Math.max(0,Number(x?.qty||0));(Array.isArray(x?.manual_profit_split)?x.manual_profit_split:[]).forEach(r=>{if(noKas&&isKasName(r))return;const amount=Math.max(0,Number(r?.amount||0))*qty;if(amount>0)manual.push({partner_id:r?.partner_id||null,partner_name:r?.partner_name||'',amount});});});
   const rawManual=manual.reduce((sum,r)=>sum+r.amount,0),scale=rawManual>distributable&&rawManual>0?distributable/rawManual:1,manualScaled=manual.map(r=>({...r,amount:r.amount*scale})),manualTotal=manualScaled.reduce((sum,r)=>sum+r.amount,0);
   return {hpp,distributable,manual:manualScaled,manualTotal,percentageBase:Math.max(0,distributable-manualTotal)};
 }
@@ -1387,8 +1404,8 @@ function renderProfitShareEditor(){
   const effective=document.getElementById("profit-share-effective-date"); if(effective&&!effective.value) effective.value=kairoLocalDateTimeValue();
   const active=activeShareVersionForDate(kairoLocalDateTimeValue());
   const activeRules=active?normalizeShareRules(active.rules):[];
-  const rows=[...partners];
-  if(!rows.some(p=>String(p.partner_name||'').toLowerCase()==='kas')) rows.push({id:null,partner_name:'Kas',percentage:LEGACY_CASH_SHARE_RATE});
+  const rows=partners.filter(p=>cashActive()||!isKasName(p));
+  if(cashActive()&&!rows.some(isKasName)) rows.push({id:null,partner_name:'Kas',percentage:LEGACY_CASH_SHARE_RATE});
   grid.innerHTML=rows.map(p=>{
     const saved=activeRules.find(r=>(r.partner_id&&p.id&&String(r.partner_id)===String(p.id))||String(r.partner_name||'').toLowerCase()===String(p.partner_name||'').toLowerCase());
     const pct=(Number(saved?.percentage??p.percentage??(String(p.partner_name).toLowerCase()==='kas'?LEGACY_CASH_SHARE_RATE:0))*100);
@@ -1405,7 +1422,7 @@ function updateProfitShareTotal(){
   const el=document.getElementById('profit-share-total'); if(!el)return; el.textContent=`Total ${total.toLocaleString('id-ID',{maximumFractionDigits:2})}%`; el.classList.toggle('invalid',Math.abs(total-100)>0.001);
 }
 
-function profitManualPartners(){const rows=[...partners];if(!rows.some(p=>String(p.partner_name||'').toLowerCase()==='kas'))rows.push({id:null,partner_name:'Kas'});return rows;}
+function profitManualPartners(){const rows=partners.filter(p=>cashActive()||!isKasName(p));if(cashActive()&&!rows.some(isKasName))rows.push({id:null,partner_name:'Kas'});return rows;}
 function productProfitRow(item,type){
   const mode=String(item.profit_share_mode||'percentage'),cost=Math.max(0,Number(item.cost_price||0)),net=Math.max(0,Number(item.price||0)-cost),saved=Array.isArray(item.manual_profit_split)?item.manual_profit_split:[];
   const fields=profitManualPartners().map(p=>{const r=saved.find(x=>(x.partner_id&&p.id&&String(x.partner_id)===String(p.id))||String(x.partner_name||'').toLowerCase()===String(p.partner_name||'').toLowerCase());return `<div class="profit-manual-field"><label>${escapeHtml(p.partner_name||'-')}</label><input class="input profit-product-manual-amount" type="number" min="0" step="500" value="${Number(r?.amount||0)}" data-partner-id="${p.id||''}" data-partner-name="${escapeHtml(p.partner_name||'')}"></div>`;}).join('');
@@ -4224,7 +4241,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
  const oldOpen=window.openAppPage||openAppPage;window.openAppPage=function(tab){return oldOpen.apply(this,arguments)};try{openAppPage=window.openAppPage}catch(e){}
  function wireTools(){const tr=document.getElementById('orders-tool-trigger'),label=document.getElementById('orders-tool-trigger-label'),menu=document.getElementById('orders-tool-menu'),auto=document.getElementById('smart-sales-open'),manual=document.getElementById('manual-orders-select');if(!tr||!menu)return;const close=()=>{menu.hidden=true;tr.setAttribute('aria-expanded','false')};const sync=()=>{const p=isPro();if(auto){auto.title=p?'':'Autofill Orders tersedia di paket Pro.';auto.setAttribute('aria-disabled',p?'false':'true')}};tr.onclick=e=>{e.stopPropagation();const open=menu.hidden;menu.hidden=!open;tr.setAttribute('aria-expanded',open?'true':'false')};manual&&(manual.onclick=e=>{e.preventDefault();e.stopPropagation();if(label)label.textContent='Manual Orders';manual.classList.add('is-active');auto?.classList.remove('is-active');close();document.getElementById('tx-form')?.scrollIntoView({behavior:'smooth',block:'start'})});auto&&(auto.onclick=e=>{if(!isPro()){e.preventDefault();e.stopPropagation();if(label)label.textContent='Manual Orders';manual?.classList.add('is-active');auto.classList.remove('is-active');showToast('Autofill Orders tersedia di paket Pro.',true);close();return}if(label)label.textContent='Autofill Orders';auto.classList.add('is-active');manual?.classList.remove('is-active');close()});if(!document.documentElement.dataset.kairoToolsOutsideWired){document.documentElement.dataset.kairoToolsOutsideWired='1';document.addEventListener('click',e=>{if(!e.target.closest('#orders-tool-dropdown')){const t=document.getElementById('orders-tool-trigger'),m=document.getElementById('orders-tool-menu');if(m)m.hidden=true;if(t)t.setAttribute('aria-expanded','false')}})}sync()}
  function formatPlanValidity(){const s=activeWorkspaceSubscription||{};const raw=s.current_period_end||s.expires_at||s.end_date||s.valid_until||s.trial_ends_at||null;if(!raw)return 'Belum ditentukan';const d=new Date(raw);return Number.isNaN(d.getTime())?String(raw):d.toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'})}
- function renderAccess(){const box=document.getElementById('settings-access-list');if(!box)return;const pro=isPro();const rows=pro?['Dashboard & operasional utama','Performance analytics','Autofill Orders','Custom branding & tampilan']:['Dashboard & operasional utama','Petty Cash, Withdraw, Orders & Customer Database','Performance terbatas di paket basic','Autofill Orders terkunci di paket basic'];box.innerHTML=rows.map((x,i)=>`<div class="settings-access-item"><svg viewBox="0 0 24 24" aria-hidden="true">${(!pro&&i>=2)?'<rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>':'<path d="m5 12 4 4L19 6"/>'}</svg><span>${x}</span></div>`).join('')}
+ function renderAccess(){const box=document.getElementById('settings-access-list');if(!box)return;const pro=isPro();const rows=pro?['Dashboard & operasional utama','Performance analytics','Autofill Orders','Custom branding & tampilan']:['Dashboard & operasional utama','Orders, Withdraw & HPP per produk','Petty Cash terkunci di paket Gratis','Autofill Orders terkunci di paket Gratis'];box.innerHTML=rows.map((x,i)=>`<div class="settings-access-item"><svg viewBox="0 0 24 24" aria-hidden="true">${(!pro&&i>=2)?'<rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>':'<path d="m5 12 4 4L19 6"/>'}</svg><span>${x}</span></div>`).join('')}
  function ensureReceiptFooter(){const panel=document.querySelector('[data-settings-panel="receipt"] .receipt-layout-card');if(!panel||document.getElementById('settings-receipt-footer'))return;const box=document.createElement('div');box.className='receipt-footer-moved';box.innerHTML='<div class="form-group"><label class="label">Footer Struk</label><input id="settings-receipt-footer" class="input" type="text" maxlength="180" placeholder="Terima kasih sudah menggunakan layanan kami"></div>';const head=panel.querySelector('.receipt-layout-head');head?.insertAdjacentElement('afterend',box);const footer=document.getElementById('settings-receipt-footer');footer.value=activeWorkspaceBranding?.receipt_footer||'';footer.addEventListener('input',()=>{if(activeWorkspaceBranding)activeWorkspaceBranding.receipt_footer=footer.value.trim()||null;const p=window.__trineLastReceiptPayload;if(p&&document.getElementById('receipt-modal')?.style.display==='flex'&&typeof showReceiptPreview==='function'){const c=document.getElementById('receipt-content');if(c&&typeof buildHtml==='function')c.innerHTML=buildHtml(p)}})}
  const oldHydrate=window.hydrateSaasUi||hydrateSaasUi;window.hydrateSaasUi=function(){const r=oldHydrate.apply(this,arguments);setTimeout(()=>{syncSlogan();const v=document.getElementById('settings-meta-validity');if(v)v.textContent=formatPlanValidity();renderAccess();lockPerformanceNav();wireTools();ensureReceiptFooter();},0);return r};try{hydrateSaasUi=window.hydrateSaasUi}catch(e){}
  const oldBuildSidebar=window.buildSidebar;setTimeout(()=>{lockPerformanceNav();wireTools();syncHistory();syncSlogan();renderAccess();const v=document.getElementById('settings-meta-validity');if(v)v.textContent=formatPlanValidity();},80);
@@ -4237,7 +4254,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
 
 
 (function(){
-  const PREMIUM_SETTINGS=new Set(['profit','receipt']);
+  const PREMIUM_SETTINGS=new Set(['receipt']);
   const isProPlan=()=>String(window.activeWorkspacePlan||activeWorkspacePlan||'basic').toLowerCase()==='pro';
   const lockSvg='<span class="settings-submenu-lock" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></span>';
 
@@ -4312,7 +4329,13 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
    // Not `disabled`: a disabled button swallows the tap, so Gratis users got no "tersedia di paket Pro" notice.
    const auto=document.getElementById('smart-sales-open');if(auto){auto.setAttribute('aria-disabled',pro()?'false':'true');auto.title=pro()?'':'Autofill Orders tersedia di paket Pro.';const badge=auto.querySelector('.pro-inline-badge');if(badge)badge.textContent='PRO';}
    // Settings profit + receipt are Pro.
-   document.querySelectorAll('.saas-settings-submenu-btn').forEach(b=>{if(!['profit','receipt'].includes(b.dataset.settingsCategory))return;b.classList.toggle('settings-pro-locked',!pro());b.setAttribute('aria-disabled',pro()?'false':'true');b.title=pro()?'':'Tersedia di paket Pro.';if(pro())b.querySelector('.settings-submenu-lock')?.remove();});
+   document.querySelectorAll('.saas-settings-submenu-btn').forEach(b=>{if(b.dataset.settingsCategory!=='receipt')return;b.classList.toggle('settings-pro-locked',!pro());b.setAttribute('aria-disabled',pro()?'false':'true');b.title=pro()?'':'Tersedia di paket Pro.';if(pro())b.querySelector('.settings-submenu-lock')?.remove();});
+   // Petty Cash: Gratis terkunci (Pro); Pro dengan Kas dimatikan = menu & kartu Saldo Kas disembunyikan.
+   const cashOn=cashActive(),cashLocked=!canUseFeature('petty_cash');
+   document.body.classList.toggle('kairo-no-cash',!cashOn);
+   document.querySelectorAll('[data-tab="cash"],.saas-mobile-nav-btn[data-mobile-tab="cash"]').forEach(b=>{b.hidden=!cashLocked&&!cashOn;});
+   const kasCard=document.getElementById('kpi-cash')?.closest('.kpi');if(kasCard)kasCard.hidden=!cashOn;
+   if(!cashOn&&document.getElementById('cash')?.classList.contains('active')&&typeof openAppPage==='function')openAppPage('dashboard');
    // Customer DB BASIC lock.
    document.querySelectorAll('[data-tab="customers"],.saas-mobile-nav-btn[data-mobile-tab="customers"]').forEach(b=>b.classList.toggle('entitlement-locked',!canUseFeature('customer_database')));
    // Open/Close buttons BASIC lock.
@@ -4324,13 +4347,11 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
    const cust=e.target.closest('[data-tab="customers"],.saas-mobile-nav-btn[data-mobile-tab="customers"]');if(cust&&!canUseFeature('customer_database')){e.preventDefault();e.stopImmediatePropagation();showToast(lockedMsg('customer_database'),true);return;}
    const shift=e.target.closest('#open-shift-btn,#close-shift-btn');if(shift&&!canUseFeature('open_close_store')){e.preventDefault();e.stopImmediatePropagation();showToast(lockedMsg('open_close_store'),true);return;}
    const auto=e.target.closest('#smart-sales-open');if(auto&&!canUseFeature('autofill_orders')){e.preventDefault();e.stopImmediatePropagation();const menu=document.getElementById('orders-tool-menu');if(menu){menu.hidden=true;document.getElementById('orders-tool-trigger')?.setAttribute('aria-expanded','false')}showToast(lockedMsg('autofill_orders'),true);return;}
-   const set=e.target.closest('.saas-settings-submenu-btn');if(set&&['profit','receipt'].includes(set.dataset.settingsCategory)&&!pro()){e.preventDefault();e.stopImmediatePropagation();showToast('Menu ini tersedia di paket Pro.',true);return;}
+   const set=e.target.closest('.saas-settings-submenu-btn');if(set&&set.dataset.settingsCategory==='receipt'&&!pro()){e.preventDefault();e.stopImmediatePropagation();showToast('Menu ini tersedia di paket Pro.',true);return;}
  },true);
  // Wrap export: Gratis blocked, Pro normal.
  if(typeof window.exportExcel==='function'||typeof exportExcel==='function'){const old=window.exportExcel||exportExcel;window.exportExcel=function(){if(!canUseFeature('export_excel')){showToast(lockedMsg('export_excel'),true);return;}return old.apply(this,arguments)};try{exportExcel=window.exportExcel}catch(e){}}
- // Advanced per-product split remains PRO; HPP itself stays available.
- const oldRender=window.renderProductProfitRules||renderProductProfitRules;window.renderProductProfitRules=function(){const r=oldRender.apply(this,arguments);setTimeout(()=>{document.querySelectorAll('.profit-product-row').forEach(row=>{const mode=row.querySelector('.profit-product-mode');if(mode&&!pro()){mode.value='percentage';mode.disabled=true;mode.title='Custom pembagian profit per produk tersedia di paket PRO.';row.classList.remove('manual');row.querySelectorAll('.profit-product-manual-amount').forEach(i=>i.disabled=true);}})},0);return r};try{renderProductProfitRules=window.renderProductProfitRules}catch(e){}
- const oldSave=window.saveProductProfitRule||saveProductProfitRule;window.saveProductProfitRule=async function(row){const mode=row?.querySelector('.profit-product-mode')?.value||'percentage';if(mode==='manual'&&!canUseFeature('advanced_profit_sharing','full')){showToast('Custom pembagian profit per produk tersedia di paket Pro.',true);return;}return oldSave.apply(this,arguments)};try{saveProductProfitRule=window.saveProductProfitRule}catch(e){}
+ // HPP & pembagian per produk (termasuk mode manual) tersedia mulai paket Gratis (owner Okt 2026).
  const oldHyd=window.hydrateSaasUi||hydrateSaasUi;window.hydrateSaasUi=function(){const r=oldHyd.apply(this,arguments);setTimeout(decorate,0);return r};try{hydrateSaasUi=window.hydrateSaasUi}catch(e){}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(decorate,150),{once:true});else setTimeout(decorate,150);
 })();
@@ -4456,14 +4477,15 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
  const TICK='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.2 4.2L19 7"/></svg>';
  const DASH='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 12h10"/></svg>';
  const PLANS=[
-  {id:'basic',name:'Gratis',price:'Rp0',copy:'Mulai merapikan pencatatan usaha tanpa biaya.',points:['Catat order & riwayat 60 hari','Struk, Petty Cash & Withdraw','Dashboard, Performance & notifikasi'],foot:'Langsung aktif setelah daftar'},
+  {id:'basic',name:'Gratis',price:'Rp0',copy:'Mulai merapikan pencatatan usaha tanpa biaya.',points:['Catat order & riwayat 60 hari','Struk, HPP & Withdraw','Dashboard, Performance & notifikasi'],foot:'Langsung aktif setelah daftar'},
   {id:'pro',name:'Pro',price:'Rp43.000<small>/bulan</small>',deal:'<span>6 bulan</span><s aria-label="Harga normal Rp258.000">Rp258.000</s><b>Rp238.000</b>',badge:'Paling lengkap',copy:'Semua fitur KAIRO: operasional, otomatisasi, dan branding usaha.',points:['Semua fitur Gratis + riwayat tanpa batas','Customer Database, Autofill & Promo','Open / Close Store, Export Excel','Branding, struk & pembagian profit'],foot:'Aktif setelah konfirmasi via WhatsApp'},
   {id:'custom',name:'Custom',price:'Pro + penyesuaian',copy:'Semua fitur Pro, disesuaikan dengan alur bisnismu.',points:['Semua fitur Pro','Penyesuaian alur bisnis','Pendampingan setup'],foot:'Aktif sebagai paket Pro'}
  ];
- const INCLUDED=['Dashboard & notifikasi order','Catat order manual','Struk transaksi','Petty Cash','Withdraw','Package & harga','Warna layout & dark mode','Template sesuai jenis usaha'];
+ const INCLUDED=['Dashboard & notifikasi order','Catat order manual','Struk transaksi','HPP & pembagian per produk','Withdraw','Package & harga','Warna layout & dark mode','Template sesuai jenis usaha'];
  // [feature, Gratis, Pro, Custom] — 1 = included, 0 = not included, text = note.
  const ROWS=[
   ['Riwayat transaksi','60 hari terakhir','Tanpa batas','Tanpa batas'],
+  ['Petty Cash (kas usaha)',0,1,1],
   ['Performance & grafik','Ya · Seller App: Pro',1,1],
   ['Customer Database',0,1,1],
   ['Autofill Orders',0,1,1],
@@ -4603,18 +4625,18 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
  }
  function decorateLocks(){
    const basic=isBasic();
-   // Whole menus unavailable on BASIC. They stay clickable so the upgrade message can explain why.
-   document.querySelectorAll('[data-tab="promo"],.saas-mobile-nav-btn[data-mobile-tab="promo"],[data-tab="customers"],.saas-mobile-nav-btn[data-mobile-tab="customers"]').forEach(el=>setLock(el,basic));
+   // Whole menus unavailable on BASIC (Petty Cash juga, owner Okt 2026). They stay clickable so the upgrade message can explain why.
+   document.querySelectorAll('[data-tab="promo"],.saas-mobile-nav-btn[data-mobile-tab="promo"],[data-tab="customers"],.saas-mobile-nav-btn[data-mobile-tab="customers"],[data-tab="cash"],.saas-mobile-nav-btn[data-mobile-tab="cash"]').forEach(el=>setLock(el,basic));
    // BASIC Settings: Package & Harga stays available. Premium categories get a visible lock.
-   document.querySelectorAll('.saas-settings-submenu-btn').forEach(el=>setLock(el,basic&&['workspace','addons','profit','receipt'].includes(el.dataset.settingsCategory)));
+   document.querySelectorAll('.saas-settings-submenu-btn').forEach(el=>setLock(el,basic&&['workspace','addons','receipt'].includes(el.dataset.settingsCategory)));
    // Performance is intentionally NOT locked on BASIC; Daily Sales remains available.
    document.querySelectorAll('[data-tab="performance"],.saas-mobile-nav-btn[data-mobile-tab="performance"]').forEach(el=>setLock(el,false));
  }
  document.addEventListener('click',e=>{
    if(!isBasic())return;
-   const whole=e.target.closest('[data-tab="promo"],.saas-mobile-nav-btn[data-mobile-tab="promo"],[data-tab="customers"],.saas-mobile-nav-btn[data-mobile-tab="customers"]');
+   const whole=e.target.closest('[data-tab="promo"],.saas-mobile-nav-btn[data-mobile-tab="promo"],[data-tab="customers"],.saas-mobile-nav-btn[data-mobile-tab="customers"],[data-tab="cash"],.saas-mobile-nav-btn[data-mobile-tab="cash"]');
    const settings=e.target.closest('.saas-settings-submenu-btn');
-   if(whole||(settings&&['workspace','addons','profit','receipt'].includes(settings.dataset.settingsCategory))){e.preventDefault();e.stopImmediatePropagation();upgradeMessage();}
+   if(whole||(settings&&['workspace','addons','receipt'].includes(settings.dataset.settingsCategory))){e.preventDefault();e.stopImmediatePropagation();upgradeMessage();}
  },true);
  function refresh(){neutralBrand();decorateLocks()}
  const oldHyd=window.hydrateSaasUi||hydrateSaasUi;window.hydrateSaasUi=function(){const r=oldHyd.apply(this,arguments);setTimeout(refresh,0);return r};try{hydrateSaasUi=window.hydrateSaasUi}catch(e){}

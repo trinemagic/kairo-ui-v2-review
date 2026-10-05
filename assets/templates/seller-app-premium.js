@@ -46,7 +46,7 @@
   }
   function sellerCustomLimitText(){
     const names=sellerCustomProductNames();
-    return sellerPlan()==='basic'?`Basic: ${names.size}/${BASIC_CUSTOM_PRODUCT_LIMIT} produk custom`:'Produk custom tanpa batas';
+    return sellerPlan()==='basic'?`Gratis: ${names.size}/${BASIC_CUSTOM_PRODUCT_LIMIT} produk custom`:'Produk custom tanpa batas';
   }
   function updateSellerCustomLimitUI(){
     const note=document.getElementById('seller-custom-product-limit');
@@ -734,7 +734,7 @@
     if(!duration)throw new Error('Durasi wajib diisi.');
     const customNames=sellerCustomProductNames();
     if(sellerPlan()==='basic'&&!customNames.has(product)&&customNames.size>=BASIC_CUSTOM_PRODUCT_LIMIT){
-      throw new Error(`Paket Basic maksimal ${BASIC_CUSTOM_PRODUCT_LIMIT} produk custom. Upgrade ke Plus untuk menambah produk custom tanpa batas.`);
+      throw new Error(`Paket Gratis maksimal ${BASIC_CUSTOM_PRODUCT_LIMIT} produk custom. Upgrade ke Pro untuk menambah produk custom tanpa batas.`);
     }
     const base={category,product,variant,duration,price,cost};
     const key=rowKey(base);

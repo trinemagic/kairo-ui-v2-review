@@ -299,7 +299,7 @@ body.seller-app-premium.seller-clean-top-filters main.container>.toolbar .filter
 
 /* Performance gating */
 body.seller-app-premium .seller-performance-locked-nav{opacity:.56;cursor:not-allowed}
-body.seller-app-premium .seller-performance-locked-nav::after{content:'PLUS';margin-left:auto;font-size:8px;font-weight:900;letter-spacing:.05em;padding:3px 5px;border-radius:var(--seller-radius-pill);background:color-mix(in srgb,var(--seller-blue) 11%,transparent);color:var(--seller-blue)}
+body.seller-app-premium .seller-performance-locked-nav::after{content:'PRO';margin-left:auto;font-size:8px;font-weight:900;letter-spacing:.05em;padding:3px 5px;border-radius:var(--seller-radius-pill);background:color-mix(in srgb,var(--seller-blue) 11%,transparent);color:var(--seller-blue)}
 
 /* Custom product dialog */
 .seller-settings-head-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
