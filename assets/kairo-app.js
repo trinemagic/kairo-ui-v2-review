@@ -377,10 +377,22 @@ let setupWizardLoader=null;
 function loadSetupWizard(){
   if(window.kairoSetupWizard)return Promise.resolve(window.kairoSetupWizard);
   if(!setupWizardLoader)setupWizardLoader=new Promise((resolve,reject)=>{
-    const v='1.0.0',css=document.createElement('link');css.rel='stylesheet';css.href=`assets/kairo-setup-wizard.css?v=${v}`;document.head.appendChild(css);
+    const v='1.0.1',css=document.createElement('link');css.rel='stylesheet';css.href=`assets/kairo-setup-wizard.css?v=${v}`;document.head.appendChild(css);
     const js=document.createElement('script');js.src=`assets/kairo-setup-wizard.js?v=${v}`;js.onload=()=>resolve(window.kairoSetupWizard);js.onerror=()=>{setupWizardLoader=null;reject(new Error('Setup wizard gagal dimuat.'));};document.head.appendChild(js);
   });
   return setupWizardLoader;
+}
+// Settings › Identitas Workspace: tombol membuka panduan setup lagi kapan saja (Pro).
+function syncSetupEntry(){
+  const card=document.getElementById('workspace-settings-form')?.closest('.card');if(!card)return;
+  let row=document.getElementById('kairo-setup-entry');
+  const show=normalizedPlan()==='pro'&&!isTrineMagicWorkspace();
+  if(!show){row?.remove();return;}
+  if(row)return;
+  row=document.createElement('div');row.id='kairo-setup-entry';row.className='kairo-setup-entry';
+  row.innerHTML='<span><b>Panduan setup toko</b>Atur tema, harga & modal, Kas, struk, dan logo langkah demi langkah.</span><button type="button" class="kairo-setup-entry-btn">Buka panduan</button>';
+  row.querySelector('button').addEventListener('click',async e=>{const b=e.currentTarget;b.disabled=true;try{(await loadSetupWizard())?.open(0);}catch(err){showToast(err?.message||'Panduan setup gagal dimuat.',true);}finally{b.disabled=false;}});
+  card.querySelector('.card-title')?.after(row);
 }
 async function maybeStartSetupWizard(){
   try{
@@ -3541,7 +3553,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
   // Extend existing UI hydrator without replacing its backend behavior.
   if(typeof hydrateSaasUi==='function'){
     const originalHydrate=hydrateSaasUi;
-    hydrateSaasUi=function(){const r=originalHydrate.apply(this,arguments);setTimeout(()=>{addBrandPreview();wireBrandingPreview();applyWorkspaceBrandingV204(activeWorkspaceBranding);renderThemePicker();ensureKairoAppSwitcher();syncNavState();},0);return r;};
+    hydrateSaasUi=function(){const r=originalHydrate.apply(this,arguments);setTimeout(()=>{addBrandPreview();wireBrandingPreview();applyWorkspaceBrandingV204(activeWorkspaceBranding);renderThemePicker();syncSetupEntry();ensureKairoAppSwitcher();syncNavState();},0);return r;};
   }
   // Add workspace-specific receipt footer to preview.
   if(typeof showReceiptPreview==='function'){

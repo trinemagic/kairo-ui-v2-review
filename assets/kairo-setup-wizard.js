@@ -116,7 +116,7 @@
     if (steps[cur] === 'theme') window.kairoThemeSetup?.revert();
     close();
     if (Object.values(out).some(Boolean)) { try { refreshAll(); } catch (_e) {} }
-    if (!S.dismissed_at) { await saveState({ dismissed_at: new Date().toISOString(), banner_logins: 0 }); toast('Oke! Setup toko bisa dilanjutkan dari Dashboard di login berikutnya.', 'info'); }
+    if (!S.dismissed_at && !S.completed_at) { await saveState({ dismissed_at: new Date().toISOString(), banner_logins: 0 }); toast('Oke! Setup toko bisa dilanjutkan dari Dashboard di login berikutnya.', 'info'); }
   }
 
   function render() {
@@ -486,5 +486,6 @@
     async save() { return D.logo ? 'logo tersimpan' : (activeWorkspaceBranding?.logo_url ? 'logo sebelumnya' : null); }
   };
 
-  window.kairoSetupWizard = { boot, open: i => open(Number(i) || 0) };
+  // Dibuka lagi dari Settings: mulai dari status tersimpan supaya completed_at/langkah lama tidak hilang.
+  window.kairoSetupWizard = { boot, open: i => { if (root) return; S = { ...(activeWorkspaceBranding?.setup_state || {}) }; open(Number(i) || 0); } };
 })();
