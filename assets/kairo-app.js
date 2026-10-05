@@ -473,7 +473,9 @@ const rupiah = n => "Rp" + Number(n || 0).toLocaleString("id-ID");
    Nesa 60%, Ganesh 35%, Kas 5% dari omzet bruto.
    Persentase partner tetap dibaca dari profit_share_rules agar database menjadi source of truth.
 */
-const LEGACY_CASH_SHARE_RATE = 0.05;
+// Potongan Kas bila workspace tidak punya baris "Kas" (owner Okt 2026): 0%, user Pro baru menentukan sendiri.
+// Pro lama yang dulu memakai 5% bawaan sudah dikunci lewat .claude/sql/2026-10-kas-default-zero.sql.
+const DEFAULT_CASH_SHARE_RATE = 0;
 const partnerEntitlement = (grossRevenue, partnerPct) => Number(grossRevenue || 0) * Number(partnerPct || 0);
 function normalizeShareRules(rules){ return Array.isArray(rules)?rules:[]; }
 function kairoLocalDateTimeValue(date=new Date()){
@@ -540,7 +542,7 @@ function cashShareRateForDate(date){
   const v=activeShareVersionForDate(date);
   if(v){ const r=normalizeShareRules(v.rules).find(x=>String(x.partner_name||'').toLowerCase()==='kas'); if(r) return Number(r.percentage||0); }
   const kas=partners.find(p=>String(p.partner_name||'').toLowerCase()==='kas');
-  return Number(kas?.percentage||LEGACY_CASH_SHARE_RATE);
+  return Number(kas?.percentage??DEFAULT_CASH_SHARE_RATE)||0;
 }
 function transactionProfitBreakdown(t){
   const items=[...(Array.isArray(t?.order_items)?t.order_items:[]),...(Array.isArray(t?.order_addons)?t.order_addons:[])];
@@ -1444,10 +1446,10 @@ function renderProfitShareEditor(){
   const active=activeShareVersionForDate(kairoLocalDateTimeValue());
   const activeRules=active?normalizeShareRules(active.rules):[];
   const rows=partners.filter(p=>cashActive()||!isKasName(p));
-  if(cashActive()&&!rows.some(isKasName)) rows.push({id:null,partner_name:'Kas',percentage:LEGACY_CASH_SHARE_RATE});
+  if(cashActive()&&!rows.some(isKasName)) rows.push({id:null,partner_name:'Kas',percentage:DEFAULT_CASH_SHARE_RATE});
   grid.innerHTML=rows.map(p=>{
     const saved=activeRules.find(r=>(r.partner_id&&p.id&&String(r.partner_id)===String(p.id))||String(r.partner_name||'').toLowerCase()===String(p.partner_name||'').toLowerCase());
-    const pct=(Number(saved?.percentage??p.percentage??(String(p.partner_name).toLowerCase()==='kas'?LEGACY_CASH_SHARE_RATE:0))*100);
+    const pct=(Number(saved?.percentage??p.percentage??(String(p.partner_name).toLowerCase()==='kas'?DEFAULT_CASH_SHARE_RATE:0))*100);
     return `<div class="profit-rule-item"><label>${escapeHtml(p.partner_name||'-')}</label><div class="profit-rule-input-wrap"><input class="input profit-share-pct" type="number" min="0" max="100" step="0.01" value="${Number.isFinite(pct)?pct.toFixed(2).replace(/\.00$/,''):0}" data-partner-id="${p.id||''}" data-partner-name="${escapeHtml(p.partner_name||'')}"><span>%</span></div></div>`;
   }).join('');
   grid.querySelectorAll('input').forEach(i=>i.addEventListener('input',updateProfitShareTotal));

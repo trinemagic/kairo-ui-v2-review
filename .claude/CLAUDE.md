@@ -82,7 +82,7 @@ domain = pengguna login ulang & pengaturan browser (Ingat saya, dark mode) mulai
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
 Versi terakhir: `kairo.css?v=20.10.157`, `kairo-v3.css?v=3.31.0`,
-`kairo-v3.js?v=3.22.0`, `kairo-app.js?v=20.10.183`; template seller dimuat dari kairo-app.js
+`kairo-v3.js?v=3.22.0`, `kairo-app.js?v=20.10.184`; template seller dimuat dari kairo-app.js
 (`seller-app-premium.js?v=20.10.150`, `.css?v=20.10.151`) — naikkan juga bila file template diubah.
 
 **Halaman app** = `main.container > section.section` dengan id:
@@ -139,7 +139,9 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   pembagian baru (Kas `cash_off:true`, 0%, partner lain diskalakan ke 100%) + `cash_enabled=false`. Saldo Kas yang sudah terkumpul tetap
   (kartu & Petty Cash tetap tampil selama saldo ≠ 0, `cashVisible()`); transaksi setelah tanggal itu tidak menambah Kas (`kasOffSince()`).
   Gratis: editor partner (`#profit-share-editor-form`, Tambah Partner) disembunyikan - laba bersih setelah HPP tetap tampil.
-  Default Kas 0% untuk user Pro baru: BELUM (menunggu hasil cek isi `profit_share_rules` di DB; fallback JS `LEGACY_CASH_SHARE_RATE`=5%).
+  Default Kas 0% untuk user Pro baru (owner Okt 2026): `DEFAULT_CASH_SHARE_RATE`=0 (dulu `LEGACY_CASH_SHARE_RATE`=5% bila workspace tidak
+  punya baris Kas). Saldo Kas dihitung ulang dari SEMUA transaksi, jadi Pro lama tanpa baris Kas (mis. TOKO SEMPA 60/35) dikunci 5% lewat
+  `.claude/sql/2026-10-kas-default-zero.sql` - SQL ini WAJIB jalan sebelum kode 0% dipasang.
 - **HPP & pembagian per produk (owner Okt 2026):** kategori Settings `profit` dibuka untuk Gratis (termasuk mode manual).
 - **Masa aktif (owner Okt 2026):** `effectiveSubscriptionPlan()` - Pro lewat tanggal berakhir (current_period_end/expires_at/end_date/
   valid_until, akhir hari) atau status canceled/inactive/expired dibaca Gratis (data aman), toast sekali per workspace; Trine Magic
