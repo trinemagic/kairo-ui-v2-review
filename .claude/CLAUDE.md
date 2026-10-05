@@ -81,10 +81,10 @@ domain = pengguna login ulang & pengaturan browser (Ingat saya, dark mode) mulai
 | `assets/fonts/` | Plus Jakarta Sans self-hosted (OFL) | Jangan kembali ke Google Fonts. |
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
-Versi terakhir: `kairo.css?v=20.10.157`, `kairo-v3.css?v=3.32.0`,
-`kairo-v3.js?v=3.23.0`, `kairo-app.js?v=20.10.186`; template seller dimuat dari kairo-app.js
+Versi terakhir: `kairo.css?v=20.10.157`, `kairo-v3.css?v=3.33.0`,
+`kairo-v3.js?v=3.23.0`, `kairo-app.js?v=20.10.187`; template seller dimuat dari kairo-app.js
 (`seller-app-premium.js?v=20.10.153`, `.css?v=20.10.152`) — naikkan juga bila file template diubah.
-Setup Wizard dimuat dari `loadSetupWizard()` di kairo-app.js (`kairo-setup-wizard.js/.css?v=1.0.0`, satu konstanta `v`).
+Setup Wizard dimuat dari `loadSetupWizard()` di kairo-app.js (`kairo-setup-wizard.js/.css?v=1.0.1`, satu konstanta `v`).
 
 **Halaman app** = `main.container > section.section` dengan id:
 `dashboard`, `performance`, `input` (Orders), `customers`, `promo` (dibuat via JS),
@@ -228,7 +228,8 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   (`banner_logins`), setelah itu hilang. Jembatan ke kode lama: `window.kairoThemeSetup`, `kairoReceiptSetup` (saveLayout({quiet:true})),
   `kairoLogoSetup`. **Logo dikompres otomatis** (juga crop di Settings): WebP 384px turun kualitas/ukuran sampai <=60 KB, fallback PNG 256
   bila browser tidak bisa WebP; file `<workspace>/logo.webp` (logo.png lama dihapus). Dialog wizard selalu solid (tema Cloudy surface-nya
-  transparan). Belum ada tombol buka ulang wizard di Settings (owner belum minta).
+  transparan). Buka ulang: Settings › Identitas Workspace › "Panduan setup toko" (`#kairo-setup-entry`, Pro, `syncSetupEntry()`),
+  membaca setup_state tersimpan jadi status selesai tidak hilang.
 - **Layout konsisten (owner Okt 2026):** semua judul kartu satu gaya (sans 15,5px/800; Wood memakai serif), subjudul kartu sans tidak
   miring, toolbar di dalam kartu tanpa padding atas (dulu judul turun 22px), Performance 2 kolom 1,6:1 dan kartu sendirian selebar penuh,
   Settings kolom kanan rata atas/bawah, Promo 2 kolom sama lebar, angka Petty Cash/Customer tidak patah, panel pesanan seller selebar form
@@ -324,7 +325,12 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   `trinemagic/trine-magic-dashboard/admin` (yang lama tidak diubah). Tombol keluar = tutup tab admin. Paket tampil Gratis/Pro
   (`plus` dll dihitung Pro; pilihan paket di modal hanya basic/pro; harga `plus` disembunyikan). Tabel jadi kartu di
   ≤640px (label kolom otomatis dari `thead`, `labelCells()`). Tes: stub `window.supabase` + data contoh di
-  scratchpad (route `**/supabase-js@2*` dan `**/chart.umd.min.js`). Cache `admin.css?v=1.6.0`, `admin.js?v=1.7.0`. **Log Aktivitas (Okt 2026):** fungsi `platform_admin_activity` tidak pernah ada di DB asli -> dibuat lewat `.claude/sql/2026-10-admin-activity-log.sql` (tabel `platform_admin_activity_log` tanpa FK, RLS tanpa policy, maks 5000 baris; `platform_admin_log_activity`). admin.js membungkus `db.rpc`: aksi di `LOG_ACTIONS` yang sukses otomatis dicatat (nama workspace diambil sebelum aksi). Pop-up admin (`toast(msg, true|'success'|'info'|'warning'|'error')`) = gaya dashboard: kartu bertumpuk kanan atas di bawah topbar, ikon+judul, X, 5 dtk, jeda saat hover. "Sebagian data gagal dimuat" kuning + menyebut fungsi & pesan error DB (juga di console). Modal Workspace membaca baris dari daftar (`all`), bukan RPC `platform_admin_workspace_detail` (tidak ada di DB asli).
+  scratchpad (route `**/supabase-js@2*` dan `**/chart.umd.min.js`). Cache `admin.css?v=1.8.0`, `admin.js?v=1.10.0`.
+  **Buat Akun (owner Okt 2026):** tombol di Workspaces → modal `#accountModal`: akun dibuat lewat `auth.signUp` + metadata yang sama
+  dengan form daftar landing (workspace dibuat database), memakai klien Supabase TERPISAH (`storageKey` sendiri, tanpa simpan sesi) supaya
+  sesi admin tidak tersentuh; `requested_plan:'basic'`. Pro = `platform_admin_update_subscription` langsung (tanpa catatan penjualan).
+  Password acak bisa dibuat, info login tampil sekali + tombol Salin. Log Aktivitas "Buat akun". Cocok untuk akun tes (hapus lewat modal
+  Workspace > Hapus). **Log Aktivitas (Okt 2026):** fungsi `platform_admin_activity` tidak pernah ada di DB asli -> dibuat lewat `.claude/sql/2026-10-admin-activity-log.sql` (tabel `platform_admin_activity_log` tanpa FK, RLS tanpa policy, maks 5000 baris; `platform_admin_log_activity`). admin.js membungkus `db.rpc`: aksi di `LOG_ACTIONS` yang sukses otomatis dicatat (nama workspace diambil sebelum aksi). Pop-up admin (`toast(msg, true|'success'|'info'|'warning'|'error')`) = gaya dashboard: kartu bertumpuk kanan atas di bawah topbar, ikon+judul, X, 5 dtk, jeda saat hover. "Sebagian data gagal dimuat" kuning + menyebut fungsi & pesan error DB (juga di console). Modal Workspace membaca baris dari daftar (`all`), bukan RPC `platform_admin_workspace_detail` (tidak ada di DB asli).
   **Akses (owner Okt 2026): tanpa form login.** admin/ hanya jalan bila dibuka dari tombol KAIRO Admin di dashboard
   Trine Magic: `openKairoAdmin()` membuka tab (tanpa `noopener`), admin minta token lewat `postMessage`
   (`kairo-admin-token-request` → `kairo-admin-token`, cek origin + window yang dibuka), dashboard hanya menjawab bila
