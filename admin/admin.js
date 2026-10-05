@@ -726,6 +726,60 @@ document.querySelectorAll('.table-wrap tbody').forEach(tb=>new MutationObserver(
 
 /* Shell */
 let lastFocus=null;
+// Buat Akun (owner Okt 2026): akun dibuat lewat jalur yang sama dengan form daftar di landing (auth.signUp + metadata,
+// workspace dibuat database) memakai klien Supabase terpisah, jadi sesi admin tidak tersentuh. Paket Pro diset langsung
+// lewat platform_admin_update_subscription (tanpa catatan penjualan).
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function randomPassword(){const c='abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789',a=new Uint32Array(12);crypto.getRandomValues(a);return [...a].map(n=>c[n%c.length]).join('');}
+function syncAccountPlan(){$('aUntilWrap').classList.toggle('hidden',$('aPlan').value!=='pro');}
+function openAccount(){
+  ['aName','aBusiness','aUser','aEmail','aPhone'].forEach(id=>$(id).value='');
+  $('aPass').value=randomPassword();$('aPlan').value='basic';
+  const d=new Date();d.setMonth(d.getMonth()+1);$('aUntil').value=d.toISOString().slice(0,10);
+  $('aTemplate').innerHTML=TEMPLATES.map(t=>`<option value="${esc(t.key)}">${esc(t.name)}</option>`).join('');
+  $('accForm').classList.remove('hidden');$('accDone').classList.add('hidden');$('aError').textContent='';syncAccountPlan();
+  openModal('accountModal');
+}
+async function createAccount(){
+  const btn=$('saveAccount'),v=id=>$(id).value.trim(),err=m=>{$('aError').textContent=m;};
+  const name=v('aName'),business=v('aBusiness'),username=v('aUser').toLowerCase(),email=v('aEmail').toLowerCase(),password=$('aPass').value,plan=$('aPlan').value,phone=v('aPhone'),template=$('aTemplate').value;
+  if(!name||!business)return err('Nama pemilik dan nama toko wajib diisi.');
+  if(!/^[a-z0-9._-]{3,32}$/.test(username))return err('Username 3–32 karakter: huruf kecil, angka, titik, garis bawah, atau strip.');
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email))return err('Email belum valid.');
+  if(password.length<8)return err('Password minimal 8 karakter.');
+  if(plan==='pro'&&!$('aUntil').value)return err('Isi tanggal Pro berlaku sampai.');
+  err('');btn.disabled=true;btn.textContent='Membuat akun…';
+  try{
+    const {data:free,error:ue}=await db.rpc('is_username_available',{p_username:username});if(ue)throw ue;
+    if(!free)throw new Error('Username sudah dipakai. Coba username lain.');
+    const signup=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false,storageKey:'kairo-admin-create-account'}});
+    const {data,error}=await signup.auth.signUp({email,password,options:{data:{username,display_name:name,workspace_name:business,business_template:template,requested_plan:'basic',requested_variant:null,requested_period:null,phone}}});
+    if(error)throw new Error(/already/i.test(error.message||'')?'Email tersebut sudah terdaftar.':error.message);
+    if(!data?.user?.id)throw new Error('Akun login tidak terbentuk. Cek pengaturan Email Provider di Supabase.');
+    if(Array.isArray(data.user.identities)&&data.user.identities.length===0)throw new Error('Email tersebut sudah terdaftar.');
+    try{await signup.auth.signOut();}catch(_e){}
+    // Workspace dibuat database setelah daftar; tunggu sampai muncul di daftar.
+    let ws=null;for(let i=0;i<6&&!ws;i++){if(i)await sleep(1200);await load();ws=all.find(x=>String(x.owner_username||'').toLowerCase()===username);}
+    let until='';
+    if(plan==='pro'){
+      if(!ws)throw new Error('Akun sudah dibuat, tapi workspace-nya belum muncul. Refresh, lalu set Pro dari modal Workspace.');
+      const valid=new Date($('aUntil').value+'T23:59:59').toISOString();
+      const {error:se}=await db.rpc('platform_admin_update_subscription',{p_workspace_id:ws.workspace_id,p_plan:'pro',p_status:'active',p_valid_until:valid});
+      if(se)throw new Error('Akun sudah dibuat, tapi paket Pro gagal diset: '+se.message+'. Set dari modal Workspace.');
+      until=new Date($('aUntil').value+'T12:00:00').toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+    }
+    try{await rawRpc('platform_admin_log_activity',{p_action:'Buat akun',p_workspace_id:ws?.workspace_id||null,p_workspace_name:ws?.workspace_name||business,p_detail:`@${username} · ${PLAN_TXT(plan)}`});}catch(_e){}
+    $('accInfo').textContent=`Akun KAIRO Workspaces kamu sudah aktif.\n\nMasuk di: https://kairoworkspaces.my.id/#masuk\nUsername: ${username}\nPassword: ${password}\nPaket: ${plan==='pro'?`Pro (berlaku sampai ${until})`:'Gratis'}\n\nSimpan info login ini baik-baik ya.`;
+    $('accForm').classList.add('hidden');$('accDone').classList.remove('hidden');
+    toast(`Akun @${username} berhasil dibuat`,'success');await load();
+  }catch(e){console.warn(e);err(e?.message||'Gagal membuat akun.');}
+  finally{btn.disabled=false;btn.textContent='Buat Akun';}
+}
+async function copyAccount(){
+  const t=$('accInfo').textContent;
+  try{await navigator.clipboard.writeText(t);toast('Info login disalin','success');}
+  catch(_e){const r=document.createRange();r.selectNodeContents($('accInfo'));const s=getSelection();s.removeAllRanges();s.addRange(r);toast('Tekan Ctrl/Cmd+C untuk menyalin','info');}
+}
 function openModal(id){lastFocus=document.activeElement;$(id).classList.remove('hidden');const f=$(id).querySelector('input:not([disabled]),select,textarea,button.btn');if(f)setTimeout(()=>f.focus(),20);}
 function closeModal(id){$(id).classList.add('hidden');if(lastFocus&&lastFocus.focus)lastFocus.focus();}
 function setNav(open){$('shell').classList.toggle('nav-open',open);$('scrim').hidden=!open;}
@@ -756,7 +810,7 @@ document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;const open=[.
 $('saveSub').onclick=saveSubscription;$('add30').onclick=()=>extend(30);$('add365').onclick=()=>extend(365);
 document.querySelectorAll('.wsStatus').forEach(b=>b.onclick=()=>setWsStatus(b.dataset.status));
 $('openDelete').onclick=openDelete;$('doDelete').onclick=doDelete;$('delConfirm').oninput=delSync;
-$('newSale').onclick=openSale;$('sPeriod').onchange=syncSaleEnd;$('sStart').onchange=syncSaleEnd;
+$('newAccount').onclick=openAccount;$('aGen').onclick=()=>{$('aPass').value=randomPassword();};$('aPlan').onchange=syncAccountPlan;$('saveAccount').onclick=createAccount;$('copyAccount').onclick=copyAccount;$('newSale').onclick=openSale;$('sPeriod').onchange=syncSaleEnd;$('sStart').onchange=syncSaleEnd;
 $('sWorkspace').onchange=saleFromWorkspace;
 $('saveSale').onclick=saveSale;
 $('newExpense').onclick=()=>{$('eDate').value=todayISO();$('eError').textContent='';openModal('expenseModal');};

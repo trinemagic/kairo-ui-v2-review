@@ -7,10 +7,10 @@
 <meta name="color-scheme" content="dark">
 <title>KAIRO Admin</title>
 <link rel="icon" type="image/svg+xml" href="../assets/kairo-mark.svg">
-<link rel="stylesheet" href="admin.css?v=1.7.0">
+<link rel="stylesheet" href="admin.css?v=1.8.0">
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
-<script defer src="admin.js?v=1.9.0"></script>
+<script defer src="admin.js?v=1.10.0"></script>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -163,7 +163,7 @@
               <button class="chip filter" data-filter="expiring">Habis ≤ 30 hari</button>
               <button class="chip filter" data-filter="issue">Bermasalah</button>
             </div>
-            <div class="w-tools"><input id="search" class="input" type="search" placeholder="Cari workspace / owner…"><button id="exportWorkspaces" class="btn btn-ghost"><svg><use href="#i-down"/></svg>CSV</button></div>
+            <div class="w-tools"><input id="search" class="input" type="search" placeholder="Cari workspace / owner…"><button id="exportWorkspaces" class="btn btn-ghost"><svg><use href="#i-down"/></svg>CSV</button><button id="newAccount" class="btn btn-primary"><svg><use href="#i-plus"/></svg>Buat Akun</button></div>
           </div>
           <div class="table-wrap"><table><thead><tr><th>Workspace</th><th>Owner</th><th>Paket</th><th>Subscription</th><th>Status</th><th>Masa Aktif</th><th>Sisa</th></tr></thead><tbody id="rows"></tbody></table><p id="empty" class="empty hidden">Tidak ada workspace yang cocok.</p></div>
           <p class="hint">Klik baris untuk mengubah paket, masa aktif, atau status workspace.</p>
@@ -385,6 +385,33 @@
     </div>
     <div class="actions"><button id="saveSale" class="btn btn-primary">Simpan Penjualan</button></div>
     <div id="sError" class="err"></div>
+  </div>
+</div>
+
+<!-- Modal: buat akun (tanpa form daftar di landing) -->
+<div id="accountModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="accTitle">
+  <div class="modal">
+    <div class="modal-head"><div><h3 id="accTitle">Buat Akun</h3><p class="muted">Akun & workspace dibuat sama seperti daftar dari landing. Paket Pro di sini tidak membuat catatan penjualan.</p></div><button class="close" data-close="accountModal" aria-label="Tutup">×</button></div>
+    <div id="accForm">
+      <div class="form-grid">
+        <label class="field"><span>Nama pemilik</span><input id="aName" autocomplete="off" maxlength="80"></label>
+        <label class="field"><span>Nama toko / workspace</span><input id="aBusiness" autocomplete="off" maxlength="80"></label>
+        <label class="field"><span>Username login</span><input id="aUser" autocomplete="off" maxlength="32" placeholder="huruf kecil, angka, . _ -" spellcheck="false"></label>
+        <label class="field"><span>Email</span><input id="aEmail" type="email" autocomplete="off" spellcheck="false"></label>
+        <label class="field wide"><span>Password (min. 8 karakter)</span><span class="pw-row"><input id="aPass" autocomplete="off" spellcheck="false"><button id="aGen" class="btn btn-ghost" type="button">Buat acak</button></span></label>
+        <label class="field"><span>Jenis usaha</span><select id="aTemplate"></select></label>
+        <label class="field"><span>WhatsApp (opsional)</span><input id="aPhone" inputmode="tel" placeholder="08…"></label>
+        <label class="field"><span>Paket</span><select id="aPlan"><option value="basic">Gratis</option><option value="pro">Pro</option></select></label>
+        <label class="field" id="aUntilWrap"><span>Pro berlaku sampai</span><input id="aUntil" type="date"></label>
+      </div>
+      <div class="actions"><button id="saveAccount" class="btn btn-primary">Buat Akun</button></div>
+    </div>
+    <div id="accDone" class="acc-done hidden">
+      <p><b>Akun berhasil dibuat.</b> Kirim info login ini ke pemilik toko. Password hanya tampil sekali di sini.</p>
+      <pre id="accInfo"></pre>
+      <div class="actions"><button id="copyAccount" class="btn btn-primary"><svg><use href="#i-copy"/></svg>Salin info login</button><button class="btn btn-ghost" data-close="accountModal">Selesai</button></div>
+    </div>
+    <div id="aError" class="err"></div>
   </div>
 </div>
 
