@@ -553,8 +553,10 @@ function computeIssues(){
     const ss=String(w.subscription_status||'').toLowerCase(),wst=String(w.workspace_status||'').toLowerCase(),until=w.valid_until?+new Date(w.valid_until):null,pro=planKey(w.plan)==='pro';
     const manage={label:'Kelola',run:()=>openWorkspace(w.workspace_id)};
     if(ss==='past_due')add('high','Pembayaran telat',w,'Subscription berstatus telat bayar',w.valid_until,manage);
-    else if(pro&&until&&until<now&&['active','trialing'].includes(ss))add('high','Masa aktif Pro sudah habis',w,`Habis ${remain(w.valid_until)}, status masih aktif`,w.valid_until,manage);
+    else if(pro&&until&&until<now&&['active','trialing'].includes(ss))add('high','Masa aktif Pro sudah habis',w,`Habis ${remain(w.valid_until)} — dashboard user sudah otomatis jadi Gratis. Perpanjang atau ubah paket ke Gratis.`,w.valid_until,manage);
     else if(pro&&until&&until>=now&&until<=now+7*DAY&&!openFollow.has(w.workspace_name))add('med','Pro hampir habis, belum di-follow-up',w,`Sisa ${remain(w.valid_until)}`,null,{label:'Follow-up',run:()=>openFollow(w.workspace_id,'Ingatkan perpanjangan Pro')},null,w.valid_until);
+    // Dashboard membaca Pro yang lewat masa aktif sebagai Gratis; Pro tanpa tanggal berakhir = Pro selamanya.
+    if(pro&&!until&&!/trine magic/i.test(w.workspace_name||''))add('med','Pro tanpa masa aktif',w,'Tanggal berakhir belum diisi, jadi Pro tidak pernah habis',null,{label:'Atur',run:()=>openWorkspace(w.workspace_id)});
     if(wst==='suspended')add('low','Workspace di-suspend',w,'Owner tidak bisa memakai workspace',null,manage);
     const a=act[w.workspace_id];
     if(a&&wst==='active'){

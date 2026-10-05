@@ -145,6 +145,22 @@ async function loadPlanEntitlements(){
   return activePlanEntitlements;
 }
 
+// Masa aktif langganan (owner Okt 2026): Pro yang lewat tanggal berakhir, atau berstatus dibatalkan/nonaktif,
+// otomatis dibaca sebagai Gratis sampai admin memperpanjang. Trine Magic selalu Pro. Data tidak dihapus.
+function subscriptionEnd(sub){const raw=sub?.current_period_end||sub?.expires_at||sub?.end_date||sub?.valid_until||null;if(!raw)return null;const s=String(raw);const ms=Date.parse(/^\d{4}-\d{2}-\d{2}$/.test(s)?`${s}T23:59:59`:s);return Number.isFinite(ms)?ms:null;}
+function subscriptionLapsed(sub){
+  if(!sub||canonicalPlan(sub.plan||sub.plan_code)!=='pro'||isTrineMagicWorkspace())return false;
+  if(['canceled','cancelled','inactive','expired'].includes(String(sub.status||'').toLowerCase()))return true;
+  const end=subscriptionEnd(sub);return end!==null&&end<Date.now();
+}
+function effectiveSubscriptionPlan(sub){return subscriptionLapsed(sub)?'basic':canonicalPlan(sub?.plan||sub?.plan_code);}
+let lapsedNoticeShown='';
+function noticeLapsedSubscription(){
+  const sub=activeWorkspaceSubscription;if(!subscriptionLapsed(sub)||lapsedNoticeShown===String(activeWorkspaceId))return;
+  lapsedNoticeShown=String(activeWorkspaceId);
+  const end=subscriptionEnd(sub),when=end?new Date(end).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}):'';
+  setTimeout(()=>showToast(`Masa aktif Pro ${when?`berakhir ${when}`:'sudah berakhir'}. Workspace sementara memakai paket Gratis; data tetap aman. Hubungi admin untuk perpanjang.`,'warning'),600);
+}
 async function loadWorkspaceSaasContext(){
   const wid=requireWorkspaceId();
   const [{data:branding,error:brandingError},{data:subscription,error:subscriptionError}] = await Promise.all([
@@ -155,9 +171,10 @@ async function loadWorkspaceSaasContext(){
   if(subscriptionError) console.warn("Workspace subscription:",subscriptionError.message);
   activeWorkspaceBranding=branding||null;
   activeWorkspaceSubscription=subscription||null;
-  activeWorkspacePlan=canonicalPlan(subscription?.plan||subscription?.plan_code);
+  activeWorkspacePlan=effectiveSubscriptionPlan(subscription);
   document.documentElement.dataset.workspacePlan=activeWorkspacePlan;
   await loadPlanEntitlements();
+  noticeLapsedSubscription();
   console.info("Trine SaaS context",{workspaceId:wid,role:activeWorkspaceRole,plan:activeWorkspacePlan});
   return {branding:activeWorkspaceBranding,subscription,plan:activeWorkspacePlan};
 }
