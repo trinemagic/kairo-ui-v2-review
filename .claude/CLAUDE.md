@@ -208,7 +208,7 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   `seller-app-premium.css` dan diturunkan dari `--v3-primary/--v3-accent` (warna workspace) lewat `color-mix`, jadi warna yang diubah
   user ikut ke sidebar/kartu/ornamen. `WORKSPACE_THEMES` (kairo-app.js) = warna bawaan tiap tema; bila warna tersimpan masih bawaan lama
   (#696F41/#EA97A9) warna tema yang dipakai. Disimpan di `workspace_branding.theme` (SQL `.claude/sql/2026-10-workspace-theme.sql`,
-  BELUM dijalankan owner) + cache `kairo_ws_theme_v1` per workspace. Settings › Identitas: kartu "Tema Workspace" (`#kairo-theme-picker`,
+  **sudah dijalankan owner Okt 2026**) + cache `kairo_ws_theme_v1` per workspace. Settings › Identitas: kartu "Tema Workspace" (`#kairo-theme-picker`,
   klik = pratinjau langsung, Simpan Pengaturan = simpan); tombol Reset warna kembali ke warna tema (bukan teal KAIRO). Anti-kedip: loader
   seller memberi `html.kairo-template-pending` (app disembunyikan + spinner) sampai event `kairo:seller-mounted` (failsafe 5 dtk).
   Mode gelap tiap tema punya token sendiri. Ikon = set yang sama, dicat per tema (tebal garis + isian bentuk tertutup). Ornamen = 1 SVG
