@@ -816,3 +816,78 @@
   new MutationObserver(sync).observe(document.body, { attributes: true, attributeFilter: ['class'] });
   sync();
 })();
+
+// Ukuran teks dashboard (owner Okt 2026): 4 pilihan lewat slider di Settings › Workspace & Branding.
+// Hanya ukuran HURUF yang dikali (--kfs); lebar kolom, padding, kartu & tabel tidak berubah. Caranya: setiap aturan CSS
+// yang punya font-size (px/clamp/var) disalin jadi `html[data-kfs] <selector> { font-size: calc(<asli> * var(--kfs)) }`.
+// Ukuran em/% tidak disalin karena otomatis ikut induknya. Disimpan per perangkat (seperti mode gelap), hanya saat login.
+(function () {
+  const KEY = 'kairo_font_scale_v1';
+  const LEVELS = [{ v: 0.9, label: 'Kecil' }, { v: 1, label: 'Normal' }, { v: 1.1, label: 'Besar' }, { v: 1.2, label: 'Ekstra' }];
+  const root = document.documentElement;
+  let sheet = null, built = '', timer = 0;
+  const saved = () => { try { const i = Number(localStorage.getItem(KEY)); return LEVELS[i] ? i : 1; } catch (_e) { return 1; } };
+  const splitList = sel => { const out = []; let depth = 0, cur = ''; for (const ch of sel) { if (ch === '(' || ch === '[') depth++; if (ch === ')' || ch === ']') depth--; if (ch === ',' && !depth) { out.push(cur); cur = ''; } else cur += ch; } out.push(cur); return out.map(s => s.trim()).filter(Boolean); };
+  const scope = sel => /^html(?=$|[.:#[\s>~+])/i.test(sel) ? sel.replace(/^html/i, 'html[data-kfs]') : /^:root/.test(sel) ? sel.replace(/^:root/, ':root[data-kfs]') : 'html[data-kfs] ' + sel;
+  function convert(rules) {
+    let css = '';
+    for (const r of rules) {
+      if (r.type === 1) {
+        const fs = r.style.getPropertyValue('font-size').trim();
+        if (!fs || /em|%|inherit|initial|unset|larger|smaller|calc\(.*kfs/i.test(fs)) continue;
+        css += `${splitList(r.selectorText).map(scope).join(',')}{font-size:calc(${fs} * var(--kfs,1))${r.style.getPropertyPriority('font-size') ? ' !important' : ''}}\n`;
+      } else if (r.cssRules && (r.type === 4 || r.type === 12)) {
+        const inner = convert(r.cssRules);
+        if (inner) css += `${r.type === 4 ? '@media ' + r.conditionText : '@supports ' + r.conditionText}{${inner}}\n`;
+      }
+    }
+    return css;
+  }
+  function build() {
+    let css = '';
+    for (const s of document.styleSheets) {
+      if (s.ownerNode === sheet) continue;
+      try { css += convert(s.cssRules); } catch (_e) { /* lembar lintas domain: lewati */ }
+    }
+    if (!sheet) { sheet = document.createElement('style'); sheet.id = 'kairo-font-scale'; }
+    if (css !== built) { sheet.textContent = css; built = css; }
+    document.head.appendChild(sheet);
+  }
+  function apply() {
+    const lv = LEVELS[saved()], on = lv.v !== 1 && document.body.classList.contains('authenticated');
+    if (on) { if (!sheet) build(); root.style.setProperty('--kfs', String(lv.v)); root.dataset.kfs = String(lv.v); }
+    else { delete root.dataset.kfs; root.style.removeProperty('--kfs'); }
+    syncPicker();
+  }
+  // CSS yang dimuat belakangan (template seller, wizard) ikut dikonversi.
+  new MutationObserver(muts => {
+    if (!muts.some(m => [...m.addedNodes].some(n => n !== sheet && (n.tagName === 'LINK' || n.tagName === 'STYLE')))) return;
+    clearTimeout(timer); timer = setTimeout(() => { if (sheet) build(); }, 400);
+  }).observe(document.head, { childList: true });
+  document.addEventListener('load', e => { if (sheet && e.target.tagName === 'LINK') { clearTimeout(timer); timer = setTimeout(build, 100); } }, true);
+  new MutationObserver(apply).observe(document.body, { attributes: true, attributeFilter: ['class'] });
+
+  // Settings › Workspace & Branding: slider 4 pilihan, langsung berlaku.
+  function syncPicker() {
+    const box = document.getElementById('kairo-font-scale-picker'); if (!box) return;
+    const i = saved(), input = box.querySelector('input');
+    input.value = String(i); input.setAttribute('aria-valuetext', LEVELS[i].label);
+    box.style.setProperty('--kfs-fill', `${(i / (LEVELS.length - 1)) * 100}%`);
+    box.querySelectorAll('[data-kfs-opt]').forEach(b => b.classList.toggle('is-active', Number(b.dataset.kfsOpt) === i));
+  }
+  function set(i) { try { localStorage.setItem(KEY, String(i)); } catch (_e) {} apply(); }
+  function mountPicker() {
+    const form = document.getElementById('workspace-settings-form'), actions = form?.querySelector('.actions');
+    if (!form || !actions || document.getElementById('kairo-font-scale-picker')) return;
+    const box = document.createElement('div'); box.id = 'kairo-font-scale-picker'; box.className = 'full kairo-font-scale';
+    box.innerHTML = `<div class="kairo-layout-colors-title">Ukuran Teks</div><div class="page-sub">Perbesar atau perkecil tulisan di seluruh dashboard. Ukuran kartu dan tabel tetap. Berlaku langsung di perangkat ini.</div>
+      <div class="kairo-font-scale-control"><input type="range" min="0" max="${LEVELS.length - 1}" step="1" aria-label="Ukuran teks"><div class="kairo-font-scale-opts">${LEVELS.map((l, i) => `<button type="button" data-kfs-opt="${i}" style="--i:${i}">${l.label}</button>`).join('')}</div></div>`;
+    actions.before(box);
+    box.querySelector('input').addEventListener('input', e => set(Number(e.target.value)));
+    box.querySelectorAll('[data-kfs-opt]').forEach(b => b.addEventListener('click', () => set(Number(b.dataset.kfsOpt))));
+    syncPicker();
+  }
+  window.kairoFontScale = { levels: LEVELS, set, get: () => LEVELS[saved()].v };
+  mountPicker(); apply();
+  new MutationObserver(() => { if (!document.getElementById('kairo-font-scale-picker')) mountPicker(); }).observe(document.getElementById('settings') || document.body, { childList: true, subtree: true });
+})();
