@@ -421,3 +421,15 @@ a.btn{text-decoration:none}
 .btn-danger-solid:hover:not(:disabled){background:#c4434a}
 .btn-danger-solid:disabled{opacity:.45;cursor:not-allowed}
 @media (max-width:640px){.danger-zone{flex-direction:column;align-items:stretch}}
+
+/* Perlu Perhatian: checkbox sudah di-fix */
+th.chk,td.chk{width:44px;text-align:center}
+.issue-check{display:inline-grid;place-items:center;cursor:pointer;position:relative}
+.issue-check input{position:absolute;opacity:0;width:22px;height:22px;margin:0;cursor:pointer}
+.issue-check span{width:20px;height:20px;border-radius:6px;border:2px solid var(--muted);display:grid;place-items:center;transition:background .15s,border-color .15s}
+.issue-check input:checked+span{background:var(--ok,#4fd1a5);border-color:var(--ok,#4fd1a5)}
+.issue-check input:checked+span::after{content:"";width:6px;height:11px;border:solid #08202f;border-width:0 2.5px 2.5px 0;transform:rotate(45deg) translate(-1px,-1px)}
+.issue-check input:focus-visible+span{outline:3px solid rgba(79,209,165,.45);outline-offset:2px}
+tr.is-resolved td{opacity:.55}tr.is-resolved td.chk{opacity:1}
+tr.is-resolved .issue-title{text-decoration:line-through}
+.issue-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:12px;flex-wrap:wrap;font-size:12.5px}

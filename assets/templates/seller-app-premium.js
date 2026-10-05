@@ -46,7 +46,7 @@
   }
   function sellerCustomLimitText(){
     const names=sellerCustomProductNames();
-    return sellerPlan()==='basic'?`Basic: ${names.size}/${BASIC_CUSTOM_PRODUCT_LIMIT} produk custom`:'Produk custom tanpa batas';
+    return sellerPlan()==='basic'?`Gratis: ${names.size}/${BASIC_CUSTOM_PRODUCT_LIMIT} produk custom`:'Produk custom tanpa batas';
   }
   function updateSellerCustomLimitUI(){
     const note=document.getElementById('seller-custom-product-limit');
@@ -196,7 +196,6 @@
     if(empty)empty.hidden=cart.length>0;
     list.innerHTML=cart.map((x,i)=>`<div class="seller-cart-item"><img src="${ICON_BASE+slug(x.product)+'.svg'}" alt=""><div class="seller-cart-copy"><strong>${esc(pretty(x.product))}</strong><small>${esc(pretty(x.variant))} · ${esc(pretty(x.duration))}</small></div><div class="seller-cart-qty"><button type="button" data-seller-minus="${i}">−</button><span>${x.qty}</span><button type="button" data-seller-plus="${i}">+</button></div><strong class="seller-cart-subtotal">${rupiahLocal(x.price*x.qty)}</strong><button class="seller-cart-remove" type="button" data-seller-remove="${i}" aria-label="Hapus">×</button></div>`).join('');
     const save=document.getElementById('seller-save-order'); if(save)save.disabled=!cart.length;
-    renderSellerPaymentPreview();
   }
   function addSelected(){
     const r=selectedRow(); if(!r)return;
@@ -221,15 +220,12 @@
     const tipInput=document.getElementById('tx-tip'),tipRaw=String(tipInput?.value||'').trim(),tip=tipRaw===''?0:Number(tipRaw);
     if(tipRaw!==''&&(!Number.isFinite(tip)||tip<500||tip>10000000))throw new Error('Tip harus di antara Rp500 sampai Rp10.000.000.');
     const total=Math.max(0,subtotal+Number(adjustment.amount||0))+tip;
-    const paidRaw=String(document.getElementById('seller-payment-received')?.value||'').trim();
-    const paid=paidRaw===''?total:Number(paidRaw);
-    if(paidRaw!==''&&(!Number.isFinite(paid)||paid<0||paid>total))throw new Error('Nominal dibayar harus di antara Rp0 dan total transaksi.');
     const items=cart.map((x,i)=>({
       id:`seller-${slug(x.product)}-${i+1}`,code:x.product,
       name:`${pretty(x.product)} · ${pretty(x.variant)} · ${pretty(x.duration)}`,
       seller_key:x.seller_key,category:x.category,product:x.product,variant:x.variant,duration:x.duration,
       qty:x.qty,unit_price:x.price,subtotal:x.price*x.qty,cost_price:x.cost,cost_subtotal:x.cost*x.qty,
-      ...(i===0?{seller_payment_received:paid,seller_payment_total:total,seller_order_status:'new'}:{}),
+      ...(i===0?{seller_order_status:'new'}:{}),
       profit_share_mode:'percentage',manual_profit_split:[]
     }));
     const customerId=document.getElementById('tx-customer-id')?.value||null;
@@ -283,7 +279,7 @@
   }
   function resetSellerState(){
     clearSellerBrowseSelection();cart=[];
-    ['seller-device','seller-admin-fh','seller-warranty','seller-payment-received'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=''});
+    ['seller-device','seller-admin-fh','seller-warranty'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=''});
     ensureSellerEmptyPaymentOption();
     resetSellerChoiceField('tx-platform');
     resetSellerChoiceField('tx-payment');
@@ -297,27 +293,6 @@
     details.id='seller-extra-details';details.className='seller-extra-details';
     details.innerHTML=`<summary><span>Detail Tambahan (Opsional)</span><small>Device, Admin FH, Garansi</small></summary><div class="seller-extra-grid"><div class="form-group"><label class="label">Device</label><input id="seller-device" class="input" placeholder="contoh: iPhone / Android / TV"></div><div class="form-group"><label class="label">Admin FH</label><input id="seller-admin-fh" class="input" placeholder="Nama admin FH"></div><div class="form-group"><label class="label">Garansi</label><input id="seller-warranty" class="input" placeholder="contoh: 30 hari / 1 bulan"></div></div>`;
     host.appendChild(details);
-  }
-
-  function installSellerPaymentField(){
-    if(document.getElementById('seller-payment-panel'))return;
-    const extra=document.getElementById('seller-extra-details');if(!extra)return;
-    const panel=document.createElement('section');panel.id='seller-payment-panel';panel.className='seller-payment-panel';
-    panel.innerHTML=`<div class="seller-payment-head"><div><strong>Pembayaran Customer</strong><small>Opsional untuk DP / pembayaran sebagian. Kosong = dianggap lunas penuh.</small></div></div><div class="seller-payment-grid"><label><span>Nominal Dibayar</span><input id="seller-payment-received" type="number" min="0" step="500" class="input" placeholder="Kosong = lunas penuh"></label><div class="seller-payment-preview"><span>Sisa Piutang</span><strong id="seller-payment-outstanding">Rp0</strong></div></div>`;
-    extra.insertAdjacentElement('afterend',panel);
-    document.getElementById('seller-payment-received')?.addEventListener('input',renderSellerPaymentPreview);
-  }
-  function sellerCurrentOrderTotal(){
-    const subtotal=cart.reduce((sum,x)=>sum+Number(x.price||0)*Number(x.qty||1),0);
-    let adjustment={amount:0};try{adjustment=getPriceAdjustment(subtotal)}catch(_e){}
-    const tipRaw=String(document.getElementById('tx-tip')?.value||'').trim(),tip=tipRaw===''?0:Number(tipRaw);
-    return Math.max(0,subtotal+Number(adjustment.amount||0))+(Number.isFinite(tip)&&tip>=0?tip:0);
-  }
-  function renderSellerPaymentPreview(){
-    const out=document.getElementById('seller-payment-outstanding');if(!out)return;
-    const total=sellerCurrentOrderTotal(),raw=String(document.getElementById('seller-payment-received')?.value||'').trim();
-    const paid=raw===''?total:Math.max(0,Math.min(total,Number(raw)||0));
-    out.textContent=rupiahLocal(Math.max(0,total-paid));
   }
 
   function installCompactActions(form,cartBox){
@@ -372,7 +347,6 @@
       const r=e.target.closest('[data-seller-history-receipt]');if(r){e.stopPropagation();openSavedReceipt(r.dataset.sellerHistoryReceipt);return}
       const d=e.target.closest('[data-seller-history-delete]');if(d){e.stopPropagation();deleteCancelledTransaction(d.dataset.sellerHistoryDelete,d.dataset.sellerHistoryName,d.dataset.sellerHistoryCustomer);return}
       const st=e.target.closest('[data-seller-order-status]');if(st){e.stopPropagation();setSellerOrderStatus(st.dataset.sellerTransactionId,st.dataset.sellerOrderStatus,st);return}
-      const pay=e.target.closest('[data-seller-settle-payment]');if(pay){e.stopPropagation();settleSellerPayment(pay.dataset.sellerSettlePayment,pay);return}
       const row=e.target.closest('.seller-history-card');if(row){row.classList.toggle('is-expanded')}
     });
     return card;
@@ -494,7 +468,7 @@
     if(row)row.appendChild(card);else dash.appendChild(card);
     return card;
   }
-  // Reminders (expiring accounts, unpaid orders) read every transaction, including ones older than the
+  // Reminders (expiring accounts, Tracker Langganan) read every transaction, including ones older than the
   // Gratis 60-day history window, so an old 3- or 6-month subscription is still flagged before it ends.
   function reminderTransactions(){return typeof historyAllTransactions!=='undefined'&&Array.isArray(historyAllTransactions)&&historyAllTransactions.length?historyAllTransactions:(historyTransactions||[]);}
   function renderSellerExpiryTracker(){
@@ -511,53 +485,6 @@
       const meta=[pretty(item.product||item.package_name||'Paket'),pretty(item.variant||''),pretty(item.duration||'')].filter(Boolean).join(' · ');
       return `<div class="seller-expiry-row"><div class="seller-expiry-copy"><strong>${esc(x.tx.customer_name||'-')}</strong><small>${esc(meta)}</small></div><div class="seller-expiry-date"><span>${esc(sellerExpiryDateText(x.expiry))}</span><b class="seller-expiry-badge is-${esc(badge.tone)}">${esc(badge.label)}</b></div></div>`;
     }).join(''):'<div class="seller-expiry-empty">Tidak ada akun yang akan expired dalam 14 hari.</div>';
-  }
-
-  function sellerPaymentMeta(t){
-    const total=Math.max(0,Number(t?.total_price||0));
-    const items=Array.isArray(t?.order_items)?t.order_items:[];
-    const meta=items.find(x=>x&&Object.prototype.hasOwnProperty.call(x,'seller_payment_received'))||null;
-    const paid=meta?Math.max(0,Math.min(total,Number(meta.seller_payment_received||0))):total;
-    const outstanding=Math.max(0,total-paid);
-    return {total,paid,outstanding,isPartial:outstanding>0};
-  }
-  async function settleSellerPayment(transactionId,el){
-    const tx=reminderTransactions().find(t=>String(t.id)===String(transactionId))||(transactions||[]).find(t=>String(t.id)===String(transactionId));
-    if(!tx)return;
-    const current=sellerPaymentMeta(tx);if(!current.outstanding)return;
-    if(el)el.disabled=true;
-    try{
-      const items=(Array.isArray(tx.order_items)?tx.order_items:[]).map(x=>({...x}));
-      if(!items.length)throw new Error('Detail item transaksi tidak tersedia.');
-      items[0].seller_payment_received=current.total;items[0].seller_payment_total=current.total;
-      const {error}=await db.from('transactions').update({order_items:items}).eq('workspace_id',requireWorkspaceId()).eq('id',transactionId);
-      if(error)throw error;
-      [transactions,historyTransactions,reminderTransactions()].forEach(list=>{const row=Array.isArray(list)?list.find(t=>String(t.id)===String(transactionId)):null;if(row)row.order_items=items});
-      renderSellerHistory();renderSellerOutstandingTracker();
-      try{showToast('Piutang ditandai lunas.')}catch(_e){}
-    }catch(err){try{showToast('Gagal memperbarui pembayaran: '+(err?.message||err),true)}catch(_e){};if(el)el.disabled=false}
-  }
-  function installSellerOutstandingTracker(){
-    const dash=document.getElementById('dashboard');if(!dash)return null;
-    let card=document.getElementById('seller-outstanding-card');if(card)return card;
-    card=document.createElement('section');card.id='seller-outstanding-card';card.className='card seller-outstanding-card';
-    card.innerHTML=`<div class="seller-outstanding-head"><div><div class="card-title">Piutang Aktif</div><div class="muted">Transaksi Seller App Premium yang belum dibayar penuh.</div></div><strong id="seller-outstanding-total">Rp0</strong></div><div id="seller-outstanding-list" class="seller-outstanding-list"></div>`;
-    const row=installSellerDashboardAlertRow();
-    if(row){
-      const expiry=document.getElementById('seller-expiry-card');
-      if(expiry&&expiry.parentElement!==row)row.appendChild(expiry);
-      row.appendChild(card);
-    }else dash.appendChild(card);
-    card.addEventListener('click',e=>{const b=e.target.closest('[data-seller-settle-payment]');if(b){e.stopPropagation();settleSellerPayment(b.dataset.sellerSettlePayment,b)}});
-    return card;
-  }
-  function renderSellerOutstandingTracker(){
-    if(!mounted)return;
-    const card=installSellerOutstandingTracker();if(!card)return;
-    const host=document.getElementById('seller-outstanding-list'),totalEl=document.getElementById('seller-outstanding-total');if(!host||!totalEl)return;
-    const rows=reminderTransactions().filter(isSellerTx).map(tx=>({tx,payment:sellerPaymentMeta(tx)})).filter(x=>x.payment.outstanding>0).sort((a,b)=>txStamp(b.tx)-txStamp(a.tx));
-    totalEl.textContent=rupiahLocal(rows.reduce((sum,x)=>sum+x.payment.outstanding,0));
-    host.innerHTML=rows.length?rows.slice(0,8).map(({tx,payment})=>`<div class="seller-outstanding-row"><div class="seller-outstanding-copy"><strong>${esc(tx.customer_name||'-')}</strong><small>${esc(historyPackageText(tx))}</small></div><div class="seller-outstanding-money"><span>Dibayar ${rupiahLocal(payment.paid)}</span><strong>Sisa ${rupiahLocal(payment.outstanding)}</strong></div><button type="button" data-seller-settle-payment="${esc(tx.id)}">Tandai Lunas</button></div>`).join(''):'<div class="seller-outstanding-empty">Tidak ada piutang aktif.</div>';
   }
 
   function sellerOrderStatus(value,tx){
@@ -608,7 +535,7 @@
       const tip=Number(t.tip||t.tip_amount||0);
       const meta=[t.device&&`Device: ${t.device}`,t.admin_fh&&`Admin FH: ${t.admin_fh}`,t.warranty&&`Garansi: ${t.warranty}`].filter(Boolean).join(' · ');
       const orderStatus=sellerOrderStatus(t?.[SELLER_LEGACY_FIELDS.status],t);
-      return `<article class="seller-history-card" data-seller-history-row="${esc(t.id)}"><div class="seller-history-avatar">${esc(String(t.customer_name||'?').trim().charAt(0).toUpperCase()||'?')}</div><div class="seller-history-main"><strong>${esc(t.customer_name||'-')}</strong><small>${esc(sellerHistoryDateTime(t))}</small><span class="seller-order-status-pill is-${esc(orderStatus.key)}">${esc(orderStatus.label)}</span>${(()=>{const ex=sellerNearestExpiry(t);if(!ex)return '';const badge=ex.badge||sellerExpiryBadge(ex.days);return `<span class="seller-history-expiry is-${esc(badge.tone)}">${esc(badge.label)} · ${esc(sellerExpiryDateText(ex.expiry))}</span>`})()}</div><div class="seller-history-actions"><button type="button" class="seller-history-receipt" data-seller-history-receipt="${esc(t.id)}">Struk</button><button type="button" class="seller-history-delete" data-seller-history-delete="${esc(t.id)}" data-seller-history-name="${esc(t.customer_name||'')}" data-seller-history-customer="${esc(t.customer_id||'')}">Hapus</button></div><div class="seller-history-detail"><div><span>Paket</span><strong>${esc(historyPackageText(t))}</strong></div><div><span>Qty</span><strong>${historyQty(t)}</strong></div><div><span>Tip</span><strong>${rupiahLocal(tip)}</strong></div><div><span>Total</span><strong>${rupiahLocal(Number(t.total_price||0))}</strong></div><div><span>Pembayaran</span><strong>${esc(payment)}</strong></div>${(()=>{const pm=sellerPaymentMeta(t);return `<div><span>Dibayar</span><strong>${rupiahLocal(pm.paid)}</strong></div><div><span>Piutang</span><strong>${rupiahLocal(pm.outstanding)}</strong></div>${pm.outstanding>0?`<div><span>Status Bayar</span><strong><button type="button" class="seller-payment-settle-inline" data-seller-settle-payment="${esc(t.id)}">Tandai Lunas</button></strong></div>`:''}`})()}${meta?`<div class="seller-history-detail-wide"><span>Detail</span><strong>${esc(meta)}</strong></div>`:''}<div class="seller-history-detail-wide seller-order-status-row"><span>Status Order</span><div class="seller-order-status-control" role="group" aria-label="Status order ${esc(t.customer_name||'')}"><button type="button" class="${orderStatus.key==='new'?'active':''}" data-seller-transaction-id="${esc(t.id)}" data-seller-order-status="new">Baru</button><button type="button" class="${orderStatus.key==='progress'?'active':''}" data-seller-transaction-id="${esc(t.id)}" data-seller-order-status="on_progress">Diproses</button><button type="button" class="${orderStatus.key==='done'?'active':''}" data-seller-transaction-id="${esc(t.id)}" data-seller-order-status="done">Selesai</button></div></div></div></article>`
+      return `<article class="seller-history-card" data-seller-history-row="${esc(t.id)}"><div class="seller-history-avatar">${esc(String(t.customer_name||'?').trim().charAt(0).toUpperCase()||'?')}</div><div class="seller-history-main"><strong>${esc(t.customer_name||'-')}</strong><small>${esc(sellerHistoryDateTime(t))}</small><span class="seller-order-status-pill is-${esc(orderStatus.key)}">${esc(orderStatus.label)}</span>${(()=>{const ex=sellerNearestExpiry(t);if(!ex)return '';const badge=ex.badge||sellerExpiryBadge(ex.days);return `<span class="seller-history-expiry is-${esc(badge.tone)}">${esc(badge.label)} · ${esc(sellerExpiryDateText(ex.expiry))}</span>`})()}</div><div class="seller-history-actions"><button type="button" class="seller-history-receipt" data-seller-history-receipt="${esc(t.id)}">Struk</button><button type="button" class="seller-history-delete" data-seller-history-delete="${esc(t.id)}" data-seller-history-name="${esc(t.customer_name||'')}" data-seller-history-customer="${esc(t.customer_id||'')}">Hapus</button></div><div class="seller-history-detail"><div><span>Paket</span><strong>${esc(historyPackageText(t))}</strong></div><div><span>Qty</span><strong>${historyQty(t)}</strong></div><div><span>Tip</span><strong>${rupiahLocal(tip)}</strong></div><div><span>Total</span><strong>${rupiahLocal(Number(t.total_price||0))}</strong></div><div><span>Pembayaran</span><strong>${esc(payment)}</strong></div>${meta?`<div class="seller-history-detail-wide"><span>Detail</span><strong>${esc(meta)}</strong></div>`:''}<div class="seller-history-detail-wide seller-order-status-row"><span>Status Order</span><div class="seller-order-status-control" role="group" aria-label="Status order ${esc(t.customer_name||'')}"><button type="button" class="${orderStatus.key==='new'?'active':''}" data-seller-transaction-id="${esc(t.id)}" data-seller-order-status="new">Baru</button><button type="button" class="${orderStatus.key==='progress'?'active':''}" data-seller-transaction-id="${esc(t.id)}" data-seller-order-status="on_progress">Diproses</button><button type="button" class="${orderStatus.key==='done'?'active':''}" data-seller-transaction-id="${esc(t.id)}" data-seller-order-status="done">Selesai</button></div></div></div></article>`
     }).join(''):'<div class="seller-history-empty">Belum ada transaksi Seller App Premium.</div>';
     const toggle=document.getElementById('seller-history-toggle');
     if(toggle){toggle.hidden=all.length<=limit&&!historyExpanded;toggle.textContent=historyExpanded?'Tampilkan Ringkas':'Lihat Semua'}
@@ -688,7 +615,6 @@
           const status=sellerOrderStatus(p?.[SELLER_LEGACY_FIELDS.status],p);
           Array.from(content.children||[]).forEach(node=>{if(/^Status:/i.test(String(node.textContent||'').trim()))node.innerHTML=`<strong>Status:</strong> ${esc(status.label)}`});
           const bits=[];if(p.device)bits.push(`<div><strong>Device:</strong> ${esc(p.device)}</div>`);if(p.admin_fh)bits.push(`<div><strong>Admin FH:</strong> ${esc(p.admin_fh)}</div>`);if(p.warranty)bits.push(`<div><strong>Garansi:</strong> ${esc(p.warranty)}</div>`);
-          const pm=sellerPaymentMeta(p);if(pm.outstanding>0){bits.push(`<div><strong>Dibayar:</strong> ${rupiahLocal(pm.paid)}</div>`);bits.push(`<div><strong>Sisa Piutang:</strong> ${rupiahLocal(pm.outstanding)}</div>`)}
           if(bits.length)content.insertAdjacentHTML('afterbegin',bits.join(''));
         }
       }
@@ -734,7 +660,7 @@
     if(!duration)throw new Error('Durasi wajib diisi.');
     const customNames=sellerCustomProductNames();
     if(sellerPlan()==='basic'&&!customNames.has(product)&&customNames.size>=BASIC_CUSTOM_PRODUCT_LIMIT){
-      throw new Error(`Paket Basic maksimal ${BASIC_CUSTOM_PRODUCT_LIMIT} produk custom. Upgrade ke Plus untuk menambah produk custom tanpa batas.`);
+      throw new Error(`Paket Gratis maksimal ${BASIC_CUSTOM_PRODUCT_LIMIT} produk custom. Upgrade ke Pro untuk menambah produk custom tanpa batas.`);
     }
     const base={category,product,variant,duration,price,cost};
     const key=rowKey(base);
@@ -839,7 +765,7 @@
     if(active==='settings')cleanupSellerSettings();
     if(active==='performance')cleanupSellerPerformance();
   }
-  function syncSellerTemplateChrome(){cleanupSellerSettings();cleanupSellerPerformance();syncSellerToolbar()}
+  function syncSellerTemplateChrome(){cleanupSellerSettings();cleanupSellerPerformance();syncSellerToolbar();if(mounted)ensureTrackerNav()}
 
   function wireCoreHooks(){
     try{
@@ -854,7 +780,7 @@
         const core=renderHistory;const wrapped=function(){const r=core.apply(this,arguments);if(mounted)renderSellerHistory();return r};wrapped.__sellerWrapped=true;renderHistory=wrapped;
       }
       if(typeof fetchHistoryTransactions==='function'&&!fetchHistoryTransactions.__sellerWrapped){
-        const core=fetchHistoryTransactions;const wrapped=async function(){const r=await core.apply(this,arguments);if(mounted){renderSellerHistory();renderSellerDashboardKpis();renderSellerExpiryTracker();renderSellerOutstandingTracker()}return r};wrapped.__sellerWrapped=true;fetchHistoryTransactions=wrapped;
+        const core=fetchHistoryTransactions;const wrapped=async function(){const r=await core.apply(this,arguments);if(mounted){renderSellerHistory();renderSellerDashboardKpis();renderSellerExpiryTracker()}return r};wrapped.__sellerWrapped=true;fetchHistoryTransactions=wrapped;
       }
       if(typeof renderDashboard==='function'&&!renderDashboard.__sellerWrapped){
         const core=renderDashboard;const wrapped=function(){
@@ -920,11 +846,9 @@
     syncSellerUserFacingWording();
     installSellerDashboardHistory();
     installSellerExpiryTracker();
-    installSellerOutstandingTracker();
     renderSellerHistory();
     renderSellerDashboardKpis();
     renderSellerExpiryTracker();
-    renderSellerOutstandingTracker();
     hideGenericSellerDashboardHistory();
   }
 
@@ -939,7 +863,6 @@
 
     const packageBox=packages.closest('.form-group')||packages.parentElement;(packageBox||form.firstChild).insertAdjacentElement('beforebegin',host);
     installExtraFields();
-    installSellerPaymentField();
 
     const submit=form.querySelector('button[type="submit"],input[type="submit"]'),cartBox=document.createElement('section');
     cartBox.id='seller-cart-preview';cartBox.className='seller-cart-panel';
@@ -960,8 +883,8 @@
     document.getElementById('seller-add-order').addEventListener('click',addSelected);
     cartBox.addEventListener('click',e=>{let i;if((i=e.target.dataset.sellerPlus)!==undefined){cart[+i].qty++;renderCart()}else if((i=e.target.dataset.sellerMinus)!==undefined){cart[+i].qty=Math.max(1,cart[+i].qty-1);renderCart()}else if((i=e.target.dataset.sellerRemove)!==undefined){cart.splice(+i,1);renderCart()}});
     form.addEventListener('submit',interceptSubmit,true);
-    ['tx-adjustment-type','tx-adjustment-mode','tx-adjustment-value','tx-tip'].forEach(id=>document.getElementById(id)?.addEventListener('input',()=>{renderCart();renderSellerPaymentPreview()}));
-    ['tx-adjustment-type','tx-adjustment-mode'].forEach(id=>document.getElementById(id)?.addEventListener('change',()=>{renderCart();renderSellerPaymentPreview()}));
+    ['tx-adjustment-type','tx-adjustment-mode','tx-adjustment-value','tx-tip'].forEach(id=>document.getElementById(id)?.addEventListener('input',renderCart));
+    ['tx-adjustment-type','tx-adjustment-mode'].forEach(id=>document.getElementById(id)?.addEventListener('change',renderCart));
 
     document.addEventListener('click',e=>{
       const perfTarget=e.target.closest('[data-tab="performance"]');
@@ -980,6 +903,7 @@
     },true);
 
     renderCategories();renderProducts();renderVariants();renderDurations();renderCart();
+    installSubscriptionTracker();
     syncSellerDashboardView();syncSellerTemplateChrome();syncSellerUserFacingWording();
     if(document.querySelector('.section.active')?.id==='settings'&&document.getElementById('settings-category-select')?.value==='packages')installSellerSettings();
     loadSellerProductSettings();loadSellerCustomerMeta();
@@ -992,6 +916,116 @@
     },80);
     [80,260,700,1400].forEach(ms=>setTimeout(syncSellerTemplateChrome,ms));
   }
+
+  /* ── Tracker Langganan (owner Okt 2026): akun yang dijual ke pelanggan, aktif sampai kapan, sisa hari,
+     yang akan/sudah expired, plus tombol WhatsApp & Perpanjang. Menggantikan kartu Piutang. ── */
+  const TRACKER_ICON='<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M8 3v4M16 3v4M3.5 10h17"/><path d="m9 15 2 2 4-4"/></svg>';
+  let trackerFilter='soon',trackerQuery='',trackerRows=[];
+  function trackerKey(e){return [String(e.tx.customer_name||'').trim().toLowerCase(),String(e.item.product||e.item.name||'').toLowerCase(),String(e.item.variant||'').toLowerCase()].join('|');}
+  async function subscriptionEntries(){
+    let rows=[];try{rows=typeof allTransactions==='function'?await allTransactions():reminderTransactions();}catch(_e){rows=reminderTransactions();}
+    // Satu baris per pelanggan + produk + plan: perpanjangan menggantikan masa aktif sebelumnya.
+    const latest=new Map();
+    rows.filter(isSellerTx).flatMap(sellerExpiryEntriesForTx).forEach(e=>{const k=trackerKey(e),old=latest.get(k);if(!old||e.expiry>old.expiry)latest.set(k,e);});
+    return [...latest.values()];
+  }
+  const trackerTone=e=>e.days<0?'expired':e.days<=7?'soon':'active';
+  function waLink(phone,text){const n=String(phone||'').replace(/\D/g,'').replace(/^0/,'62');return n?`https://wa.me/${n}?text=${encodeURIComponent(text)}`:'';}
+  function installSubscriptionTracker(){
+    const main=document.querySelector('main.container');if(!main)return;
+    if(!document.getElementById('subscriptions')){
+      const sec=document.createElement('section');sec.id='subscriptions';sec.className='section';
+      sec.innerHTML=`<div class="card seller-tracker-card">
+        <div class="seller-tracker-head"><div><div class="card-title">Tracker Langganan</div><div class="page-sub">Akun yang dijual ke pelanggan, dihitung dari tanggal order + durasi paket. Perpanjangan otomatis menggantikan masa aktif lama.</div></div></div>
+        <div class="seller-tracker-stats" id="seller-tracker-stats"></div>
+        <div class="seller-tracker-tools">
+          <div class="seller-tracker-chips" role="group" aria-label="Filter status langganan">
+            <button type="button" data-tracker-filter="soon">Akan expired (≤7 hari)</button><button type="button" data-tracker-filter="active">Aktif</button><button type="button" data-tracker-filter="expired">Expired</button><button type="button" data-tracker-filter="all">Semua</button>
+          </div>
+          <input id="seller-tracker-search" class="input" type="search" placeholder="Cari nama pelanggan / produk" aria-label="Cari pelanggan atau produk">
+        </div>
+        <div id="seller-tracker-list" class="seller-tracker-list"></div>
+      </div>`;
+      main.appendChild(sec);
+      sec.addEventListener('click',e=>{
+        const f=e.target.closest('[data-tracker-filter]');if(f){trackerFilter=f.dataset.trackerFilter;paintSubscriptionTracker();return;}
+        const r=e.target.closest('[data-tracker-renew]');if(r){renewSubscription(trackerRows[+r.dataset.trackerRenew]);}
+      });
+      sec.querySelector('#seller-tracker-search').addEventListener('input',e=>{trackerQuery=e.target.value.trim().toLowerCase();paintSubscriptionTracker();});
+    }
+    ensureTrackerNav();
+  }
+  function ensureTrackerNav(){
+    const nav=document.querySelector('#saas-sidebar .saas-sidebar-nav');
+    if(nav&&!nav.querySelector('[data-tab="subscriptions"]')){
+      const b=document.createElement('button');b.type='button';b.className='tab';b.dataset.tab='subscriptions';
+      b.innerHTML=`<span class="saas-nav-icon">${TRACKER_ICON}</span><span class="saas-nav-label">Tracker Langganan</span>`;
+      b.addEventListener('click',openSubscriptionTracker);
+      const after=nav.querySelector('[data-tab="input"]');if(after)after.insertAdjacentElement('afterend',b);else nav.appendChild(b);
+    }
+    const grid=document.querySelector('#kairo-mobile-more-sheet .kairo-mobile-more-grid');
+    if(grid&&!grid.querySelector('[data-mobile-tab="subscriptions"]')){
+      const m=document.createElement('button');m.type='button';m.className='saas-mobile-nav-btn kairo-mobile-more-item';m.dataset.mobileTab='subscriptions';
+      m.innerHTML=`<span>${TRACKER_ICON}</span><span>Tracker Langganan</span>`;
+      m.addEventListener('click',()=>{document.querySelector('#kairo-mobile-more-sheet .kairo-mobile-more-backdrop')?.click();openSubscriptionTracker();});
+      grid.prepend(m);
+    }
+  }
+  function openSubscriptionTracker(){
+    if(typeof openAppPage==='function')openAppPage('subscriptions');
+    const t=document.querySelector('main.container .page-title'),sub=document.querySelector('main.container .page-sub');
+    if(t)t.textContent='Tracker Langganan';if(sub)sub.textContent='Pantau masa aktif akun pelanggan dan siapa yang perlu diperpanjang.';
+    renderSubscriptionTracker();
+  }
+  async function renderSubscriptionTracker(){
+    if(!document.getElementById('subscriptions'))return;
+    trackerRows=await subscriptionEntries();paintSubscriptionTracker();
+  }
+  function paintSubscriptionTracker(){
+    const list=document.getElementById('seller-tracker-list'),stats=document.getElementById('seller-tracker-stats');if(!list||!stats)return;
+    const count=t=>trackerRows.filter(e=>trackerTone(e)===t).length;
+    stats.innerHTML=[['soon','Akan expired (≤7 hari)'],['active','Aktif'],['expired','Expired']].map(([k,l])=>`<div class="seller-tracker-stat is-${k}"><span>${l}</span><b>${count(k)}</b></div>`).join('');
+    document.querySelectorAll('[data-tracker-filter]').forEach(b=>b.classList.toggle('is-active',b.dataset.trackerFilter===trackerFilter));
+    const shown=trackerRows.map((e,i)=>({e,i}))
+      .filter(({e})=>trackerFilter==='all'||trackerTone(e)===trackerFilter)
+      .filter(({e})=>!trackerQuery||`${e.tx.customer_name||''} ${pretty(e.item.product||'')} ${pretty(e.item.variant||'')}`.toLowerCase().includes(trackerQuery))
+      .sort((a,b)=>trackerFilter==='expired'?b.e.expiry-a.e.expiry:a.e.expiry-b.e.expiry);
+    list.innerHTML=shown.length?shown.map(({e,i})=>{
+      const it=e.item||{},name=e.tx.customer_name||'-',badge=e.badge||sellerExpiryBadge(e.days);
+      const meta=[pretty(it.product||it.name||'Paket'),pretty(it.variant||''),pretty(it.duration||'')].filter(Boolean).join(' · ');
+      const msg=e.days<0?`Halo ${name}, langganan ${pretty(it.product||'')} kamu sudah berakhir ${sellerExpiryDateText(e.expiry)}. Mau diperpanjang?`:`Halo ${name}, langganan ${pretty(it.product||'')} kamu akan berakhir ${sellerExpiryDateText(e.expiry)}. Mau diperpanjang?`;
+      const wa=waLink(e.tx.whatsapp,msg);
+      const left=e.days<0?`Lewat ${Math.abs(e.days)} hari`:e.days===0?'Hari ini':`${e.days} hari lagi`;
+      return `<div class="seller-tracker-row"><div class="seller-tracker-copy"><strong>${esc(name)}</strong><small>${esc(meta)}</small><small>Order ${esc(e.tx.transaction_date||'-')} · berakhir ${esc(sellerExpiryDateText(e.expiry))}</small></div><div class="seller-tracker-when"><b class="seller-expiry-badge is-${esc(badge?.tone||'active')}">${esc(badge?.label||'')}</b><span>${esc(left)}</span></div><div class="seller-tracker-actions">${wa?`<a class="seller-tracker-btn" href="${esc(wa)}" target="_blank" rel="noopener">WhatsApp</a>`:''}<button type="button" class="seller-tracker-btn is-primary" data-tracker-renew="${i}">Perpanjang</button></div></div>`;
+    }).join(''):`<div class="seller-tracker-empty">${trackerRows.length?'Tidak ada langganan untuk filter ini.':'Belum ada penjualan dengan durasi paket.'}</div>`;
+  }
+  function renewSubscription(e){
+    if(!e)return;
+    if(typeof openAppPage==='function')openAppPage('input');
+    setTimeout(()=>{const n=document.getElementById('tx-customer');if(n){n.value=e.tx.customer_name||'';n.dispatchEvent(new Event('input',{bubbles:true}));}
+      const w=document.getElementById('tx-whatsapp');if(w&&e.tx.whatsapp&&!w.value)w.value=e.tx.whatsapp;
+      try{showToast(`Pilih paket ${pretty(e.item.product||'')} untuk perpanjangan ${e.tx.customer_name||''}.`,'info')}catch(_e){}},120);
+  }
+  // Notifikasi lonceng khusus seller (dipakai kairo-v3.js): akun yang expired ≤3 hari lagi / sudah lewat
+  // (sampai 7 hari), plus order yang masih Baru/Diproses ≥5 menit. Tanpa istilah "Start Reading".
+  window.kairoSellerNotifications=async function(){
+    if(!mounted)return null;
+    const out=[],now=Date.now();
+    (await subscriptionEntries()).filter(e=>e.days!==null&&e.days<=3&&e.days>=-7).forEach(e=>{
+      const it=e.item||{};
+      out.push({id:`exp:${trackerKey(e)}:${e.expiry.getTime()}`,name:e.tx.customer_name||'-',pkg:[pretty(it.product||''),pretty(it.variant||'')].filter(Boolean).join(' · '),
+        note:e.days<0?`Expired ${Math.abs(e.days)} hari lalu`:e.days===0?'Expired hari ini':`Expired ${e.days} hari lagi`,urgent:e.days<=0,rank:e.days<=0?0:1,minutes:0});
+    });
+    let rows=[];try{rows=await allTransactions();}catch(_e){}
+    rows.filter(isSellerTx).forEach(t=>{
+      if(sellerOrderStatus(t?.[SELLER_LEGACY_FIELDS.status],t).key==='done')return;
+      const started=sellerStartedAt(t);if(!started)return;
+      const minutes=Math.floor((now-new Date(started).getTime())/60000);if(minutes<5)return;
+      const st=sellerOrderStatus(t?.[SELLER_LEGACY_FIELDS.status],t);
+      out.push({id:String(t.id),name:t.customer_name||'-',pkg:historyPackageText(t),minutes,urgent:minutes>=30,rank:minutes>=30?0:2,status:st.label});
+    });
+    return out.sort((a,b)=>a.rank-b.rank||b.minutes-a.minutes);
+  };
 
   function maybeMount(){if(document.body.classList.contains('authenticated'))mount()}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(maybeMount,0),{once:true});else setTimeout(maybeMount,0);

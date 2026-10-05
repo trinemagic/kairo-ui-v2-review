@@ -233,7 +233,6 @@
     q('#transaction-history-card')?.classList.add('kairo-list-card');
     q('#seller-dashboard-history-card')?.classList.add('kairo-list-card');
     q('#seller-expiry-card')?.classList.add('kairo-information-card');
-    q('#seller-outstanding-card')?.classList.add('kairo-information-card');
     q('#dashboard .shift-card')?.classList.add('kairo-information-card');
     decorateStatCards();
   }
@@ -543,6 +542,10 @@
 
   async function collectNotifications() {
     if (!document.body.classList.contains('authenticated') || typeof allTransactions !== 'function') return [];
+    // Seller App Premium: akun pelanggan yang akan/sudah expired + order Baru/Diproses (seller-app-premium.js).
+    if (document.body.classList.contains('seller-app-premium') && typeof window.kairoSellerNotifications === 'function') {
+      try { const items = await window.kairoSellerNotifications(); if (items) return items; } catch (_) { return notifyItems; }
+    }
     let rows = [];
     try { rows = await allTransactions(); } catch (_) { return notifyItems; }
     const now = Date.now();
@@ -573,16 +576,21 @@
     // The red dot stays while any order is 30+ minutes On Progress, even after the list was opened.
     const urgent = notifyItems.some(item => item.urgent);
     const unseen = urgent || notifyItems.some(item => !seen.has(notifyStage(item)));
-    const label = notifyItems.length ? `Notifikasi: ${notifyItems.length} order belum tuntas` : 'Notifikasi';
+    const seller = document.body.classList.contains('seller-app-premium');
+    const label = notifyItems.length ? `Notifikasi: ${notifyItems.length} ${seller ? 'pengingat' : 'order belum tuntas'}` : 'Notifikasi';
     qa('#kairo-notif-btn, #kairo-mobile-notif-btn').forEach(btn => {
       const dot = q('.kairo-notif-dot', btn);
       if (dot) { dot.hidden = !unseen; dot.classList.toggle('is-urgent', urgent); }
       btn.setAttribute('aria-label', label);
     });
     const html = notifyItems.length
-      ? notifyItems.map(item => `<div class="kairo-notif-item${item.urgent ? ' is-urgent' : ''}"><div><strong>${escapeHtml(item.name)}</strong><span>${escapeHtml(item.pkg)}</span></div><em>${item.urgent ? 'Lewat 30 menit · ' : ''}${escapeHtml(notifyAge(item.minutes))}</em></div>`).join('')
-      : '<div class="kairo-notif-empty">Semua order sudah ditandai selesai.</div>';
+      ? notifyItems.map(item => `<div class="kairo-notif-item${item.urgent ? ' is-urgent' : ''}"><div><strong>${escapeHtml(item.name)}</strong><span>${escapeHtml(item.pkg)}</span></div><em>${item.note ? escapeHtml(item.note) : `${item.status ? `${escapeHtml(item.status)} · ` : ''}${item.urgent ? 'Lewat 30 menit · ' : ''}${escapeHtml(notifyAge(item.minutes))}`}</em></div>`).join('')
+      : `<div class="kairo-notif-empty">${seller ? 'Tidak ada akun yang akan expired dan semua order sudah selesai.' : 'Semua order sudah ditandai selesai.'}</div>`;
     qa('#kairo-notif-list, #kairo-mobile-notif-list').forEach(list => { if (list.innerHTML !== html) list.innerHTML = html; });
+    // Judul panel ikut jenis usaha: seller tidak memakai istilah "Start Reading".
+    const [title, sub] = seller ? ['Pengingat', 'Akun pelanggan yang akan expired & order belum selesai'] : ['Order belum tuntas', 'Lebih dari 5 menit sejak Start Reading'];
+    qa('.kairo-notif-head strong, #kairo-mobile-notif-sheet .kairo-mobile-sheet-head strong').forEach(el => { if (el.textContent !== title) el.textContent = title; });
+    qa('.kairo-notif-head span, #kairo-mobile-notif-sheet .kairo-mobile-sheet-head small').forEach(el => { if (el.textContent !== sub) el.textContent = sub; });
   }
 
   window.kairoNotifications = {

@@ -108,7 +108,7 @@ const FEATURE_MIN_PLAN={
   customer_database:'pro',open_close_store:'pro',export_excel:'pro',autofill_orders:'pro',
   custom_branding:'pro',receipt_customization:'pro',multi_partner_profit_share:'pro',performance:'basic',
   advanced_analytics:'pro',advanced_profit_sharing:'pro',business_insights:'pro',advanced_customer_analytics:'pro',
-  advanced_reports:'pro',activity_log:'pro',full_history:'pro',granular_permissions:'pro',full_workspace_backup:'pro',multi_workspace:'pro',remove_saas_branding:'pro'
+  advanced_reports:'pro',activity_log:'pro',full_history:'pro',petty_cash:'pro',granular_permissions:'pro',full_workspace_backup:'pro',multi_workspace:'pro',remove_saas_branding:'pro'
 };
 function normalizedPlan(){return canonicalPlan(activeWorkspacePlan);}
 function planAtLeast(minPlan){return (PLAN_RANK[normalizedPlan()]||1)>=(PLAN_RANK[minPlan]||1);}
@@ -145,6 +145,22 @@ async function loadPlanEntitlements(){
   return activePlanEntitlements;
 }
 
+// Masa aktif langganan (owner Okt 2026): Pro yang lewat tanggal berakhir, atau berstatus dibatalkan/nonaktif,
+// otomatis dibaca sebagai Gratis sampai admin memperpanjang. Trine Magic selalu Pro. Data tidak dihapus.
+function subscriptionEnd(sub){const raw=sub?.current_period_end||sub?.expires_at||sub?.end_date||sub?.valid_until||null;if(!raw)return null;const s=String(raw);const ms=Date.parse(/^\d{4}-\d{2}-\d{2}$/.test(s)?`${s}T23:59:59`:s);return Number.isFinite(ms)?ms:null;}
+function subscriptionLapsed(sub){
+  if(!sub||canonicalPlan(sub.plan||sub.plan_code)!=='pro'||isTrineMagicWorkspace())return false;
+  if(['canceled','cancelled','inactive','expired'].includes(String(sub.status||'').toLowerCase()))return true;
+  const end=subscriptionEnd(sub);return end!==null&&end<Date.now();
+}
+function effectiveSubscriptionPlan(sub){return subscriptionLapsed(sub)?'basic':canonicalPlan(sub?.plan||sub?.plan_code);}
+let lapsedNoticeShown='';
+function noticeLapsedSubscription(){
+  const sub=activeWorkspaceSubscription;if(!subscriptionLapsed(sub)||lapsedNoticeShown===String(activeWorkspaceId))return;
+  lapsedNoticeShown=String(activeWorkspaceId);
+  const end=subscriptionEnd(sub),when=end?new Date(end).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}):'';
+  setTimeout(()=>showToast(`Masa aktif Pro ${when?`berakhir ${when}`:'sudah berakhir'}. Workspace sementara memakai paket Gratis; data tetap aman. Hubungi admin untuk perpanjang.`,'warning'),600);
+}
 async function loadWorkspaceSaasContext(){
   const wid=requireWorkspaceId();
   const [{data:branding,error:brandingError},{data:subscription,error:subscriptionError}] = await Promise.all([
@@ -155,9 +171,10 @@ async function loadWorkspaceSaasContext(){
   if(subscriptionError) console.warn("Workspace subscription:",subscriptionError.message);
   activeWorkspaceBranding=branding||null;
   activeWorkspaceSubscription=subscription||null;
-  activeWorkspacePlan=canonicalPlan(subscription?.plan||subscription?.plan_code);
+  activeWorkspacePlan=effectiveSubscriptionPlan(subscription);
   document.documentElement.dataset.workspacePlan=activeWorkspacePlan;
   await loadPlanEntitlements();
+  noticeLapsedSubscription();
   console.info("Trine SaaS context",{workspaceId:wid,role:activeWorkspaceRole,plan:activeWorkspacePlan});
   return {branding:activeWorkspaceBranding,subscription,plan:activeWorkspacePlan};
 }
@@ -475,6 +492,13 @@ function activeShareVersionForDate(date){
   return profitShareVersions.filter(v=>kairoShareTime(v.effective_from)<=target).sort((a,b)=>kairoShareTime(b.effective_from)-kairoShareTime(a.effective_from))[0]||null;
 }
 function shareRuleFor(partner,date){
+  const pct=rawShareRuleFor(partner,date);
+  if(!cashForcedOff()) return pct;
+  if(isKasName(partner)) return 0;
+  const total=nonKasShareTotal(date);
+  return total>0?pct/total:0;
+}
+function rawShareRuleFor(partner,date){
   const v=activeShareVersionForDate(date);
   if(v){
     const rules=normalizeShareRules(v.rules);
@@ -484,7 +508,35 @@ function shareRuleFor(partner,date){
   }
   return Number(partner?.percentage||0);
 }
+// Kas (Petty Cash) hanya di Pro (owner Okt 2026).
+// - Gratis (cashForcedOff): tanpa potongan Kas sama sekali; persentase partner lain dinormalisasi jadi 100%.
+// - Pro yang mematikan Kas (cash_enabled=false): dibuat versi pembagian baru mulai tanggal pilihan (Kas 0%, ditandai
+//   cash_off). Transaksi sebelum tanggal itu tetap memakai Kas lama, jadi saldo Kas yang sudah ada tidak berubah.
+function cashForcedOff(){return !canUseFeature('petty_cash');}
+function cashActive(){return canUseFeature('petty_cash')&&activeWorkspaceBranding?.cash_enabled!==false;}
+// Saldo Kas & menu Petty Cash: tampil kalau Kas aktif, atau (Pro, Kas dimatikan) masih ada sisa saldo lama.
+function cashVisible(){return cashActive()||(!cashForcedOff()&&Math.round(Number(financialSnapshot?.cashBalance||0))!==0);}
+function syncCashVisibility(){
+  const on=cashVisible(),locked=cashForcedOff();
+  document.body.classList.toggle('kairo-no-cash',!on);
+  document.querySelectorAll('[data-tab="cash"],.saas-mobile-nav-btn[data-mobile-tab="cash"]').forEach(b=>{b.hidden=!locked&&!on;});
+  const kasCard=document.getElementById('kpi-cash')?.closest('.kpi');if(kasCard)kasCard.hidden=!on;
+  if(!on&&!locked&&document.getElementById('cash')?.classList.contains('active')&&typeof openAppPage==='function')openAppPage('dashboard');
+}
+// Mulai kapan Kas dimatikan (versi pembagian terakhir yang bertanda cash_off), dipakai untuk nominal Kas manual per produk.
+function kasOffSince(){
+  if(cashForcedOff()||activeWorkspaceBranding?.cash_enabled!==false)return null;
+  const v=[...profitShareVersions].filter(x=>normalizeShareRules(x.rules).some(r=>isKasName(r)&&r.cash_off)).sort((a,b)=>kairoShareTime(b.effective_from)-kairoShareTime(a.effective_from))[0];
+  return v?kairoShareTime(v.effective_from):null;
+}
+const isKasName=v=>String(v?.partner_name??v??'').toLowerCase()==='kas';
+function nonKasShareTotal(date){
+  const v=activeShareVersionForDate(date);
+  if(v){const rules=normalizeShareRules(v.rules);if(rules.length)return rules.filter(r=>!isKasName(r)).reduce((t,r)=>t+Number(r.percentage||0),0);}
+  return partners.filter(p=>!isKasName(p)).reduce((t,p)=>t+Number(p.percentage||0),0);
+}
 function cashShareRateForDate(date){
+  if(cashForcedOff()) return 0;
   const v=activeShareVersionForDate(date);
   if(v){ const r=normalizeShareRules(v.rules).find(x=>String(x.partner_name||'').toLowerCase()==='kas'); if(r) return Number(r.percentage||0); }
   const kas=partners.find(p=>String(p.partner_name||'').toLowerCase()==='kas');
@@ -494,7 +546,7 @@ function transactionProfitBreakdown(t){
   const items=[...(Array.isArray(t?.order_items)?t.order_items:[]),...(Array.isArray(t?.order_addons)?t.order_addons:[])];
   const hpp=items.reduce((sum,x)=>{const qty=Math.max(0,Number(x?.qty||0));const snap=Number(x?.cost_subtotal);return sum+(Number.isFinite(snap)?Math.max(0,snap):Math.max(0,Number(x?.cost_price||0))*qty);},0);
   const distributable=Math.max(0,Number(t?.total_price||0)-hpp),manual=[];
-  items.filter(x=>String(x?.profit_share_mode||'percentage')==='manual').forEach(x=>{const qty=Math.max(0,Number(x?.qty||0));(Array.isArray(x?.manual_profit_split)?x.manual_profit_split:[]).forEach(r=>{const amount=Math.max(0,Number(r?.amount||0))*qty;if(amount>0)manual.push({partner_id:r?.partner_id||null,partner_name:r?.partner_name||'',amount});});});
+  const offSince=kasOffSince(),noKas=cashForcedOff()||(offSince!==null&&kairoShareTime(t?.created_at||t?.transaction_date)>=offSince);items.filter(x=>String(x?.profit_share_mode||'percentage')==='manual').forEach(x=>{const qty=Math.max(0,Number(x?.qty||0));(Array.isArray(x?.manual_profit_split)?x.manual_profit_split:[]).forEach(r=>{if(noKas&&isKasName(r))return;const amount=Math.max(0,Number(r?.amount||0))*qty;if(amount>0)manual.push({partner_id:r?.partner_id||null,partner_name:r?.partner_name||'',amount});});});
   const rawManual=manual.reduce((sum,r)=>sum+r.amount,0),scale=rawManual>distributable&&rawManual>0?distributable/rawManual:1,manualScaled=manual.map(r=>({...r,amount:r.amount*scale})),manualTotal=manualScaled.reduce((sum,r)=>sum+r.amount,0);
   return {hpp,distributable,manual:manualScaled,manualTotal,percentageBase:Math.max(0,distributable-manualTotal)};
 }
@@ -889,62 +941,64 @@ function monthRangeParts(date){
   return {first:localISODate(first),last:localISODate(last)};
 }
 
-function monthLabel(date){
-  return new Intl.DateTimeFormat("id-ID",{month:"long",year:"numeric"}).format(date);
-}
 
 async function fetchPlatformAnalytics(){
   const b=platformBounds();
   platformAnalyticsRows=(await allTransactions()).filter(row=>String(row.transaction_date||'')>=b.previousStart&&String(row.transaction_date||'')<=b.currentEnd);
 }
 function platformKey(v){const s=String(v||"Other").trim(),n=s.toLowerCase();if(n==="x"||n==="twitter")return "X";if(n.includes("instagram"))return "Instagram";if(n.includes("threads"))return "Threads";if(n.includes("tiktok"))return "TikTok";if(n.includes("whatsapp")||n==="wa")return "WhatsApp";if(n.includes("telegram")||n==="tg")return "Telegram";return s||"Other";}
+// Chart colours follow the KAIRO palette (the v3 tokens, which already follow the workspace
+// colours): primary = this period, accent = comparison. In dark mode the accent is lightened
+// so the comparison bars stay visible on the dark cards.
 function chartBrandColors(){
-  const cs=getComputedStyle(document.documentElement);
-  const primary=(cs.getPropertyValue("--brand-primary")||"#696F41").trim();
-  const accent=(cs.getPropertyValue("--brand-accent")||"#EA97A9").trim();
+  const cs=getComputedStyle(document.body||document.documentElement);
+  const dark=!!document.body?.classList.contains("saas-dark");
+  const read=(n,f)=>{const v=cs.getPropertyValue(n).trim();return /^#[0-9a-f]{6}$/i.test(v)?v:f;};
   const hexToRgb=h=>{const m=String(h).match(/^#([0-9a-f]{6})$/i);if(!m)return null;const n=parseInt(m[1],16);return [(n>>16)&255,(n>>8)&255,n&255];};
   const mix=(a,b,t)=>{const A=hexToRgb(a),B=hexToRgb(b);if(!A||!B)return a;const C=A.map((v,i)=>Math.round(v+(B[i]-v)*t));return `#${C.map(v=>v.toString(16).padStart(2,"0")).join("")}`;};
   const alpha=(h,a)=>{const r=hexToRgb(h);return r?`rgba(${r[0]},${r[1]},${r[2]},${a})`:h;};
-  return {primary,accent,mix,alpha,palette:[accent,primary,mix(accent,"#ffffff",.28),mix(primary,"#ffffff",.28),mix(accent,primary,.42),mix(primary,accent,.42),mix(accent,"#ffffff",.52),mix(primary,"#ffffff",.52),mix(accent,"#000000",.16),mix(primary,"#000000",.16)]};
+  const primary=read("--v3-primary","#25B9B0"),accentRaw=read("--v3-accent","#173A59");
+  const accent=dark?mix(accentRaw,"#ffffff",.55):accentRaw;
+  return {primary,accent,mix,alpha,dark,other:dark?"#4a6276":"#b7c6d1",text:read("--v3-muted",dark?"#aabcc9":"#4e6475"),grid:dark?"rgba(255,255,255,.08)":"rgba(23,58,89,.08)"};
 }
-function platformChartColor(name,previous=false){const c=chartBrandColors();const i=Math.abs([...String(name||"")].reduce((a,ch)=>a+ch.charCodeAt(0),0))%c.palette.length;return previous?c.alpha(c.palette[i],.28):c.palette[i];}
-function platformChartBorder(name){const c=chartBrandColors();const i=Math.abs([...String(name||"")].reduce((a,ch)=>a+ch.charCodeAt(0),0))%c.palette.length;return c.palette[i];}
+function chartAxes(c,{x={},y={}}={}){
+  const axis=o=>Object.assign({},o,{ticks:Object.assign({color:c.text,font:{size:11}},o.ticks||{}),grid:Object.assign({color:c.grid},o.grid||{}),border:{display:false}});
+  return {x:axis(x),y:axis(y)};
+}
+// Draws the value at the end of each horizontal bar (no extra plugin needed).
+const chartBarValues={id:"kairoBarValues",afterDatasetsDraw(chart,_args,opts){const fmt=opts?.format;if(!fmt)return;const {ctx}=chart,meta=chart.getDatasetMeta(0);ctx.save();ctx.font="600 11px 'Plus Jakarta Sans', sans-serif";ctx.fillStyle=opts.color||"#4e6475";ctx.textBaseline="middle";meta.data.forEach((bar,i)=>{const t=fmt(chart.data.datasets[0].data[i],i);if(!t)return;const w=ctx.measureText(t).width,room=chart.chartArea.right-bar.x;if(room>w+10){ctx.textAlign="left";ctx.fillText(t,bar.x+6,bar.y);}else{ctx.textAlign="right";ctx.fillStyle="#ffffff";ctx.fillText(t,bar.x-6,bar.y);ctx.fillStyle=opts.color||"#4e6475";}});ctx.restore();}};
+// Top N rows plus one "Lainnya" row, so long product/topic lists stay readable.
+function chartTopEntries(entries,limit=5){if(entries.length<=limit+1)return entries;const rest=entries.slice(limit).reduce((s,[,v])=>s+Number(v||0),0);return [...entries.slice(0,limit),["Lainnya",rest]];}
+function chartRankBars(canvas,entries,{unit="x",empty="Belum ada data"}={}){
+  const c=chartBrandColors(),total=entries.reduce((s,[,v])=>s+Number(v||0),0),rows=chartTopEntries(entries);
+  const pct=v=>total>0?`${(v/total*100).toLocaleString("id-ID",{maximumFractionDigits:1})}%`:"0%";
+  const short=v=>{const t=String(v);return t.length>22?`${t.slice(0,21)}…`:t;};
+  return new Chart(canvas,{type:"bar",plugins:[chartBarValues],
+    data:{labels:rows.length?rows.map(x=>x[0]):[empty],datasets:[{data:rows.length?rows.map(x=>x[1]):[0],backgroundColor:rows.length?rows.map(x=>x[0]==="Lainnya"?c.other:c.primary):[c.other],borderRadius:6,barThickness:"flex",maxBarThickness:26}]},
+    options:{indexAxis:"y",responsive:true,maintainAspectRatio:false,layout:{padding:{right:8}},
+      plugins:{legend:{display:false},kairoBarValues:{color:c.text,format:v=>rows.length?`${Number(v).toLocaleString("id-ID")}${unit} · ${pct(v)}`:""},
+        tooltip:{callbacks:{title:items=>items[0]?.label||"",label:x=>rows.length?`${Number(x.parsed.x).toLocaleString("id-ID")}${unit} (${pct(x.parsed.x)})`:empty}}},
+      scales:chartAxes(c,{x:{beginAtZero:true,grace:"18%",ticks:{precision:0},grid:{display:true}},y:{grid:{display:false},ticks:{callback(v){return short(this.getLabelForValue(v));}}}})}});
+}
 function platformLogo(name){const n=platformKey(name);if(n==="X")return `<span class="platform-logo platform-x"><strong>𝕏</strong></span>`;if(n==="Instagram")return `<span class="platform-logo platform-instagram"><svg viewBox="0 0 24 24"><rect x="3.2" y="3.2" width="17.6" height="17.6" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.5" cy="6.7" r="1.1" fill="currentColor"/></svg></span>`;if(n==="Threads")return `<span class="platform-logo platform-threads"><strong>@</strong></span>`;if(n==="TikTok")return `<span class="platform-logo platform-tiktok"><strong>♪</strong></span>`;if(n==="WhatsApp")return `<span class="platform-logo platform-whatsapp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.5a8 8 0 0 1-11.8 7L4 20l1.5-4.1A8 8 0 1 1 20 11.5Z"/><path d="M9 8.5c.7 2.2 2.3 3.8 4.5 4.5"/></svg></span>`;if(n==="Telegram")return `<span class="platform-logo platform-telegram"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 4 3.8 10.6c-.9.4-.8 1.7.1 1.9l4.4 1.3 1.7 5.1c.3.9 1.5 1 2 .2l2.6-3.3 4.4 3.2c.8.6 1.9.1 2.1-.9L22 5.1c.2-.8-.5-1.4-1-1.1Z"/><path d="m8.4 13.8 8.7-6.2-6.9 7.9"/></svg></span>`;return `<span class="platform-logo platform-other">•</span>`;}
 // Platform analytics follow the main date filter (getRange); the comparison is the
 // equally long period right before it. Without a start date the last 30 days are used.
 function platformBounds(){const {from,to}=getRange(),parse=v=>{const [y,m,d]=String(v).split('-').map(Number);return new Date(y,m-1,d)};const end=parse(to||todayISO()),start=from?parse(from):new Date(end.getFullYear(),end.getMonth(),end.getDate()-29),days=Math.max(1,Math.round((end-start)/86400000)+1),pe=new Date(start);pe.setDate(start.getDate()-1);const ps=new Date(pe);ps.setDate(pe.getDate()-(days-1));return{days,currentStart:localISODate(start),currentEnd:localISODate(end),previousStart:localISODate(ps),previousEnd:localISODate(pe)};}
 function countPlatforms(from,to){const c={};platformAnalyticsRows.forEach(x=>{const d=String(x.transaction_date||"");if(d<from||d>to)return;const k=platformKey(x.platform);c[k]=(c[k]||0)+1});return c;}
-function renderPlatformAnalytics(){const canvas=document.getElementById("platformChart"),summary=document.getElementById("platform-summary-list");if(!canvas||!summary)return;const b=platformBounds(),cur=countPlatforms(b.currentStart,b.currentEnd),prev=countPlatforms(b.previousStart,b.previousEnd),names=[...new Set([...Object.keys(cur),...Object.keys(prev)])].sort((a,z)=>(cur[z]||0)-(cur[a]||0));const note=document.getElementById("platform-chart-note");if(note){const fmt=v=>new Intl.DateTimeFormat("id-ID",{day:"numeric",month:"short",year:"numeric"}).format(new Date(`${v}T00:00:00`));note.textContent=b.days===1?`Jumlah transaksi ${fmt(b.currentStart)} (sesuai filter tanggal).`:`Jumlah transaksi ${fmt(b.currentStart)} – ${fmt(b.currentEnd)} (sesuai filter tanggal).`;}if(platformChart)platformChart.destroy();platformChart=new Chart(canvas,{type:"bar",data:{labels:names.length?names:["Belum ada data"],datasets:[{label:"Periode Ini",data:names.length?names.map(n=>cur[n]||0):[0],backgroundColor:names.length?names.map(n=>platformChartColor(n,false)):[chartBrandColors().alpha(chartBrandColors().accent,.20)],borderColor:names.length?names.map(n=>platformChartBorder(n)):[chartBrandColors().accent],borderWidth:1.5,borderRadius:9},{label:"Periode Sebelumnya",data:names.length?names.map(n=>prev[n]||0):[0],backgroundColor:names.length?names.map(n=>platformChartColor(n,true)):[chartBrandColors().alpha(chartBrandColors().primary,.16)],borderColor:names.length?names.map(n=>platformChartBorder(n)):[chartBrandColors().primary],borderWidth:1,borderRadius:9}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:10}}},tooltip:{callbacks:{label:x=>`${x.dataset.label}: ${x.parsed.y} transaksi`}}},scales:{y:{beginAtZero:true,ticks:{precision:0}},x:{grid:{display:false}}}}});if(!names.length){summary.innerHTML=`<div class="empty">Belum ada data.</div>`;return}summary.innerHTML=names.map(n=>{const a=cur[n]||0,p=prev[n]||0;let g="-",cl="platform-growth-flat";if(p>0){const q=(a-p)/p*100;g=`${q>0?"+":""}${q.toLocaleString("id-ID",{maximumFractionDigits:1})}%`;cl=q>0?"platform-growth-up":q<0?"platform-growth-down":"platform-growth-flat"}else if(a>0){g="Baru";cl="platform-growth-up"}return `<div class="platform-summary-row">${platformLogo(n)}<div><div class="platform-summary-name">${escapeHtml(n)}</div><div class="platform-summary-meta">${p} → ${a} transaksi</div></div><div class="platform-summary-value ${cl}">${g}</div></div>`}).join("");}
+function renderPlatformAnalytics(){const canvas=document.getElementById("platformChart"),summary=document.getElementById("platform-summary-list");if(!canvas||!summary)return;const b=platformBounds(),cur=countPlatforms(b.currentStart,b.currentEnd),prev=countPlatforms(b.previousStart,b.previousEnd),names=[...new Set([...Object.keys(cur),...Object.keys(prev)])].sort((a,z)=>(cur[z]||0)-(cur[a]||0));const note=document.getElementById("platform-chart-note");if(note){const fmt=v=>new Intl.DateTimeFormat("id-ID",{day:"numeric",month:"short",year:"numeric"}).format(new Date(`${v}T00:00:00`));note.textContent=b.days===1?`Jumlah transaksi ${fmt(b.currentStart)} (sesuai filter tanggal).`:`Jumlah transaksi ${fmt(b.currentStart)} – ${fmt(b.currentEnd)} (sesuai filter tanggal).`;}if(platformChart)platformChart.destroy();const c=chartBrandColors();platformChart=new Chart(canvas,{type:"bar",data:{labels:names.length?names:["Belum ada data"],datasets:[{label:"Periode ini",data:names.length?names.map(n=>cur[n]||0):[0],backgroundColor:c.primary,borderRadius:6,maxBarThickness:34},{label:"Periode sebelumnya",data:names.length?names.map(n=>prev[n]||0):[0],backgroundColor:c.accent,borderRadius:6,maxBarThickness:34}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom",labels:{boxWidth:12,color:c.text,font:{size:11}}},tooltip:{callbacks:{label:x=>`${x.dataset.label}: ${x.parsed.y} transaksi`}}},scales:chartAxes(c,{y:{beginAtZero:true,ticks:{precision:0}},x:{grid:{display:false}}})}});if(!names.length){summary.innerHTML=`<div class="empty">Belum ada data.</div>`;return}summary.innerHTML=names.map(n=>{const a=cur[n]||0,p=prev[n]||0;let g="-",cl="platform-growth-flat";if(p>0){const q=(a-p)/p*100;g=`${q>0?"+":""}${q.toLocaleString("id-ID",{maximumFractionDigits:1})}%`;cl=q>0?"platform-growth-up":q<0?"platform-growth-down":"platform-growth-flat"}else if(a>0){g="Baru";cl="platform-growth-up"}return `<div class="platform-summary-row">${platformLogo(n)}<div><div class="platform-summary-name">${escapeHtml(n)}</div><div class="platform-summary-meta">${p} → ${a} transaksi</div></div><div class="platform-summary-value ${cl}">${g}</div></div>`}).join("");}
 
+// This month so far vs the same days of last month (1–5 Okt vs 1–5 Sep), so an
+// unfinished month is not compared with a full one.
 async function fetchMonthlyRevenueComparison(){
-  const now=new Date();
+  const now=new Date(),day=now.getDate();
   const currentStart=new Date(now.getFullYear(),now.getMonth(),1);
   const previousStart=new Date(now.getFullYear(),now.getMonth()-1,1);
-  const previousEnd=new Date(now.getFullYear(),now.getMonth(),0);
-
-  const from=localISODate(previousStart);
-  const to=localISODate(now);
-
-  const rows=(await allTransactions()).filter(row=>String(row.transaction_date||'')>=from&&String(row.transaction_date||'')<=to);
-
-  const currentFrom=localISODate(currentStart);
-  const previousFrom=localISODate(previousStart);
-  const previousTo=localISODate(previousEnd);
-
-  const currentTotal=rows
-    .filter(t=>t.transaction_date>=currentFrom && t.transaction_date<=to)
-    .reduce((sum,t)=>sum+Number(t.total_price||0),0);
-
-  const previousTotal=rows
-    .filter(t=>t.transaction_date>=previousFrom && t.transaction_date<=previousTo)
-    .reduce((sum,t)=>sum+Number(t.total_price||0),0);
-
-  monthlyRevenueComparison={
-    currentTotal,
-    previousTotal,
-    currentLabel:monthLabel(currentStart),
-    previousLabel:monthLabel(previousStart)
-  };
+  const previousEnd=new Date(now.getFullYear(),now.getMonth()-1,Math.min(day,new Date(now.getFullYear(),now.getMonth(),0).getDate()));
+  const currentFrom=localISODate(currentStart),to=localISODate(now),previousFrom=localISODate(previousStart),previousTo=localISODate(previousEnd);
+  const rows=(await allTransactions()).filter(row=>String(row.transaction_date||'')>=previousFrom&&String(row.transaction_date||'')<=to);
+  const sum=(f,t)=>rows.filter(x=>x.transaction_date>=f&&x.transaction_date<=t).reduce((s,x)=>s+Number(x.total_price||0),0);
+  const label=(s,e)=>{const m=new Intl.DateTimeFormat("id-ID",{month:"short"}).format(s);return e.getDate()===1?`1 ${m}`:`1–${e.getDate()} ${m}`;};
+  monthlyRevenueComparison={currentTotal:sum(currentFrom,to),previousTotal:sum(previousFrom,previousTo),currentLabel:label(currentStart,now),previousLabel:label(previousStart,previousEnd)};
 }
 
 
@@ -1168,6 +1222,7 @@ async function loadPageData(tabName=currentAppPage(),options={}){
     }else if(tabName==='performance'){
       await Promise.all([fetchTransactions(),fetchMonthlyRevenueComparison(),fetchPlatformAnalytics()]);
       await ensureChartLibrary();renderCharts();
+      renderProductSales();
     }else if(tabName==='input'){
       // Customer directory feeds the name suggestions on the order form (existing customers).
       await ensureMasters();await Promise.all([fetchTransactions(),fetchHistoryTransactions(),loadCustomerDirectory()]);
@@ -1363,6 +1418,7 @@ function renderDashboard(){
   document.getElementById("kpi-tx").textContent=transactions.length;
   setKpiValue("kpi-cash",financialSnapshot.cashBalance);
   setKpiValue("kpi-rights",currentCalendarMonthRevenue());
+  syncCashVisibility();
   renderShares(revenue);
   renderHistory();
 }
@@ -1387,14 +1443,15 @@ function renderProfitShareEditor(){
   const effective=document.getElementById("profit-share-effective-date"); if(effective&&!effective.value) effective.value=kairoLocalDateTimeValue();
   const active=activeShareVersionForDate(kairoLocalDateTimeValue());
   const activeRules=active?normalizeShareRules(active.rules):[];
-  const rows=[...partners];
-  if(!rows.some(p=>String(p.partner_name||'').toLowerCase()==='kas')) rows.push({id:null,partner_name:'Kas',percentage:LEGACY_CASH_SHARE_RATE});
+  const rows=partners.filter(p=>cashActive()||!isKasName(p));
+  if(cashActive()&&!rows.some(isKasName)) rows.push({id:null,partner_name:'Kas',percentage:LEGACY_CASH_SHARE_RATE});
   grid.innerHTML=rows.map(p=>{
     const saved=activeRules.find(r=>(r.partner_id&&p.id&&String(r.partner_id)===String(p.id))||String(r.partner_name||'').toLowerCase()===String(p.partner_name||'').toLowerCase());
     const pct=(Number(saved?.percentage??p.percentage??(String(p.partner_name).toLowerCase()==='kas'?LEGACY_CASH_SHARE_RATE:0))*100);
     return `<div class="profit-rule-item"><label>${escapeHtml(p.partner_name||'-')}</label><div class="profit-rule-input-wrap"><input class="input profit-share-pct" type="number" min="0" max="100" step="0.01" value="${Number.isFinite(pct)?pct.toFixed(2).replace(/\.00$/,''):0}" data-partner-id="${p.id||''}" data-partner-name="${escapeHtml(p.partner_name||'')}"><span>%</span></div></div>`;
   }).join('');
   grid.querySelectorAll('input').forEach(i=>i.addEventListener('input',updateProfitShareTotal));
+  syncCashToggle();
   const label=document.getElementById('profit-share-active-label'); if(label) label.textContent=active?`Aktif sejak ${String(active.effective_from||'').replace('T',' ').slice(0,16)}`:'Aturan legacy';
   const note=document.getElementById('profit-share-history-note'); if(note) note.textContent=profitShareVersionTableReady?(profitShareVersions.length?`${profitShareVersions.length} versi pembagian tersimpan.`:'Belum ada versi tersimpan. Simpan untuk membuat versi pertama.'):'Jalankan migration profit_share_versions dulu agar histori pembagian tersimpan.';
   updateProfitShareTotal();
@@ -1402,10 +1459,10 @@ function renderProfitShareEditor(){
 }
 function updateProfitShareTotal(){
   const total=[...document.querySelectorAll('.profit-share-pct')].reduce((s,i)=>s+Number(i.value||0),0);
-  const el=document.getElementById('profit-share-total'); if(!el)return; el.textContent=`Total ${total.toLocaleString('id-ID',{maximumFractionDigits:2})}%`; el.classList.toggle('invalid',Math.abs(total-100)>0.001);
+  const el=document.getElementById('profit-share-total'); if(!el)return; const off=Math.abs(total-100)>0.001;el.textContent=`Total ${total.toLocaleString('id-ID',{maximumFractionDigits:2})}%`+(off&&!cashActive()&&total>0?' · sementara dibagi proporsional jadi 100%':''); el.classList.toggle('invalid',off);
 }
 
-function profitManualPartners(){const rows=[...partners];if(!rows.some(p=>String(p.partner_name||'').toLowerCase()==='kas'))rows.push({id:null,partner_name:'Kas'});return rows;}
+function profitManualPartners(){const rows=partners.filter(p=>cashActive()||!isKasName(p));if(cashActive()&&!rows.some(isKasName))rows.push({id:null,partner_name:'Kas'});return rows;}
 function productProfitRow(item,type){
   const mode=String(item.profit_share_mode||'percentage'),cost=Math.max(0,Number(item.cost_price||0)),net=Math.max(0,Number(item.price||0)-cost),saved=Array.isArray(item.manual_profit_split)?item.manual_profit_split:[];
   const fields=profitManualPartners().map(p=>{const r=saved.find(x=>(x.partner_id&&p.id&&String(x.partner_id)===String(p.id))||String(x.partner_name||'').toLowerCase()===String(p.partner_name||'').toLowerCase());return `<div class="profit-manual-field"><label>${escapeHtml(p.partner_name||'-')}</label><input class="input profit-product-manual-amount" type="number" min="0" step="500" value="${Number(r?.amount||0)}" data-partner-id="${p.id||''}" data-partner-name="${escapeHtml(p.partner_name||'')}"></div>`;}).join('');
@@ -1416,13 +1473,39 @@ function renderProductProfitRules(){const host=document.getElementById('profit-p
 async function saveProductProfitRule(row){try{const type=row.dataset.profitType,id=row.dataset.profitId,source=type==='package'?packages:addons,item=source.find(x=>String(x.id)===String(id));if(!item)throw new Error('Produk tidak ditemukan.');const cost=Math.max(0,Number(row.querySelector('.profit-product-cost')?.value||0)),net=Math.max(0,Number(item.price||0)-cost),mode=row.querySelector('.profit-product-mode')?.value||'percentage',manual=[...row.querySelectorAll('.profit-product-manual-amount')].map(i=>({partner_id:i.dataset.partnerId||null,partner_name:i.dataset.partnerName||'',amount:Math.max(0,Number(i.value||0))})),total=manual.reduce((s,r)=>s+r.amount,0);if(mode==='manual'&&Math.abs(total-net)>0.005)throw new Error(`Total nominal manual wajib sama dengan laba bersih ${rupiah(net)}. Sekarang ${rupiah(total)}.`);const table=type==='package'?'package_masters':'addon_masters',payload={cost_price:cost,profit_share_mode:mode,manual_profit_split:mode==='manual'?manual:[]};const {error}=await db.from(table).update(payload).eq('workspace_id',requireWorkspaceId()).eq('id',id);if(error)throw error;showToast(`${type==='package'?'Package':'Add-on'}: HPP dan aturan profit tersimpan.`);await loadMasters();await refreshAll();}catch(err){console.error(err);showToast(err.message||'Gagal menyimpan aturan profit produk.',true);}}
 
 
+// Daily sales per day of the active filter (days without sales show as 0); long ranges
+// (> 3 months) are grouped per month so the bars stay readable.
+function dailySalesSeries(){
+  const totals={};
+  transactions.forEach(t=>{const d=String(t.transaction_date||"").slice(0,10);if(d)totals[d]=(totals[d]||0)+Number(t.total_price||0);});
+  const days=Object.keys(totals).sort(),{from,to}=getRange();
+  const parse=v=>{const [y,m,d]=String(v).split("-").map(Number);return new Date(y,m-1,d);};
+  const start=from?parse(from):(days[0]?parse(days[0]):null),end=to?parse(to):(days.length?parse(days[days.length-1]):null);
+  if(!start||!end||end<start)return {labels:[],values:[],monthly:false};
+  const span=Math.round((end-start)/86400000)+1;
+  if(span>92){
+    const months={};for(const d=new Date(start.getFullYear(),start.getMonth(),1);d<=end;d.setMonth(d.getMonth()+1))months[`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`]=0;
+    days.forEach(d=>{const k=d.slice(0,7);if(k in months)months[k]+=totals[d];});
+    const keys=Object.keys(months);
+    return {monthly:true,labels:keys.map(k=>new Intl.DateTimeFormat("id-ID",{month:"short",year:"numeric"}).format(parse(`${k}-01`))),values:keys.map(k=>months[k])};
+  }
+  const labels=[],values=[];
+  for(const d=new Date(start);d<=end;d.setDate(d.getDate()+1)){labels.push(d.toLocaleDateString("id-ID",{day:"numeric",month:"short"}));values.push(totals[localISODate(d)]||0);}
+  return {labels,values,monthly:false};
+}
+function shortRupiah(v){const n=Number(v||0),a=Math.abs(n);if(a>=1e9)return `Rp${(n/1e9).toLocaleString("id-ID",{maximumFractionDigits:1})} M`;if(a>=1e6)return `Rp${(n/1e6).toLocaleString("id-ID",{maximumFractionDigits:1})} jt`;if(a>=1e3)return `Rp${(n/1e3).toLocaleString("id-ID",{maximumFractionDigits:0})} rb`;return rupiah(n);}
+// Summary row at the top of Performance (follows the main date filter).
+function renderPerformanceKpis(pkgEntries){
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  const revenue=transactions.reduce((s,t)=>s+Number(t.total_price||0),0),count=transactions.length;
+  set("perf-kpi-revenue",rupiah(revenue));
+  set("perf-kpi-count",count.toLocaleString("id-ID"));
+  set("perf-kpi-average",rupiah(count?Math.round(revenue/count):0));
+  const best=pkgEntries[0];
+  set("perf-kpi-best",best?best[0]:"-");
+  set("perf-kpi-best-qty",best?`${Number(best[1]).toLocaleString("id-ID")}x terjual`:"Belum ada penjualan");
+}
 function renderCharts(){
-  const daily={};
-  transactions.forEach(t=>{
-    const d=t.transaction_date;
-    daily[d]=(daily[d]||0)+Number(t.total_price||0);
-  });
-
   // Rekap paket berdasarkan TOTAL QTY yang dibeli, bukan jumlah customer/transaksi.
   // order_items adalah sumber utama karena setiap item menyimpan qty masing-masing.
   const pkg={};
@@ -1458,33 +1541,20 @@ function renderCharts(){
   if(monthlyRevenueChart) monthlyRevenueChart.destroy();
   if(topicChart) topicChart.destroy();
 
+  const pkgEntries=Object.entries(pkg).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]);
+  renderPerformanceKpis(pkgEntries);
+
+  const series=dailySalesSeries();
+  const dailyTitle=document.getElementById("daily-chart-unit");
+  if(dailyTitle)dailyTitle.textContent=series.monthly?"(per bulan, sesuai filter tanggal)":"(sesuai filter tanggal)";
   dailyChart=new Chart(document.getElementById("dailyChart"),{
-    type:"line",
-    data:{labels:Object.keys(daily).sort(),datasets:[{
-      label:"Omset",
-      data:Object.keys(daily).sort().map(k=>daily[k]),
-      borderColor:brandChart.accent,
-      backgroundColor:brandChart.alpha(brandChart.accent,.15),
-      fill:true,tension:.35
-    }]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
-      scales:{y:{ticks:{callback:v=>rupiah(v)}},x:{grid:{display:false}}}}
+    type:"bar",
+    data:{labels:series.labels,datasets:[{label:"Omzet",data:series.values,backgroundColor:brandChart.primary,hoverBackgroundColor:brandChart.mix(brandChart.primary,"#000000",.15),borderRadius:5,maxBarThickness:28}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:x=>`Omzet: ${rupiah(x.parsed.y)}`}}},
+      scales:chartAxes(brandChart,{y:{beginAtZero:true,ticks:{callback:v=>shortRupiah(v),maxTicksLimit:6}},x:{grid:{display:false},ticks:{autoSkip:true,maxRotation:0,maxTicksLimit:10}}})}
   });
 
-  const pkgEntries=Object.entries(pkg).sort((a,b)=>b[1]-a[1]);
-  packageChart=new Chart(document.getElementById("packageChart"),{
-    type:"doughnut",
-    data:{labels:pkgEntries.map(x=>x[0]),datasets:[{
-      data:pkgEntries.map(x=>x[1]),
-      label:"Qty Terjual",
-      backgroundColor:pkgEntries.map((_,i)=>brandChart.palette[i%brandChart.palette.length]),
-      borderWidth:2,borderColor:"#fff"
-    }]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{
-      legend:{position:"bottom",labels:{boxWidth:12,font:{size:10}}},
-      tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.parsed}x terjual`}}
-    }}
-  });
+  packageChart=chartRankBars(document.getElementById("packageChart"),pkgEntries,{unit:"x"});
 
   const monthData=monthlyRevenueComparison||{};
   const current=Number(monthData.currentTotal||0);
@@ -1502,10 +1572,11 @@ function renderCharts(){
   }
   if(deltaEl){
     deltaEl.textContent=deltaText;
-    deltaEl.style.color=current>=previous ? "var(--green)" : "var(--danger)";
+    deltaEl.classList.remove("platform-growth-up","platform-growth-down","platform-growth-flat");
+    deltaEl.classList.add(current>previous?"platform-growth-up":current<previous?"platform-growth-down":"platform-growth-flat");
   }
   if(noteEl){
-    noteEl.textContent=`${monthData.currentLabel||"Bulan ini"}: ${rupiah(current)} · ${monthData.previousLabel||"Bulan lalu"}: ${rupiah(previous)}`;
+    noteEl.textContent=`Tanggal yang sama: ${monthData.currentLabel||"bulan ini"} ${rupiah(current)} · ${monthData.previousLabel||"bulan lalu"} ${rupiah(previous)}`;
   }
 
   const monthlyCanvas=document.getElementById("monthlyRevenueChart");
@@ -1513,28 +1584,14 @@ function renderCharts(){
     monthlyRevenueChart=new Chart(monthlyCanvas,{
       type:"bar",
       data:{
-        labels:[monthData.previousLabel||"Bulan Lalu",monthData.currentLabel||"Bulan Ini"],
-        datasets:[{
-          label:"Omzet",
-          data:[previous,current],
-          backgroundColor:[brandChart.alpha(brandChart.primary,.72),brandChart.alpha(brandChart.accent,.78)],
-          borderColor:[brandChart.primary,brandChart.accent],
-          borderWidth:1.5,
-          borderRadius:12,
-          maxBarThickness:110
-        }]
+        labels:[monthData.previousLabel||"Bulan lalu",monthData.currentLabel||"Bulan ini"],
+        datasets:[{label:"Omzet",data:[previous,current],backgroundColor:[brandChart.accent,brandChart.primary],borderRadius:8,maxBarThickness:90}]
       },
       options:{
         responsive:true,
         maintainAspectRatio:false,
-        plugins:{
-          legend:{display:false},
-          tooltip:{callbacks:{label:ctx=>`Omzet: ${rupiah(ctx.parsed.y)}`}}
-        },
-        scales:{
-          y:{beginAtZero:true,ticks:{callback:v=>rupiah(v)}},
-          x:{grid:{display:false}}
-        }
+        plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`Omzet: ${rupiah(ctx.parsed.y)}`}}},
+        scales:chartAxes(brandChart,{y:{beginAtZero:true,ticks:{callback:v=>shortRupiah(v),maxTicksLimit:6}},x:{grid:{display:false}}})
       }
     });
   }
@@ -1545,48 +1602,13 @@ function renderCharts(){
   if(topicTotalEl) topicTotalEl.textContent=topicTotal.toLocaleString("id-ID");
 
   const topicCanvas=document.getElementById("topicChart");
-  if(topicCanvas){
-    const topicLabels=topicEntries.length?topicEntries.map(x=>x[0]):["Belum ada data"];
-    const topicValues=topicEntries.length?topicEntries.map(x=>x[1]):[1];
-    topicChart=new Chart(topicCanvas,{
-      type:"doughnut",
-      data:{
-        labels:topicLabels,
-        datasets:[{
-          data:topicValues,
-          backgroundColor:topicEntries.length
-            ? topicEntries.map((_,i)=>brandChart.palette[i%brandChart.palette.length])
-            : [brandChart.alpha(brandChart.accent,.14)],
-          borderWidth:2,
-          borderColor:"#fff"
-        }]
-      },
-      options:{
-        responsive:true,
-        maintainAspectRatio:false,
-        cutout:"58%",
-        plugins:{
-          legend:{
-            position:"bottom",
-            labels:{boxWidth:12,font:{size:10}}
-          },
-          tooltip:{
-            callbacks:{
-              label:ctx=>{
-                if(!topicEntries.length)return "Belum ada data";
-                const value=Number(ctx.parsed||0);
-                const pct=topicTotal>0?(value/topicTotal*100):0;
-                return `${ctx.label}: ${value}x (${pct.toLocaleString("id-ID",{maximumFractionDigits:1})}%)`;
-              }
-            }
-          }
-        }
-      }
-    });
-  }
+  if(topicCanvas) topicChart=chartRankBars(topicCanvas,topicEntries,{unit:"x"});
 
   renderPlatformAnalytics();
 }
+
+// Chart colours are read when a chart is drawn, so redraw Performance after a theme switch.
+(()=>{let dark=document.body.classList.contains("saas-dark");new MutationObserver(()=>{const d=document.body.classList.contains("saas-dark");if(d===dark)return;dark=d;if(dailyChart&&document.getElementById("performance")?.classList.contains("active"))renderCharts();}).observe(document.body,{attributes:true,attributeFilter:["class"]});})();
 
 function renderHistory(){
   const body=document.getElementById("tx-table-body");
@@ -1740,8 +1762,106 @@ function renderCashHistories(){
     row:e=>`<tr><td>${escapeHtml(e.expense_date||"-")}</td><td>${escapeHtml(e.description||"-")}</td><td><strong>${rupiah(e.amount)}</strong></td></tr>`});
   renderCashHistoryTable({tableId:"cash-injection-table",summaryId:"cash-injection-filter-summary",colspan:4,load:allCashInjections,dateKey:"injection_date",empty:"Tidak ada pemasukan kas pada periode ini.",
     row:e=>`<tr><td>${escapeHtml(e.injection_date||"-")}</td><td>${escapeHtml(e.source||"-")}</td><td>${escapeHtml(e.description||"-")}</td><td><strong>${rupiah(e.amount)}</strong></td></tr>`});
+  renderCapitalCash();
   renderHistoryLimitNotice();
 }
+// Kas Modal (owner Okt 2026): total HPP penjualan per tanggal, terpisah dari Saldo Kas. Ikut filter riwayat kas.
+// Performance › Penjualan per Produk (owner Okt 2026): satu produk + periode sendiri. Omzet = subtotal item
+// (sebelum diskon/tip transaksi). Template seller: produk = nama aplikasi (semua plan & durasi digabung).
+function productSalesLabel(item){const seller=document.body.classList.contains('seller-app-premium');return String((seller&&item?.product)||item?.name||item?.code||'').trim();}
+function productSalesRange(){
+  const v=document.getElementById('product-sales-period')?.value||'7days',today=new Date(),iso=localISODate,shift=n=>{const d=new Date(today);d.setDate(d.getDate()+n);return iso(d)};
+  if(v==='30days')return {from:shift(-29),to:iso(today)};
+  if(v==='month')return {from:iso(new Date(today.getFullYear(),today.getMonth(),1)),to:iso(today)};
+  if(v==='lastmonth')return {from:iso(new Date(today.getFullYear(),today.getMonth()-1,1)),to:iso(new Date(today.getFullYear(),today.getMonth(),0))};
+  if(v==='custom'){let from=document.getElementById('product-sales-from')?.value||'',to=document.getElementById('product-sales-to')?.value||'';if(from&&to&&from>to)[from,to]=[to,from];return {from,to};}
+  return {from:shift(-6),to:iso(today)};
+}
+async function renderProductSales(){
+  const table=document.getElementById('product-sales-table'),select=document.getElementById('product-sales-product');if(!table||!select)return;
+  let rows=[];try{rows=await allTransactions();}catch(_e){}
+  const cutoff=historyCutoff(),itemsOf=t=>[...(Array.isArray(t?.order_items)?t.order_items:[]),...(Array.isArray(t?.order_addons)?t.order_addons:[])];
+  const names=[...new Set(rows.filter(t=>!cutoff||String(t.transaction_date||'')>=cutoff).flatMap(t=>itemsOf(t).map(productSalesLabel)).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'id'));
+  const keep=select.value;
+  select.innerHTML=names.length?names.map(n=>`<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join(''):'<option value="">Belum ada produk terjual</option>';
+  if(names.includes(keep))select.value=keep;
+  const product=select.value,{from,to}=productSalesRange(),days=new Map();
+  if(product)rows.forEach(t=>{
+    const d=String(t.transaction_date||'');if((from&&d<from)||(to&&d>to)||(cutoff&&d<cutoff))return;
+    const hit=itemsOf(t).filter(x=>productSalesLabel(x)===product);if(!hit.length)return;
+    const x=days.get(d)||{qty:0,tx:0,total:0};x.tx++;
+    hit.forEach(i=>{const q=Math.max(0,Number(i.qty||1));x.qty+=q;x.total+=Number.isFinite(Number(i.subtotal))?Number(i.subtotal):Number(i.unit_price||i.price||0)*q;});
+    days.set(d,x);
+  });
+  const list=[...days.entries()].sort((a,b)=>b[0].localeCompare(a[0]));
+  table.innerHTML=list.length?list.map(([d,x])=>`<tr><td>${escapeHtml(d)}</td><td>${x.qty}</td><td>${x.tx}</td><td><strong>${rupiah(x.total)}</strong></td></tr>`).join(''):`<tr><td colspan="4" class="empty">${product?'Tidak ada penjualan produk ini pada periode tersebut.':'Belum ada produk terjual.'}</td></tr>`;
+  const sum=k=>list.reduce((n,[,x])=>n+x[k],0),summary=document.getElementById('product-sales-summary');
+  if(summary)summary.innerHTML=product?`<div><span>Qty terjual</span><b>${sum('qty').toLocaleString('id-ID')}</b></div><div><span>Transaksi</span><b>${sum('tx').toLocaleString('id-ID')}</b></div><div><span>Omzet</span><b>${rupiah(sum('total'))}</b></div><div><span>Hari ada penjualan</span><b>${list.length}</b></div>`:'';
+}
+(function wireProductSales(){
+  const period=document.getElementById('product-sales-period');if(!period)return;
+  const custom=document.getElementById('product-sales-custom');
+  period.addEventListener('change',()=>{if(custom)custom.hidden=period.value!=='custom';if(period.value==='custom'){const f=document.getElementById('product-sales-from'),t=document.getElementById('product-sales-to');if(f&&!f.value)f.value=localISODate(new Date(Date.now()-6*864e5));if(t&&!t.value)t.value=todayISO();}renderProductSales();});
+  ['product-sales-product','product-sales-from','product-sales-to'].forEach(id=>document.getElementById(id)?.addEventListener('change',renderProductSales));
+})();
+async function renderCapitalCash(){
+  const table=document.getElementById("cash-capital-table");if(!table)return;
+  const {from,to}=cashHistoryRange(),cutoff=historyCutoff(),days=new Map();
+  try{(await allTransactions()).forEach(t=>{const d=String(t.transaction_date||"");if((from&&d<from)||(to&&d>to)||(cutoff&&d<cutoff))return;const hpp=transactionProfitBreakdown(t).hpp;if(hpp<=0)return;const x=days.get(d)||{count:0,total:0};x.count++;x.total+=hpp;days.set(d,x);});}
+  catch(err){table.innerHTML=`<tr><td colspan="3" class="empty">${escapeHtml(err.message||"Gagal memuat kas modal.")}</td></tr>`;return;}
+  const rows=[...days.entries()].sort((a,b)=>b[0].localeCompare(a[0]));
+  table.innerHTML=rows.length?rows.map(([d,x])=>`<tr><td>${escapeHtml(d)}</td><td>${x.count}</td><td><strong>${rupiah(x.total)}</strong></td></tr>`).join(""):`<tr><td colspan="3" class="empty">Belum ada penjualan dengan harga modal pada periode ini.</td></tr>`;
+  const summary=document.getElementById("cash-capital-summary");
+  if(summary)summary.textContent=`${rows.reduce((n,[,x])=>n+x.count,0)} transaksi · Total ${rupiah(rows.reduce((n,[,x])=>n+x.total,0))}`;
+}
+// Saklar "Pakai Kas" (Pro): disimpan di workspace_branding.cash_enabled (SQL 2026-10-cash-toggle). Gratis: Kas selalu mati.
+function syncCashToggle(){
+  const box=document.getElementById("kairo-cash-toggle"),input=document.getElementById("kairo-cash-enabled");if(!box||!input)return;
+  const pro=canUseFeature("petty_cash");
+  input.checked=cashActive();input.disabled=!pro;box.classList.toggle("is-locked",!pro);
+  const note=document.getElementById("kairo-cash-toggle-note");
+  if(note)note.textContent=pro?"Sisihkan sebagian laba ke Kas. Kalau dimatikan, lo pilih mulai kapan; saldo Kas yang sudah ada tetap tersimpan, dan sesudahnya 100% laba masuk Withdraw.":"Paket Gratis: 100% laba (harga jual dikurangi harga modal per produk) masuk Withdraw pemilik. Kas, Petty Cash, dan pembagian ke partner tersedia di paket Pro.";
+}
+async function saveCashEnabled(on){
+  const {error}=await db.from("workspace_branding").upsert({workspace_id:requireWorkspaceId(),cash_enabled:on,updated_at:new Date().toISOString()},{onConflict:"workspace_id"});
+  if(error)throw error;
+  activeWorkspaceBranding={...(activeWorkspaceBranding||{}),cash_enabled:on};
+}
+async function afterCashChange(){try{hydrateSaasUi();}catch(_e){} renderProfitShareEditor();try{renderProductProfitRules();}catch(_e){} await refreshAll();}
+document.getElementById("kairo-cash-enabled")?.addEventListener("change",async e=>{
+  const on=e.target.checked,panel=document.getElementById("kairo-cash-off-panel");
+  if(!on){
+    // Matikan: tanya dulu berlaku mulai kapan.
+    e.target.checked=true;
+    if(panel){panel.hidden=false;const f=document.getElementById("kairo-cash-off-from");if(f)f.value=kairoLocalDateTimeValue(new Date(Date.now()+60000));f?.focus();}
+    return;
+  }
+  e.target.disabled=true;
+  try{await saveCashEnabled(true);showToast("Kas aktif lagi. Atur persentase Kas di Pembagian Omzet (berlaku mulai tanggal yang lo pilih).",'info');await afterCashChange();}
+  catch(err){e.target.checked=false;showToast("Gagal menyimpan pengaturan Kas: "+(err?.message||err),true);}
+  finally{syncCashToggle();}
+});
+document.getElementById("kairo-cash-off-cancel")?.addEventListener("click",()=>{const p=document.getElementById("kairo-cash-off-panel");if(p)p.hidden=true;});
+document.getElementById("kairo-cash-off-save")?.addEventListener("click",async e=>{
+  const btn=e.currentTarget,from=document.getElementById("kairo-cash-off-from")?.value;
+  if(!from)return showToast("Pilih tanggal & jam Kas mulai dimatikan.",'warning');
+  btn.disabled=true;
+  try{
+    if(!profitShareVersionTableReady)throw new Error("Migration profit_share_versions belum diterapkan di Supabase.");
+    // Versi baru mulai tanggal pilihan: Kas 0% (bertanda cash_off), partner lain diskalakan proporsional jadi 100%.
+    const v=activeShareVersionForDate(from),base=v&&normalizeShareRules(v.rules).length?normalizeShareRules(v.rules):partners.map(p=>({partner_id:p.id||null,partner_name:p.partner_name,percentage:Number(p.percentage||0)}));
+    const others=base.filter(r=>!isKasName(r)),total=others.reduce((t,r)=>t+Number(r.percentage||0),0);
+    if(!others.length||total<=0)throw new Error("Belum ada partner selain Kas untuk menerima laba.");
+    const rules=[...others.map(r=>({partner_id:r.partner_id||null,partner_name:r.partner_name,percentage:Number(r.percentage||0)/total})),{partner_id:base.find(isKasName)?.partner_id||null,partner_name:'Kas',percentage:0,cash_off:true}];
+    const {error}=await db.from("profit_share_versions").upsert({workspace_id:requireWorkspaceId(),effective_from:from,rules,created_by:activeAuthUserId},{onConflict:"workspace_id,effective_from"});
+    if(error)throw error;
+    await saveCashEnabled(false);
+    document.getElementById("kairo-cash-off-panel").hidden=true;
+    showToast(`Kas dimatikan mulai ${from.replace('T',' ')}. Saldo Kas sebelumnya tetap tersimpan.`);
+    await loadMasters();await afterCashChange();
+  }catch(err){showToast(/cash_enabled/.test(String(err?.message||""))?"Saklar Kas aktif setelah SQL 2026-10-cash-toggle dijalankan.":"Gagal mematikan Kas: "+(err?.message||err),true);}
+  finally{btn.disabled=false;syncCashToggle();}
+});
 (function wireCashHistoryFilter(){
   const selects=[...document.querySelectorAll("[data-cash-filter]")];
   if(!selects.length)return;
@@ -4224,7 +4344,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
  const oldOpen=window.openAppPage||openAppPage;window.openAppPage=function(tab){return oldOpen.apply(this,arguments)};try{openAppPage=window.openAppPage}catch(e){}
  function wireTools(){const tr=document.getElementById('orders-tool-trigger'),label=document.getElementById('orders-tool-trigger-label'),menu=document.getElementById('orders-tool-menu'),auto=document.getElementById('smart-sales-open'),manual=document.getElementById('manual-orders-select');if(!tr||!menu)return;const close=()=>{menu.hidden=true;tr.setAttribute('aria-expanded','false')};const sync=()=>{const p=isPro();if(auto){auto.title=p?'':'Autofill Orders tersedia di paket Pro.';auto.setAttribute('aria-disabled',p?'false':'true')}};tr.onclick=e=>{e.stopPropagation();const open=menu.hidden;menu.hidden=!open;tr.setAttribute('aria-expanded',open?'true':'false')};manual&&(manual.onclick=e=>{e.preventDefault();e.stopPropagation();if(label)label.textContent='Manual Orders';manual.classList.add('is-active');auto?.classList.remove('is-active');close();document.getElementById('tx-form')?.scrollIntoView({behavior:'smooth',block:'start'})});auto&&(auto.onclick=e=>{if(!isPro()){e.preventDefault();e.stopPropagation();if(label)label.textContent='Manual Orders';manual?.classList.add('is-active');auto.classList.remove('is-active');showToast('Autofill Orders tersedia di paket Pro.',true);close();return}if(label)label.textContent='Autofill Orders';auto.classList.add('is-active');manual?.classList.remove('is-active');close()});if(!document.documentElement.dataset.kairoToolsOutsideWired){document.documentElement.dataset.kairoToolsOutsideWired='1';document.addEventListener('click',e=>{if(!e.target.closest('#orders-tool-dropdown')){const t=document.getElementById('orders-tool-trigger'),m=document.getElementById('orders-tool-menu');if(m)m.hidden=true;if(t)t.setAttribute('aria-expanded','false')}})}sync()}
  function formatPlanValidity(){const s=activeWorkspaceSubscription||{};const raw=s.current_period_end||s.expires_at||s.end_date||s.valid_until||s.trial_ends_at||null;if(!raw)return 'Belum ditentukan';const d=new Date(raw);return Number.isNaN(d.getTime())?String(raw):d.toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'})}
- function renderAccess(){const box=document.getElementById('settings-access-list');if(!box)return;const pro=isPro();const rows=pro?['Dashboard & operasional utama','Performance analytics','Autofill Orders','Custom branding & tampilan']:['Dashboard & operasional utama','Petty Cash, Withdraw, Orders & Customer Database','Performance terbatas di paket basic','Autofill Orders terkunci di paket basic'];box.innerHTML=rows.map((x,i)=>`<div class="settings-access-item"><svg viewBox="0 0 24 24" aria-hidden="true">${(!pro&&i>=2)?'<rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>':'<path d="m5 12 4 4L19 6"/>'}</svg><span>${x}</span></div>`).join('')}
+ function renderAccess(){const box=document.getElementById('settings-access-list');if(!box)return;const pro=isPro();const rows=pro?['Dashboard & operasional utama','Performance analytics','Autofill Orders','Custom branding & tampilan']:['Dashboard & operasional utama','Orders, Withdraw & HPP per produk','Petty Cash terkunci di paket Gratis','Autofill Orders terkunci di paket Gratis'];box.innerHTML=rows.map((x,i)=>`<div class="settings-access-item"><svg viewBox="0 0 24 24" aria-hidden="true">${(!pro&&i>=2)?'<rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>':'<path d="m5 12 4 4L19 6"/>'}</svg><span>${x}</span></div>`).join('')}
  function ensureReceiptFooter(){const panel=document.querySelector('[data-settings-panel="receipt"] .receipt-layout-card');if(!panel||document.getElementById('settings-receipt-footer'))return;const box=document.createElement('div');box.className='receipt-footer-moved';box.innerHTML='<div class="form-group"><label class="label">Footer Struk</label><input id="settings-receipt-footer" class="input" type="text" maxlength="180" placeholder="Terima kasih sudah menggunakan layanan kami"></div>';const head=panel.querySelector('.receipt-layout-head');head?.insertAdjacentElement('afterend',box);const footer=document.getElementById('settings-receipt-footer');footer.value=activeWorkspaceBranding?.receipt_footer||'';footer.addEventListener('input',()=>{if(activeWorkspaceBranding)activeWorkspaceBranding.receipt_footer=footer.value.trim()||null;const p=window.__trineLastReceiptPayload;if(p&&document.getElementById('receipt-modal')?.style.display==='flex'&&typeof showReceiptPreview==='function'){const c=document.getElementById('receipt-content');if(c&&typeof buildHtml==='function')c.innerHTML=buildHtml(p)}})}
  const oldHydrate=window.hydrateSaasUi||hydrateSaasUi;window.hydrateSaasUi=function(){const r=oldHydrate.apply(this,arguments);setTimeout(()=>{syncSlogan();const v=document.getElementById('settings-meta-validity');if(v)v.textContent=formatPlanValidity();renderAccess();lockPerformanceNav();wireTools();ensureReceiptFooter();},0);return r};try{hydrateSaasUi=window.hydrateSaasUi}catch(e){}
  const oldBuildSidebar=window.buildSidebar;setTimeout(()=>{lockPerformanceNav();wireTools();syncHistory();syncSlogan();renderAccess();const v=document.getElementById('settings-meta-validity');if(v)v.textContent=formatPlanValidity();},80);
@@ -4237,7 +4357,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
 
 
 (function(){
-  const PREMIUM_SETTINGS=new Set(['profit','receipt']);
+  const PREMIUM_SETTINGS=new Set(['receipt']);
   const isProPlan=()=>String(window.activeWorkspacePlan||activeWorkspacePlan||'basic').toLowerCase()==='pro';
   const lockSvg='<span class="settings-submenu-lock" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></span>';
 
@@ -4312,7 +4432,9 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
    // Not `disabled`: a disabled button swallows the tap, so Gratis users got no "tersedia di paket Pro" notice.
    const auto=document.getElementById('smart-sales-open');if(auto){auto.setAttribute('aria-disabled',pro()?'false':'true');auto.title=pro()?'':'Autofill Orders tersedia di paket Pro.';const badge=auto.querySelector('.pro-inline-badge');if(badge)badge.textContent='PRO';}
    // Settings profit + receipt are Pro.
-   document.querySelectorAll('.saas-settings-submenu-btn').forEach(b=>{if(!['profit','receipt'].includes(b.dataset.settingsCategory))return;b.classList.toggle('settings-pro-locked',!pro());b.setAttribute('aria-disabled',pro()?'false':'true');b.title=pro()?'':'Tersedia di paket Pro.';if(pro())b.querySelector('.settings-submenu-lock')?.remove();});
+   document.querySelectorAll('.saas-settings-submenu-btn').forEach(b=>{if(b.dataset.settingsCategory!=='receipt')return;b.classList.toggle('settings-pro-locked',!pro());b.setAttribute('aria-disabled',pro()?'false':'true');b.title=pro()?'':'Tersedia di paket Pro.';if(pro())b.querySelector('.settings-submenu-lock')?.remove();});
+   // Petty Cash: Gratis terkunci (Pro); Pro dengan Kas dimatikan & saldo habis = menu & kartu Saldo Kas disembunyikan.
+   syncCashVisibility();
    // Customer DB BASIC lock.
    document.querySelectorAll('[data-tab="customers"],.saas-mobile-nav-btn[data-mobile-tab="customers"]').forEach(b=>b.classList.toggle('entitlement-locked',!canUseFeature('customer_database')));
    // Open/Close buttons BASIC lock.
@@ -4324,13 +4446,11 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
    const cust=e.target.closest('[data-tab="customers"],.saas-mobile-nav-btn[data-mobile-tab="customers"]');if(cust&&!canUseFeature('customer_database')){e.preventDefault();e.stopImmediatePropagation();showToast(lockedMsg('customer_database'),true);return;}
    const shift=e.target.closest('#open-shift-btn,#close-shift-btn');if(shift&&!canUseFeature('open_close_store')){e.preventDefault();e.stopImmediatePropagation();showToast(lockedMsg('open_close_store'),true);return;}
    const auto=e.target.closest('#smart-sales-open');if(auto&&!canUseFeature('autofill_orders')){e.preventDefault();e.stopImmediatePropagation();const menu=document.getElementById('orders-tool-menu');if(menu){menu.hidden=true;document.getElementById('orders-tool-trigger')?.setAttribute('aria-expanded','false')}showToast(lockedMsg('autofill_orders'),true);return;}
-   const set=e.target.closest('.saas-settings-submenu-btn');if(set&&['profit','receipt'].includes(set.dataset.settingsCategory)&&!pro()){e.preventDefault();e.stopImmediatePropagation();showToast('Menu ini tersedia di paket Pro.',true);return;}
+   const set=e.target.closest('.saas-settings-submenu-btn');if(set&&set.dataset.settingsCategory==='receipt'&&!pro()){e.preventDefault();e.stopImmediatePropagation();showToast('Menu ini tersedia di paket Pro.',true);return;}
  },true);
  // Wrap export: Gratis blocked, Pro normal.
  if(typeof window.exportExcel==='function'||typeof exportExcel==='function'){const old=window.exportExcel||exportExcel;window.exportExcel=function(){if(!canUseFeature('export_excel')){showToast(lockedMsg('export_excel'),true);return;}return old.apply(this,arguments)};try{exportExcel=window.exportExcel}catch(e){}}
- // Advanced per-product split remains PRO; HPP itself stays available.
- const oldRender=window.renderProductProfitRules||renderProductProfitRules;window.renderProductProfitRules=function(){const r=oldRender.apply(this,arguments);setTimeout(()=>{document.querySelectorAll('.profit-product-row').forEach(row=>{const mode=row.querySelector('.profit-product-mode');if(mode&&!pro()){mode.value='percentage';mode.disabled=true;mode.title='Custom pembagian profit per produk tersedia di paket PRO.';row.classList.remove('manual');row.querySelectorAll('.profit-product-manual-amount').forEach(i=>i.disabled=true);}})},0);return r};try{renderProductProfitRules=window.renderProductProfitRules}catch(e){}
- const oldSave=window.saveProductProfitRule||saveProductProfitRule;window.saveProductProfitRule=async function(row){const mode=row?.querySelector('.profit-product-mode')?.value||'percentage';if(mode==='manual'&&!canUseFeature('advanced_profit_sharing','full')){showToast('Custom pembagian profit per produk tersedia di paket Pro.',true);return;}return oldSave.apply(this,arguments)};try{saveProductProfitRule=window.saveProductProfitRule}catch(e){}
+ // HPP & pembagian per produk (termasuk mode manual) tersedia mulai paket Gratis (owner Okt 2026).
  const oldHyd=window.hydrateSaasUi||hydrateSaasUi;window.hydrateSaasUi=function(){const r=oldHyd.apply(this,arguments);setTimeout(decorate,0);return r};try{hydrateSaasUi=window.hydrateSaasUi}catch(e){}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(decorate,150),{once:true});else setTimeout(decorate,150);
 })();
@@ -4456,14 +4576,15 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
  const TICK='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.2 4.2L19 7"/></svg>';
  const DASH='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 12h10"/></svg>';
  const PLANS=[
-  {id:'basic',name:'Gratis',price:'Rp0',copy:'Mulai merapikan pencatatan usaha tanpa biaya.',points:['Catat order & riwayat 60 hari','Struk, Petty Cash & Withdraw','Dashboard, Performance & notifikasi'],foot:'Langsung aktif setelah daftar'},
+  {id:'basic',name:'Gratis',price:'Rp0',copy:'Mulai merapikan pencatatan usaha tanpa biaya.',points:['Catat order & riwayat 60 hari','Struk, HPP & Withdraw','Dashboard, Performance & notifikasi'],foot:'Langsung aktif setelah daftar'},
   {id:'pro',name:'Pro',price:'Rp43.000<small>/bulan</small>',deal:'<span>6 bulan</span><s aria-label="Harga normal Rp258.000">Rp258.000</s><b>Rp238.000</b>',badge:'Paling lengkap',copy:'Semua fitur KAIRO: operasional, otomatisasi, dan branding usaha.',points:['Semua fitur Gratis + riwayat tanpa batas','Customer Database, Autofill & Promo','Open / Close Store, Export Excel','Branding, struk & pembagian profit'],foot:'Aktif setelah konfirmasi via WhatsApp'},
   {id:'custom',name:'Custom',price:'Pro + penyesuaian',copy:'Semua fitur Pro, disesuaikan dengan alur bisnismu.',points:['Semua fitur Pro','Penyesuaian alur bisnis','Pendampingan setup'],foot:'Aktif sebagai paket Pro'}
  ];
- const INCLUDED=['Dashboard & notifikasi order','Catat order manual','Struk transaksi','Petty Cash','Withdraw','Package & harga','Warna layout & dark mode','Template sesuai jenis usaha'];
+ const INCLUDED=['Dashboard & notifikasi order','Catat order manual','Struk transaksi','HPP & pembagian per produk','Withdraw','Package & harga','Warna layout & dark mode','Template sesuai jenis usaha'];
  // [feature, Gratis, Pro, Custom] — 1 = included, 0 = not included, text = note.
  const ROWS=[
   ['Riwayat transaksi','60 hari terakhir','Tanpa batas','Tanpa batas'],
+  ['Petty Cash (kas usaha)',0,1,1],
   ['Performance & grafik','Ya · Seller App: Pro',1,1],
   ['Customer Database',0,1,1],
   ['Autofill Orders',0,1,1],
@@ -4603,18 +4724,18 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
  }
  function decorateLocks(){
    const basic=isBasic();
-   // Whole menus unavailable on BASIC. They stay clickable so the upgrade message can explain why.
-   document.querySelectorAll('[data-tab="promo"],.saas-mobile-nav-btn[data-mobile-tab="promo"],[data-tab="customers"],.saas-mobile-nav-btn[data-mobile-tab="customers"]').forEach(el=>setLock(el,basic));
+   // Whole menus unavailable on BASIC (Petty Cash juga, owner Okt 2026). They stay clickable so the upgrade message can explain why.
+   document.querySelectorAll('[data-tab="promo"],.saas-mobile-nav-btn[data-mobile-tab="promo"],[data-tab="customers"],.saas-mobile-nav-btn[data-mobile-tab="customers"],[data-tab="cash"],.saas-mobile-nav-btn[data-mobile-tab="cash"]').forEach(el=>setLock(el,basic));
    // BASIC Settings: Package & Harga stays available. Premium categories get a visible lock.
-   document.querySelectorAll('.saas-settings-submenu-btn').forEach(el=>setLock(el,basic&&['workspace','addons','profit','receipt'].includes(el.dataset.settingsCategory)));
+   document.querySelectorAll('.saas-settings-submenu-btn').forEach(el=>setLock(el,basic&&['workspace','addons','receipt'].includes(el.dataset.settingsCategory)));
    // Performance is intentionally NOT locked on BASIC; Daily Sales remains available.
    document.querySelectorAll('[data-tab="performance"],.saas-mobile-nav-btn[data-mobile-tab="performance"]').forEach(el=>setLock(el,false));
  }
  document.addEventListener('click',e=>{
    if(!isBasic())return;
-   const whole=e.target.closest('[data-tab="promo"],.saas-mobile-nav-btn[data-mobile-tab="promo"],[data-tab="customers"],.saas-mobile-nav-btn[data-mobile-tab="customers"]');
+   const whole=e.target.closest('[data-tab="promo"],.saas-mobile-nav-btn[data-mobile-tab="promo"],[data-tab="customers"],.saas-mobile-nav-btn[data-mobile-tab="customers"],[data-tab="cash"],.saas-mobile-nav-btn[data-mobile-tab="cash"]');
    const settings=e.target.closest('.saas-settings-submenu-btn');
-   if(whole||(settings&&['workspace','addons','profit','receipt'].includes(settings.dataset.settingsCategory))){e.preventDefault();e.stopImmediatePropagation();upgradeMessage();}
+   if(whole||(settings&&['workspace','addons','receipt'].includes(settings.dataset.settingsCategory))){e.preventDefault();e.stopImmediatePropagation();upgradeMessage();}
  },true);
  function refresh(){neutralBrand();decorateLocks()}
  const oldHyd=window.hydrateSaasUi||hydrateSaasUi;window.hydrateSaasUi=function(){const r=oldHyd.apply(this,arguments);setTimeout(refresh,0);return r};try{hydrateSaasUi=window.hydrateSaasUi}catch(e){}
@@ -5026,13 +5147,13 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
         const link=document.createElement('link');
         link.id='seller-app-premium-css';
         link.rel='stylesheet';
-        link.href='assets/templates/seller-app-premium.css?v=20.10.150';
+        link.href='assets/templates/seller-app-premium.css?v=20.10.151';
         document.head.appendChild(link);
       }
       if(!document.getElementById('seller-app-premium-js')){
         const script=document.createElement('script');
         script.id='seller-app-premium-js';
-        script.src='assets/templates/seller-app-premium.js?v=20.10.149';
+        script.src='assets/templates/seller-app-premium.js?v=20.10.150';
         script.defer=true;
         document.body.appendChild(script);
       }
@@ -5042,6 +5163,11 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
   document.addEventListener('click',e=>{
     if(e.target.closest('[data-tab="input"],[data-mobile-tab="input"],.kairo-mobile-orders-main,[data-settings-category="packages"]'))setTimeout(maybeBootSellerTemplate,0);
   },true);
+  // Muat template langsung setelah login (dulu baru dimuat saat menu Orders diklik, jadi tabel Akan Expired
+  // dan riwayat seller di Dashboard tidak muncul di awal, owner Okt 2026).
+  new MutationObserver(()=>{if(!sellerTemplateBooted&&document.body.classList.contains('authenticated'))maybeBootSellerTemplate();})
+    .observe(document.body,{attributes:true,attributeFilter:['class']});
+  if(document.body.classList.contains('authenticated'))maybeBootSellerTemplate();
 })();
 
 /* Auth boot handshake: presentation may safely release a queued login submit. */
