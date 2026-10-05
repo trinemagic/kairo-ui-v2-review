@@ -223,24 +223,52 @@
   const catLabel = c => String(c || '').replace(/\s*Apps$/i, '');
   STEP.products = {
     title: () => 'Aplikasi apa saja yang kamu jual?',
-    lead: () => 'Centang aplikasinya. Di langkah berikutnya kamu isi harga jual & modal untuk aplikasi yang dipilih.',
+    lead: () => 'Centang aplikasinya, atau tambahkan produkmu sendiri. Di langkah berikutnya kamu isi harga jual & modalnya.',
     init() { if (!D.products) D.products = new Set(S.products || []); D.pcat = D.pcat || ''; D.pq = ''; },
     html() {
       const C = window.kairoSellerCatalog;
       if (!C?.ready()) return `<div class="ksw-note">${ic('info')}<span>Daftar produk belum bisa dimuat. Lewati dulu langkah ini; produk bisa diatur di Settings › Produk.</span></div>`;
-      return `<label class="ksw-search">${ic('search')}<input type="search" placeholder="Cari aplikasi, contoh: Netflix, Canva, ChatGPT" aria-label="Cari aplikasi" data-q></label><div class="ksw-chips" role="tablist">${['', ...C.categories].map(c => `<button type="button" class="ksw-chip" data-cat="${esc(c)}" aria-pressed="${c === D.pcat}">${c ? esc(catLabel(c)) : 'Semua'}</button>`).join('')}</div><div class="ksw-apps" data-apps></div><div class="ksw-picked" data-picked></div>`;
+      const cats = C.categories.map(c => `<option value="${esc(c)}">${esc(catLabel(c))}</option>`).join('');
+      return `<div class="ksw-ptools"><label class="ksw-search">${ic('search')}<input type="search" placeholder="Cari aplikasi, contoh: Netflix, Canva, ChatGPT" aria-label="Cari aplikasi" data-q></label><button type="button" class="ksw-btn is-ghost is-sm" data-all></button><button type="button" class="ksw-btn is-ghost is-sm" data-addtoggle aria-expanded="false">${ic('plus')} Produk sendiri</button></div>
+      <form class="ksw-addform" data-addform hidden><div class="ksw-sub">Tambah produk sendiri <small>tersimpan permanen dan muncul di Orders & Settings › Produk</small></div><div class="ksw-addgrid">
+        <label class="ksw-fld"><span>Nama produk</span><input type="text" name="product" maxlength="40" placeholder="Contoh: Kopi Premium" required></label>
+        <label class="ksw-fld"><span>Kategori</span><select name="category">${cats}</select></label>
+        <label class="ksw-fld"><span>Plan / varian</span><input type="text" name="variant" maxlength="40" placeholder="Contoh: Sharing" required></label>
+        <label class="ksw-fld"><span>Durasi</span><input type="text" name="duration" maxlength="20" placeholder="Contoh: 1 bulan" required></label>
+        <label class="ksw-fld"><span>Harga jual</span><input type="number" name="price" min="0" step="500" inputmode="numeric" value="0"></label>
+        <label class="ksw-fld"><span>Modal</span><input type="number" name="cost" min="0" step="500" inputmode="numeric" value="0"></label>
+      </div><div class="ksw-addbar"><span class="ksw-addhint">Satu produk bisa punya beberapa plan: simpan, lalu ganti plan/durasinya dan simpan lagi.</span><button type="submit" class="ksw-btn is-sm">Simpan produk</button></div></form>
+      <div class="ksw-chips" role="tablist">${['', ...C.categories].map(c => `<button type="button" class="ksw-chip" data-cat="${esc(c)}" aria-pressed="${c === D.pcat}">${c ? esc(catLabel(c)) : 'Semua'}</button>`).join('')}</div><div class="ksw-apps" data-apps></div><div class="ksw-picked" data-picked></div>`;
     },
     mount(el) {
       const C = window.kairoSellerCatalog; if (!C?.ready()) return;
-      const grid = el.querySelector('[data-apps]'), picked = el.querySelector('[data-picked]');
+      const grid = el.querySelector('[data-apps]'), picked = el.querySelector('[data-picked]'), allBtn = el.querySelector('[data-all]'), form = el.querySelector('[data-addform]'), toggle = el.querySelector('[data-addtoggle]');
+      const visible = () => { const q = D.pq.trim().toLowerCase(); return catalogApps().filter(a => (!D.pcat || a.category === D.pcat) && (!q || C.pretty(a.product).toLowerCase().includes(q))); };
       const paint = () => {
-        const q = D.pq.trim().toLowerCase();
-        const apps = catalogApps().filter(a => (!D.pcat || a.category === D.pcat) && (!q || C.pretty(a.product).toLowerCase().includes(q)));
-        grid.innerHTML = apps.length ? apps.map(a => `<button type="button" class="ksw-app" role="checkbox" aria-checked="${D.products.has(a.product)}" data-app="${esc(a.product)}"><img src="${esc(C.iconBase + C.slug(a.product) + '.svg')}" alt="" loading="lazy"><span>${esc(C.pretty(a.product))}</span><small>${a.n} pilihan plan</small></button>`).join('') : '<div class="ksw-empty">Aplikasi tidak ditemukan.</div>';
+        const apps = visible();
+        grid.innerHTML = apps.length ? apps.map(a => `<button type="button" class="ksw-app" role="checkbox" aria-checked="${D.products.has(a.product)}" data-app="${esc(a.product)}"><img src="${esc(C.iconBase + C.slug(a.product) + '.svg')}" alt="" loading="lazy"><span>${esc(C.pretty(a.product))}</span><small>${a.n} pilihan plan${C.hasIcon(a.product) ? '' : ' · buatan sendiri'}</small></button>`).join('') : '<div class="ksw-empty">Aplikasi tidak ditemukan. Tambahkan lewat tombol "Produk sendiri".</div>';
+        const all = apps.length > 0 && apps.every(a => D.products.has(a.product));
+        allBtn.innerHTML = `${ic('check')} ${all ? 'Batal pilih semua' : `Pilih semua${D.pcat || D.pq.trim() ? ' di daftar ini' : ''}`}`;
+        allBtn.disabled = !apps.length;
         const list = [...D.products];
         picked.textContent = list.length ? `${list.length} aplikasi dipilih · ${list.slice(0, 6).map(C.pretty).join(', ')}${list.length > 6 ? ', …' : ''}` : 'Belum ada aplikasi dipilih.';
       };
-      grid.addEventListener('click', e => { const b = e.target.closest('[data-app]'); if (!b) return; const p = b.dataset.app; D.products.has(p) ? D.products.delete(p) : D.products.add(p); b.setAttribute('aria-checked', String(D.products.has(p))); paint(); });
+      grid.addEventListener('click', e => { const b = e.target.closest('[data-app]'); if (!b) return; const p = b.dataset.app; D.products.has(p) ? D.products.delete(p) : D.products.add(p); paint(); });
+      allBtn.addEventListener('click', () => { const apps = visible(), all = apps.every(a => D.products.has(a.product)); apps.forEach(a => all ? D.products.delete(a.product) : D.products.add(a.product)); paint(); });
+      toggle.addEventListener('click', () => { form.hidden = !form.hidden; toggle.setAttribute('aria-expanded', String(!form.hidden)); if (!form.hidden) { if (D.pcat) form.category.value = D.pcat; form.product.focus(); } });
+      form.addEventListener('submit', async e => {
+        e.preventDefault(); if (busy) return;
+        const btn = form.querySelector('[type=submit]'), data = Object.fromEntries(new FormData(form).entries());
+        busy = true; btn.disabled = true; btn.classList.add('is-busy');
+        try {
+          const row = await C.addCustom(data);
+          D.products.add(row.product);
+          toast(`${C.pretty(row.product)} (${C.pretty(row.variant)} · ${row.duration}) tersimpan.`, 'success');
+          form.variant.value = ''; form.duration.value = ''; form.price.value = '0'; form.cost.value = '0'; form.variant.focus();
+          D.pq = ''; el.querySelector('[data-q]').value = ''; paint();
+        } catch (err) { toast(err?.message || 'Gagal menyimpan produk.', 'error'); }
+        finally { busy = false; btn.disabled = false; btn.classList.remove('is-busy'); }
+      });
       el.querySelector('[data-q]').addEventListener('input', e => { D.pq = e.target.value; paint(); });
       el.querySelectorAll('[data-cat]').forEach(b => b.addEventListener('click', () => { D.pcat = b.dataset.cat; el.querySelectorAll('[data-cat]').forEach(x => x.setAttribute('aria-pressed', String(x === b))); paint(); }));
       paint();

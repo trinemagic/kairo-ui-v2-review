@@ -377,7 +377,7 @@ let setupWizardLoader=null;
 function loadSetupWizard(){
   if(window.kairoSetupWizard)return Promise.resolve(window.kairoSetupWizard);
   if(!setupWizardLoader)setupWizardLoader=new Promise((resolve,reject)=>{
-    const v='1.0.1',css=document.createElement('link');css.rel='stylesheet';css.href=`assets/kairo-setup-wizard.css?v=${v}`;document.head.appendChild(css);
+    const v='1.0.2',css=document.createElement('link');css.rel='stylesheet';css.href=`assets/kairo-setup-wizard.css?v=${v}`;document.head.appendChild(css);
     const js=document.createElement('script');js.src=`assets/kairo-setup-wizard.js?v=${v}`;js.onload=()=>resolve(window.kairoSetupWizard);js.onerror=()=>{setupWizardLoader=null;reject(new Error('Setup wizard gagal dimuat.'));};document.head.appendChild(js);
   });
   return setupWizardLoader;
@@ -5332,7 +5332,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
       if(!document.getElementById('seller-app-premium-js')){
         const script=document.createElement('script');
         script.id='seller-app-premium-js';
-        script.src='assets/templates/seller-app-premium.js?v=20.10.153';
+        script.src='assets/templates/seller-app-premium.js?v=20.10.154';
         script.defer=true;
         document.body.appendChild(script);
       }

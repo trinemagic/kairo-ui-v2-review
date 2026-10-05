@@ -119,6 +119,17 @@ body.saas-dark #kairo-setup .ksw-scrim { background: rgba(0, 0, 0, .6); }
 #kairo-setup .ksw-search { display: flex; align-items: center; gap: 9px; padding-left: 12px; margin-bottom: 12px; border: 1.5px solid var(--k-line); border-radius: 14px; background: var(--k-sub); color: var(--k-mut); }
 #kairo-setup .ksw-search input { border: 0 !important; background: transparent !important; box-shadow: none !important; padding-left: 0; }
 #kairo-setup .ksw-search:focus-within { border-color: var(--k-p); box-shadow: 0 0 0 3px var(--k-ring); }
+#kairo-setup .ksw-ptools { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; }
+#kairo-setup .ksw-ptools .ksw-search { flex: 1; min-width: 0; margin-bottom: 0; }
+#kairo-setup .ksw-ptools .ksw-btn .ksw-i { width: 16px; height: 16px; }
+#kairo-setup .ksw-btn:disabled { opacity: .55; cursor: not-allowed; }
+#kairo-setup .ksw-addform { margin-bottom: 14px; padding: 14px; border: 1.5px solid color-mix(in srgb, var(--v3-primary) 35%, var(--v3-line)); border-radius: 16px; background: var(--k-sub); }
+#kairo-setup .ksw-addform .ksw-sub small { font-weight: 600; color: var(--k-mut); margin-left: 4px; }
+#kairo-setup .ksw-addgrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+#kairo-setup .ksw-addform select { width: 100%; min-height: 40px; padding: 8px 12px; border: 1.5px solid var(--k-line); border-radius: 12px; background: var(--k-surf); color: var(--k-ink); font: inherit; font-size: 13px; font-weight: 650; }
+#kairo-setup .ksw-addform input { background: var(--k-surf); }
+#kairo-setup .ksw-addbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; }
+#kairo-setup .ksw-addhint { font-size: 11.5px; line-height: 1.45; color: var(--k-mut); }
 #kairo-setup .ksw-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
 #kairo-setup .ksw-chip { min-height: 34px; padding: 0 13px; border-radius: 999px; border: 1.5px solid var(--k-line); background: var(--k-surf); font-size: 12.5px; font-weight: 700; color: var(--k-ink); }
 #kairo-setup .ksw-chip[aria-pressed=true] { background: var(--k-sel); border-color: var(--k-p); color: var(--k-ptext); }
@@ -270,6 +281,11 @@ html.kairo-v3 .ksw-banner-close:hover { color: var(--v3-ink); background: color-
   #kairo-setup .ksw-colors { grid-template-columns: 1fr 1fr; }
   #kairo-setup .ksw-colors .ksw-btn { grid-column: 1 / -1; }
   #kairo-setup .ksw-apps { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  #kairo-setup .ksw-ptools { flex-wrap: wrap; }
+  #kairo-setup .ksw-ptools .ksw-search { flex-basis: 100%; }
+  #kairo-setup .ksw-ptools .ksw-btn { flex: 1; }
+  #kairo-setup .ksw-addgrid { grid-template-columns: 1fr 1fr; }
+  #kairo-setup .ksw-addbar { flex-direction: column; align-items: stretch; }
   #kairo-setup .ksw-prow, #kairo-setup .is-pk .ksw-prow { grid-template-columns: 1fr 1fr; gap: 8px; padding: 10px 2px; }
   #kairo-setup .ksw-prow.is-head { display: none; }
   #kairo-setup .ksw-plan, #kairo-setup .ksw-pname { grid-column: 1 / -1; }
