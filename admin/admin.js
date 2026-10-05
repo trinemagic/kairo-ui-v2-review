@@ -548,13 +548,13 @@ function computeIssues(){
   const openFollow=new Set(followups.filter(f=>f.status==='open').map(f=>f.workspace_name));
   const customWs=new Set(customReqs.map(r=>r.workspace_id).filter(Boolean));
   const soldWs=new Set(sales.flatMap(x=>[x.workspace_id,x.workspace_name]).filter(Boolean));
-  const add=(sev,title,ws,detail,since,action,copy)=>out.push({sev,title,ws,detail,since,action,copy});
+  const add=(sev,title,ws,detail,since,action,copy,fp)=>out.push({sev,title,ws,detail,since,action,copy,fp});
   all.forEach(w=>{
     const ss=String(w.subscription_status||'').toLowerCase(),wst=String(w.workspace_status||'').toLowerCase(),until=w.valid_until?+new Date(w.valid_until):null,pro=planKey(w.plan)==='pro';
     const manage={label:'Kelola',run:()=>openWorkspace(w.workspace_id)};
     if(ss==='past_due')add('high','Pembayaran telat',w,'Subscription berstatus telat bayar',w.valid_until,manage);
     else if(pro&&until&&until<now&&['active','trialing'].includes(ss))add('high','Masa aktif Pro sudah habis',w,`Habis ${remain(w.valid_until)}, status masih aktif`,w.valid_until,manage);
-    else if(pro&&until&&until>=now&&until<=now+7*DAY&&!openFollow.has(w.workspace_name))add('med','Pro hampir habis, belum di-follow-up',w,`Sisa ${remain(w.valid_until)}`,null,{label:'Follow-up',run:()=>openFollow(w.workspace_id,'Ingatkan perpanjangan Pro')});
+    else if(pro&&until&&until>=now&&until<=now+7*DAY&&!openFollow.has(w.workspace_name))add('med','Pro hampir habis, belum di-follow-up',w,`Sisa ${remain(w.valid_until)}`,null,{label:'Follow-up',run:()=>openFollow(w.workspace_id,'Ingatkan perpanjangan Pro')},null,w.valid_until);
     if(wst==='suspended')add('low','Workspace di-suspend',w,'Owner tidak bisa memakai workspace',null,manage);
     const a=act[w.workspace_id];
     if(a&&wst==='active'){
@@ -567,19 +567,42 @@ function computeIssues(){
     }
   });
   sales.filter(x=>x.payment_status==='pending'&&+new Date(x.created_at||x.paid_at)<now-3*DAY).forEach(x=>add('med','Pembayaran pending lebih dari 3 hari',{workspace_name:x.workspace_name},`${money(x.amount)} · ${x.customer_name||'—'}`,x.created_at||x.paid_at,{label:'Lihat',run:()=>activatePage('sales')}));
-  clientErrors.filter(e=>+new Date(e.last_seen)>now-DAY).forEach(e=>add(Number(e.occurrences)>=5||Number(e.users)>=3?'high':'med','Error aplikasi di sisi user',{workspace_name:(e.workspace_names||[]).join(', ')||'—'},`${String(e.message).slice(0,90)} · ${e.occurrences}× / ${e.users} user`,e.first_seen,{label:'Detail',run:()=>{$('errorRows').scrollIntoView({behavior:'smooth',block:'center'});}},()=>errorReport(e)));
+  clientErrors.filter(e=>+new Date(e.last_seen)>now-DAY).forEach(e=>add(Number(e.occurrences)>=5||Number(e.users)>=3?'high':'med','Error aplikasi di sisi user',{workspace_name:(e.workspace_names||[]).join(', ')||'—'},`${String(e.message).slice(0,90)} · ${e.occurrences}× / ${e.users} user`,e.first_seen,{label:'Detail',run:()=>{$('errorRows').scrollIntoView({behavior:'smooth',block:'center'});}},()=>errorReport(e),e.last_seen));
   const srv=serverState();srv.reasons.forEach(r=>add(r.sev,r.title,{workspace_name:'Server KAIRO'},r.detail,null,{label:'Lihat',run:()=>activatePage('server')},()=>serverReport(r)));
   return out.sort((a,b)=>SEV[a.sev][2]-SEV[b.sev][2]||String(b.since||'').localeCompare(String(a.since||'')));
 }
+// Masalah yang ditandai "sudah di-fix" disimpan per browser (kairo_admin_resolved_v1). Kalau masalah yang sama
+// muncul lagi dengan data baru (sidik jari = waktu/kejadian terakhir berubah), otomatis tampil lagi.
+const RESOLVED_KEY='kairo_admin_resolved_v1';
+let showResolved=false;
+const issueKey=x=>`${x.title}|${x.ws?.workspace_name||''}`;
+const issueFp=x=>String(x.fp??x.since??x.detail??'');
+function readResolved(){try{return JSON.parse(localStorage.getItem(RESOLVED_KEY)||'{}')||{};}catch(_e){return {};}}
+function writeResolved(m){try{localStorage.setItem(RESOLVED_KEY,JSON.stringify(m));}catch(_e){}}
+function setResolved(x,done){
+  const m=readResolved(),k=issueKey(x);
+  if(done)m[k]={fp:issueFp(x),at:new Date().toISOString()};else delete m[k];
+  writeResolved(m);renderIssues();
+  toast(done?'Ditandai sudah di-fix. Akan muncul lagi kalau masalahnya terjadi lagi.':'Dikembalikan ke daftar masalah.',done?'success':'info');
+}
 function renderIssues(){
-  issues=computeIssues();
+  const resolvedMap=readResolved(),allIssues=computeIssues();
+  allIssues.forEach(x=>{const r=resolvedMap[issueKey(x)];x.resolved=!!r&&r.fp===issueFp(x);x.resolvedAt=r?.at;});
+  // Bersihkan tanda lama yang masalahnya sudah tidak ada / sudah berubah.
+  const live=new Set(allIssues.filter(x=>x.resolved).map(issueKey));
+  if(Object.keys(resolvedMap).some(k=>!live.has(k))){Object.keys(resolvedMap).forEach(k=>{if(!live.has(k))delete resolvedMap[k];});writeResolved(resolvedMap);}
+  issues=allIssues.filter(x=>!x.resolved);
+  const done=allIssues.filter(x=>x.resolved);
+  setText('issResolvedCount',done.length);$('issResolvedToggle').classList.toggle('hidden',!done.length);
+  $('issResolvedToggle').textContent=showResolved?`Sembunyikan yang sudah di-fix (${done.length})`:`Tampilkan yang sudah di-fix (${done.length})`;
   const c=k=>issues.filter(x=>x.sev===k).length;
   setText('issHigh',c('high'));setText('issMed',c('med'));setText('issLow',c('low'));
   setText('issueCount',c('high')+c('med'));
   $('issuesNeedSql').classList.toggle('hidden',!(needSql.activity||needSql.errors));
-  const rows=issues.filter(x=>issueFilter==='all'||x.sev===issueFilter);
-  $('issueRows').innerHTML=rows.map((x,i)=>`<tr><td><span class="issue-title ${x.sev}"><svg><use href="#i-alert"/></svg>${esc(x.title)}</span></td><td><span class="badge ${SEV[x.sev][1]}">${SEV[x.sev][0]}</span></td><td>${esc(x.ws?.workspace_name||'—')}</td><td>${esc(x.detail)}</td><td>${x.since?dateID(x.since):'—'}</td><td class="num">${x.copy&&x.sev==='high'?`<button class="table-btn is-copy issueCopy" data-i="${i}" title="Salin detail untuk dianalisa"><svg><use href="#i-copy"/></svg>Salin</button>`:''}${x.action?`<button class="table-btn issueAct" data-i="${i}">${esc(x.action.label)}</button>`:''}</td></tr>`).join('');
+  const rows=[...issues,...(showResolved?done:[])].filter(x=>issueFilter==='all'||x.sev===issueFilter);
+  $('issueRows').innerHTML=rows.map((x,i)=>`<tr class="${x.resolved?'is-resolved':''}"><td class="chk"><label class="issue-check" title="${x.resolved?'Batalkan tanda sudah di-fix':'Tandai sudah di-fix'}"><input type="checkbox" class="issueDone" data-i="${i}" ${x.resolved?'checked':''} aria-label="Sudah di-fix: ${esc(x.title)}"><span></span></label></td><td><span class="issue-title ${x.sev}"><svg><use href="#i-alert"/></svg>${esc(x.title)}</span></td><td><span class="badge ${SEV[x.sev][1]}">${SEV[x.sev][0]}</span></td><td>${esc(x.ws?.workspace_name||'—')}</td><td>${esc(x.detail)}</td><td>${x.since?dateID(x.since):'—'}</td><td class="num">${x.copy&&x.sev==='high'?`<button class="table-btn is-copy issueCopy" data-i="${i}" title="Salin detail untuk dianalisa"><svg><use href="#i-copy"/></svg>Salin</button>`:''}${x.action?`<button class="table-btn issueAct" data-i="${i}">${esc(x.action.label)}</button>`:''}</td></tr>`).join('');
   $('issueEmpty').classList.toggle('hidden',rows.length>0);
+  $('issueRows').querySelectorAll('.issueDone').forEach(c=>c.onchange=()=>setResolved(rows[+c.dataset.i],c.checked));
   $('issueRows').querySelectorAll('.issueAct').forEach(b=>b.onclick=()=>rows[+b.dataset.i].action.run());
   $('issueRows').querySelectorAll('.issueCopy').forEach(b=>b.onclick=()=>copyText(rows[+b.dataset.i].copy(),b));
   const urgent=issues.filter(x=>x.sev==='high'&&x.copy);
@@ -743,6 +766,7 @@ $('crmSearch').oninput=renderCrm;$('followFilter').onchange=renderFollowups;
 $('newFollow').onclick=()=>openFollow();$('saveFollow').onclick=saveFollow;
 $('saveCrm').onclick=()=>saveCrm(false);$('markContacted').onclick=()=>saveCrm(true);
 $('saveSettings').onclick=savePlatformSettings;
+$('issResolvedToggle').onclick=()=>{showResolved=!showResolved;renderIssues();};
 document.querySelectorAll('.issFilter').forEach(b=>b.onclick=()=>{document.querySelectorAll('.issFilter').forEach(x=>x.classList.toggle('active',x===b));issueFilter=b.dataset.sev;renderIssues();});
 $('customSearch').oninput=renderCustom;$('newCustom').onclick=()=>openCustom(null);$('saveCustom').onclick=saveCustom;
 $('deleteCustom').onclick=async()=>{if(!customEditing||!confirm(`Hapus request "${customEditing.title}" beserta checklist-nya?`))return;const ok=await customRpc('platform_admin_delete_custom_request',{p_id:customEditing.id},'Request dihapus');if(ok!==null){customEditing=null;closeModal('customModal');}};

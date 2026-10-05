@@ -7,10 +7,10 @@
 <meta name="color-scheme" content="dark">
 <title>KAIRO Admin</title>
 <link rel="icon" type="image/svg+xml" href="../assets/kairo-mark.svg">
-<link rel="stylesheet" href="admin.css?v=1.6.0">
+<link rel="stylesheet" href="admin.css?v=1.7.0">
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
-<script defer src="admin.js?v=1.7.0"></script>
+<script defer src="admin.js?v=1.8.0"></script>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -143,7 +143,8 @@
             </div>
             <div class="w-tools"><span class="muted">Dicek otomatis setiap data dimuat</span><button id="copyUrgent" class="btn btn-ghost hidden" title="Salin semua masalah urgent (selain subscription) untuk dianalisa"><svg><use href="#i-copy"/></svg>Salin semua yang urgent</button></div>
           </div>
-          <div class="table-wrap"><table><thead><tr><th>Masalah</th><th>Tingkat</th><th>Workspace</th><th>Detail</th><th>Sejak</th><th></th></tr></thead><tbody id="issueRows"></tbody></table><p id="issueEmpty" class="empty hidden">Tidak ada masalah terdeteksi. 🎉</p></div>
+          <div class="table-wrap"><table><thead><tr><th class="chk" title="Sudah di-fix">Fix</th><th>Masalah</th><th>Tingkat</th><th>Workspace</th><th>Detail</th><th>Sejak</th><th></th></tr></thead><tbody id="issueRows"></tbody></table><p id="issueEmpty" class="empty hidden">Tidak ada masalah terdeteksi. 🎉</p></div>
+          <div class="issue-foot"><span class="muted">Centang kotak kalau masalahnya sudah lo beresin. Kalau terjadi lagi, otomatis muncul lagi.</span><button id="issResolvedToggle" class="btn btn-ghost hidden" type="button"></button><b id="issResolvedCount" hidden></b></div>
         </div>
         <div class="widget">
           <div class="w-head"><h2>Error Aplikasi di Sisi User (72 jam)</h2><span class="muted">Klik Salin, lalu tempel ke chat Claude untuk dianalisa</span></div>
