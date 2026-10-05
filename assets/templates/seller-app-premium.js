@@ -98,6 +98,9 @@
     return icons[c]||icons['Other Apps'];
   }
 
+  // Produk custom tidak punya file logo: ganti gambar yang gagal dimuat dengan huruf awal produk.
+  function letterIcon(name){const ch=esc(String(name||'?').trim().charAt(0).toUpperCase()||'?');return 'data:image/svg+xml,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><rect width="40" height="40" rx="11" fill="#5b6b7a"/><text x="20" y="27" font-family="Arial,sans-serif" font-size="19" font-weight="700" fill="#fff" text-anchor="middle">${ch}</text></svg>`);}
+  document.addEventListener('error',e=>{const img=e.target;if(!(img instanceof HTMLImageElement)||img.dataset.letterIcon||!String(img.getAttribute('src')||'').startsWith(ICON_BASE))return;img.dataset.letterIcon='1';const raw=String(img.getAttribute('src')).slice(ICON_BASE.length).replace(/\.svg$/,'');img.src=letterIcon(img.closest('[data-seller-product],[data-app]')?.textContent||raw);},true);
   function hideGenericMasterAreas(){
     ['tx-packages','tx-topics','tx-addons'].forEach(id=>{
       const el=document.getElementById(id); if(!el)return;
@@ -636,6 +639,7 @@
   // Setup Wizard: katalog + simpan harga/modal banyak baris sekaligus (tabel yang sama dengan Settings › Produk).
   window.kairoSellerCatalog={
     ready:()=>sellerSettingsReady,rows:()=>allEffective(),rowKey,pretty,slug,iconBase:ICON_BASE,categories:CATEGORIES,
+    hasIcon:p=>CATALOG.some(x=>x.product===p),addCustom:input=>saveCustomSellerProduct(input),
     async saveMany(list){
       if(!sellerSettingsReady)throw new Error('Migration Seller App Premium belum diterapkan / belum bisa diakses.');
       const wid=requireWorkspaceId(),now=new Date().toISOString();
@@ -660,15 +664,16 @@
     host.innerHTML=[...groups.entries()].map(([prod,list])=>`<details class="seller-settings-product-group" ${settingsSearch?'open':''}><summary><span><img src="${ICON_BASE+slug(prod)+'.svg'}" alt=""><strong>${esc(pretty(prod))}</strong></span><small>${list.length} pilihan</small></summary><div class="seller-settings-option-list">${list.map(base=>{const r=effective(base);return `<div class="seller-settings-option" data-seller-setting-key="${esc(rowKey(base))}"><div class="seller-settings-copy"><strong>${esc(pretty(base.variant))}</strong><small>${esc(pretty(base.duration))}</small></div><label>Harga<input type="number" min="0" step="500" class="seller-setting-price" value="${Number(r.price||0)>0?Number(r.price):''}"></label><label>Modal<input type="number" min="0" step="500" class="seller-setting-cost" value="${Number(r.cost||0)}"></label><div class="seller-setting-profit"><small>Profit/unit</small><strong>${rupiahLocal(Math.max(0,Number(r.price||0)-Number(r.cost||0)))}</strong></div><button type="button" class="seller-setting-save">Simpan</button></div>`}).join('')}</div></details>`).join('');
   }
 
-  async function addCustomSellerProduct(form){
+  // Produk custom disimpan permanen di seller_product_settings (dipakai Settings › Tambah Produk dan Setup Wizard).
+  async function addCustomSellerProduct(form){const fd=new FormData(form);return saveCustomSellerProduct(Object.fromEntries(fd.entries()));}
+  async function saveCustomSellerProduct(input){
     if(!sellerSettingsReady)throw new Error('Migration Seller App Premium belum diterapkan / belum bisa diakses.');
-    const fd=new FormData(form);
-    const category=String(fd.get('category')||'').trim();
-    const product=String(fd.get('product')||'').trim().toUpperCase();
-    const variant=String(fd.get('variant')||'').trim().toUpperCase();
-    const duration=String(fd.get('duration')||'').trim();
-    const price=Math.max(0,Number(fd.get('price')||0));
-    const cost=Math.max(0,Number(fd.get('cost')||0));
+    const category=String(input.category||'').trim();
+    const product=String(input.product||'').trim().toUpperCase();
+    const variant=String(input.variant||'').trim().toUpperCase();
+    const duration=String(input.duration||'').trim();
+    const price=Math.max(0,Number(input.price||0));
+    const cost=Math.max(0,Number(input.cost||0));
     if(!CATEGORIES.includes(category))throw new Error('Pilih kategori produk.');
     if(!product)throw new Error('Nama produk wajib diisi.');
     if(!variant)throw new Error('Plan / varian wajib diisi.');
