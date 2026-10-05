@@ -4583,7 +4583,8 @@ html.kairo-v3 body:not(.saas-dark) #saas-mobile-bottom .saas-mobile-nav-btn.acti
 /* Template Seller (light): status, tombol "Lihat Semua", dan total keranjang. */
 html.kairo-v3 body.seller-app-premium:not(.saas-dark) .seller-cart-total strong,
 html.kairo-v3 body.seller-app-premium:not(.saas-dark) .seller-history-toggle,
-html.kairo-v3 body.seller-app-premium:not(.saas-dark) .seller-order-status-pill.is-new {
+html.kairo-v3 body.seller-app-premium:not(.saas-dark) .seller-order-status-pill.is-new,
+html.kairo-v3 body.seller-app-premium:not(.saas-dark) .seller-settings-db-status {
   color: #0f6f6b;
 }
 html.kairo-v3 body.seller-app-premium:not(.saas-dark) .seller-expiry-badge.is-active,
