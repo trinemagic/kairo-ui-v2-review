@@ -433,3 +433,8 @@ th.chk,td.chk{width:44px;text-align:center}
 tr.is-resolved td{opacity:.55}tr.is-resolved td.chk{opacity:1}
 tr.is-resolved .issue-title{text-decoration:line-through}
 .issue-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:12px;flex-wrap:wrap;font-size:12.5px}
+
+/* Buat Akun */
+.pw-row{display:flex;gap:8px}.pw-row input{flex:1;min-width:0;font-family:ui-monospace,Menlo,Consolas,monospace}
+.acc-done p{margin:0 0 10px;color:var(--text);line-height:1.5}
+.acc-done pre{margin:0;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.05);color:var(--text);font:13px/1.6 ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap;word-break:break-word}
