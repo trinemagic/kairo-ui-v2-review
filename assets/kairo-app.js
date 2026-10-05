@@ -1412,6 +1412,7 @@ function renderProfitShareEditor(){
     return `<div class="profit-rule-item"><label>${escapeHtml(p.partner_name||'-')}</label><div class="profit-rule-input-wrap"><input class="input profit-share-pct" type="number" min="0" max="100" step="0.01" value="${Number.isFinite(pct)?pct.toFixed(2).replace(/\.00$/,''):0}" data-partner-id="${p.id||''}" data-partner-name="${escapeHtml(p.partner_name||'')}"><span>%</span></div></div>`;
   }).join('');
   grid.querySelectorAll('input').forEach(i=>i.addEventListener('input',updateProfitShareTotal));
+  syncCashToggle();
   const label=document.getElementById('profit-share-active-label'); if(label) label.textContent=active?`Aktif sejak ${String(active.effective_from||'').replace('T',' ').slice(0,16)}`:'Aturan legacy';
   const note=document.getElementById('profit-share-history-note'); if(note) note.textContent=profitShareVersionTableReady?(profitShareVersions.length?`${profitShareVersions.length} versi pembagian tersimpan.`:'Belum ada versi tersimpan. Simpan untuk membuat versi pertama.'):'Jalankan migration profit_share_versions dulu agar histori pembagian tersimpan.';
   updateProfitShareTotal();
@@ -1419,7 +1420,7 @@ function renderProfitShareEditor(){
 }
 function updateProfitShareTotal(){
   const total=[...document.querySelectorAll('.profit-share-pct')].reduce((s,i)=>s+Number(i.value||0),0);
-  const el=document.getElementById('profit-share-total'); if(!el)return; el.textContent=`Total ${total.toLocaleString('id-ID',{maximumFractionDigits:2})}%`; el.classList.toggle('invalid',Math.abs(total-100)>0.001);
+  const el=document.getElementById('profit-share-total'); if(!el)return; const off=Math.abs(total-100)>0.001;el.textContent=`Total ${total.toLocaleString('id-ID',{maximumFractionDigits:2})}%`+(off&&!cashActive()&&total>0?' · sementara dibagi proporsional jadi 100%':''); el.classList.toggle('invalid',off);
 }
 
 function profitManualPartners(){const rows=partners.filter(p=>cashActive()||!isKasName(p));if(cashActive()&&!rows.some(isKasName))rows.push({id:null,partner_name:'Kas'});return rows;}
@@ -1757,8 +1758,43 @@ function renderCashHistories(){
     row:e=>`<tr><td>${escapeHtml(e.expense_date||"-")}</td><td>${escapeHtml(e.description||"-")}</td><td><strong>${rupiah(e.amount)}</strong></td></tr>`});
   renderCashHistoryTable({tableId:"cash-injection-table",summaryId:"cash-injection-filter-summary",colspan:4,load:allCashInjections,dateKey:"injection_date",empty:"Tidak ada pemasukan kas pada periode ini.",
     row:e=>`<tr><td>${escapeHtml(e.injection_date||"-")}</td><td>${escapeHtml(e.source||"-")}</td><td>${escapeHtml(e.description||"-")}</td><td><strong>${rupiah(e.amount)}</strong></td></tr>`});
+  renderCapitalCash();
   renderHistoryLimitNotice();
 }
+// Kas Modal (owner Okt 2026): total HPP penjualan per tanggal, terpisah dari Saldo Kas. Ikut filter riwayat kas.
+async function renderCapitalCash(){
+  const table=document.getElementById("cash-capital-table");if(!table)return;
+  const {from,to}=cashHistoryRange(),cutoff=historyCutoff(),days=new Map();
+  try{(await allTransactions()).forEach(t=>{const d=String(t.transaction_date||"");if((from&&d<from)||(to&&d>to)||(cutoff&&d<cutoff))return;const hpp=transactionProfitBreakdown(t).hpp;if(hpp<=0)return;const x=days.get(d)||{count:0,total:0};x.count++;x.total+=hpp;days.set(d,x);});}
+  catch(err){table.innerHTML=`<tr><td colspan="3" class="empty">${escapeHtml(err.message||"Gagal memuat kas modal.")}</td></tr>`;return;}
+  const rows=[...days.entries()].sort((a,b)=>b[0].localeCompare(a[0]));
+  table.innerHTML=rows.length?rows.map(([d,x])=>`<tr><td>${escapeHtml(d)}</td><td>${x.count}</td><td><strong>${rupiah(x.total)}</strong></td></tr>`).join(""):`<tr><td colspan="3" class="empty">Belum ada penjualan dengan harga modal pada periode ini.</td></tr>`;
+  const summary=document.getElementById("cash-capital-summary");
+  if(summary)summary.textContent=`${rows.reduce((n,[,x])=>n+x.count,0)} transaksi · Total ${rupiah(rows.reduce((n,[,x])=>n+x.total,0))}`;
+}
+// Saklar "Pakai Kas" (Pro): disimpan di workspace_branding.cash_enabled (SQL 2026-10-cash-toggle). Gratis: Kas selalu mati.
+function syncCashToggle(){
+  const box=document.getElementById("kairo-cash-toggle"),input=document.getElementById("kairo-cash-enabled");if(!box||!input)return;
+  const pro=canUseFeature("petty_cash");
+  input.checked=cashActive();input.disabled=!pro;box.classList.toggle("is-locked",!pro);
+  const note=document.getElementById("kairo-cash-toggle-note");
+  if(note)note.textContent=pro?"Sisihkan sebagian laba ke Kas. Kalau dimatikan, kartu Saldo Kas dan menu Petty Cash disembunyikan dan 100% laba masuk Withdraw.":"Kas & Petty Cash tersedia di paket Pro. Di paket Gratis, 100% laba masuk Withdraw.";
+}
+document.getElementById("kairo-cash-enabled")?.addEventListener("change",async e=>{
+  const on=e.target.checked,wid=requireWorkspaceId();e.target.disabled=true;
+  try{
+    const {error}=await db.from("workspace_branding").upsert({workspace_id:wid,cash_enabled:on,updated_at:new Date().toISOString()},{onConflict:"workspace_id"});
+    if(error)throw error;
+    activeWorkspaceBranding={...(activeWorkspaceBranding||{}),cash_enabled:on};
+    showToast(on?"Kas diaktifkan. Menu Petty Cash muncul lagi.":"Kas dimatikan. 100% laba sekarang masuk Withdraw.");
+    try{hydrateSaasUi();}catch(_e){}
+    renderProfitShareEditor();try{renderProductProfitRules();}catch(_e){}
+    await refreshAll();
+  }catch(err){
+    e.target.checked=!on;
+    showToast(/cash_enabled/.test(String(err?.message||""))?"Saklar Kas aktif setelah SQL 2026-10-cash-toggle dijalankan.":"Gagal menyimpan pengaturan Kas: "+(err?.message||err),true);
+  }finally{syncCashToggle();}
+});
 (function wireCashHistoryFilter(){
   const selects=[...document.querySelectorAll("[data-cash-filter]")];
   if(!selects.length)return;

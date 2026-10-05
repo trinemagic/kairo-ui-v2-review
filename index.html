@@ -986,6 +986,13 @@
       </div>
       <div class="table-wrap"><table><thead><tr><th>Tanggal</th><th>Sumber</th><th>Keterangan</th><th>Nominal</th></tr></thead><tbody id="cash-injection-table"></tbody></table></div>
     </div>
+    <div class="card" id="cash-capital-card">
+      <div class="cash-filter-bar">
+        <div class="cash-filter-copy"><strong>Kas Modal (HPP)</strong><small id="cash-capital-summary" aria-live="polite"></small></div>
+      </div>
+      <div class="page-sub" style="margin:-4px 0 12px">Total harga modal dari setiap penjualan, dicatat terpisah dan tidak ikut Saldo Kas. Mengikuti filter tanggal riwayat di atas. Atur harga modal di Settings › Profit.</div>
+      <div class="table-wrap"><table><thead><tr><th>Tanggal</th><th>Transaksi</th><th>Total Modal</th></tr></thead><tbody id="cash-capital-table"></tbody></table></div>
+    </div>
   </section>
 
 
@@ -1033,6 +1040,10 @@
       <div class="profit-editor-head">
         <div><div class="card-title">Pembagian Omzet</div><div class="page-sub">Atur persentase pembagian mulai tanggal tertentu. Perubahan baru tidak mengubah histori pembagian sebelumnya.</div></div>
         <span class="profit-editor-badge" id="profit-share-active-label">Aturan aktif</span>
+      </div>
+      <div class="kairo-cash-toggle" id="kairo-cash-toggle">
+        <div><strong>Pakai Kas (Petty Cash)</strong><small id="kairo-cash-toggle-note">Sisihkan sebagian laba ke Kas. Kalau dimatikan, kartu Saldo Kas dan menu Petty Cash disembunyikan dan 100% laba masuk Withdraw.</small></div>
+        <label class="kairo-switch"><input type="checkbox" id="kairo-cash-enabled" aria-describedby="kairo-cash-toggle-note"><span aria-hidden="true"></span><b class="sr-only">Pakai Kas</b></label>
       </div>
       <form id="profit-share-editor-form">
         <div class="profit-rule-grid" id="profit-share-rule-grid"><div class="empty">Memuat pembagian...</div></div>
