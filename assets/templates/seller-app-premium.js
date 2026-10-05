@@ -588,13 +588,16 @@
       card=document.createElement('div');card.className='kpi seller-profit-kpi';card.id='seller-kpi-profit-card';
       card.innerHTML=`<div class="kpi-head"><div class="kpi-label">${sellerPeriodLabel('Profit')}</div><button type="button" class="kpi-eye" id="seller-profit-eye" aria-label="Sembunyikan nominal"></button></div><div class="kpi-value" id="seller-kpi-profit">Rp0</div>`;
       revCard.insertAdjacentElement('afterend',card);
-      document.getElementById('seller-profit-eye')?.addEventListener('click',()=>{if(typeof toggleKpiVisibility==='function')toggleKpiVisibility();renderSellerDashboardKpis()});
+      document.getElementById('seller-profit-eye')?.addEventListener('click',()=>{if(typeof toggleKpiVisibility==='function')toggleKpiVisibility();});
       try{updateKpiEyeButtons()}catch(_e){}
     }
     const profitLabel=card?.querySelector('.kpi-label');if(profitLabel)profitLabel.textContent=sellerPeriodLabel('Profit');
     const val=document.getElementById('seller-kpi-profit');
     if(val)val.textContent=(typeof maskedNominals!=='undefined'&&maskedNominals)?'••••••':rupiahLocal(profit);
   }
+
+  // Tombol mata di kartu mana pun menyamarkan/menampilkan semua nominal: kartu seller (Penjualan, Profit) digambar ulang setelahnya.
+  document.addEventListener('click',e=>{if(e.target.closest?.('#dashboard .kpi-eye'))setTimeout(renderSellerDashboardKpis,0)});
 
   function decorateCustomerDatabase(){
     if(!mounted)return;
