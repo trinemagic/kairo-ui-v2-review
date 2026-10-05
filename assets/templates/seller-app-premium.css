@@ -647,17 +647,26 @@ html.kairo-v3[data-ws-theme=pinky] body.seller-app-premium #app-shell .period-bt
 html.kairo-v3[data-ws-theme=cloudy] body.seller-app-premium .kairo-live-clock{color:var(--v3-primary-dark)}
 html.kairo-v3[data-ws-theme=cloudy] body.seller-app-premium.saas-dark .kairo-live-clock{color:#cfdcf7}
 
-/* ---------- icons: same set, painted per theme ---------- */
-html.kairo-v3[data-ws-theme] body.seller-app-premium #saas-sidebar svg,
-html.kairo-v3[data-ws-theme] body.seller-app-premium #app-shell .kairo-stat-icon svg,
+/* ---------- icons: menu, bottom nav & stat icons get their own shapes per theme (seller-app-premium.js, svg.kti);
+   other inline icons (card titles) are only painted per theme ---------- */
+html.kairo-v3[data-ws-theme] body.seller-app-premium svg.kti{fill:none!important;stroke:currentColor!important;stroke-linecap:round!important;stroke-linejoin:round!important}
+html.kairo-v3[data-ws-theme] body.seller-app-premium svg.kti :is(.f,.n){fill:currentColor;stroke:none}
+html.kairo-v3[data-ws-theme] body.seller-app-premium svg.kti .b{fill:currentColor;fill-opacity:.2}
+html.kairo-v3[data-ws-theme] body.seller-app-premium svg.kti .p{fill:currentColor;fill-opacity:.35}
+html.kairo-v3[data-ws-theme] body.seller-app-premium svg.kti .k{fill:color-mix(in srgb,var(--v3-accent) 72%,currentColor);stroke:none}
+html.kairo-v3[data-ws-theme] body.seller-app-premium .kairo-mobile-orders-main svg.kti .k{fill:currentColor}
+html.kairo-v3[data-ws-theme=girlie] body.seller-app-premium svg.kti{stroke-width:2.1!important}
+html.kairo-v3[data-ws-theme=wood] body.seller-app-premium svg.kti{stroke-width:1.8!important;stroke-linecap:square!important;stroke-linejoin:miter!important}
+html.kairo-v3[data-ws-theme=cloudy] body.seller-app-premium svg.kti{stroke-width:1.5!important}
+html.kairo-v3[data-ws-theme=pinky] body.seller-app-premium svg.kti{stroke-width:2!important}
 html.kairo-v3[data-ws-theme] body.seller-app-premium #app-shell .title-svg-icon svg{stroke-linecap:round;stroke-linejoin:round}
-html.kairo-v3[data-ws-theme=girlie] body.seller-app-premium :is(#saas-sidebar .saas-nav-icon,.kairo-stat-icon,.title-svg-icon) svg{stroke-width:2.2!important}
-html.kairo-v3[data-ws-theme=girlie] body.seller-app-premium :is(#saas-sidebar .saas-nav-icon,.kairo-stat-icon,.title-svg-icon) svg :is(rect,circle,ellipse,polygon){fill:color-mix(in srgb,var(--v3-accent) 26%,transparent)!important}
-html.kairo-v3[data-ws-theme=wood] body.seller-app-premium :is(#saas-sidebar .saas-nav-icon,.kairo-stat-icon,.title-svg-icon) svg{stroke-width:1.45!important}
-html.kairo-v3[data-ws-theme=wood] body.seller-app-premium :is(#saas-sidebar .saas-nav-icon,.kairo-stat-icon,.title-svg-icon) svg :is(rect,circle,ellipse,polygon){fill:color-mix(in srgb,currentColor 18%,transparent)!important}
-html.kairo-v3[data-ws-theme=cloudy] body.seller-app-premium :is(#saas-sidebar .saas-nav-icon,.kairo-stat-icon,.title-svg-icon) svg{stroke-width:2.4!important}
-html.kairo-v3[data-ws-theme=pinky] body.seller-app-premium :is(#saas-sidebar .saas-nav-icon,.kairo-stat-icon,.title-svg-icon) svg{stroke-width:2.1!important}
-html.kairo-v3[data-ws-theme=pinky] body.seller-app-premium :is(#saas-sidebar .saas-nav-icon,.kairo-stat-icon,.title-svg-icon) svg :is(rect,circle,ellipse,polygon){fill:currentColor!important;fill-opacity:.24}
+html.kairo-v3[data-ws-theme=girlie] body.seller-app-premium .title-svg-icon svg{stroke-width:2.2!important}
+html.kairo-v3[data-ws-theme=girlie] body.seller-app-premium .title-svg-icon svg :is(rect,circle,ellipse,polygon){fill:color-mix(in srgb,var(--v3-accent) 26%,transparent)!important}
+html.kairo-v3[data-ws-theme=wood] body.seller-app-premium .title-svg-icon svg{stroke-width:1.45!important}
+html.kairo-v3[data-ws-theme=wood] body.seller-app-premium .title-svg-icon svg :is(rect,circle,ellipse,polygon){fill:color-mix(in srgb,currentColor 18%,transparent)!important}
+html.kairo-v3[data-ws-theme=cloudy] body.seller-app-premium .title-svg-icon svg{stroke-width:2.4!important}
+html.kairo-v3[data-ws-theme=pinky] body.seller-app-premium .title-svg-icon svg{stroke-width:2.1!important}
+html.kairo-v3[data-ws-theme=pinky] body.seller-app-premium .title-svg-icon svg :is(rect,circle,ellipse,polygon){fill:currentColor!important;fill-opacity:.24}
 
 /* ---------- small ornaments: inline SVG masks (no requests), recoloured by token, never over content ---------- */
 html.kairo-v3[data-ws-theme] body.seller-app-premium #kairo-v3-dashboard-head::after{content:"";position:absolute;pointer-events:none;background:var(--ws-deco);-webkit-mask:var(--ws-orn) center/contain no-repeat;mask:var(--ws-orn) center/contain no-repeat;z-index:0}
