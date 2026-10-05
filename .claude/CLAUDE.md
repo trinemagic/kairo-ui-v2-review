@@ -81,9 +81,9 @@ domain = pengguna login ulang & pengaturan browser (Ingat saya, dark mode) mulai
 | `assets/fonts/` | Plus Jakarta Sans self-hosted (OFL) | Jangan kembali ke Google Fonts. |
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
-Versi terakhir: `kairo.css?v=20.10.156`, `kairo-v3.css?v=3.29.0`,
-`kairo-v3.js?v=3.21.0`, `kairo-app.js?v=20.10.180`; template seller dimuat dari kairo-app.js
-(`seller-app-premium.js?v=20.10.149`, `.css?v=20.10.150`) — naikkan juga bila file template diubah.
+Versi terakhir: `kairo.css?v=20.10.156`, `kairo-v3.css?v=3.30.0`,
+`kairo-v3.js?v=3.22.0`, `kairo-app.js?v=20.10.181`; template seller dimuat dari kairo-app.js
+(`seller-app-premium.js?v=20.10.150`, `.css?v=20.10.151`) — naikkan juga bila file template diubah.
 
 **Halaman app** = `main.container > section.section` dengan id:
 `dashboard`, `performance`, `input` (Orders), `customers`, `promo` (dibuat via JS),
@@ -129,6 +129,18 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   Gratis tertua berumur 12 bulan (± Sep 2027). Jebakan: Saldo Kas & saldo partner dihitung kumulatif dari SEMUA transaksi/kas/payout -
   sebelum menghapus, simpan "saldo awal" (ringkasan yang dihapus) supaya saldo tidak berubah; piutang/langganan seller yang masih aktif
   jangan ikut terhapus.
+- **Kas / Petty Cash (owner Okt 2026):** fitur `petty_cash` = Pro. `cashActive()` = Pro && `workspace_branding.cash_enabled!==false`
+  (saklar "Pakai Kas" di Settings › Pembagian Omzet; SQL `.claude/sql/2026-10-cash-toggle.sql`, default true). Kas tidak aktif:
+  `cashShareRateForDate`=0, `shareRuleFor` menormalisasi partner non-Kas jadi 100%, nominal manual Kas per produk diabaikan
+  (masuk ke bagian persentase) -> 100% laba ke Withdraw. Kartu Saldo Kas `hidden` (grid 3 kolom / seller 2x2 via `body.kairo-no-cash`),
+  menu Petty Cash: Gratis = terkunci (decorateLocks), Pro mati = disembunyikan. Pro yang sudah ada TIDAK diubah. **Kas Modal**
+  (Petty Cash): total HPP penjualan per tanggal (`renderCapitalCash`), ikut filter riwayat kas, terpisah dari Saldo Kas.
+  Default Kas 0% untuk user Pro baru: BELUM (menunggu hasil cek isi `profit_share_rules` di DB; fallback JS `LEGACY_CASH_SHARE_RATE`=5%).
+- **HPP & pembagian per produk (owner Okt 2026):** kategori Settings `profit` dibuka untuk Gratis (termasuk mode manual).
+- **Masa aktif (owner Okt 2026):** `effectiveSubscriptionPlan()` - Pro lewat tanggal berakhir (current_period_end/expires_at/end_date/
+  valid_until, akhir hari) atau status canceled/inactive/expired dibaca Gratis (data aman), toast sekali per workspace; Trine Magic
+  selalu Pro; Pro tanpa tanggal = Pro selamanya (admin › Perlu Perhatian: "Pro tanpa masa aktif").
+- **Performance › Penjualan per Produk:** kartu `#product-sales-card` (produk + periode sendiri; seller = per aplikasi).
 - **Paket (keputusan owner Okt 2026):** hanya **Gratis** dan **Pro**. `canonicalPlan()`/`planLabel()`
   (kairo-app.js): DB `basic`/`free` → internal `basic`, tampil "GRATIS"; `plus`/`custom`/`enterprise`
   → `pro`, tampil "PRO". `PLAN_RANK={basic:1,pro:2}`, fitur eks-PLUS sekarang min `pro`. Daftar
@@ -179,6 +191,12 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   Template seller (`body.seller-app-premium`, 5 kartu + Profit): desktop 3 atas + 2
   lebar bawah (grid 6 kolom), ≤1240px 2 kolom dengan kartu ganjil terakhir selebar penuh.
   Tes seller: `bootApp(b,{template:'seller', seed:require('./seed-seller.js')})`.
+- **Seller App Premium (owner Okt 2026):** template dimuat begitu user login (MutationObserver class `authenticated` di loader
+  kairo-app.js; dulu baru saat Orders diklik -> kartu Akan Expired tidak muncul di awal). **Piutang dihapus total** (kartu, field DP,
+  Tandai Lunas, info di riwayat/struk). Menu **Tracker Langganan** (`section#subscriptions`, tombol sidebar setelah Orders + item More,
+  dibuat seller JS): 1 baris per pelanggan+produk+plan (perpanjangan menggantikan), filter ≤7 hari/Aktif/Expired/Semua, cari, WhatsApp
+  (dari `tx.whatsapp`), Perpanjang -> Orders dengan nama terisi. Lonceng seller = `window.kairoSellerNotifications` (expired ≤3 hari s/d
+  lewat 7 hari + order Baru/Diproses ≥5 mnt, merah ≥30 mnt/expired); judul panel "Pengingat", tanpa "Start Reading".
 - **Warna layout:** `kairo-v3.js` memetakan `--brand-primary/--brand-accent` ke token
   v3. Default lama `#696F41/#EA97A9` = "belum diatur" (tetap tampilan KAIRO).
   Reset = `#25B9B0` / `#173A59`.
@@ -288,6 +306,8 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   bila tidak punya workspace lain (kalau Supabase menolak: pesan "hapus manual di Authentication"). Catatan penjualan admin untuk
   workspace itu ikut terhapus (terlihat di daftar peringatan).
   SQL panjang: kirim sebagai file + link raw GitHub, bukan blok kode di chat (owner: tampilan chat pecah).
+- **Perlu Perhatian: checkbox "sudah di-fix"** (per browser, `kairo_admin_resolved_v1`): masalah hilang dari daftar & hitungan,
+  muncul lagi bila sidik jari berubah (error: last_seen; lainnya: since/valid_until/detail).
 - **Admin › Template (owner Okt 2026):** daftar template usaha dari form daftar (`TEMPLATES` di admin.js — **perbarui
   bila ada template baru**): Seller App Premium (`digital_subscription`, tampilan khusus), Jasa Online
   (`service_consultation`, tampilan dasar), Online Shop & Digital Product (belum ada tampilan khusus → user melihat
