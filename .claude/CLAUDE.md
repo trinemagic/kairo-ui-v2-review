@@ -81,9 +81,9 @@ domain = pengguna login ulang & pengaturan browser (Ingat saya, dark mode) mulai
 | `assets/fonts/` | Plus Jakarta Sans self-hosted (OFL) | Jangan kembali ke Google Fonts. |
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
-Versi terakhir: `kairo.css?v=20.10.157`, `kairo-v3.css?v=3.31.0`,
-`kairo-v3.js?v=3.22.0`, `kairo-app.js?v=20.10.184`; template seller dimuat dari kairo-app.js
-(`seller-app-premium.js?v=20.10.150`, `.css?v=20.10.151`) — naikkan juga bila file template diubah.
+Versi terakhir: `kairo.css?v=20.10.157`, `kairo-v3.css?v=3.32.0`,
+`kairo-v3.js?v=3.23.0`, `kairo-app.js?v=20.10.185`; template seller dimuat dari kairo-app.js
+(`seller-app-premium.js?v=20.10.151`, `.css?v=20.10.152`) — naikkan juga bila file template diubah.
 
 **Halaman app** = `main.container > section.section` dengan id:
 `dashboard`, `performance`, `input` (Orders), `customers`, `promo` (dibuat via JS),
@@ -203,7 +203,22 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   dibuat seller JS): 1 baris per pelanggan+produk+plan (perpanjangan menggantikan), filter ≤7 hari/Aktif/Expired/Semua, cari, WhatsApp
   (dari `tx.whatsapp`), Perpanjang -> Orders dengan nama terisi. Lonceng seller = `window.kairoSellerNotifications` (expired ≤3 hari s/d
   lewat 7 hari + order Baru/Diproses ≥5 mnt, merah ≥30 mnt/expired); judul panel "Pengingat", tanpa "Start Reading".
-- **Warna layout:** `kairo-v3.js` memetakan `--brand-primary/--brand-accent` ke token
+- **Tema workspace Seller App Premium (owner Okt 2026, tahap 1):** Girlie / Wood Calm Cute / Cloudy Calm / Pinky Charm Sweet, hanya
+  seller + Pro (`workspace_theme:'pro'`). Lapisan tampilan saja: `html[data-ws-theme]`, semua token tema di akhir
+  `seller-app-premium.css` dan diturunkan dari `--v3-primary/--v3-accent` (warna workspace) lewat `color-mix`, jadi warna yang diubah
+  user ikut ke sidebar/kartu/ornamen. `WORKSPACE_THEMES` (kairo-app.js) = warna bawaan tiap tema; bila warna tersimpan masih bawaan lama
+  (#696F41/#EA97A9) warna tema yang dipakai. Disimpan di `workspace_branding.theme` (SQL `.claude/sql/2026-10-workspace-theme.sql`,
+  BELUM dijalankan owner) + cache `kairo_ws_theme_v1` per workspace. Settings › Identitas: kartu "Tema Workspace" (`#kairo-theme-picker`,
+  klik = pratinjau langsung, Simpan Pengaturan = simpan); tombol Reset warna kembali ke warna tema (bukan teal KAIRO). Anti-kedip: loader
+  seller memberi `html.kairo-template-pending` (app disembunyikan + spinner) sampai event `kairo:seller-mounted` (failsafe 5 dtk).
+  Mode gelap tiap tema punya token sendiri. Ikon = set yang sama, dicat per tema (tebal garis + isian bentuk tertutup). Ornamen = 1 SVG
+  mask kecil di kartu sapaan Dashboard (`#kairo-v3-dashboard-head::after`), disembunyikan ≤900px. Tidak menambah kartu/fitur.
+  Tahap berikut: Setup Wizard (muncul setelah admin mencatat pembayaran Pro), upload logo.
+- **Layout konsisten (owner Okt 2026):** semua judul kartu satu gaya (sans 15,5px/800; Wood memakai serif), subjudul kartu sans tidak
+  miring, toolbar di dalam kartu tanpa padding atas (dulu judul turun 22px), Performance 2 kolom 1,6:1 dan kartu sendirian selebar penuh,
+  Settings kolom kanan rata atas/bawah, Promo 2 kolom sama lebar, angka Petty Cash/Customer tidak patah, panel pesanan seller selebar form
+  dengan kategori 5 kolom rata, Ringkasan Pesanan selebar form. Judul halaman Promo & Tracker Langganan dulu tertulis "Orders".
+ `kairo-v3.js` memetakan `--brand-primary/--brand-accent` ke token
   v3. Default lama `#696F41/#EA97A9` = "belum diatur" (tetap tampilan KAIRO).
   Reset = `#25B9B0` / `#173A59`.
 - **Living Origami (latar app):** gradient + origami terbang (kairo.css + `mountOrigami()` di
@@ -401,6 +416,8 @@ cd .claude/testing && node example.js                                # lihat REA
   `**/npm/chart.js` ke `package/dist/chart.umd.min.js` (registry npm bisa diakses).
 - Template seller: `SELLER=1 node audit-contrast.js …` / `SELLER=1 node audit-hover.js`, plus
   `node audit-seller.js [dark|light]` (keranjang Orders, Settings › Produk, dialog customer, hover).
+- `pixaudit.js` = audit kontras berbasis PIKSEL (`pixAudit(page, rootSel)`): membaca warna asli di belakang teks, jadi gradasi,
+  kartu transparan, dan ornamen ikut terhitung. Pakai ini untuk tema seller. (Okt 2026: versi awal salah membaca `color(srgb 0-1)`.)
 - `audit-contrast.js` = audit kontras WCAG per menu (dark/light);
   `audit-hover.js` = kontras baris tabel saat di-hover (dark);
   `test-order-form.js` = alur simpan penjualan Orders.

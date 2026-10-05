@@ -104,11 +104,31 @@ let activePlanEntitlements = new Map();
 const PLAN_RANK={basic:1,pro:2};
 function canonicalPlan(p){const v=String(p||'basic').toLowerCase();return ['pro','plus','custom','enterprise'].includes(v)?'pro':'basic';}
 function planLabel(p){return canonicalPlan(p)==='pro'?'PRO':'GRATIS';}
+/* Workspace theme (owner Okt 2026): Seller App Premium + Pro only, presentation layer only.
+   Saved in workspace_branding.theme; the theme's colours are the default brand colours, users may still change them
+   in Settings and Reset returns to the theme's colours. Cached per workspace so a re-login paints it straight away. */
+const WORKSPACE_THEMES={
+  girlie:{name:'Girlie',desc:'Lilac & berry, playful modern',primary:'#7B3FC4',accent:'#C2306F'},
+  wood:{name:'Wood Calm Cute',desc:'Hangat, natural, cozy',primary:'#8A5A37',accent:'#5F7D58'},
+  cloudy:{name:'Cloudy Calm',desc:'Lapang, lembut, menenangkan',primary:'#2F4F8A',accent:'#6C63B5'},
+  pinky:{name:'Pinky Charm Sweet',desc:'Rose & peach, manis hangat',primary:'#B8405F',accent:'#C96A3A'}
+};
+window.KAIRO_WORKSPACE_THEMES=WORKSPACE_THEMES;
+const WORKSPACE_THEME_CACHE_KEY='kairo_ws_theme_v1';
+function isSellerWorkspace(){return document.documentElement.dataset.businessTemplate==='digital_subscription';}
+function workspaceThemeAllowed(){return isSellerWorkspace()&&canUseFeature('workspace_theme');}
+function workspaceTheme(){const t=String(activeWorkspaceBranding?.theme||'');return workspaceThemeAllowed()&&WORKSPACE_THEMES[t]?t:'';}
+function cachedWorkspaceTheme(){try{const t=JSON.parse(localStorage.getItem(WORKSPACE_THEME_CACHE_KEY)||'{}')[activeWorkspaceId||''];return WORKSPACE_THEMES[t]?t:'';}catch(_e){return '';}}
+function applyWorkspaceTheme(theme=workspaceTheme()){
+  const root=document.documentElement;
+  if(theme&&WORKSPACE_THEMES[theme])root.dataset.wsTheme=theme;else delete root.dataset.wsTheme;
+  try{if(activeWorkspaceId&&activeWorkspaceBranding){const m=JSON.parse(localStorage.getItem(WORKSPACE_THEME_CACHE_KEY)||'{}');if(root.dataset.wsTheme)m[activeWorkspaceId]=root.dataset.wsTheme;else delete m[activeWorkspaceId];localStorage.setItem(WORKSPACE_THEME_CACHE_KEY,JSON.stringify(m));}}catch(_e){}
+}
 const FEATURE_MIN_PLAN={
   customer_database:'pro',open_close_store:'pro',export_excel:'pro',autofill_orders:'pro',
   custom_branding:'pro',receipt_customization:'pro',multi_partner_profit_share:'pro',performance:'basic',
   advanced_analytics:'pro',advanced_profit_sharing:'pro',business_insights:'pro',advanced_customer_analytics:'pro',
-  advanced_reports:'pro',activity_log:'pro',full_history:'pro',petty_cash:'pro',granular_permissions:'pro',full_workspace_backup:'pro',multi_workspace:'pro',remove_saas_branding:'pro'
+  advanced_reports:'pro',activity_log:'pro',full_history:'pro',petty_cash:'pro',workspace_theme:'pro',granular_permissions:'pro',full_workspace_backup:'pro',multi_workspace:'pro',remove_saas_branding:'pro'
 };
 function normalizedPlan(){return canonicalPlan(activeWorkspacePlan);}
 function planAtLeast(minPlan){return (PLAN_RANK[normalizedPlan()]||1)>=(PLAN_RANK[minPlan]||1);}
@@ -351,7 +371,7 @@ async function confirmLogout(){
 }
 
 async function handleAuthSession(session){
-  if(!session){ stopRealtimeSync(); }
+  if(!session){ stopRealtimeSync(); delete document.documentElement.dataset.wsTheme; }
   if(session?.user){
     try{
       await loadActiveWorkspaceForUser(session.user);
@@ -744,6 +764,8 @@ function openAppPage(tabName){
     cash:['Petty Cash','Kelola arus kas operasional workspace.'],
     payout:['Withdraw','Kelola pencairan dan pembagian hasil.'],
     input:['Orders','Input dan kelola transaksi penjualan.'],
+    promo:['Promo','Atur diskon otomatis untuk produk dan pelanggan.'],
+    subscriptions:['Tracker Langganan','Pantau masa aktif langganan pelanggan.'],
     customers:['Customer Database','Data dan riwayat customer workspace.'],
     settings:['Workspace Settings','Identitas bisnis, package, add-on, pembagian omzet, dan akses workspace aktif.']
   };
@@ -791,7 +813,12 @@ document.getElementById('workspace-settings-form')?.addEventListener('submit',as
       branding.receipt_labels={...(activeWorkspaceBranding?.receipt_labels||{}),__dashboard_slogan:sloganValue};
       branding.logo_url=document.getElementById('settings-logo-url').value.trim()||null;
     }
-    const {error:berr}=await db.from('workspace_branding').upsert({workspace_id:wid,...branding},{onConflict:'workspace_id'}); if(berr)throw berr;
+    const themeInput=document.getElementById('settings-theme');
+    if(themeInput&&workspaceThemeAllowed())branding.theme=WORKSPACE_THEMES[themeInput.value]?themeInput.value:null;
+    let {error:berr}=await db.from('workspace_branding').upsert({workspace_id:wid,...branding},{onConflict:'workspace_id'});
+    // Database without the theme column yet: keep the colours, report the theme as not saved.
+    if(berr&&'theme' in branding&&/theme/i.test(berr.message||'')){delete branding.theme;({error:berr}=await db.from('workspace_branding').upsert({workspace_id:wid,...branding},{onConflict:'workspace_id'}));if(!berr)showToast('Warna tersimpan, tapi tema belum bisa disimpan. Hubungi admin KAIRO.','warning');}
+    if(berr)throw berr;
     activeWorkspaceName=name; await loadWorkspaceSaasContext(); hydrateSaasUi(); showToast('Workspace Settings tersimpan.');
   }catch(err){console.error(err);showToast(err.message||'Gagal menyimpan Settings.',true)}
 });
@@ -1610,7 +1637,7 @@ function renderCharts(){
 }
 
 // Chart colours are read when a chart is drawn, so redraw Performance after a theme switch.
-(()=>{let dark=document.body.classList.contains("saas-dark");new MutationObserver(()=>{const d=document.body.classList.contains("saas-dark");if(d===dark)return;dark=d;if(dailyChart&&document.getElementById("performance")?.classList.contains("active"))renderCharts();}).observe(document.body,{attributes:true,attributeFilter:["class"]});})();
+(()=>{const key=()=>`${document.body.classList.contains("saas-dark")}|${document.documentElement.dataset.wsTheme||""}`;let last=key();const redraw=()=>{const k=key();if(k===last)return;last=k;if(dailyChart&&document.getElementById("performance")?.classList.contains("active"))renderCharts();};new MutationObserver(redraw).observe(document.body,{attributes:true,attributeFilter:["class"]});new MutationObserver(redraw).observe(document.documentElement,{attributes:true,attributeFilter:["data-ws-theme"]});})();
 
 function renderHistory(){
   const body=document.getElementById("tx-table-body");
@@ -3394,7 +3421,9 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
   }
   function applyWorkspaceBrandingV204(branding){
     const b=branding||{}; savedBrandingSnapshot={...b};
-    setBrandVars(b.primary_color,b.accent_color);
+    const th=WORKSPACE_THEMES[workspaceTheme()],unset=(v,d)=>!validHex(v)||String(v).toUpperCase()===d;
+    setBrandVars(th&&unset(b.primary_color,DEFAULT_PRIMARY)?th.primary:b.primary_color,th&&unset(b.accent_color,DEFAULT_ACCENT)?th.accent:b.accent_color);
+    applyWorkspaceTheme();
     document.querySelectorAll('.brand-logo,.saas-side-brand img,.saas-brand-preview-logo').forEach(img=>{
       if(!img.dataset.defaultSrc) img.dataset.defaultSrc=img.getAttribute('src')||'';
       img.src=b.logo_url||img.dataset.defaultSrc;
@@ -3445,12 +3474,39 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
     pc.addEventListener('input',()=>{pt.value=pc.value.toUpperCase();update()});ac.addEventListener('input',()=>{at.value=ac.value.toUpperCase();update()});pt.addEventListener('input',update);at.addEventListener('input',update);logo?.addEventListener('input',update);name?.addEventListener('input',update);
     formCancelOnEscape();
   }
+  // Settings › Tema Workspace (Seller App Premium). Clicking a card previews it live; Simpan Pengaturan saves it.
+  function renderThemePicker(){
+    const form=document.getElementById('workspace-settings-form'),head=form?.querySelector('.kairo-layout-colors-head');
+    let box=document.getElementById('kairo-theme-picker');
+    if(!form||!head||!isSellerWorkspace()){box?.remove();return;}
+    const allowed=workspaceThemeAllowed(),saved=allowed?workspaceTheme():'';
+    if(!box){
+      box=document.createElement('div');box.id='kairo-theme-picker';box.className='full kairo-theme-picker';
+      box.innerHTML=`<div class="kairo-layout-colors-title">Tema Workspace</div><div class="page-sub">Pilih suasana dashboard tokomu. Data dan fitur tidak berubah; warna masih bisa kamu atur di bawah.</div><input type="hidden" id="settings-theme"><div class="kairo-theme-grid" role="radiogroup" aria-label="Tema workspace">${Object.entries(WORKSPACE_THEMES).map(([id,t])=>`<button type="button" class="kairo-theme-opt" role="radio" data-theme-opt="${id}"><span class="kairo-theme-swatch" data-swatch="${id}" aria-hidden="true"><i></i><b></b><b></b><em></em></span><strong>${t.name}</strong><small>${t.desc}</small></button>`).join('')}</div><div class="kairo-theme-lock" hidden>Tema workspace tersedia di paket Pro.</div>`;
+      head.insertAdjacentElement('beforebegin',box);
+      box.addEventListener('click',e=>{
+        const opt=e.target.closest('[data-theme-opt]');if(!opt)return;
+        if(!workspaceThemeAllowed()){showToast('Tema workspace tersedia di paket Pro.','warning');return;}
+        const id=opt.dataset.themeOpt,t=WORKSPACE_THEMES[id];
+        document.getElementById('settings-theme').value=id;applyWorkspaceTheme(id);
+        [['settings-primary-text','settings-primary-color',t.primary],['settings-accent-text','settings-accent-color',t.accent]].forEach(([a,b,v])=>{const c=document.getElementById(b),x=document.getElementById(a);if(c)c.value=v;if(x){x.value=v;x.dispatchEvent(new Event('input',{bubbles:true}));}});
+        markThemePicker(id);showToast(`Tema ${t.name} dipratinjau. Klik Simpan Pengaturan untuk menyimpan.`,'info');
+      });
+    }
+    box.classList.toggle('is-locked',!allowed);box.querySelector('.kairo-theme-lock').hidden=allowed;
+    document.getElementById('settings-theme').value=saved;markThemePicker(saved);
+    // Saved colours still at the legacy "not set" values: show the theme's colours in the colour fields.
+    const th=WORKSPACE_THEMES[saved],b=activeWorkspaceBranding||{};
+    if(th){[['settings-primary-text','settings-primary-color',b.primary_color,DEFAULT_PRIMARY,th.primary],['settings-accent-text','settings-accent-color',b.accent_color,DEFAULT_ACCENT,th.accent]].forEach(([a,c,v,d,n])=>{if(!validHex(v)||String(v).toUpperCase()===d){const x=document.getElementById(a),y=document.getElementById(c);if(x)x.value=n;if(y)y.value=n;}});}
+  }
+  function markThemePicker(id){document.querySelectorAll('#kairo-theme-picker [data-theme-opt]').forEach(o=>{const on=o.dataset.themeOpt===id;o.classList.toggle('is-active',on);o.setAttribute('aria-checked',on?'true':'false');});}
+  window.kairoRenderThemePicker=renderThemePicker;
   function formCancelOnEscape(){document.getElementById('workspace-settings-form')?.addEventListener('keydown',e=>{if(e.key==='Escape'){applyWorkspaceBrandingV204(savedBrandingSnapshot||activeWorkspaceBranding);hydrateSaasUi();}})}
 
   // Extend existing UI hydrator without replacing its backend behavior.
   if(typeof hydrateSaasUi==='function'){
     const originalHydrate=hydrateSaasUi;
-    hydrateSaasUi=function(){const r=originalHydrate.apply(this,arguments);setTimeout(()=>{addBrandPreview();wireBrandingPreview();applyWorkspaceBrandingV204(activeWorkspaceBranding);ensureKairoAppSwitcher();syncNavState();},0);return r;};
+    hydrateSaasUi=function(){const r=originalHydrate.apply(this,arguments);setTimeout(()=>{addBrandPreview();wireBrandingPreview();applyWorkspaceBrandingV204(activeWorkspaceBranding);renderThemePicker();ensureKairoAppSwitcher();syncNavState();},0);return r;};
   }
   // Add workspace-specific receipt footer to preview.
   if(typeof showReceiptPreview==='function'){
@@ -5140,28 +5196,35 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
     if(sellerTemplateBooted||sellerTemplateChecking)return;
     if(!document.body.classList.contains('authenticated'))return;
     sellerTemplateChecking=true;
+    const root=document.documentElement;root.classList.add('kairo-template-pending');
+    let keepPending=false;
     try{
       const {data}=await db.auth.getSession();
       const template=String(data?.session?.user?.user_metadata?.business_template||'').toLowerCase();
       if(template!=='digital_subscription')return;
-      sellerTemplateBooted=true;
-      document.documentElement.dataset.businessTemplate='digital_subscription';
+      sellerTemplateBooted=true;keepPending=true;
+      root.dataset.businessTemplate='digital_subscription';
+      // Paint the workspace's last theme right away; applyWorkspaceTheme() corrects it once branding/plan are loaded.
+      if(activeWorkspaceBranding)applyWorkspaceTheme();else{const t=cachedWorkspaceTheme();if(t)root.dataset.wsTheme=t;}
+      const release=()=>{if(activeWorkspaceBranding){if(typeof window.applyWorkspaceBrandingV204==='function')window.applyWorkspaceBrandingV204(activeWorkspaceBranding);else applyWorkspaceTheme();}if(typeof window.kairoRenderThemePicker==='function')window.kairoRenderThemePicker();root.classList.remove('kairo-template-pending');};
+      document.addEventListener('kairo:seller-mounted',release,{once:true});
+      setTimeout(release,5000);
       if(!document.getElementById('seller-app-premium-css')){
         const link=document.createElement('link');
         link.id='seller-app-premium-css';
         link.rel='stylesheet';
-        link.href='assets/templates/seller-app-premium.css?v=20.10.151';
+        link.href='assets/templates/seller-app-premium.css?v=20.10.152';
         document.head.appendChild(link);
       }
       if(!document.getElementById('seller-app-premium-js')){
         const script=document.createElement('script');
         script.id='seller-app-premium-js';
-        script.src='assets/templates/seller-app-premium.js?v=20.10.150';
+        script.src='assets/templates/seller-app-premium.js?v=20.10.151';
         script.defer=true;
         document.body.appendChild(script);
       }
-    }catch(err){console.warn('Seller App Premium template loader:',err?.message||err);}
-    finally{sellerTemplateChecking=false;}
+    }catch(err){console.warn('Seller App Premium template loader:',err?.message||err);keepPending=false;}
+    finally{sellerTemplateChecking=false;if(!keepPending)root.classList.remove('kairo-template-pending');}
   }
   document.addEventListener('click',e=>{
     if(e.target.closest('[data-tab="input"],[data-mobile-tab="input"],.kairo-mobile-orders-main,[data-settings-category="packages"]'))setTimeout(maybeBootSellerTemplate,0);

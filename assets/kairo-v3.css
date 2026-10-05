@@ -903,11 +903,17 @@ html.kairo-v3 #app-shell .card {
   padding: var(--v3-card-padding) !important;
 }
 
-html.kairo-v3 #app-shell .card-title {
+/* One card-title style everywhere (owner Okt 2026: dulu campur serif kecil & sans besar). */
+html.kairo-v3 #app-shell .card-title,
+html.kairo-v3 #app-shell .promo-title,
+html.kairo-v3 #app-shell #cash-capital-card .cash-filter-copy strong {
   color: var(--v3-ink) !important;
-  font-size: 15px;
-  font-weight: 800;
-  letter-spacing: -.015em;
+  font-family: "Plus Jakarta Sans", Arial, sans-serif !important;
+  font-size: 15.5px !important;
+  font-weight: 800 !important;
+  font-style: normal !important;
+  line-height: 1.3;
+  letter-spacing: -.01em;
 }
 
 html.kairo-v3 #app-shell .kairo-list-card,
@@ -1110,7 +1116,8 @@ html.kairo-v3 .kpi-head {
 
 html.kairo-v3 .kpi-label {
   color: var(--v3-muted) !important;
-  font-size: 10px !important;
+  font-family: "Plus Jakarta Sans", Arial, sans-serif !important;
+  font-size: 11px !important;
   font-weight: 750;
   line-height: 1.35;
 }
@@ -4580,7 +4587,7 @@ html.kairo-v3 body.seller-app-premium:not(.saas-dark) .seller-cart-total strong,
 html.kairo-v3 body.seller-app-premium:not(.saas-dark) .seller-history-toggle,
 html.kairo-v3 body.seller-app-premium:not(.saas-dark) .seller-order-status-pill.is-new,
 html.kairo-v3 body.seller-app-premium:not(.saas-dark) .seller-settings-db-status {
-  color: #0f6f6b;
+  color: color-mix(in srgb, var(--v3-primary) 62%, #000);
 }
 html.kairo-v3 body.seller-app-premium:not(.saas-dark) .seller-expiry-badge.is-active,
 html.kairo-v3 body.seller-app-premium:not(.saas-dark) .seller-history-expiry.is-active,
@@ -4728,4 +4735,73 @@ html.kairo-v3 #performance .perf-kpi small {
 @media (max-width: 520px) {
   html.kairo-v3 #performance .perf-kpi { padding: 12px 14px !important; }
   html.kairo-v3 #performance .perf-kpi strong { font-size: 16px; }
+}
+
+/* ---- Layout konsisten (owner Okt 2026): kartu & tabel simetris dan proporsional di semua menu/template. ---- */
+/* Toolbar di dalam kartu tidak membawa jarak atas toolbar halaman (dulu judul turun 22px). */
+html.kairo-v3 #app-shell .card > .toolbar:first-child { padding: 0 0 10px !important; margin-top: 0 !important; }
+html.kairo-v3 #app-shell #cash-capital-card > .cash-filter-bar:first-child { padding-top: 0 !important; margin-top: 0 !important; }
+/* Subjudul kartu: sans, tidak miring, satu ukuran. Subjudul halaman (di bawah judul besar) tetap gaya lama. */
+html.kairo-v3 #app-shell .card .page-sub,
+html.kairo-v3 #app-shell .card .promo-sub,
+html.kairo-v3 #app-shell .seller-expiry-head .muted {
+  font-family: "Plus Jakarta Sans", Arial, sans-serif !important;
+  font-style: normal !important;
+  font-size: 12.5px !important;
+  line-height: 1.45;
+  color: var(--v3-muted) !important;
+}
+html.kairo-v3 #app-shell .product-sales-head { align-items: flex-start; }
+/* Dua kolom di Performance pakai perbandingan lebar yang sama; kartu sendirian di barisnya memakai lebar penuh. */
+html.kairo-v3 #performance .platform-analytics-grid,
+html.kairo-v3 #performance > .grid-main { grid-template-columns: minmax(0, 1.6fr) minmax(300px, 1fr); gap: 18px; }
+html.kairo-v3 #performance > .grid-main:has(> .card.seller-template-hidden),
+html.kairo-v3 #performance > .grid-main:has(> .card:only-child) { grid-template-columns: minmax(0, 1fr); }
+/* Settings: kolom kanan mengikuti tinggi kolom kiri, kartu pertama tidak melar kosong. */
+html.kairo-v3 #settings .settings-stack { align-content: start; grid-template-rows: auto 1fr; }
+/* Promo: dua kartu sama lebar, rata atas. */
+html.kairo-v3 #promo .promo-shell { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+html.kairo-v3 #promo .promo-card { padding: var(--v3-card-padding) !important; border-radius: var(--v3-r-lg) !important; }
+html.kairo-v3 #promo .promo-save {
+  background: var(--v3-primary) !important;
+  color: var(--v3-on-primary) !important;
+  border: 0 !important;
+}
+/* Kartu angka kecil (Petty Cash, Customer Database): angka tidak patah, garis kiri ikut warna brand. */
+html.kairo-v3 #cash .kpi .kpi-value,
+html.kairo-v3 #customers .kpi .kpi-value {
+  font-size: clamp(17px, 1.45vw, 23px) !important;
+  overflow-wrap: normal;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+html.kairo-v3 #cash .kpi,
+html.kairo-v3 #customers .kpi { border-left-color: color-mix(in srgb, var(--v3-primary) 55%, var(--v3-line)) !important; }
+@media (max-width: 900px) {
+  html.kairo-v3 #performance .platform-analytics-grid,
+  html.kairo-v3 #performance > .grid-main,
+  html.kairo-v3 #promo .promo-shell { grid-template-columns: minmax(0, 1fr); }
+  html.kairo-v3 #settings .settings-stack { grid-template-rows: none; }
+}
+
+/* Seller App Premium: the app stays hidden until the template (and the workspace theme) is in place,
+   so the generic dashboard never flashes first. kairo-app.js removes the class (failsafe 5 s). */
+html.kairo-template-pending body.authenticated #app-shell,
+html.kairo-template-pending body.authenticated #saas-sidebar,
+html.kairo-template-pending body.authenticated #saas-mobile-bottom,
+html.kairo-template-pending body.authenticated #kairo-mobile-brandbar { visibility: hidden !important; }
+html.kairo-template-pending body.authenticated::after {
+  content: "";
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  width: 30px;
+  height: 30px;
+  margin: -15px 0 0 -15px;
+  border: 3px solid var(--v3-line);
+  border-top-color: var(--v3-primary);
+  border-radius: 50%;
+  animation: kairo-spin .8s linear infinite;
+  z-index: 50;
 }
