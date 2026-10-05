@@ -80,8 +80,8 @@
 
 
 
-<link rel="stylesheet" href="assets/kairo.css?v=20.10.156">
-<link rel="stylesheet" href="assets/kairo-v3.css?v=3.30.0">
+<link rel="stylesheet" href="assets/kairo.css?v=20.10.157">
+<link rel="stylesheet" href="assets/kairo-v3.css?v=3.31.0">
 </head>
 
 <body class="auth-locked">
@@ -662,9 +662,11 @@
   </section>
 
   <section id="performance" class="section">
-    <div class="performance-intro card" style="margin-bottom:18px">
-      <div class="card-title">Performance</div>
-      <div class="page-sub">Analisis performa penjualan berdasarkan periode yang dipilih.</div>
+    <div class="perf-kpis" id="perf-kpis">
+      <div class="card perf-kpi"><span class="perf-kpi-label">Omzet</span><strong id="perf-kpi-revenue">Rp0</strong></div>
+      <div class="card perf-kpi"><span class="perf-kpi-label">Transaksi</span><strong id="perf-kpi-count">0</strong></div>
+      <div class="card perf-kpi"><span class="perf-kpi-label">Rata-rata per order</span><strong id="perf-kpi-average">Rp0</strong></div>
+      <div class="card perf-kpi"><span class="perf-kpi-label">Produk terlaris</span><strong id="perf-kpi-best">-</strong><small id="perf-kpi-best-qty">Belum ada penjualan</small></div>
     </div>
 
     <div class="card product-sales-card" id="product-sales-card">
@@ -689,11 +691,12 @@
 
     <div class="grid-main">
       <div class="card">
-        <div class="card-title">Penjualan Harian <small>(sesuai filter tanggal)</small></div>
+        <div class="card-title">Penjualan Harian <small id="daily-chart-unit">(sesuai filter tanggal)</small></div>
         <div class="chart-wrap"><canvas id="dailyChart"></canvas></div>
       </div>
       <div class="card">
         <div class="card-title">Penjualan Berdasarkan Paket</div>
+        <div class="page-sub">5 teratas berdasarkan jumlah terjual, sisanya digabung jadi "Lainnya".</div>
         <div class="chart-wrap"><canvas id="packageChart"></canvas></div>
       </div>
     </div>
@@ -703,7 +706,7 @@
         <div class="toolbar" style="margin-bottom:8px">
           <div>
             <div class="card-title">Omzet Bulan Ini vs Bulan Lalu</div>
-            <div class="page-sub" id="monthly-revenue-note">Perbandingan berdasarkan bulan kalender.</div>
+            <div class="page-sub" id="monthly-revenue-note">Dibandingkan di tanggal yang sama bulan lalu.</div>
           </div>
           <div style="text-align:right">
             <div class="page-sub">Perubahan</div>
@@ -1256,6 +1259,6 @@
 
 
 
-<script defer src="assets/kairo-app.js?v=20.10.181"></script>
+<script defer src="assets/kairo-app.js?v=20.10.182"></script>
 </body>
 </html>

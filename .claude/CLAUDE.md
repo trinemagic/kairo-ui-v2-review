@@ -81,8 +81,8 @@ domain = pengguna login ulang & pengaturan browser (Ingat saya, dark mode) mulai
 | `assets/fonts/` | Plus Jakarta Sans self-hosted (OFL) | Jangan kembali ke Google Fonts. |
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
-Versi terakhir: `kairo.css?v=20.10.156`, `kairo-v3.css?v=3.30.0`,
-`kairo-v3.js?v=3.22.0`, `kairo-app.js?v=20.10.181`; template seller dimuat dari kairo-app.js
+Versi terakhir: `kairo.css?v=20.10.157`, `kairo-v3.css?v=3.31.0`,
+`kairo-v3.js?v=3.22.0`, `kairo-app.js?v=20.10.182`; template seller dimuat dari kairo-app.js
 (`seller-app-premium.js?v=20.10.150`, `.css?v=20.10.151`) — naikkan juga bila file template diubah.
 
 **Halaman app** = `main.container > section.section` dengan id:
@@ -135,6 +135,10 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   (masuk ke bagian persentase) -> 100% laba ke Withdraw. Kartu Saldo Kas `hidden` (grid 3 kolom / seller 2x2 via `body.kairo-no-cash`),
   menu Petty Cash: Gratis = terkunci (decorateLocks), Pro mati = disembunyikan. Pro yang sudah ada TIDAK diubah. **Kas Modal**
   (Petty Cash): total HPP penjualan per tanggal (`renderCapitalCash`), ikut filter riwayat kas, terpisah dari Saldo Kas.
+  **Mematikan Kas** (owner Okt 2026): saklar off membuka panel `#kairo-cash-off-panel` "berlaku mulai" (tanggal+jam) -> versi
+  pembagian baru (Kas `cash_off:true`, 0%, partner lain diskalakan ke 100%) + `cash_enabled=false`. Saldo Kas yang sudah terkumpul tetap
+  (kartu & Petty Cash tetap tampil selama saldo ≠ 0, `cashVisible()`); transaksi setelah tanggal itu tidak menambah Kas (`kasOffSince()`).
+  Gratis: editor partner (`#profit-share-editor-form`, Tambah Partner) disembunyikan - laba bersih setelah HPP tetap tampil.
   Default Kas 0% untuk user Pro baru: BELUM (menunggu hasil cek isi `profit_share_rules` di DB; fallback JS `LEGACY_CASH_SHARE_RATE`=5%).
 - **HPP & pembagian per produk (owner Okt 2026):** kategori Settings `profit` dibuka untuk Gratis (termasuk mode manual).
 - **Masa aktif (owner Okt 2026):** `effectiveSubscriptionPlan()` - Pro lewat tanggal berakhir (current_period_end/expires_at/end_date/
@@ -225,7 +229,13 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   Settings › Produk, dialog riwayat customer, hover); transisi tema pakai View Transitions.
   Warna status seller di dark (badge expired/H-x/Aktif, "Sisa Rp…", Tersinkron) di-override
   di `kairo-v3.css`; tombol teal seller pakai teks `--v3-on-primary` seperti `.btn-green`.
-- **Performance:** semua mengikuti filter tanggal utama (`getRange()`).
+- **Performance:** semua mengikuti filter tanggal utama (`getRange()`). Redesign Okt 2026 (owner setuju 5 poin): kartu judul
+  "Performance" diganti baris ringkasan `#perf-kpis` (Omzet, Transaksi, Rata-rata per order, Produk terlaris; `renderPerformanceKpis`);
+  Penjualan Harian = batang mulai Rp0, tiap hari terisi (0 bila kosong), label "6 Sep", >92 hari digabung per bulan (`dailySalesSeries`);
+  Paket & Topik = batang horizontal 5 teratas + "Lainnya" dengan angka & persen (`chartRankBars`, plugin `chartBarValues`);
+  Bulan ini vs bulan lalu = tanggal yang sama (1–5 Okt vs 1–5 Sep); warna dari `chartBrandColors()` = `--v3-primary` (periode ini) &
+  `--v3-accent` (pembanding, dicerahkan di dark), satu warna per seri; grafik digambar ulang saat ganti tema. Gratis tetap hanya
+  ringkasan + Penjualan per Produk + tabel harian v83.
 - **Petty Cash › Riwayat Pengeluaran & Riwayat Pemasukan:** satu filter tanggal bersama
   (`cashHistoryFilter`; dropdown `[data-cash-filter]` di atas tiap tabel, selalu sinkron, termasuk
   tanggal `[data-cash-from]/[data-cash-to]`): Semua, Hari ini, Kemarin, 7 hari, Bulan ini, Bulan

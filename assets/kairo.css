@@ -2195,7 +2195,6 @@ body.saas-sidebar-collapsed #saas-sidebar .kairo-feedback-link svg{width:17px!im
 .saas-settings-submenu-btn.kairo-feature-locked{pointer-events:auto!important}
 
 /* BASIC Performance: only Penjualan Harian is visible. Global date filters remain untouched. */
-body.kairo-basic-plan #performance .performance-intro,
 body.kairo-basic-plan #performance .platform-analytics-grid,
 body.kairo-basic-plan #performance>.grid-main:nth-of-type(n+3){display:none!important}
 body.kairo-basic-plan #performance>.grid-main:first-of-type{display:block!important;margin-bottom:18px!important}
@@ -2219,7 +2218,6 @@ body.kairo-basic-plan #performance>.grid-main:first-of-type>.card:first-child{wi
 /* one consistent lock icon per Settings submenu */
 .saas-settings-submenu-btn .kairo-lock-v83{margin-left:auto;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto}.saas-settings-submenu-btn .kairo-lock-v83 svg{width:15px!important;height:15px!important;fill:none!important;stroke:currentColor!important;stroke-width:1.9!important;stroke-linecap:round;stroke-linejoin:round}
 /* BASIC Performance: only daily-sales table; global date filters remain available */
-body.kairo-basic-plan #performance>.performance-intro,
 body.kairo-basic-plan #performance>.platform-analytics-grid,
 body.kairo-basic-plan #performance>.grid-main{display:none!important}
 body.kairo-basic-plan #performance #kairo-basic-daily-sales-v83{display:block!important;margin-top:0!important}

@@ -1835,11 +1835,6 @@ html.kairo-v3 .notice {
 }
 
 /* Existing operational pages consume the same foundation without layout rewrites. */
-html.kairo-v3 #performance .performance-intro {
-  background: var(--v3-sky) !important;
-  border-color: var(--v3-sky-strong) !important;
-}
-
 html.kairo-v3 .chart-wrap {
   padding: 8px;
   border-radius: var(--v3-r-md);
@@ -4692,3 +4687,45 @@ html.kairo-v3 .kairo-cash-off-panel strong { color: var(--v3-ink); font-size: 13
 html.kairo-v3 .kairo-cash-off-panel small { color: var(--v3-ink-soft); font-size: 12px; line-height: 1.45; }
 html.kairo-v3 .kairo-cash-off-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 html.kairo-v3 .kairo-cash-off-actions .control { min-height: 40px; }
+
+/* Performance: summary row above the charts (replaces the old "Performance" title card). */
+html.kairo-v3 #performance .perf-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+html.kairo-v3 #performance .perf-kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  margin: 0 !important;
+  padding: 16px 18px !important;
+}
+html.kairo-v3 #performance .perf-kpi-label {
+  color: var(--v3-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+html.kairo-v3 #performance .perf-kpi strong {
+  color: var(--v3-ink);
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+html.kairo-v3 #performance .perf-kpi small {
+  color: var(--v3-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+@media (max-width: 1100px) {
+  html.kairo-v3 #performance .perf-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+}
+@media (max-width: 520px) {
+  html.kairo-v3 #performance .perf-kpi { padding: 12px 14px !important; }
+  html.kairo-v3 #performance .perf-kpi strong { font-size: 16px; }
+}

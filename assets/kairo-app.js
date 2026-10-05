@@ -941,62 +941,64 @@ function monthRangeParts(date){
   return {first:localISODate(first),last:localISODate(last)};
 }
 
-function monthLabel(date){
-  return new Intl.DateTimeFormat("id-ID",{month:"long",year:"numeric"}).format(date);
-}
 
 async function fetchPlatformAnalytics(){
   const b=platformBounds();
   platformAnalyticsRows=(await allTransactions()).filter(row=>String(row.transaction_date||'')>=b.previousStart&&String(row.transaction_date||'')<=b.currentEnd);
 }
 function platformKey(v){const s=String(v||"Other").trim(),n=s.toLowerCase();if(n==="x"||n==="twitter")return "X";if(n.includes("instagram"))return "Instagram";if(n.includes("threads"))return "Threads";if(n.includes("tiktok"))return "TikTok";if(n.includes("whatsapp")||n==="wa")return "WhatsApp";if(n.includes("telegram")||n==="tg")return "Telegram";return s||"Other";}
+// Chart colours follow the KAIRO palette (the v3 tokens, which already follow the workspace
+// colours): primary = this period, accent = comparison. In dark mode the accent is lightened
+// so the comparison bars stay visible on the dark cards.
 function chartBrandColors(){
-  const cs=getComputedStyle(document.documentElement);
-  const primary=(cs.getPropertyValue("--brand-primary")||"#696F41").trim();
-  const accent=(cs.getPropertyValue("--brand-accent")||"#EA97A9").trim();
+  const cs=getComputedStyle(document.body||document.documentElement);
+  const dark=!!document.body?.classList.contains("saas-dark");
+  const read=(n,f)=>{const v=cs.getPropertyValue(n).trim();return /^#[0-9a-f]{6}$/i.test(v)?v:f;};
   const hexToRgb=h=>{const m=String(h).match(/^#([0-9a-f]{6})$/i);if(!m)return null;const n=parseInt(m[1],16);return [(n>>16)&255,(n>>8)&255,n&255];};
   const mix=(a,b,t)=>{const A=hexToRgb(a),B=hexToRgb(b);if(!A||!B)return a;const C=A.map((v,i)=>Math.round(v+(B[i]-v)*t));return `#${C.map(v=>v.toString(16).padStart(2,"0")).join("")}`;};
   const alpha=(h,a)=>{const r=hexToRgb(h);return r?`rgba(${r[0]},${r[1]},${r[2]},${a})`:h;};
-  return {primary,accent,mix,alpha,palette:[accent,primary,mix(accent,"#ffffff",.28),mix(primary,"#ffffff",.28),mix(accent,primary,.42),mix(primary,accent,.42),mix(accent,"#ffffff",.52),mix(primary,"#ffffff",.52),mix(accent,"#000000",.16),mix(primary,"#000000",.16)]};
+  const primary=read("--v3-primary","#25B9B0"),accentRaw=read("--v3-accent","#173A59");
+  const accent=dark?mix(accentRaw,"#ffffff",.55):accentRaw;
+  return {primary,accent,mix,alpha,dark,other:dark?"#4a6276":"#b7c6d1",text:read("--v3-muted",dark?"#aabcc9":"#4e6475"),grid:dark?"rgba(255,255,255,.08)":"rgba(23,58,89,.08)"};
 }
-function platformChartColor(name,previous=false){const c=chartBrandColors();const i=Math.abs([...String(name||"")].reduce((a,ch)=>a+ch.charCodeAt(0),0))%c.palette.length;return previous?c.alpha(c.palette[i],.28):c.palette[i];}
-function platformChartBorder(name){const c=chartBrandColors();const i=Math.abs([...String(name||"")].reduce((a,ch)=>a+ch.charCodeAt(0),0))%c.palette.length;return c.palette[i];}
+function chartAxes(c,{x={},y={}}={}){
+  const axis=o=>Object.assign({},o,{ticks:Object.assign({color:c.text,font:{size:11}},o.ticks||{}),grid:Object.assign({color:c.grid},o.grid||{}),border:{display:false}});
+  return {x:axis(x),y:axis(y)};
+}
+// Draws the value at the end of each horizontal bar (no extra plugin needed).
+const chartBarValues={id:"kairoBarValues",afterDatasetsDraw(chart,_args,opts){const fmt=opts?.format;if(!fmt)return;const {ctx}=chart,meta=chart.getDatasetMeta(0);ctx.save();ctx.font="600 11px 'Plus Jakarta Sans', sans-serif";ctx.fillStyle=opts.color||"#4e6475";ctx.textBaseline="middle";meta.data.forEach((bar,i)=>{const t=fmt(chart.data.datasets[0].data[i],i);if(!t)return;const w=ctx.measureText(t).width,room=chart.chartArea.right-bar.x;if(room>w+10){ctx.textAlign="left";ctx.fillText(t,bar.x+6,bar.y);}else{ctx.textAlign="right";ctx.fillStyle="#ffffff";ctx.fillText(t,bar.x-6,bar.y);ctx.fillStyle=opts.color||"#4e6475";}});ctx.restore();}};
+// Top N rows plus one "Lainnya" row, so long product/topic lists stay readable.
+function chartTopEntries(entries,limit=5){if(entries.length<=limit+1)return entries;const rest=entries.slice(limit).reduce((s,[,v])=>s+Number(v||0),0);return [...entries.slice(0,limit),["Lainnya",rest]];}
+function chartRankBars(canvas,entries,{unit="x",empty="Belum ada data"}={}){
+  const c=chartBrandColors(),total=entries.reduce((s,[,v])=>s+Number(v||0),0),rows=chartTopEntries(entries);
+  const pct=v=>total>0?`${(v/total*100).toLocaleString("id-ID",{maximumFractionDigits:1})}%`:"0%";
+  const short=v=>{const t=String(v);return t.length>22?`${t.slice(0,21)}…`:t;};
+  return new Chart(canvas,{type:"bar",plugins:[chartBarValues],
+    data:{labels:rows.length?rows.map(x=>x[0]):[empty],datasets:[{data:rows.length?rows.map(x=>x[1]):[0],backgroundColor:rows.length?rows.map(x=>x[0]==="Lainnya"?c.other:c.primary):[c.other],borderRadius:6,barThickness:"flex",maxBarThickness:26}]},
+    options:{indexAxis:"y",responsive:true,maintainAspectRatio:false,layout:{padding:{right:8}},
+      plugins:{legend:{display:false},kairoBarValues:{color:c.text,format:v=>rows.length?`${Number(v).toLocaleString("id-ID")}${unit} · ${pct(v)}`:""},
+        tooltip:{callbacks:{title:items=>items[0]?.label||"",label:x=>rows.length?`${Number(x.parsed.x).toLocaleString("id-ID")}${unit} (${pct(x.parsed.x)})`:empty}}},
+      scales:chartAxes(c,{x:{beginAtZero:true,grace:"18%",ticks:{precision:0},grid:{display:true}},y:{grid:{display:false},ticks:{callback(v){return short(this.getLabelForValue(v));}}}})}});
+}
 function platformLogo(name){const n=platformKey(name);if(n==="X")return `<span class="platform-logo platform-x"><strong>𝕏</strong></span>`;if(n==="Instagram")return `<span class="platform-logo platform-instagram"><svg viewBox="0 0 24 24"><rect x="3.2" y="3.2" width="17.6" height="17.6" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.5" cy="6.7" r="1.1" fill="currentColor"/></svg></span>`;if(n==="Threads")return `<span class="platform-logo platform-threads"><strong>@</strong></span>`;if(n==="TikTok")return `<span class="platform-logo platform-tiktok"><strong>♪</strong></span>`;if(n==="WhatsApp")return `<span class="platform-logo platform-whatsapp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.5a8 8 0 0 1-11.8 7L4 20l1.5-4.1A8 8 0 1 1 20 11.5Z"/><path d="M9 8.5c.7 2.2 2.3 3.8 4.5 4.5"/></svg></span>`;if(n==="Telegram")return `<span class="platform-logo platform-telegram"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 4 3.8 10.6c-.9.4-.8 1.7.1 1.9l4.4 1.3 1.7 5.1c.3.9 1.5 1 2 .2l2.6-3.3 4.4 3.2c.8.6 1.9.1 2.1-.9L22 5.1c.2-.8-.5-1.4-1-1.1Z"/><path d="m8.4 13.8 8.7-6.2-6.9 7.9"/></svg></span>`;return `<span class="platform-logo platform-other">•</span>`;}
 // Platform analytics follow the main date filter (getRange); the comparison is the
 // equally long period right before it. Without a start date the last 30 days are used.
 function platformBounds(){const {from,to}=getRange(),parse=v=>{const [y,m,d]=String(v).split('-').map(Number);return new Date(y,m-1,d)};const end=parse(to||todayISO()),start=from?parse(from):new Date(end.getFullYear(),end.getMonth(),end.getDate()-29),days=Math.max(1,Math.round((end-start)/86400000)+1),pe=new Date(start);pe.setDate(start.getDate()-1);const ps=new Date(pe);ps.setDate(pe.getDate()-(days-1));return{days,currentStart:localISODate(start),currentEnd:localISODate(end),previousStart:localISODate(ps),previousEnd:localISODate(pe)};}
 function countPlatforms(from,to){const c={};platformAnalyticsRows.forEach(x=>{const d=String(x.transaction_date||"");if(d<from||d>to)return;const k=platformKey(x.platform);c[k]=(c[k]||0)+1});return c;}
-function renderPlatformAnalytics(){const canvas=document.getElementById("platformChart"),summary=document.getElementById("platform-summary-list");if(!canvas||!summary)return;const b=platformBounds(),cur=countPlatforms(b.currentStart,b.currentEnd),prev=countPlatforms(b.previousStart,b.previousEnd),names=[...new Set([...Object.keys(cur),...Object.keys(prev)])].sort((a,z)=>(cur[z]||0)-(cur[a]||0));const note=document.getElementById("platform-chart-note");if(note){const fmt=v=>new Intl.DateTimeFormat("id-ID",{day:"numeric",month:"short",year:"numeric"}).format(new Date(`${v}T00:00:00`));note.textContent=b.days===1?`Jumlah transaksi ${fmt(b.currentStart)} (sesuai filter tanggal).`:`Jumlah transaksi ${fmt(b.currentStart)} – ${fmt(b.currentEnd)} (sesuai filter tanggal).`;}if(platformChart)platformChart.destroy();platformChart=new Chart(canvas,{type:"bar",data:{labels:names.length?names:["Belum ada data"],datasets:[{label:"Periode Ini",data:names.length?names.map(n=>cur[n]||0):[0],backgroundColor:names.length?names.map(n=>platformChartColor(n,false)):[chartBrandColors().alpha(chartBrandColors().accent,.20)],borderColor:names.length?names.map(n=>platformChartBorder(n)):[chartBrandColors().accent],borderWidth:1.5,borderRadius:9},{label:"Periode Sebelumnya",data:names.length?names.map(n=>prev[n]||0):[0],backgroundColor:names.length?names.map(n=>platformChartColor(n,true)):[chartBrandColors().alpha(chartBrandColors().primary,.16)],borderColor:names.length?names.map(n=>platformChartBorder(n)):[chartBrandColors().primary],borderWidth:1,borderRadius:9}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:10}}},tooltip:{callbacks:{label:x=>`${x.dataset.label}: ${x.parsed.y} transaksi`}}},scales:{y:{beginAtZero:true,ticks:{precision:0}},x:{grid:{display:false}}}}});if(!names.length){summary.innerHTML=`<div class="empty">Belum ada data.</div>`;return}summary.innerHTML=names.map(n=>{const a=cur[n]||0,p=prev[n]||0;let g="-",cl="platform-growth-flat";if(p>0){const q=(a-p)/p*100;g=`${q>0?"+":""}${q.toLocaleString("id-ID",{maximumFractionDigits:1})}%`;cl=q>0?"platform-growth-up":q<0?"platform-growth-down":"platform-growth-flat"}else if(a>0){g="Baru";cl="platform-growth-up"}return `<div class="platform-summary-row">${platformLogo(n)}<div><div class="platform-summary-name">${escapeHtml(n)}</div><div class="platform-summary-meta">${p} → ${a} transaksi</div></div><div class="platform-summary-value ${cl}">${g}</div></div>`}).join("");}
+function renderPlatformAnalytics(){const canvas=document.getElementById("platformChart"),summary=document.getElementById("platform-summary-list");if(!canvas||!summary)return;const b=platformBounds(),cur=countPlatforms(b.currentStart,b.currentEnd),prev=countPlatforms(b.previousStart,b.previousEnd),names=[...new Set([...Object.keys(cur),...Object.keys(prev)])].sort((a,z)=>(cur[z]||0)-(cur[a]||0));const note=document.getElementById("platform-chart-note");if(note){const fmt=v=>new Intl.DateTimeFormat("id-ID",{day:"numeric",month:"short",year:"numeric"}).format(new Date(`${v}T00:00:00`));note.textContent=b.days===1?`Jumlah transaksi ${fmt(b.currentStart)} (sesuai filter tanggal).`:`Jumlah transaksi ${fmt(b.currentStart)} – ${fmt(b.currentEnd)} (sesuai filter tanggal).`;}if(platformChart)platformChart.destroy();const c=chartBrandColors();platformChart=new Chart(canvas,{type:"bar",data:{labels:names.length?names:["Belum ada data"],datasets:[{label:"Periode ini",data:names.length?names.map(n=>cur[n]||0):[0],backgroundColor:c.primary,borderRadius:6,maxBarThickness:34},{label:"Periode sebelumnya",data:names.length?names.map(n=>prev[n]||0):[0],backgroundColor:c.accent,borderRadius:6,maxBarThickness:34}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom",labels:{boxWidth:12,color:c.text,font:{size:11}}},tooltip:{callbacks:{label:x=>`${x.dataset.label}: ${x.parsed.y} transaksi`}}},scales:chartAxes(c,{y:{beginAtZero:true,ticks:{precision:0}},x:{grid:{display:false}}})}});if(!names.length){summary.innerHTML=`<div class="empty">Belum ada data.</div>`;return}summary.innerHTML=names.map(n=>{const a=cur[n]||0,p=prev[n]||0;let g="-",cl="platform-growth-flat";if(p>0){const q=(a-p)/p*100;g=`${q>0?"+":""}${q.toLocaleString("id-ID",{maximumFractionDigits:1})}%`;cl=q>0?"platform-growth-up":q<0?"platform-growth-down":"platform-growth-flat"}else if(a>0){g="Baru";cl="platform-growth-up"}return `<div class="platform-summary-row">${platformLogo(n)}<div><div class="platform-summary-name">${escapeHtml(n)}</div><div class="platform-summary-meta">${p} → ${a} transaksi</div></div><div class="platform-summary-value ${cl}">${g}</div></div>`}).join("");}
 
+// This month so far vs the same days of last month (1–5 Okt vs 1–5 Sep), so an
+// unfinished month is not compared with a full one.
 async function fetchMonthlyRevenueComparison(){
-  const now=new Date();
+  const now=new Date(),day=now.getDate();
   const currentStart=new Date(now.getFullYear(),now.getMonth(),1);
   const previousStart=new Date(now.getFullYear(),now.getMonth()-1,1);
-  const previousEnd=new Date(now.getFullYear(),now.getMonth(),0);
-
-  const from=localISODate(previousStart);
-  const to=localISODate(now);
-
-  const rows=(await allTransactions()).filter(row=>String(row.transaction_date||'')>=from&&String(row.transaction_date||'')<=to);
-
-  const currentFrom=localISODate(currentStart);
-  const previousFrom=localISODate(previousStart);
-  const previousTo=localISODate(previousEnd);
-
-  const currentTotal=rows
-    .filter(t=>t.transaction_date>=currentFrom && t.transaction_date<=to)
-    .reduce((sum,t)=>sum+Number(t.total_price||0),0);
-
-  const previousTotal=rows
-    .filter(t=>t.transaction_date>=previousFrom && t.transaction_date<=previousTo)
-    .reduce((sum,t)=>sum+Number(t.total_price||0),0);
-
-  monthlyRevenueComparison={
-    currentTotal,
-    previousTotal,
-    currentLabel:monthLabel(currentStart),
-    previousLabel:monthLabel(previousStart)
-  };
+  const previousEnd=new Date(now.getFullYear(),now.getMonth()-1,Math.min(day,new Date(now.getFullYear(),now.getMonth(),0).getDate()));
+  const currentFrom=localISODate(currentStart),to=localISODate(now),previousFrom=localISODate(previousStart),previousTo=localISODate(previousEnd);
+  const rows=(await allTransactions()).filter(row=>String(row.transaction_date||'')>=previousFrom&&String(row.transaction_date||'')<=to);
+  const sum=(f,t)=>rows.filter(x=>x.transaction_date>=f&&x.transaction_date<=t).reduce((s,x)=>s+Number(x.total_price||0),0);
+  const label=(s,e)=>{const m=new Intl.DateTimeFormat("id-ID",{month:"short"}).format(s);return e.getDate()===1?`1 ${m}`:`1–${e.getDate()} ${m}`;};
+  monthlyRevenueComparison={currentTotal:sum(currentFrom,to),previousTotal:sum(previousFrom,previousTo),currentLabel:label(currentStart,now),previousLabel:label(previousStart,previousEnd)};
 }
 
 
@@ -1471,13 +1473,39 @@ function renderProductProfitRules(){const host=document.getElementById('profit-p
 async function saveProductProfitRule(row){try{const type=row.dataset.profitType,id=row.dataset.profitId,source=type==='package'?packages:addons,item=source.find(x=>String(x.id)===String(id));if(!item)throw new Error('Produk tidak ditemukan.');const cost=Math.max(0,Number(row.querySelector('.profit-product-cost')?.value||0)),net=Math.max(0,Number(item.price||0)-cost),mode=row.querySelector('.profit-product-mode')?.value||'percentage',manual=[...row.querySelectorAll('.profit-product-manual-amount')].map(i=>({partner_id:i.dataset.partnerId||null,partner_name:i.dataset.partnerName||'',amount:Math.max(0,Number(i.value||0))})),total=manual.reduce((s,r)=>s+r.amount,0);if(mode==='manual'&&Math.abs(total-net)>0.005)throw new Error(`Total nominal manual wajib sama dengan laba bersih ${rupiah(net)}. Sekarang ${rupiah(total)}.`);const table=type==='package'?'package_masters':'addon_masters',payload={cost_price:cost,profit_share_mode:mode,manual_profit_split:mode==='manual'?manual:[]};const {error}=await db.from(table).update(payload).eq('workspace_id',requireWorkspaceId()).eq('id',id);if(error)throw error;showToast(`${type==='package'?'Package':'Add-on'}: HPP dan aturan profit tersimpan.`);await loadMasters();await refreshAll();}catch(err){console.error(err);showToast(err.message||'Gagal menyimpan aturan profit produk.',true);}}
 
 
+// Daily sales per day of the active filter (days without sales show as 0); long ranges
+// (> 3 months) are grouped per month so the bars stay readable.
+function dailySalesSeries(){
+  const totals={};
+  transactions.forEach(t=>{const d=String(t.transaction_date||"").slice(0,10);if(d)totals[d]=(totals[d]||0)+Number(t.total_price||0);});
+  const days=Object.keys(totals).sort(),{from,to}=getRange();
+  const parse=v=>{const [y,m,d]=String(v).split("-").map(Number);return new Date(y,m-1,d);};
+  const start=from?parse(from):(days[0]?parse(days[0]):null),end=to?parse(to):(days.length?parse(days[days.length-1]):null);
+  if(!start||!end||end<start)return {labels:[],values:[],monthly:false};
+  const span=Math.round((end-start)/86400000)+1;
+  if(span>92){
+    const months={};for(const d=new Date(start.getFullYear(),start.getMonth(),1);d<=end;d.setMonth(d.getMonth()+1))months[`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`]=0;
+    days.forEach(d=>{const k=d.slice(0,7);if(k in months)months[k]+=totals[d];});
+    const keys=Object.keys(months);
+    return {monthly:true,labels:keys.map(k=>new Intl.DateTimeFormat("id-ID",{month:"short",year:"numeric"}).format(parse(`${k}-01`))),values:keys.map(k=>months[k])};
+  }
+  const labels=[],values=[];
+  for(const d=new Date(start);d<=end;d.setDate(d.getDate()+1)){labels.push(d.toLocaleDateString("id-ID",{day:"numeric",month:"short"}));values.push(totals[localISODate(d)]||0);}
+  return {labels,values,monthly:false};
+}
+function shortRupiah(v){const n=Number(v||0),a=Math.abs(n);if(a>=1e9)return `Rp${(n/1e9).toLocaleString("id-ID",{maximumFractionDigits:1})} M`;if(a>=1e6)return `Rp${(n/1e6).toLocaleString("id-ID",{maximumFractionDigits:1})} jt`;if(a>=1e3)return `Rp${(n/1e3).toLocaleString("id-ID",{maximumFractionDigits:0})} rb`;return rupiah(n);}
+// Summary row at the top of Performance (follows the main date filter).
+function renderPerformanceKpis(pkgEntries){
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  const revenue=transactions.reduce((s,t)=>s+Number(t.total_price||0),0),count=transactions.length;
+  set("perf-kpi-revenue",rupiah(revenue));
+  set("perf-kpi-count",count.toLocaleString("id-ID"));
+  set("perf-kpi-average",rupiah(count?Math.round(revenue/count):0));
+  const best=pkgEntries[0];
+  set("perf-kpi-best",best?best[0]:"-");
+  set("perf-kpi-best-qty",best?`${Number(best[1]).toLocaleString("id-ID")}x terjual`:"Belum ada penjualan");
+}
 function renderCharts(){
-  const daily={};
-  transactions.forEach(t=>{
-    const d=t.transaction_date;
-    daily[d]=(daily[d]||0)+Number(t.total_price||0);
-  });
-
   // Rekap paket berdasarkan TOTAL QTY yang dibeli, bukan jumlah customer/transaksi.
   // order_items adalah sumber utama karena setiap item menyimpan qty masing-masing.
   const pkg={};
@@ -1513,33 +1541,20 @@ function renderCharts(){
   if(monthlyRevenueChart) monthlyRevenueChart.destroy();
   if(topicChart) topicChart.destroy();
 
+  const pkgEntries=Object.entries(pkg).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]);
+  renderPerformanceKpis(pkgEntries);
+
+  const series=dailySalesSeries();
+  const dailyTitle=document.getElementById("daily-chart-unit");
+  if(dailyTitle)dailyTitle.textContent=series.monthly?"(per bulan, sesuai filter tanggal)":"(sesuai filter tanggal)";
   dailyChart=new Chart(document.getElementById("dailyChart"),{
-    type:"line",
-    data:{labels:Object.keys(daily).sort(),datasets:[{
-      label:"Omset",
-      data:Object.keys(daily).sort().map(k=>daily[k]),
-      borderColor:brandChart.accent,
-      backgroundColor:brandChart.alpha(brandChart.accent,.15),
-      fill:true,tension:.35
-    }]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
-      scales:{y:{ticks:{callback:v=>rupiah(v)}},x:{grid:{display:false}}}}
+    type:"bar",
+    data:{labels:series.labels,datasets:[{label:"Omzet",data:series.values,backgroundColor:brandChart.primary,hoverBackgroundColor:brandChart.mix(brandChart.primary,"#000000",.15),borderRadius:5,maxBarThickness:28}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:x=>`Omzet: ${rupiah(x.parsed.y)}`}}},
+      scales:chartAxes(brandChart,{y:{beginAtZero:true,ticks:{callback:v=>shortRupiah(v),maxTicksLimit:6}},x:{grid:{display:false},ticks:{autoSkip:true,maxRotation:0,maxTicksLimit:10}}})}
   });
 
-  const pkgEntries=Object.entries(pkg).sort((a,b)=>b[1]-a[1]);
-  packageChart=new Chart(document.getElementById("packageChart"),{
-    type:"doughnut",
-    data:{labels:pkgEntries.map(x=>x[0]),datasets:[{
-      data:pkgEntries.map(x=>x[1]),
-      label:"Qty Terjual",
-      backgroundColor:pkgEntries.map((_,i)=>brandChart.palette[i%brandChart.palette.length]),
-      borderWidth:2,borderColor:"#fff"
-    }]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{
-      legend:{position:"bottom",labels:{boxWidth:12,font:{size:10}}},
-      tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.parsed}x terjual`}}
-    }}
-  });
+  packageChart=chartRankBars(document.getElementById("packageChart"),pkgEntries,{unit:"x"});
 
   const monthData=monthlyRevenueComparison||{};
   const current=Number(monthData.currentTotal||0);
@@ -1557,10 +1572,11 @@ function renderCharts(){
   }
   if(deltaEl){
     deltaEl.textContent=deltaText;
-    deltaEl.style.color=current>=previous ? "var(--green)" : "var(--danger)";
+    deltaEl.classList.remove("platform-growth-up","platform-growth-down","platform-growth-flat");
+    deltaEl.classList.add(current>previous?"platform-growth-up":current<previous?"platform-growth-down":"platform-growth-flat");
   }
   if(noteEl){
-    noteEl.textContent=`${monthData.currentLabel||"Bulan ini"}: ${rupiah(current)} · ${monthData.previousLabel||"Bulan lalu"}: ${rupiah(previous)}`;
+    noteEl.textContent=`Tanggal yang sama: ${monthData.currentLabel||"bulan ini"} ${rupiah(current)} · ${monthData.previousLabel||"bulan lalu"} ${rupiah(previous)}`;
   }
 
   const monthlyCanvas=document.getElementById("monthlyRevenueChart");
@@ -1568,28 +1584,14 @@ function renderCharts(){
     monthlyRevenueChart=new Chart(monthlyCanvas,{
       type:"bar",
       data:{
-        labels:[monthData.previousLabel||"Bulan Lalu",monthData.currentLabel||"Bulan Ini"],
-        datasets:[{
-          label:"Omzet",
-          data:[previous,current],
-          backgroundColor:[brandChart.alpha(brandChart.primary,.72),brandChart.alpha(brandChart.accent,.78)],
-          borderColor:[brandChart.primary,brandChart.accent],
-          borderWidth:1.5,
-          borderRadius:12,
-          maxBarThickness:110
-        }]
+        labels:[monthData.previousLabel||"Bulan lalu",monthData.currentLabel||"Bulan ini"],
+        datasets:[{label:"Omzet",data:[previous,current],backgroundColor:[brandChart.accent,brandChart.primary],borderRadius:8,maxBarThickness:90}]
       },
       options:{
         responsive:true,
         maintainAspectRatio:false,
-        plugins:{
-          legend:{display:false},
-          tooltip:{callbacks:{label:ctx=>`Omzet: ${rupiah(ctx.parsed.y)}`}}
-        },
-        scales:{
-          y:{beginAtZero:true,ticks:{callback:v=>rupiah(v)}},
-          x:{grid:{display:false}}
-        }
+        plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`Omzet: ${rupiah(ctx.parsed.y)}`}}},
+        scales:chartAxes(brandChart,{y:{beginAtZero:true,ticks:{callback:v=>shortRupiah(v),maxTicksLimit:6}},x:{grid:{display:false}}})
       }
     });
   }
@@ -1600,48 +1602,13 @@ function renderCharts(){
   if(topicTotalEl) topicTotalEl.textContent=topicTotal.toLocaleString("id-ID");
 
   const topicCanvas=document.getElementById("topicChart");
-  if(topicCanvas){
-    const topicLabels=topicEntries.length?topicEntries.map(x=>x[0]):["Belum ada data"];
-    const topicValues=topicEntries.length?topicEntries.map(x=>x[1]):[1];
-    topicChart=new Chart(topicCanvas,{
-      type:"doughnut",
-      data:{
-        labels:topicLabels,
-        datasets:[{
-          data:topicValues,
-          backgroundColor:topicEntries.length
-            ? topicEntries.map((_,i)=>brandChart.palette[i%brandChart.palette.length])
-            : [brandChart.alpha(brandChart.accent,.14)],
-          borderWidth:2,
-          borderColor:"#fff"
-        }]
-      },
-      options:{
-        responsive:true,
-        maintainAspectRatio:false,
-        cutout:"58%",
-        plugins:{
-          legend:{
-            position:"bottom",
-            labels:{boxWidth:12,font:{size:10}}
-          },
-          tooltip:{
-            callbacks:{
-              label:ctx=>{
-                if(!topicEntries.length)return "Belum ada data";
-                const value=Number(ctx.parsed||0);
-                const pct=topicTotal>0?(value/topicTotal*100):0;
-                return `${ctx.label}: ${value}x (${pct.toLocaleString("id-ID",{maximumFractionDigits:1})}%)`;
-              }
-            }
-          }
-        }
-      }
-    });
-  }
+  if(topicCanvas) topicChart=chartRankBars(topicCanvas,topicEntries,{unit:"x"});
 
   renderPlatformAnalytics();
 }
+
+// Chart colours are read when a chart is drawn, so redraw Performance after a theme switch.
+(()=>{let dark=document.body.classList.contains("saas-dark");new MutationObserver(()=>{const d=document.body.classList.contains("saas-dark");if(d===dark)return;dark=d;if(dailyChart&&document.getElementById("performance")?.classList.contains("active"))renderCharts();}).observe(document.body,{attributes:true,attributeFilter:["class"]});})();
 
 function renderHistory(){
   const body=document.getElementById("tx-table-body");
