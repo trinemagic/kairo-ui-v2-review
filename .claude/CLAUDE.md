@@ -218,7 +218,7 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   miring, toolbar di dalam kartu tanpa padding atas (dulu judul turun 22px), Performance 2 kolom 1,6:1 dan kartu sendirian selebar penuh,
   Settings kolom kanan rata atas/bawah, Promo 2 kolom sama lebar, angka Petty Cash/Customer tidak patah, panel pesanan seller selebar form
   dengan kategori 5 kolom rata, Ringkasan Pesanan selebar form. Judul halaman Promo & Tracker Langganan dulu tertulis "Orders".
- `kairo-v3.js` memetakan `--brand-primary/--brand-accent` ke token
+- **Warna layout:** `kairo-v3.js` memetakan `--brand-primary/--brand-accent` ke token
   v3. Default lama `#696F41/#EA97A9` = "belum diatur" (tetap tampilan KAIRO).
   Reset = `#25B9B0` / `#173A59`.
 - **Living Origami (latar app):** gradient + origami terbang (kairo.css + `mountOrigami()` di
