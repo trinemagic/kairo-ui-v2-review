@@ -493,7 +493,7 @@ function activeShareVersionForDate(date){
 }
 function shareRuleFor(partner,date){
   const pct=rawShareRuleFor(partner,date);
-  if(cashActive()) return pct;
+  if(!cashForcedOff()) return pct;
   if(isKasName(partner)) return 0;
   const total=nonKasShareTotal(date);
   return total>0?pct/total:0;
@@ -508,9 +508,27 @@ function rawShareRuleFor(partner,date){
   }
   return Number(partner?.percentage||0);
 }
-// Kas (Petty Cash) hanya di Pro dan bisa dimatikan lewat Settings (workspace_branding.cash_enabled, owner Okt 2026).
-// Kas tidak aktif = tanpa potongan Kas: persentase partner lain dinormalisasi jadi 100%, jadi seluruh laba masuk Withdraw.
+// Kas (Petty Cash) hanya di Pro (owner Okt 2026).
+// - Gratis (cashForcedOff): tanpa potongan Kas sama sekali; persentase partner lain dinormalisasi jadi 100%.
+// - Pro yang mematikan Kas (cash_enabled=false): dibuat versi pembagian baru mulai tanggal pilihan (Kas 0%, ditandai
+//   cash_off). Transaksi sebelum tanggal itu tetap memakai Kas lama, jadi saldo Kas yang sudah ada tidak berubah.
+function cashForcedOff(){return !canUseFeature('petty_cash');}
 function cashActive(){return canUseFeature('petty_cash')&&activeWorkspaceBranding?.cash_enabled!==false;}
+// Saldo Kas & menu Petty Cash: tampil kalau Kas aktif, atau (Pro, Kas dimatikan) masih ada sisa saldo lama.
+function cashVisible(){return cashActive()||(!cashForcedOff()&&Math.round(Number(financialSnapshot?.cashBalance||0))!==0);}
+function syncCashVisibility(){
+  const on=cashVisible(),locked=cashForcedOff();
+  document.body.classList.toggle('kairo-no-cash',!on);
+  document.querySelectorAll('[data-tab="cash"],.saas-mobile-nav-btn[data-mobile-tab="cash"]').forEach(b=>{b.hidden=!locked&&!on;});
+  const kasCard=document.getElementById('kpi-cash')?.closest('.kpi');if(kasCard)kasCard.hidden=!on;
+  if(!on&&!locked&&document.getElementById('cash')?.classList.contains('active')&&typeof openAppPage==='function')openAppPage('dashboard');
+}
+// Mulai kapan Kas dimatikan (versi pembagian terakhir yang bertanda cash_off), dipakai untuk nominal Kas manual per produk.
+function kasOffSince(){
+  if(cashForcedOff()||activeWorkspaceBranding?.cash_enabled!==false)return null;
+  const v=[...profitShareVersions].filter(x=>normalizeShareRules(x.rules).some(r=>isKasName(r)&&r.cash_off)).sort((a,b)=>kairoShareTime(b.effective_from)-kairoShareTime(a.effective_from))[0];
+  return v?kairoShareTime(v.effective_from):null;
+}
 const isKasName=v=>String(v?.partner_name??v??'').toLowerCase()==='kas';
 function nonKasShareTotal(date){
   const v=activeShareVersionForDate(date);
@@ -518,7 +536,7 @@ function nonKasShareTotal(date){
   return partners.filter(p=>!isKasName(p)).reduce((t,p)=>t+Number(p.percentage||0),0);
 }
 function cashShareRateForDate(date){
-  if(!cashActive()) return 0;
+  if(cashForcedOff()) return 0;
   const v=activeShareVersionForDate(date);
   if(v){ const r=normalizeShareRules(v.rules).find(x=>String(x.partner_name||'').toLowerCase()==='kas'); if(r) return Number(r.percentage||0); }
   const kas=partners.find(p=>String(p.partner_name||'').toLowerCase()==='kas');
@@ -528,7 +546,7 @@ function transactionProfitBreakdown(t){
   const items=[...(Array.isArray(t?.order_items)?t.order_items:[]),...(Array.isArray(t?.order_addons)?t.order_addons:[])];
   const hpp=items.reduce((sum,x)=>{const qty=Math.max(0,Number(x?.qty||0));const snap=Number(x?.cost_subtotal);return sum+(Number.isFinite(snap)?Math.max(0,snap):Math.max(0,Number(x?.cost_price||0))*qty);},0);
   const distributable=Math.max(0,Number(t?.total_price||0)-hpp),manual=[];
-  const noKas=!cashActive();items.filter(x=>String(x?.profit_share_mode||'percentage')==='manual').forEach(x=>{const qty=Math.max(0,Number(x?.qty||0));(Array.isArray(x?.manual_profit_split)?x.manual_profit_split:[]).forEach(r=>{if(noKas&&isKasName(r))return;const amount=Math.max(0,Number(r?.amount||0))*qty;if(amount>0)manual.push({partner_id:r?.partner_id||null,partner_name:r?.partner_name||'',amount});});});
+  const offSince=kasOffSince(),noKas=cashForcedOff()||(offSince!==null&&kairoShareTime(t?.created_at||t?.transaction_date)>=offSince);items.filter(x=>String(x?.profit_share_mode||'percentage')==='manual').forEach(x=>{const qty=Math.max(0,Number(x?.qty||0));(Array.isArray(x?.manual_profit_split)?x.manual_profit_split:[]).forEach(r=>{if(noKas&&isKasName(r))return;const amount=Math.max(0,Number(r?.amount||0))*qty;if(amount>0)manual.push({partner_id:r?.partner_id||null,partner_name:r?.partner_name||'',amount});});});
   const rawManual=manual.reduce((sum,r)=>sum+r.amount,0),scale=rawManual>distributable&&rawManual>0?distributable/rawManual:1,manualScaled=manual.map(r=>({...r,amount:r.amount*scale})),manualTotal=manualScaled.reduce((sum,r)=>sum+r.amount,0);
   return {hpp,distributable,manual:manualScaled,manualTotal,percentageBase:Math.max(0,distributable-manualTotal)};
 }
@@ -1398,6 +1416,7 @@ function renderDashboard(){
   document.getElementById("kpi-tx").textContent=transactions.length;
   setKpiValue("kpi-cash",financialSnapshot.cashBalance);
   setKpiValue("kpi-rights",currentCalendarMonthRevenue());
+  syncCashVisibility();
   renderShares(revenue);
   renderHistory();
 }
@@ -1834,22 +1853,47 @@ function syncCashToggle(){
   const pro=canUseFeature("petty_cash");
   input.checked=cashActive();input.disabled=!pro;box.classList.toggle("is-locked",!pro);
   const note=document.getElementById("kairo-cash-toggle-note");
-  if(note)note.textContent=pro?"Sisihkan sebagian laba ke Kas. Kalau dimatikan, kartu Saldo Kas dan menu Petty Cash disembunyikan dan 100% laba masuk Withdraw.":"Kas & Petty Cash tersedia di paket Pro. Di paket Gratis, 100% laba masuk Withdraw.";
+  if(note)note.textContent=pro?"Sisihkan sebagian laba ke Kas. Kalau dimatikan, lo pilih mulai kapan; saldo Kas yang sudah ada tetap tersimpan, dan sesudahnya 100% laba masuk Withdraw.":"Paket Gratis: 100% laba (harga jual dikurangi harga modal per produk) masuk Withdraw pemilik. Kas, Petty Cash, dan pembagian ke partner tersedia di paket Pro.";
 }
+async function saveCashEnabled(on){
+  const {error}=await db.from("workspace_branding").upsert({workspace_id:requireWorkspaceId(),cash_enabled:on,updated_at:new Date().toISOString()},{onConflict:"workspace_id"});
+  if(error)throw error;
+  activeWorkspaceBranding={...(activeWorkspaceBranding||{}),cash_enabled:on};
+}
+async function afterCashChange(){try{hydrateSaasUi();}catch(_e){} renderProfitShareEditor();try{renderProductProfitRules();}catch(_e){} await refreshAll();}
 document.getElementById("kairo-cash-enabled")?.addEventListener("change",async e=>{
-  const on=e.target.checked,wid=requireWorkspaceId();e.target.disabled=true;
+  const on=e.target.checked,panel=document.getElementById("kairo-cash-off-panel");
+  if(!on){
+    // Matikan: tanya dulu berlaku mulai kapan.
+    e.target.checked=true;
+    if(panel){panel.hidden=false;const f=document.getElementById("kairo-cash-off-from");if(f)f.value=kairoLocalDateTimeValue(new Date(Date.now()+60000));f?.focus();}
+    return;
+  }
+  e.target.disabled=true;
+  try{await saveCashEnabled(true);showToast("Kas aktif lagi. Atur persentase Kas di Pembagian Omzet (berlaku mulai tanggal yang lo pilih).",'info');await afterCashChange();}
+  catch(err){e.target.checked=false;showToast("Gagal menyimpan pengaturan Kas: "+(err?.message||err),true);}
+  finally{syncCashToggle();}
+});
+document.getElementById("kairo-cash-off-cancel")?.addEventListener("click",()=>{const p=document.getElementById("kairo-cash-off-panel");if(p)p.hidden=true;});
+document.getElementById("kairo-cash-off-save")?.addEventListener("click",async e=>{
+  const btn=e.currentTarget,from=document.getElementById("kairo-cash-off-from")?.value;
+  if(!from)return showToast("Pilih tanggal & jam Kas mulai dimatikan.",'warning');
+  btn.disabled=true;
   try{
-    const {error}=await db.from("workspace_branding").upsert({workspace_id:wid,cash_enabled:on,updated_at:new Date().toISOString()},{onConflict:"workspace_id"});
+    if(!profitShareVersionTableReady)throw new Error("Migration profit_share_versions belum diterapkan di Supabase.");
+    // Versi baru mulai tanggal pilihan: Kas 0% (bertanda cash_off), partner lain diskalakan proporsional jadi 100%.
+    const v=activeShareVersionForDate(from),base=v&&normalizeShareRules(v.rules).length?normalizeShareRules(v.rules):partners.map(p=>({partner_id:p.id||null,partner_name:p.partner_name,percentage:Number(p.percentage||0)}));
+    const others=base.filter(r=>!isKasName(r)),total=others.reduce((t,r)=>t+Number(r.percentage||0),0);
+    if(!others.length||total<=0)throw new Error("Belum ada partner selain Kas untuk menerima laba.");
+    const rules=[...others.map(r=>({partner_id:r.partner_id||null,partner_name:r.partner_name,percentage:Number(r.percentage||0)/total})),{partner_id:base.find(isKasName)?.partner_id||null,partner_name:'Kas',percentage:0,cash_off:true}];
+    const {error}=await db.from("profit_share_versions").upsert({workspace_id:requireWorkspaceId(),effective_from:from,rules,created_by:activeAuthUserId},{onConflict:"workspace_id,effective_from"});
     if(error)throw error;
-    activeWorkspaceBranding={...(activeWorkspaceBranding||{}),cash_enabled:on};
-    showToast(on?"Kas diaktifkan. Menu Petty Cash muncul lagi.":"Kas dimatikan. 100% laba sekarang masuk Withdraw.");
-    try{hydrateSaasUi();}catch(_e){}
-    renderProfitShareEditor();try{renderProductProfitRules();}catch(_e){}
-    await refreshAll();
-  }catch(err){
-    e.target.checked=!on;
-    showToast(/cash_enabled/.test(String(err?.message||""))?"Saklar Kas aktif setelah SQL 2026-10-cash-toggle dijalankan.":"Gagal menyimpan pengaturan Kas: "+(err?.message||err),true);
-  }finally{syncCashToggle();}
+    await saveCashEnabled(false);
+    document.getElementById("kairo-cash-off-panel").hidden=true;
+    showToast(`Kas dimatikan mulai ${from.replace('T',' ')}. Saldo Kas sebelumnya tetap tersimpan.`);
+    await loadMasters();await afterCashChange();
+  }catch(err){showToast(/cash_enabled/.test(String(err?.message||""))?"Saklar Kas aktif setelah SQL 2026-10-cash-toggle dijalankan.":"Gagal mematikan Kas: "+(err?.message||err),true);}
+  finally{btn.disabled=false;syncCashToggle();}
 });
 (function wireCashHistoryFilter(){
   const selects=[...document.querySelectorAll("[data-cash-filter]")];
@@ -4422,12 +4466,8 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
    const auto=document.getElementById('smart-sales-open');if(auto){auto.setAttribute('aria-disabled',pro()?'false':'true');auto.title=pro()?'':'Autofill Orders tersedia di paket Pro.';const badge=auto.querySelector('.pro-inline-badge');if(badge)badge.textContent='PRO';}
    // Settings profit + receipt are Pro.
    document.querySelectorAll('.saas-settings-submenu-btn').forEach(b=>{if(b.dataset.settingsCategory!=='receipt')return;b.classList.toggle('settings-pro-locked',!pro());b.setAttribute('aria-disabled',pro()?'false':'true');b.title=pro()?'':'Tersedia di paket Pro.';if(pro())b.querySelector('.settings-submenu-lock')?.remove();});
-   // Petty Cash: Gratis terkunci (Pro); Pro dengan Kas dimatikan = menu & kartu Saldo Kas disembunyikan.
-   const cashOn=cashActive(),cashLocked=!canUseFeature('petty_cash');
-   document.body.classList.toggle('kairo-no-cash',!cashOn);
-   document.querySelectorAll('[data-tab="cash"],.saas-mobile-nav-btn[data-mobile-tab="cash"]').forEach(b=>{b.hidden=!cashLocked&&!cashOn;});
-   const kasCard=document.getElementById('kpi-cash')?.closest('.kpi');if(kasCard)kasCard.hidden=!cashOn;
-   if(!cashOn&&document.getElementById('cash')?.classList.contains('active')&&typeof openAppPage==='function')openAppPage('dashboard');
+   // Petty Cash: Gratis terkunci (Pro); Pro dengan Kas dimatikan & saldo habis = menu & kartu Saldo Kas disembunyikan.
+   syncCashVisibility();
    // Customer DB BASIC lock.
    document.querySelectorAll('[data-tab="customers"],.saas-mobile-nav-btn[data-mobile-tab="customers"]').forEach(b=>b.classList.toggle('entitlement-locked',!canUseFeature('customer_database')));
    // Open/Close buttons BASIC lock.

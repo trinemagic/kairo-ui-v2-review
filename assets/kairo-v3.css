@@ -4678,3 +4678,17 @@ html.kairo-v3 .product-sales-summary b { color: var(--v3-ink); font-size: 17px; 
   html.kairo-v3 .product-sales-tools select { width: 100%; min-width: 0; }
   html.kairo-v3 .product-sales-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+/* Paket Gratis: tanpa partner tambahan & pembagian persentase (owner Okt 2026). HPP per produk tetap tampil:
+   laba bersih = harga jual dikurangi harga modal, 100% untuk pemilik. */
+html.kairo-v3[data-workspace-plan="basic"] #profit-share-editor-form,
+html.kairo-v3[data-workspace-plan="basic"] #kairo-add-partner,
+html.kairo-v3[data-workspace-plan="basic"] #profit-share-active-label,
+html.kairo-v3[data-workspace-plan="basic"] .profit-product-divider { display: none !important; }
+html.kairo-v3 .kairo-cash-off-panel { display: grid; gap: 10px; margin: -6px 0 16px; padding: 12px 14px; border: 1px solid color-mix(in srgb, #b26a00 40%, var(--v3-line)); border-radius: 12px; background: color-mix(in srgb, #b26a00 7%, var(--v3-surface)); }
+html.kairo-v3 .kairo-cash-off-panel[hidden] { display: none; }
+html.kairo-v3 .kairo-cash-off-panel > div:first-child { display: grid; gap: 2px; }
+html.kairo-v3 .kairo-cash-off-panel strong { color: var(--v3-ink); font-size: 13.5px; }
+html.kairo-v3 .kairo-cash-off-panel small { color: var(--v3-ink-soft); font-size: 12px; line-height: 1.45; }
+html.kairo-v3 .kairo-cash-off-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+html.kairo-v3 .kairo-cash-off-actions .control { min-height: 40px; }

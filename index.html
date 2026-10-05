@@ -1057,8 +1057,12 @@
         <span class="profit-editor-badge" id="profit-share-active-label">Aturan aktif</span>
       </div>
       <div class="kairo-cash-toggle" id="kairo-cash-toggle">
-        <div><strong>Pakai Kas (Petty Cash)</strong><small id="kairo-cash-toggle-note">Sisihkan sebagian laba ke Kas. Kalau dimatikan, kartu Saldo Kas dan menu Petty Cash disembunyikan dan 100% laba masuk Withdraw.</small></div>
+        <div><strong>Pakai Kas (Petty Cash)</strong><small id="kairo-cash-toggle-note">Sisihkan sebagian laba ke Kas. Kalau dimatikan, lo pilih mulai kapan; saldo Kas yang sudah ada tetap tersimpan, dan sesudahnya 100% laba masuk Withdraw.</small></div>
         <label class="kairo-switch"><input type="checkbox" id="kairo-cash-enabled" aria-describedby="kairo-cash-toggle-note"><span aria-hidden="true"></span><b class="sr-only">Pakai Kas</b></label>
+      </div>
+      <div class="kairo-cash-off-panel" id="kairo-cash-off-panel" hidden>
+        <div><strong>Matikan Kas mulai kapan?</strong><small>Penjualan sebelum waktu ini tetap menyisihkan Kas seperti biasa, jadi saldo Kas yang sudah ada tidak berubah dan tetap terlihat. Mulai waktu ini, Kas 0% dan bagian partner lain dihitung ulang jadi 100%.</small></div>
+        <div class="kairo-cash-off-actions"><input id="kairo-cash-off-from" class="control" type="datetime-local" step="60" aria-label="Kas mati mulai"><button class="btn btn-green" id="kairo-cash-off-save" type="button">Matikan Kas</button><button class="btn btn-light" id="kairo-cash-off-cancel" type="button">Batal</button></div>
       </div>
       <form id="profit-share-editor-form">
         <div class="profit-rule-grid" id="profit-share-rule-grid"><div class="empty">Memuat pembagian...</div></div>
