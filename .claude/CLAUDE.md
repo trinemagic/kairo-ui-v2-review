@@ -82,7 +82,7 @@ domain = pengguna login ulang & pengaturan browser (Ingat saya, dark mode) mulai
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
 Versi terakhir: `kairo.css?v=20.10.157`, `kairo-v3.css?v=3.31.0`,
-`kairo-v3.js?v=3.22.0`, `kairo-app.js?v=20.10.182`; template seller dimuat dari kairo-app.js
+`kairo-v3.js?v=3.22.0`, `kairo-app.js?v=20.10.183`; template seller dimuat dari kairo-app.js
 (`seller-app-premium.js?v=20.10.150`, `.css?v=20.10.151`) — naikkan juga bila file template diubah.
 
 **Halaman app** = `main.container > section.section` dengan id:
@@ -144,7 +144,7 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
 - **Masa aktif (owner Okt 2026):** `effectiveSubscriptionPlan()` - Pro lewat tanggal berakhir (current_period_end/expires_at/end_date/
   valid_until, akhir hari) atau status canceled/inactive/expired dibaca Gratis (data aman), toast sekali per workspace; Trine Magic
   selalu Pro; Pro tanpa tanggal = Pro selamanya (admin › Perlu Perhatian: "Pro tanpa masa aktif").
-- **Performance › Penjualan per Produk:** kartu `#product-sales-card` (produk + periode sendiri; seller = per aplikasi).
+- **Performance › Penjualan per Produk:** kartu `#product-sales-card` (produk + periode sendiri; seller = per aplikasi; hanya produk utama, add-on tidak masuk daftar — owner Okt 2026).
 - **Paket (keputusan owner Okt 2026):** hanya **Gratis** dan **Pro**. `canonicalPlan()`/`planLabel()`
   (kairo-app.js): DB `basic`/`free` → internal `basic`, tampil "GRATIS"; `plus`/`custom`/`enterprise`
   → `pro`, tampil "PRO". `PLAN_RANK={basic:1,pro:2}`, fitur eks-PLUS sekarang min `pro`. Daftar
