@@ -1767,7 +1767,8 @@ function renderCashHistories(){
 }
 // Kas Modal (owner Okt 2026): total HPP penjualan per tanggal, terpisah dari Saldo Kas. Ikut filter riwayat kas.
 // Performance › Penjualan per Produk (owner Okt 2026): satu produk + periode sendiri. Omzet = subtotal item
-// (sebelum diskon/tip transaksi). Template seller: produk = nama aplikasi (semua plan & durasi digabung).
+// (sebelum diskon/tip transaksi). Hanya produk utama (order_items), add-on tidak ikut (owner Okt 2026).
+// Template seller: produk = nama aplikasi (semua plan & durasi digabung).
 function productSalesLabel(item){const seller=document.body.classList.contains('seller-app-premium');return String((seller&&item?.product)||item?.name||item?.code||'').trim();}
 function productSalesRange(){
   const v=document.getElementById('product-sales-period')?.value||'7days',today=new Date(),iso=localISODate,shift=n=>{const d=new Date(today);d.setDate(d.getDate()+n);return iso(d)};
@@ -1780,7 +1781,7 @@ function productSalesRange(){
 async function renderProductSales(){
   const table=document.getElementById('product-sales-table'),select=document.getElementById('product-sales-product');if(!table||!select)return;
   let rows=[];try{rows=await allTransactions();}catch(_e){}
-  const cutoff=historyCutoff(),itemsOf=t=>[...(Array.isArray(t?.order_items)?t.order_items:[]),...(Array.isArray(t?.order_addons)?t.order_addons:[])];
+  const cutoff=historyCutoff(),itemsOf=t=>Array.isArray(t?.order_items)?t.order_items:[];
   const names=[...new Set(rows.filter(t=>!cutoff||String(t.transaction_date||'')>=cutoff).flatMap(t=>itemsOf(t).map(productSalesLabel)).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'id'));
   const keep=select.value;
   select.innerHTML=names.length?names.map(n=>`<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join(''):'<option value="">Belum ada produk terjual</option>';
