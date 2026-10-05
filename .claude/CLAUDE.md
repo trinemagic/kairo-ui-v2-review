@@ -82,8 +82,9 @@ domain = pengguna login ulang & pengaturan browser (Ingat saya, dark mode) mulai
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
 Versi terakhir: `kairo.css?v=20.10.157`, `kairo-v3.css?v=3.32.0`,
-`kairo-v3.js?v=3.23.0`, `kairo-app.js?v=20.10.185`; template seller dimuat dari kairo-app.js
-(`seller-app-premium.js?v=20.10.151`, `.css?v=20.10.152`) — naikkan juga bila file template diubah.
+`kairo-v3.js?v=3.23.0`, `kairo-app.js?v=20.10.186`; template seller dimuat dari kairo-app.js
+(`seller-app-premium.js?v=20.10.153`, `.css?v=20.10.152`) — naikkan juga bila file template diubah.
+Setup Wizard dimuat dari `loadSetupWizard()` di kairo-app.js (`kairo-setup-wizard.js/.css?v=1.0.0`, satu konstanta `v`).
 
 **Halaman app** = `main.container > section.section` dengan id:
 `dashboard`, `performance`, `input` (Orders), `customers`, `promo` (dibuat via JS),
@@ -213,7 +214,20 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   seller memberi `html.kairo-template-pending` (app disembunyikan + spinner) sampai event `kairo:seller-mounted` (failsafe 5 dtk).
   Mode gelap tiap tema punya token sendiri. Ikon = set yang sama, dicat per tema (tebal garis + isian bentuk tertutup). Ornamen = 1 SVG
   mask kecil di kartu sapaan Dashboard (`#kairo-v3-dashboard-head::after`), disembunyikan ≤900px. Tidak menambah kartu/fitur.
-  Tahap berikut: Setup Wizard (muncul setelah admin mencatat pembayaran Pro), upload logo.
+  Tahap 2 (Setup Wizard) sudah dibuat, lihat poin berikut.
+- **Setup Wizard (owner Okt 2026, tahap 2):** `assets/kairo-setup-wizard.js/.css`, dimuat lazy oleh `maybeStartSetupWizard()`
+  (dipanggil sekali per login setelah `init()`) hanya bila paket efektif Pro, bukan Trine Magic, dan
+  `workspace_branding.setup_state` belum `completed_at`. Kolom belum ada = wizard diam (aman). SQL `.claude/sql/2026-10-setup-wizard.sql`
+  (kolom `setup_state` jsonb + Pro lama ditandai selesai + bucket Storage `workspace-branding` publik, maks 1 MB, policy owner per folder
+  workspace). Semua template: seller = Tema&warna · Produk (pilih aplikasi, disimpan di setup_state.products, tidak memfilter Orders) ·
+  Harga&modal (`seller_product_settings` via `window.kairoSellerCatalog.saveMany`) · Kas&omzet · Struk · Logo; template lain = Paket&harga
+  (`package_masters`, termasuk `cost_price`) · Kas&omzet · Struk · Logo. Kas&omzet = versi pembagian baru mulai sekarang (sama dengan
+  Settings; partner lama yang tidak dipilih tetap aktif 0%, Kas mati = `cash_off` + `cash_enabled=false`; Kas 0% ditampilkan "mati").
+  "Nanti saja"/tutup = `dismissed_at`, lalu banner `#kairo-setup-banner` (di bawah `#kairo-upgrade-hint`) di 3 login berikutnya
+  (`banner_logins`), setelah itu hilang. Jembatan ke kode lama: `window.kairoThemeSetup`, `kairoReceiptSetup` (saveLayout({quiet:true})),
+  `kairoLogoSetup`. **Logo dikompres otomatis** (juga crop di Settings): WebP 384px turun kualitas/ukuran sampai <=60 KB, fallback PNG 256
+  bila browser tidak bisa WebP; file `<workspace>/logo.webp` (logo.png lama dihapus). Dialog wizard selalu solid (tema Cloudy surface-nya
+  transparan). Belum ada tombol buka ulang wizard di Settings (owner belum minta).
 - **Layout konsisten (owner Okt 2026):** semua judul kartu satu gaya (sans 15,5px/800; Wood memakai serif), subjudul kartu sans tidak
   miring, toolbar di dalam kartu tanpa padding atas (dulu judul turun 22px), Performance 2 kolom 1,6:1 dan kartu sendirian selebar penuh,
   Settings kolom kanan rata atas/bawah, Promo 2 kolom sama lebar, angka Petty Cash/Customer tidak patah, panel pesanan seller selebar form
@@ -416,11 +430,15 @@ cd .claude/testing && node example.js                                # lihat REA
   `**/npm/chart.js` ke `package/dist/chart.umd.min.js` (registry npm bisa diakses).
 - Template seller: `SELLER=1 node audit-contrast.js …` / `SELLER=1 node audit-hover.js`, plus
   `node audit-seller.js [dark|light]` (keranjang Orders, Settings › Produk, dialog customer, hover).
-- `pixaudit.js` = audit kontras berbasis PIKSEL (`pixAudit(page, rootSel)`): membaca warna asli di belakang teks, jadi gradasi,
+- `pixaudit.js` = audit kontras berbasis PIKSEL (`pixAudit(page, rootSel, skipSel, {viewport})`; `viewport:true` untuk dialog
+  `position:fixed` — screenshot fullPage menggeser dialog — dan melewati teks yang ter-scroll/tertutup): membaca warna asli di belakang teks, jadi gradasi,
   kartu transparan, dan ornamen ikut terhitung. Pakai ini untuk tema seller. (Okt 2026: versi awal salah membaca `color(srgb 0-1)`.)
 - `audit-contrast.js` = audit kontras WCAG per menu (dark/light);
   `audit-hover.js` = kontras baris tabel saat di-hover (dark);
   `test-order-form.js` = alur simpan penjualan Orders.
+- `mockdb.js`: upsert menimpa baris sesuai `onConflict` (dulu menambah baris), ada tiruan Storage (`__db.storage`). Mock tidak punya
+  `workspace_subscriptions`: tes yang memanggil `loadWorkspaceSaasContext()` (mis. simpan struk) harus seed baris Pro, kalau tidak paket
+  jatuh ke Gratis. Seed `percentage` partner ditulis 40 (persen), DB asli pakai pecahan 0,4 — bagi 100 di tes pembagian.
 - Uji desktop 1440 & mobile 390, light & dark, dan kirim screenshot ke owner.
 
 ---

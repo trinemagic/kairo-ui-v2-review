@@ -18,7 +18,7 @@ window.supabase = { createClient: () => {
       gte(k, v) { st.filters.push(['gte', k, v]); return b; }, in(k, v) { st.filters.push(['in', k, v]); return b; },
       neq() { return b; }, is() { return b; }, not() { return b; }, or() { return b; }, ilike() { return b; },
       insert(p) { st.op = 'insert'; st.payload = p; return b; }, update(p) { st.op = 'update'; st.payload = p; return b; },
-      upsert(p) { st.op = 'upsert'; st.payload = p; return b; }, delete() { st.op = 'delete'; return b; },
+      upsert(p, o) { st.op = 'upsert'; st.payload = p; st.conflict = o?.onConflict; return b; }, delete() { st.op = 'delete'; return b; },
       single() { st.single = true; return b; }, maybeSingle() { st.single = true; return b; },
       then(res, rej) {
         const rows = (D.tables[table] = D.tables[table] || []);
@@ -32,7 +32,7 @@ window.supabase = { createClient: () => {
           rows.push(...list); out = list;
         } else if (st.op === 'update') { out = rows.filter(r => match(r, st.filters)); out.forEach(r => Object.assign(r, st.payload)); }
         else if (st.op === 'delete') { out = rows.filter(r => match(r, st.filters)); D.tables[table] = rows.filter(r => !match(r, st.filters)); }
-        else if (st.op === 'upsert') { const p = Array.isArray(st.payload) ? st.payload : [st.payload]; p.forEach(r => rows.push(r)); out = p; }
+        else if (st.op === 'upsert') { const p = Array.isArray(st.payload) ? st.payload : [st.payload], keys = st.conflict ? String(st.conflict).split(',').map(k => k.trim()) : null; out = p.map(r => { const hit = keys && rows.find(x => keys.every(k => String(x[k]) === String(r[k]))); if (hit) return Object.assign(hit, r); rows.push(r); return r; }); }
         else { out = rows.filter(r => match(r, st.filters)); if (st.range) out = out.slice(st.range[0], st.range[1] + 1); }
         return Promise.resolve({ data: st.single ? (out[0] || null) : out, error: null, count: out.length }).then(res, rej);
       }
@@ -45,7 +45,12 @@ window.supabase = { createClient: () => {
     rpc: async () => ({ data: null, error: null }),
     channel: () => ({ on() { return this; }, subscribe() { return this; }, unsubscribe() {} }),
     removeChannel() {},
-    storage: { from: () => q },
+    // Storage: upload/remove/getPublicUrl; uploaded files land in __db.storage (path -> {type,size}).
+    storage: { from: (bucket) => ({
+      async upload(path, blob, opts) { (D.storage = D.storage || {})[bucket + '/' + path] = { type: opts?.contentType || blob?.type, size: blob?.size || 0 }; D.log.push('upload:' + bucket + '/' + path); return { data: { path }, error: null }; },
+      async remove(paths) { paths.forEach(x => { if (D.storage) delete D.storage[bucket + '/' + x]; }); return { data: [], error: null }; },
+      getPublicUrl(path) { return { data: { publicUrl: 'assets/kairo-mark.svg#' + bucket + '/' + path } }; }
+    }) },
     auth: { getSession: async () => ({ data: { session: null }, error: null }), onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }), signOut: async () => ({}), getUser: async () => ({ data: { user: null } }) }
   };
 } };
