@@ -1026,11 +1026,13 @@ function chartBrandColors(){
   return {primary,accent,mix,alpha,dark,other:dark?"#4a6276":"#b7c6d1",text:read("--v3-muted",dark?"#aabcc9":"#4e6475"),grid:dark?"rgba(255,255,255,.08)":"rgba(23,58,89,.08)"};
 }
 function chartAxes(c,{x={},y={}}={}){
-  const axis=o=>Object.assign({},o,{ticks:Object.assign({color:c.text,font:{size:11}},o.ticks||{}),grid:Object.assign({color:c.grid},o.grid||{}),border:{display:false}});
+  const axis=o=>Object.assign({},o,{ticks:Object.assign({color:c.text,font:{size:chartFontSize(11)}},o.ticks||{}),grid:Object.assign({color:c.grid},o.grid||{}),border:{display:false}});
   return {x:axis(x),y:axis(y)};
 }
 // Draws the value at the end of each horizontal bar (no extra plugin needed).
-const chartBarValues={id:"kairoBarValues",afterDatasetsDraw(chart,_args,opts){const fmt=opts?.format;if(!fmt)return;const {ctx}=chart,meta=chart.getDatasetMeta(0);ctx.save();ctx.font="600 11px 'Plus Jakarta Sans', sans-serif";ctx.fillStyle=opts.color||"#4e6475";ctx.textBaseline="middle";meta.data.forEach((bar,i)=>{const t=fmt(chart.data.datasets[0].data[i],i);if(!t)return;const w=ctx.measureText(t).width,room=chart.chartArea.right-bar.x;if(room>w+10){ctx.textAlign="left";ctx.fillText(t,bar.x+6,bar.y);}else{ctx.textAlign="right";ctx.fillStyle="#ffffff";ctx.fillText(t,bar.x-6,bar.y);ctx.fillStyle=opts.color||"#4e6475";}});ctx.restore();}};
+// Ukuran teks dashboard (Settings): huruf grafik ikut skala --kfs.
+const chartFontSize=n=>Math.round(n*(Number(document.documentElement.dataset.kfs)||1)*10)/10;
+const chartBarValues={id:"kairoBarValues",afterDatasetsDraw(chart,_args,opts){const fmt=opts?.format;if(!fmt)return;const {ctx}=chart,meta=chart.getDatasetMeta(0);ctx.save();ctx.font=`600 ${chartFontSize(11)}px 'Plus Jakarta Sans', sans-serif`;ctx.fillStyle=opts.color||"#4e6475";ctx.textBaseline="middle";meta.data.forEach((bar,i)=>{const t=fmt(chart.data.datasets[0].data[i],i);if(!t)return;const w=ctx.measureText(t).width,room=chart.chartArea.right-bar.x;if(room>w+10){ctx.textAlign="left";ctx.fillText(t,bar.x+6,bar.y);}else{ctx.textAlign="right";ctx.fillStyle="#ffffff";ctx.fillText(t,bar.x-6,bar.y);ctx.fillStyle=opts.color||"#4e6475";}});ctx.restore();}};
 // Top N rows plus one "Lainnya" row, so long product/topic lists stay readable.
 function chartTopEntries(entries,limit=5){if(entries.length<=limit+1)return entries;const rest=entries.slice(limit).reduce((s,[,v])=>s+Number(v||0),0);return [...entries.slice(0,limit),["Lainnya",rest]];}
 function chartRankBars(canvas,entries,{unit="x",empty="Belum ada data"}={}){
@@ -1672,7 +1674,7 @@ function renderCharts(){
 }
 
 // Chart colours are read when a chart is drawn, so redraw Performance after a theme switch.
-(()=>{const key=()=>`${document.body.classList.contains("saas-dark")}|${document.documentElement.dataset.wsTheme||""}`;let last=key();const redraw=()=>{const k=key();if(k===last)return;last=k;if(dailyChart&&document.getElementById("performance")?.classList.contains("active"))renderCharts();};new MutationObserver(redraw).observe(document.body,{attributes:true,attributeFilter:["class"]});new MutationObserver(redraw).observe(document.documentElement,{attributes:true,attributeFilter:["data-ws-theme"]});})();
+(()=>{const key=()=>`${document.body.classList.contains("saas-dark")}|${document.documentElement.dataset.wsTheme||""}|${document.documentElement.dataset.kfs||""}`;let last=key();const redraw=()=>{const k=key();if(k===last)return;last=k;if(dailyChart&&document.getElementById("performance")?.classList.contains("active"))renderCharts();};new MutationObserver(redraw).observe(document.body,{attributes:true,attributeFilter:["class"]});new MutationObserver(redraw).observe(document.documentElement,{attributes:true,attributeFilter:["data-ws-theme","data-kfs"]});})();
 
 function renderHistory(){
   const body=document.getElementById("tx-table-body");
