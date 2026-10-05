@@ -134,7 +134,7 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   Pro aktif, 30 hari, 12 bulan). Saldo partner/Kas/omzet total TERUJI sama sebelum & sesudah (juga saat ringkasan lama diringkas ulang).
   Pro/Trine Magic = pemberitahuan dibatalkan. Langganan seller yang berakhir >= 30 hari lalu disimpan (`window.kairoSellerTxActiveUntil`).
   Baris ringkasan disembunyikan dari daftar (`isRollupTx/isRollupRow`: riwayat, periode, customer, penjualan per produk, notice 60 hari).
-  SQL `.claude/sql/2026-10-free-data-retention.sql` (BELUM dijalankan owner; tanpa SQL fitur diam). Keterbatasan: workspace yang tidak pernah
+  SQL `.claude/sql/2026-10-free-data-retention.sql` (**sudah dijalankan owner Okt 2026**). Keterbatasan: workspace yang tidak pernah
   login tidak dihapus; hak partner nonaktif masuk `__lainnya`; Kas dari data lama mengikuti aturan Gratis (0) saat diringkas.
 - **Kas / Petty Cash (owner Okt 2026):** fitur `petty_cash` = Pro. `cashActive()` = Pro && `workspace_branding.cash_enabled!==false`
   (saklar "Pakai Kas" di Settings › Pembagian Omzet; SQL `.claude/sql/2026-10-cash-toggle.sql`, default true). Kas tidak aktif:
