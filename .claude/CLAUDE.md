@@ -218,6 +218,7 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
 - **Setup Wizard (owner Okt 2026, tahap 2):** `assets/kairo-setup-wizard.js/.css`, dimuat lazy oleh `maybeStartSetupWizard()`
   (dipanggil sekali per login setelah `init()`) hanya bila paket efektif Pro, bukan Trine Magic, dan
   `workspace_branding.setup_state` belum `completed_at`. Kolom belum ada = wizard diam (aman). SQL `.claude/sql/2026-10-setup-wizard.sql`
+  (**sudah dijalankan owner Okt 2026**, sukses)
   (kolom `setup_state` jsonb + Pro lama ditandai selesai + bucket Storage `workspace-branding` publik, maks 1 MB, policy owner per folder
   workspace). Semua template: seller = Tema&warna · Produk (pilih aplikasi, disimpan di setup_state.products, tidak memfilter Orders) ·
   Harga&modal (`seller_product_settings` via `window.kairoSellerCatalog.saveMany`) · Kas&omzet · Struk · Logo; template lain = Paket&harga
