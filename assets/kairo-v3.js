@@ -511,14 +511,17 @@
 
   function bindLayoutColorReset() {
     q('#settings-color-reset')?.addEventListener('click', () => {
-      [['#settings-primary-text', '#settings-primary-color', KAIRO_IDENTITY.primary], ['#settings-accent-text', '#settings-accent-color', KAIRO_IDENTITY.accent]]
+      // A workspace with a theme resets to that theme's colours, not to the KAIRO identity.
+      const theme = (window.KAIRO_WORKSPACE_THEMES || {})[q('#settings-theme')?.value || ''];
+      const base = theme || KAIRO_IDENTITY;
+      [['#settings-primary-text', '#settings-primary-color', base.primary], ['#settings-accent-text', '#settings-accent-color', base.accent]]
         .forEach(([textSel, colorSel, value]) => {
           const text = q(textSel);
           const color = q(colorSel);
           if (color) color.value = value;
           if (text) { text.value = value; text.dispatchEvent(new Event('input', { bubbles: true })); }
         });
-      if (typeof window.showToast === 'function') window.showToast('Warna dikembalikan ke identitas KAIRO. Klik Simpan Pengaturan untuk menerapkan.');
+      if (typeof window.showToast === 'function') window.showToast(theme ? `Warna dikembalikan ke warna tema ${theme.name}. Klik Simpan Pengaturan untuk menerapkan.` : 'Warna dikembalikan ke identitas KAIRO. Klik Simpan Pengaturan untuk menerapkan.');
     });
   }
 

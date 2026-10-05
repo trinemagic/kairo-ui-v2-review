@@ -1027,7 +1027,7 @@
     return out.sort((a,b)=>a.rank-b.rank||b.minutes-a.minutes);
   };
 
-  function maybeMount(){if(document.body.classList.contains('authenticated'))mount()}
+  function maybeMount(){if(document.body.classList.contains('authenticated'))mount();if(mounted)requestAnimationFrame(()=>document.dispatchEvent(new Event('kairo:seller-mounted')))}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(maybeMount,0),{once:true});else setTimeout(maybeMount,0);
   document.addEventListener('click',e=>{if(e.target.closest('[data-tab="input"],.kairo-mobile-orders-main'))setTimeout(maybeMount,0)},true);
   window.addEventListener('pageshow',()=>{if(mounted)requestAnimationFrame(syncSellerDashboardView)});
