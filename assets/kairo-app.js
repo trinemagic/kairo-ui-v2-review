@@ -1202,6 +1202,7 @@ async function loadPageData(tabName=currentAppPage(),options={}){
     }else if(tabName==='performance'){
       await Promise.all([fetchTransactions(),fetchMonthlyRevenueComparison(),fetchPlatformAnalytics()]);
       await ensureChartLibrary();renderCharts();
+      renderProductSales();
     }else if(tabName==='input'){
       // Customer directory feeds the name suggestions on the order form (existing customers).
       await ensureMasters();await Promise.all([fetchTransactions(),fetchHistoryTransactions(),loadCustomerDirectory()]);
@@ -1779,6 +1780,44 @@ function renderCashHistories(){
   renderHistoryLimitNotice();
 }
 // Kas Modal (owner Okt 2026): total HPP penjualan per tanggal, terpisah dari Saldo Kas. Ikut filter riwayat kas.
+// Performance › Penjualan per Produk (owner Okt 2026): satu produk + periode sendiri. Omzet = subtotal item
+// (sebelum diskon/tip transaksi). Template seller: produk = nama aplikasi (semua plan & durasi digabung).
+function productSalesLabel(item){const seller=document.body.classList.contains('seller-app-premium');return String((seller&&item?.product)||item?.name||item?.code||'').trim();}
+function productSalesRange(){
+  const v=document.getElementById('product-sales-period')?.value||'7days',today=new Date(),iso=localISODate,shift=n=>{const d=new Date(today);d.setDate(d.getDate()+n);return iso(d)};
+  if(v==='30days')return {from:shift(-29),to:iso(today)};
+  if(v==='month')return {from:iso(new Date(today.getFullYear(),today.getMonth(),1)),to:iso(today)};
+  if(v==='lastmonth')return {from:iso(new Date(today.getFullYear(),today.getMonth()-1,1)),to:iso(new Date(today.getFullYear(),today.getMonth(),0))};
+  if(v==='custom'){let from=document.getElementById('product-sales-from')?.value||'',to=document.getElementById('product-sales-to')?.value||'';if(from&&to&&from>to)[from,to]=[to,from];return {from,to};}
+  return {from:shift(-6),to:iso(today)};
+}
+async function renderProductSales(){
+  const table=document.getElementById('product-sales-table'),select=document.getElementById('product-sales-product');if(!table||!select)return;
+  let rows=[];try{rows=await allTransactions();}catch(_e){}
+  const cutoff=historyCutoff(),itemsOf=t=>[...(Array.isArray(t?.order_items)?t.order_items:[]),...(Array.isArray(t?.order_addons)?t.order_addons:[])];
+  const names=[...new Set(rows.filter(t=>!cutoff||String(t.transaction_date||'')>=cutoff).flatMap(t=>itemsOf(t).map(productSalesLabel)).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'id'));
+  const keep=select.value;
+  select.innerHTML=names.length?names.map(n=>`<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join(''):'<option value="">Belum ada produk terjual</option>';
+  if(names.includes(keep))select.value=keep;
+  const product=select.value,{from,to}=productSalesRange(),days=new Map();
+  if(product)rows.forEach(t=>{
+    const d=String(t.transaction_date||'');if((from&&d<from)||(to&&d>to)||(cutoff&&d<cutoff))return;
+    const hit=itemsOf(t).filter(x=>productSalesLabel(x)===product);if(!hit.length)return;
+    const x=days.get(d)||{qty:0,tx:0,total:0};x.tx++;
+    hit.forEach(i=>{const q=Math.max(0,Number(i.qty||1));x.qty+=q;x.total+=Number.isFinite(Number(i.subtotal))?Number(i.subtotal):Number(i.unit_price||i.price||0)*q;});
+    days.set(d,x);
+  });
+  const list=[...days.entries()].sort((a,b)=>b[0].localeCompare(a[0]));
+  table.innerHTML=list.length?list.map(([d,x])=>`<tr><td>${escapeHtml(d)}</td><td>${x.qty}</td><td>${x.tx}</td><td><strong>${rupiah(x.total)}</strong></td></tr>`).join(''):`<tr><td colspan="4" class="empty">${product?'Tidak ada penjualan produk ini pada periode tersebut.':'Belum ada produk terjual.'}</td></tr>`;
+  const sum=k=>list.reduce((n,[,x])=>n+x[k],0),summary=document.getElementById('product-sales-summary');
+  if(summary)summary.innerHTML=product?`<div><span>Qty terjual</span><b>${sum('qty').toLocaleString('id-ID')}</b></div><div><span>Transaksi</span><b>${sum('tx').toLocaleString('id-ID')}</b></div><div><span>Omzet</span><b>${rupiah(sum('total'))}</b></div><div><span>Hari ada penjualan</span><b>${list.length}</b></div>`:'';
+}
+(function wireProductSales(){
+  const period=document.getElementById('product-sales-period');if(!period)return;
+  const custom=document.getElementById('product-sales-custom');
+  period.addEventListener('change',()=>{if(custom)custom.hidden=period.value!=='custom';if(period.value==='custom'){const f=document.getElementById('product-sales-from'),t=document.getElementById('product-sales-to');if(f&&!f.value)f.value=localISODate(new Date(Date.now()-6*864e5));if(t&&!t.value)t.value=todayISO();}renderProductSales();});
+  ['product-sales-product','product-sales-from','product-sales-to'].forEach(id=>document.getElementById(id)?.addEventListener('change',renderProductSales));
+})();
 async function renderCapitalCash(){
   const table=document.getElementById("cash-capital-table");if(!table)return;
   const {from,to}=cashHistoryRange(),cutoff=historyCutoff(),days=new Map();
@@ -5101,13 +5140,13 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
         const link=document.createElement('link');
         link.id='seller-app-premium-css';
         link.rel='stylesheet';
-        link.href='assets/templates/seller-app-premium.css?v=20.10.150';
+        link.href='assets/templates/seller-app-premium.css?v=20.10.151';
         document.head.appendChild(link);
       }
       if(!document.getElementById('seller-app-premium-js')){
         const script=document.createElement('script');
         script.id='seller-app-premium-js';
-        script.src='assets/templates/seller-app-premium.js?v=20.10.149';
+        script.src='assets/templates/seller-app-premium.js?v=20.10.150';
         script.defer=true;
         document.body.appendChild(script);
       }

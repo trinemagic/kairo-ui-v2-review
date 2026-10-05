@@ -4656,3 +4656,24 @@ html.kairo-v3 .seller-tracker-empty { padding: 18px 14px; border: 1px dashed var
   html.kairo-v3 .seller-tracker-actions > * { flex: 1; justify-content: center; }
   html.kairo-v3 #seller-tracker-search { width: 100%; }
 }
+
+/* Performance › Penjualan per Produk (owner Okt 2026). */
+html.kairo-v3 .product-sales-card { display: grid; gap: 14px; margin-bottom: 18px; }
+html.kairo-v3 .product-sales-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; }
+html.kairo-v3 .product-sales-head .card-title { margin: 0 0 3px; }
+html.kairo-v3 .product-sales-tools { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; }
+html.kairo-v3 .product-sales-tools label { display: grid; gap: 4px; }
+html.kairo-v3 .product-sales-tools label > span { color: var(--v3-ink-soft); font-size: 11.5px; font-weight: 700; }
+html.kairo-v3 .product-sales-tools select { min-width: 180px; }
+html.kairo-v3 .product-sales-custom { display: flex; align-items: center; gap: 6px; }
+html.kairo-v3 .product-sales-custom[hidden] { display: none; }
+html.kairo-v3 .product-sales-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+html.kairo-v3 .product-sales-summary:empty { display: none; }
+html.kairo-v3 .product-sales-summary > div { display: grid; gap: 2px; padding: 10px 12px; border: 1px solid var(--v3-line); border-radius: 12px; background: var(--v3-surface-subtle); }
+html.kairo-v3 .product-sales-summary span { color: var(--v3-ink-soft); font-size: 12px; }
+html.kairo-v3 .product-sales-summary b { color: var(--v3-ink); font-size: 17px; }
+@media (max-width: 640px) {
+  html.kairo-v3 .product-sales-tools, html.kairo-v3 .product-sales-tools label { width: 100%; }
+  html.kairo-v3 .product-sales-tools select { width: 100%; min-width: 0; }
+  html.kairo-v3 .product-sales-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
