@@ -82,9 +82,9 @@ domain = pengguna login ulang & pengaturan browser (Ingat saya, dark mode) mulai
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
 Versi terakhir: `kairo.css?v=20.10.157`, `kairo-v3.css?v=3.33.0`,
-`kairo-v3.js?v=3.23.0`, `kairo-app.js?v=20.10.187`; template seller dimuat dari kairo-app.js
-(`seller-app-premium.js?v=20.10.153`, `.css?v=20.10.152`) — naikkan juga bila file template diubah.
-Setup Wizard dimuat dari `loadSetupWizard()` di kairo-app.js (`kairo-setup-wizard.js/.css?v=1.0.1`, satu konstanta `v`).
+`kairo-v3.js?v=3.23.0`, `kairo-app.js?v=20.10.188`; template seller dimuat dari kairo-app.js
+(`seller-app-premium.js?v=20.10.154`, `.css?v=20.10.152`) — naikkan juga bila file template diubah.
+Setup Wizard dimuat dari `loadSetupWizard()` di kairo-app.js (`kairo-setup-wizard.js/.css?v=1.0.2`, satu konstanta `v`).
 
 **Halaman app** = `main.container > section.section` dengan id:
 `dashboard`, `performance`, `input` (Orders), `customers`, `promo` (dibuat via JS),
@@ -220,7 +220,9 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   `workspace_branding.setup_state` belum `completed_at`. Kolom belum ada = wizard diam (aman). SQL `.claude/sql/2026-10-setup-wizard.sql`
   (**sudah dijalankan owner Okt 2026**, sukses)
   (kolom `setup_state` jsonb + Pro lama ditandai selesai + bucket Storage `workspace-branding` publik, maks 1 MB, policy owner per folder
-  workspace). Semua template: seller = Tema&warna · Produk (pilih aplikasi, disimpan di setup_state.products, tidak memfilter Orders) ·
+  workspace). Semua template: seller = Tema&warna · Produk (pilih aplikasi, disimpan di setup_state.products, tidak memfilter Orders; tombol "Pilih
+  semua" = semua yang tampil di filter; "Produk sendiri" = `kairoSellerCatalog.addCustom` -> `saveCustomSellerProduct()` yang sama dengan
+  Settings › Tambah Produk, tersimpan permanen di `seller_product_settings`; produk tanpa file logo tampil ikon huruf awal) ·
   Harga&modal (`seller_product_settings` via `window.kairoSellerCatalog.saveMany`) · Kas&omzet · Struk · Logo; template lain = Paket&harga
   (`package_masters`, termasuk `cost_price`) · Kas&omzet · Struk · Logo. Kas&omzet = versi pembagian baru mulai sekarang (sama dengan
   Settings; partner lama yang tidak dipilih tetap aktif 0%, Kas mati = `cash_off` + `cash_enabled=false`; Kas 0% ditampilkan "mati").
@@ -332,7 +334,7 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   Password acak bisa dibuat, info login tampil sekali + tombol Salin. Log Aktivitas "Buat akun". Cocok untuk akun tes (hapus lewat modal
   Workspace > Hapus). **Okt 2026: `platform_admin_update_subscription` ternyata tidak ada di DB asli** (Simpan Subscription & Pro di
   Buat Akun gagal) -> `.claude/sql/2026-10-admin-update-subscription.sql` (deteksi kolom tanggal berakhir otomatis + query cek fungsi
-  admin lain yang belum ada). Belum dijalankan owner. **Log Aktivitas (Okt 2026):** fungsi `platform_admin_activity` tidak pernah ada di DB asli -> dibuat lewat `.claude/sql/2026-10-admin-activity-log.sql` (tabel `platform_admin_activity_log` tanpa FK, RLS tanpa policy, maks 5000 baris; `platform_admin_log_activity`). admin.js membungkus `db.rpc`: aksi di `LOG_ACTIONS` yang sukses otomatis dicatat (nama workspace diambil sebelum aksi). Pop-up admin (`toast(msg, true|'success'|'info'|'warning'|'error')`) = gaya dashboard: kartu bertumpuk kanan atas di bawah topbar, ikon+judul, X, 5 dtk, jeda saat hover. "Sebagian data gagal dimuat" kuning + menyebut fungsi & pesan error DB (juga di console). Modal Workspace membaca baris dari daftar (`all`), bukan RPC `platform_admin_workspace_detail` (tidak ada di DB asli).
+  admin lain yang belum ada). **Sudah dijalankan owner Okt 2026**, sukses. **Log Aktivitas (Okt 2026):** fungsi `platform_admin_activity` tidak pernah ada di DB asli -> dibuat lewat `.claude/sql/2026-10-admin-activity-log.sql` (tabel `platform_admin_activity_log` tanpa FK, RLS tanpa policy, maks 5000 baris; `platform_admin_log_activity`). admin.js membungkus `db.rpc`: aksi di `LOG_ACTIONS` yang sukses otomatis dicatat (nama workspace diambil sebelum aksi). Pop-up admin (`toast(msg, true|'success'|'info'|'warning'|'error')`) = gaya dashboard: kartu bertumpuk kanan atas di bawah topbar, ikon+judul, X, 5 dtk, jeda saat hover. "Sebagian data gagal dimuat" kuning + menyebut fungsi & pesan error DB (juga di console). Modal Workspace membaca baris dari daftar (`all`), bukan RPC `platform_admin_workspace_detail` (tidak ada di DB asli).
   **Akses (owner Okt 2026): tanpa form login.** admin/ hanya jalan bila dibuka dari tombol KAIRO Admin di dashboard
   Trine Magic: `openKairoAdmin()` membuka tab (tanpa `noopener`), admin minta token lewat `postMessage`
   (`kairo-admin-token-request` → `kairo-admin-token`, cek origin + window yang dibuka), dashboard hanya menjawab bila
