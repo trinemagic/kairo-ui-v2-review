@@ -580,7 +580,7 @@
     const rows=sellerPeriodRows(),revenue=rows.reduce((s,t)=>s+Number(t.total_price||0),0),profit=rows.reduce((s,t)=>s+sellerProfit(t),0);
     const revCard=revenueEl.closest('.kpi');
     if(revCard){
-      const label=revCard.querySelector('.kpi-label');if(label)label.textContent=sellerPeriodLabel('Omset');
+      const label=revCard.querySelector('.kpi-label');if(label)label.textContent=sellerPeriodLabel('Penjualan');
       revenueEl.textContent=(typeof maskedNominals!=='undefined'&&maskedNominals)?'••••••':rupiahLocal(revenue);
     }
     let card=document.getElementById('seller-kpi-profit-card');

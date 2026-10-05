@@ -82,8 +82,8 @@ domain = pengguna login ulang & pengaturan browser (Ingat saya, dark mode) mulai
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
 Versi terakhir: `kairo.css?v=20.10.157`, `kairo-v3.css?v=3.34.0`,
-`kairo-v3.js?v=3.24.0`, `kairo-app.js?v=20.10.191`; template seller dimuat dari kairo-app.js
-(`seller-app-premium.js?v=20.10.156`, `.css?v=20.10.154`) — naikkan juga bila file template diubah.
+`kairo-v3.js?v=3.24.0`, `kairo-app.js?v=20.10.192`; template seller dimuat dari kairo-app.js
+(`seller-app-premium.js?v=20.10.157`, `.css?v=20.10.154`) — naikkan juga bila file template diubah.
 Setup Wizard dimuat dari `loadSetupWizard()` di kairo-app.js (`kairo-setup-wizard.js/.css?v=1.0.2`, satu konstanta `v`).
 
 **Halaman app** = `main.container > section.section` dengan id:
