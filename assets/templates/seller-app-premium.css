@@ -699,7 +699,6 @@ html.kairo-v3[data-ws-theme=pinky] body.seller-app-premium #kairo-v3-dashboard-h
 html.kairo-v3[data-ws-theme] body.seller-app-premium #saas-sidebar .saas-side-brand{background:transparent!important;border-color:transparent!important;box-shadow:none!important}
 html.kairo-v3[data-ws-theme] body.seller-app-premium #saas-sidebar .saas-settings-submenu-btn.active{background:var(--ws-side-active-bg)!important;color:var(--ws-side-active-ink)!important}
 html.kairo-v3[data-ws-theme] body.seller-app-premium #saas-sidebar::before{background:none!important}
-html.kairo-v3[data-ws-theme] body.seller-app-premium #saas-sidebar .saas-side-brand::before{background:var(--v3-primary)!important;color:var(--v3-on-primary,#fff)!important}
 body.saas-dark #kairo-theme-picker .kairo-theme-opt.is-active{border-color:color-mix(in srgb,var(--v3-primary) 55%,#fff);box-shadow:0 0 0 3px color-mix(in srgb,var(--v3-primary) 40%,transparent)}
 /* Table cells use the theme surfaces (dark mode used a fixed grey before). */
 html.kairo-v3[data-ws-theme] body.seller-app-premium #app-shell tbody td{background-color:var(--v3-surface)!important}

@@ -3569,7 +3569,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
       btn.addEventListener('click',()=>openAppPage(tab));sideNav.appendChild(btn);
     });
     {const b=document.createElement('button');b.type='button';b.id='saas-settings-side-btn';b.className='saas-settings-side-btn';b.innerHTML=`<span class="saas-nav-icon">${iconMap.settings}</span><span class="saas-nav-label">Settings</span>`;b.addEventListener('click',()=>openWorkspaceSettings());sideNav.appendChild(b);}
-    const sideLogo=side.querySelector('.brand-logo'); if(sideLogo){sideLogo.src='assets/kairo-mark.svg';sideLogo.dataset.defaultSrc=sideLogo.src;}
+    const sideLogo=side.querySelector('.brand-logo'); if(sideLogo){sideLogo.src='assets/brand/kairo-app-icon.svg';sideLogo.dataset.defaultSrc=sideLogo.src;}
     side.querySelector('#saas-side-home')?.addEventListener('click',()=>document.querySelector('.tab[data-tab="dashboard"]')?.click());
     const collapse=side.querySelector('#saas-collapse-btn');
     const setCollapsed=(yes)=>{document.body.classList.toggle('saas-sidebar-collapsed',yes);collapse.textContent=yes?'›':'‹';collapse.title=yes?'Expand sidebar':'Minimize sidebar';localStorage.setItem(SIDEBAR_KEY,yes?'1':'0')};
@@ -4964,7 +4964,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
 /* ---- KAIRO v20.10.77 — neutral tenant template + interactive BASIC locks ---- */
 (function(){
  const LOCK_SVG='<span class="kairo-menu-lock" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="10" rx="2.5"/><path d="M8 10V7.2a4 4 0 0 1 8 0V10"/><circle cx="12" cy="15" r="1.2"/></svg></span>';
- const KAIRO_LOGO='data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#59B9A7"/><stop offset=".55" stop-color="#2F9AA4"/><stop offset="1" stop-color="#353A66"/></linearGradient></defs><rect width="96" height="96" rx="26" fill="#EAF4F6"/><path d="M27 22v52M29 49 62 22M29 49l36 25" fill="none" stroke="url(#g)" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/></svg>');
+ const KAIRO_LOGO='assets/brand/kairo-app-icon.svg';
  const isBasic=()=>String(window.activeWorkspacePlan||activeWorkspacePlan||'basic').toLowerCase()==='basic';
  const isTrine=()=>typeof isTrineMagicWorkspace==='function'&&isTrineMagicWorkspace();
  const upgradeMessage=()=>showToast('Upgrade ke paket Pro untuk mengakses ini.',true);
@@ -5414,7 +5414,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
         const link=document.createElement('link');
         link.id='seller-app-premium-css';
         link.rel='stylesheet';
-        link.href='assets/templates/seller-app-premium.css?v=20.10.154';
+        link.href='assets/templates/seller-app-premium.css?v=20.10.155';
         document.head.appendChild(link);
       }
       if(!document.getElementById('seller-app-premium-js')){

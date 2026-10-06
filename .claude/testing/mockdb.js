@@ -49,7 +49,7 @@ window.supabase = { createClient: () => {
     storage: { from: (bucket) => ({
       async upload(path, blob, opts) { (D.storage = D.storage || {})[bucket + '/' + path] = { type: opts?.contentType || blob?.type, size: blob?.size || 0 }; D.log.push('upload:' + bucket + '/' + path); return { data: { path }, error: null }; },
       async remove(paths) { paths.forEach(x => { if (D.storage) delete D.storage[bucket + '/' + x]; }); return { data: [], error: null }; },
-      getPublicUrl(path) { return { data: { publicUrl: 'assets/kairo-mark.svg#' + bucket + '/' + path } }; }
+      getPublicUrl(path) { return { data: { publicUrl: 'assets/brand/kairo-app-icon.svg#' + bucket + '/' + path } }; }
     }) },
     auth: { getSession: async () => ({ data: { session: null }, error: null }), onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }), signOut: async () => ({}), getUser: async () => ({ data: { user: null } }) }
   };
