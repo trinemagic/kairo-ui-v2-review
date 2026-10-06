@@ -61,6 +61,9 @@ yang diawali titik). Tetap: **jangan pernah menulis rahasia di sini.**
   Deploy bisa macet (PR #28: langkah "Deploy to GitHub Pages" >8 menit). Kalau owner bilang
   fix belum jalan, cek dulu status run `pages build and deployment` (actions_list) sebelum
   mencari bug lain. `index.html` di-cache browser ±10 menit oleh GitHub Pages.
+  Okt 2026 (PR #53/#54): run Pages macet di status "queued" >12 jam; "re-run" dari API ikut macet dan run yang
+  belum masuk antrean tidak bisa di-cancel (409). Yang berhasil memicu deploy baru: merge perubahan baru ke `main`
+  (deploy baru membawa semua commit sebelumnya).
 
 ---
 
