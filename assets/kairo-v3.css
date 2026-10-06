@@ -497,19 +497,29 @@ html.kairo-v3 .kairo-notif-dot[hidden] {
   display: none;
 }
 
-/* Order 30+ menit masih On Progress: titik merah berdenyut sampai order dicentang selesai. */
-html.kairo-v3 .kairo-notif-dot.is-urgent {
+/* Order 30+ menit masih On Progress: titik merah berdenyut sampai order dicentang selesai.
+   Denyut = lingkaran ::after yang membesar & memudar (transform + opacity dijalankan GPU). Dulu box-shadow yang
+   dianimasikan: dihitung ulang CPU tiap frame selama ada order terlambat (~2-4% CPU terus-menerus). */
+html.kairo-v3 :is(.kairo-notif-btn, .kairo-mobile-notif-icon) { isolation: isolate; }  /* lingkaran denyut tetap di belakang titik */
+html.kairo-v3 .kairo-notif-dot.is-urgent::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -2px;
+  border-radius: 50%;
+  background: rgba(229, 72, 77, .55);
+  pointer-events: none;
   animation: kairoNotifPulse 1.6s ease-out infinite;
 }
 
 @keyframes kairoNotifPulse {
-  0% { box-shadow: 0 0 0 0 rgba(229, 72, 77, .55); }
-  70% { box-shadow: 0 0 0 7px rgba(229, 72, 77, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(229, 72, 77, 0); }
+  0% { transform: scale(1); opacity: 1; }
+  70% { transform: scale(2.75); opacity: 0; }
+  100% { transform: scale(1); opacity: 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html.kairo-v3 .kairo-notif-dot.is-urgent { animation: none; }
+  html.kairo-v3 .kairo-notif-dot.is-urgent::after { animation: none; display: none; }
 }
 
 html.kairo-v3 .kairo-notif-panel {

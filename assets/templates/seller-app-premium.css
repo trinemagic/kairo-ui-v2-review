@@ -95,7 +95,6 @@ body:not(.saas-dark) .seller-choice{background:#fff;color:#17233a;border-color:#
 .seller-save-btn:disabled{opacity:.45;cursor:not-allowed}
 .seller-original-submit-hidden{display:none!important}
 
-#transaction-history-card .seller-history-table-hidden{display:none!important}
 .seller-history-list{display:grid;gap:9px}
 .seller-history-card{display:grid;grid-template-columns:40px minmax(0,1fr) auto;align-items:center;gap:10px;padding:11px;border:1px solid var(--seller-line);border-radius:var(--seller-radius-md);background:var(--seller-panel-2)}
 .seller-history-avatar{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#ff90b4,#846cff);color:#fff;font-size:12px;font-weight:850}

@@ -85,12 +85,12 @@ domain = pengguna login ulang & pengaturan browser (Ingat saya, dark mode) mulai
 | `assets/brand/` | Logo resmi KAIRO Workspaces (kit dari owner, Okt 2026) | `kairo-horizontal-color.svg` = landing (header, footer, dialog Masuk; latar terang, min. lebar 120px); `kairo-app-icon.svg` = logo default dashboard (`KAIRO_LOGO`, sidebar, header HP, preview Settings, admin) sampai user upload logo sendiri; `favicon.svg/.ico`; `assets/og/apple-touch-icon.png` dari kit. Wordmark digambar - jangan diketik ulang pakai font. `assets/kairo-mark.svg` (logo lama) sudah dihapus. |
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
-Versi terakhir: `kairo.css?v=20.10.157`, `kairo-v3.css?v=3.35.0`,
-`kairo-v3.js?v=3.27.0`, `kairo-app.js?v=20.10.198`; template seller dimuat dari kairo-app.js
-(`seller-app-premium.js?v=20.10.159`, `.css?v=20.10.155`) — naikkan juga bila file template diubah.
+Versi terakhir: `kairo.css?v=20.10.158`, `kairo-v3.css?v=3.35.1`,
+`kairo-v3.js?v=3.27.0`, `kairo-app.js?v=20.10.199`; template seller dimuat dari kairo-app.js
+(`seller-app-premium.js?v=20.10.159`, `.css?v=20.10.156`) — naikkan juga bila file template diubah.
 Setup Wizard dimuat dari `loadSetupWizard()` di kairo-app.js (`kairo-setup-wizard.js/.css?v=1.0.2`, satu konstanta `v`).
 Panduan dimuat dari `window.kairoOpenGuide()` di kairo-v3.js (`kairo-guide.js/.css?v=` konstanta `GUIDE_V`='1.0.0'; gambar `assets/guide/*.webp?v=` `SHOT_V` di kairo-guide.js).
-Admin: `admin.js?v=1.11.0`. Library CDN dikunci versi + SRI: supabase-js 2.117.2 (index.html & admin), Chart.js 4.4.4 `dist/chart.umd.js`
+Admin: `admin.js?v=1.11.0`, `admin.css?v=1.8.1`. Library CDN dikunci versi + SRI: supabase-js 2.117.2 (index.html & admin), Chart.js 4.4.4 `dist/chart.umd.js`
 (`ensureChartLibrary`, admin), xlsx-js-style 1.2.0. **Ganti versi = hitung ulang SRI** (`npm pack` lalu `openssl dgst -sha384 -binary f | openssl base64 -A`).
 
 **Halaman app** = `main.container > section.section` dengan id:
@@ -280,7 +280,8 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   (SQL `.claude/sql/2026-10-secure-login.sql`, **sudah dijalankan owner Okt 2026**, 3 cek ok; `get_login_email` tertutup untuk browser).
   Hasil audit DB (Okt 2026): semua tabel public sudah RLS; temuan = fungsi `platform_admin_*`/`update_my_username` bisa dipanggil anon,
   tabel `platform_*` punya izin tulis bawaan untuk anon/authenticated (masih tertahan RLS), policy `seller_product_settings` roles=public ->
-  ditutup lewat `.claude/sql/2026-10-security-hardening.sql` (BELUM dijalankan owner). Yang memang disengaja: `kairo_login_email` &
+  ditutup lewat `.claude/sql/2026-10-security-hardening.sql` (**sudah dijalankan owner Okt 2026**, 3 cek ok). Baris "PERIKSA" untuk
+  `platform_admin_delete_preview/_delete_workspace` = alarm palsu: keduanya memanggil `kairo_delete_guard()` yang mengecek `is_platform_admin()`. Yang memang disengaja: `kairo_login_email` &
   `is_username_available` untuk anon, bucket `workspace-branding` publik (1 MB, gambar saja), `saas_plan_entitlements` dibaca semua user login,
   fungsi trigger (tidak bisa dipanggil lewat RPC).
   `isTrineMagicWorkspace()` hanya lewat ID (dulu nama "Trine Magic" = Pro selamanya). Audit DB hanya-baca: `.claude/sql/2026-10-security-audit.sql`.
@@ -375,7 +376,7 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   `trinemagic/trine-magic-dashboard/admin` (yang lama tidak diubah). Tombol keluar = tutup tab admin. Paket tampil Gratis/Pro
   (`plus` dll dihitung Pro; pilihan paket di modal hanya basic/pro; harga `plus` disembunyikan). Tabel jadi kartu di
   ≤640px (label kolom otomatis dari `thead`, `labelCells()`). Tes: stub `window.supabase` + data contoh di
-  scratchpad (route `**/supabase-js@2*` dan `**/chart.umd.min.js`). Cache `admin.css?v=1.8.0`, `admin.js?v=1.10.0`.
+  scratchpad (route `**/supabase-js@2*` dan `**/chart.umd.min.js`). Cache: lihat bagian 2.
   **Buat Akun (owner Okt 2026):** tombol di Workspaces → modal `#accountModal`: akun dibuat lewat `auth.signUp` + metadata yang sama
   dengan form daftar landing (workspace dibuat database), memakai klien Supabase TERPISAH (`storageKey` sendiri, tanpa simpan sesi) supaya
   sesi admin tidak tersentuh; `requested_plan:'basic'`. Pro = `platform_admin_update_subscription` langsung (tanpa catatan penjualan).
@@ -477,6 +478,12 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
 
 ---
 
+- **Animasi tak berujung hanya boleh `transform`/`opacity`** (dijalankan GPU). Denyut titik notifikasi dulu `box-shadow`
+  -> CPU menghitung ulang tiap frame selama ada order terlambat (~2-4% CPU terus). Sekarang lingkaran `::after` di belakang titik
+  (`isolation:isolate` di tombol). Cek animasi baru dengan CDP `RecalcStyleCount` saat idle (harus ~0 selain jam Dashboard).
+- **Link ke situs luar dari JS:** `window.open(url,'_blank','noopener')` (WhatsApp). Pengecualian: tab admin (butuh `opener` untuk
+  serah token lewat `postMessage`).
+
 ## 5. Cara menguji
 
 Sandbox memblokir CDN (jsdelivr, Google Fonts), Supabase, dan `github.io`. Uji
@@ -505,6 +512,10 @@ cd .claude/testing && node example.js                                # lihat REA
 - Uji desktop 1440 & mobile 390, light & dark, dan kirim screenshot ke owner.
 
 ---
+
+- **Bersihkan CSS mati:** pindai class di CSS yang tidak muncul di HTML/JS (abaikan class rakitan `receipt-field-*`, `receipt-scene-*`,
+  `receipt-template-*`, `is-*`), hapus selector-nya saja (rule ikut hilang bila semua selector mati), lalu bandingkan computed style
+  SEMUA elemen versi baru vs `main` (git worktree di port lain) per halaman/paket/template/ukuran/tema. Okt 2026: 0 class mati tersisa.
 
 ## 6. Belum selesai / perlu dicek owner
 
