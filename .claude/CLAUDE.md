@@ -277,7 +277,12 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   CSP `<meta>` di index.html & admin (script hanya self + cdn.jsdelivr, connect hanya project Supabase; img `https:` karena logo bisa URL luar) -
   **tambah domain baru ke CSP bila memakai layanan luar**. Anti-iframe (clickjacking) di awal kairo-v3.js & admin.js. Login username:
   `kairo_login_email(username,password)` hanya memberi email bila password benar + batas 8 gagal/username & 40/IP per 15 mnt
-  (SQL `.claude/sql/2026-10-secure-login.sql`, BELUM dijalankan owner; sebelum itu kode jatuh ke `get_login_email` lama).
+  (SQL `.claude/sql/2026-10-secure-login.sql`, **sudah dijalankan owner Okt 2026**, 3 cek ok; `get_login_email` tertutup untuk browser).
+  Hasil audit DB (Okt 2026): semua tabel public sudah RLS; temuan = fungsi `platform_admin_*`/`update_my_username` bisa dipanggil anon,
+  tabel `platform_*` punya izin tulis bawaan untuk anon/authenticated (masih tertahan RLS), policy `seller_product_settings` roles=public ->
+  ditutup lewat `.claude/sql/2026-10-security-hardening.sql` (BELUM dijalankan owner). Yang memang disengaja: `kairo_login_email` &
+  `is_username_available` untuk anon, bucket `workspace-branding` publik (1 MB, gambar saja), `saas_plan_entitlements` dibaca semua user login,
+  fungsi trigger (tidak bisa dipanggil lewat RPC).
   `isTrineMagicWorkspace()` hanya lewat ID (dulu nama "Trine Magic" = Pro selamanya). Audit DB hanya-baca: `.claude/sql/2026-10-security-audit.sql`.
 - **Warna layout:** `kairo-v3.js` memetakan `--brand-primary/--brand-accent` ke token
   v3. Default lama `#696F41/#EA97A9` = "belum diatur" (tetap tampilan KAIRO).
