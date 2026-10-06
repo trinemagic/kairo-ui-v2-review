@@ -118,7 +118,7 @@ const WORKSPACE_THEMES={
 window.KAIRO_WORKSPACE_THEMES=WORKSPACE_THEMES;
 const WORKSPACE_THEME_CACHE_KEY='kairo_ws_theme_v1';
 function isSellerWorkspace(){return document.documentElement.dataset.businessTemplate==='digital_subscription';}
-function workspaceThemeAllowed(){return isSellerWorkspace()&&canUseFeature('workspace_theme');}
+function workspaceThemeAllowed(){return canUseFeature('workspace_theme');} // semua template usaha (owner Okt 2026; dulu seller saja)
 function workspaceTheme(){const t=String(activeWorkspaceBranding?.theme||'');return workspaceThemeAllowed()&&WORKSPACE_THEMES[t]?t:'';}
 function cachedWorkspaceTheme(){try{const t=JSON.parse(localStorage.getItem(WORKSPACE_THEME_CACHE_KEY)||'{}')[activeWorkspaceId||''];return WORKSPACE_THEMES[t]?t:'';}catch(_e){return '';}}
 function applyWorkspaceTheme(theme=workspaceTheme()){
@@ -394,7 +394,7 @@ let setupWizardLoader=null;
 function loadSetupWizard(){
   if(window.kairoSetupWizard)return Promise.resolve(window.kairoSetupWizard);
   if(!setupWizardLoader)setupWizardLoader=new Promise((resolve,reject)=>{
-    const v='1.0.2',css=document.createElement('link');css.rel='stylesheet';css.href=`assets/kairo-setup-wizard.css?v=${v}`;document.head.appendChild(css);
+    const v='1.0.3',css=document.createElement('link');css.rel='stylesheet';css.href=`assets/kairo-setup-wizard.css?v=${v}`;document.head.appendChild(css);
     const js=document.createElement('script');js.src=`assets/kairo-setup-wizard.js?v=${v}`;js.onload=()=>resolve(window.kairoSetupWizard);js.onerror=()=>{setupWizardLoader=null;reject(new Error('Setup wizard gagal dimuat.'));};document.head.appendChild(js);
   });
   return setupWizardLoader;
@@ -3620,11 +3620,11 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
     pc.addEventListener('input',()=>{pt.value=pc.value.toUpperCase();update()});ac.addEventListener('input',()=>{at.value=ac.value.toUpperCase();update()});pt.addEventListener('input',update);at.addEventListener('input',update);logo?.addEventListener('input',update);name?.addEventListener('input',update);
     formCancelOnEscape();
   }
-  // Settings › Tema Workspace (Seller App Premium). Clicking a card previews it live; Simpan Pengaturan saves it.
+  // Settings › Tema Workspace (semua template, paket Pro). Clicking a card previews it live; Simpan Pengaturan saves it.
   function renderThemePicker(){
     const form=document.getElementById('workspace-settings-form'),head=form?.querySelector('.kairo-layout-colors-head');
     let box=document.getElementById('kairo-theme-picker');
-    if(!form||!head||!isSellerWorkspace()){box?.remove();return;}
+    if(!form||!head){box?.remove();return;}
     const allowed=workspaceThemeAllowed(),saved=allowed?workspaceTheme():'';
     if(!box){
       box=document.createElement('div');box.id='kairo-theme-picker';box.className='full kairo-theme-picker';
@@ -5428,8 +5428,11 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
 (function(){
   let sellerTemplateBooted=false;
   let sellerTemplateChecking=false;
+  // Dicek SEKALI per login (dulu diulang tiap class <body> berubah, mis. ganti dark mode: spinner sekejap + tema pratinjau
+  // di Settings ikut kembali ke tema tersimpan). Direset saat logout.
+  let templateChecked=false;
   async function maybeBootSellerTemplate(){
-    if(sellerTemplateBooted||sellerTemplateChecking)return;
+    if(sellerTemplateBooted||sellerTemplateChecking||templateChecked)return;
     if(!document.body.classList.contains('authenticated'))return;
     sellerTemplateChecking=true;
     const root=document.documentElement;root.classList.add('kairo-template-pending');
@@ -5437,11 +5440,12 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
     try{
       const {data}=await db.auth.getSession();
       const template=String(data?.session?.user?.user_metadata?.business_template||'').toLowerCase();
+      if(data?.session)templateChecked=true;
+      // Paint the workspace's last theme right away (every template); applyWorkspaceTheme() corrects it once branding/plan are loaded.
+      if(!root.dataset.wsTheme){if(activeWorkspaceBranding)applyWorkspaceTheme();else{const t=cachedWorkspaceTheme();if(t)root.dataset.wsTheme=t;}}
       if(template!=='digital_subscription')return;
       sellerTemplateBooted=true;keepPending=true;
       root.dataset.businessTemplate='digital_subscription';
-      // Paint the workspace's last theme right away; applyWorkspaceTheme() corrects it once branding/plan are loaded.
-      if(activeWorkspaceBranding)applyWorkspaceTheme();else{const t=cachedWorkspaceTheme();if(t)root.dataset.wsTheme=t;}
       const release=()=>{if(activeWorkspaceBranding){if(typeof window.applyWorkspaceBrandingV204==='function')window.applyWorkspaceBrandingV204(activeWorkspaceBranding);else applyWorkspaceTheme();}if(typeof window.kairoRenderThemePicker==='function')window.kairoRenderThemePicker();root.classList.remove('kairo-template-pending');};
       document.addEventListener('kairo:seller-mounted',release,{once:true});
       setTimeout(release,5000);
@@ -5449,13 +5453,14 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
         const link=document.createElement('link');
         link.id='seller-app-premium-css';
         link.rel='stylesheet';
-        link.href='assets/templates/seller-app-premium.css?v=20.10.156';
-        document.head.appendChild(link);
+        link.href='assets/templates/seller-app-premium.css?v=20.10.157';
+        // Sebelum CSS tema (kairo-themes.css) supaya aturan tema tetap menang seperti dulu.
+        document.head.insertBefore(link,document.getElementById('kairo-themes-css'));
       }
       if(!document.getElementById('seller-app-premium-js')){
         const script=document.createElement('script');
         script.id='seller-app-premium-js';
-        script.src='assets/templates/seller-app-premium.js?v=20.10.159';
+        script.src='assets/templates/seller-app-premium.js?v=20.10.160';
         script.defer=true;
         document.body.appendChild(script);
       }
@@ -5467,7 +5472,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
   },true);
   // Muat template langsung setelah login (dulu baru dimuat saat menu Orders diklik, jadi tabel Akan Expired
   // dan riwayat seller di Dashboard tidak muncul di awal, owner Okt 2026).
-  new MutationObserver(()=>{if(!sellerTemplateBooted&&document.body.classList.contains('authenticated'))maybeBootSellerTemplate();})
+  new MutationObserver(()=>{if(!document.body.classList.contains('authenticated')){templateChecked=false;return;}if(!sellerTemplateBooted)maybeBootSellerTemplate();})
     .observe(document.body,{attributes:true,attributeFilter:['class']});
   if(document.body.classList.contains('authenticated'))maybeBootSellerTemplate();
 })();

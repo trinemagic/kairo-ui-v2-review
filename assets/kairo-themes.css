@@ -1,0 +1,272 @@
+/* KAIRO — Tema workspace (Lavender / Kayu / Awan / Mawar), semua template usaha (owner Okt 2026; dulu hanya Seller App Premium).
+   Dimuat dari index.html. Hanya berlaku saat html[data-ws-theme] diisi kairo-app.js (paket Pro) dan user sudah masuk.
+   Selector memakai body.authenticated (kekuatan sama dengan body.seller-app-premium dulu). File ini harus SETELAH
+   seller-app-premium.css: loader seller menyisipkan CSS seller sebelum link #kairo-themes-css. */
+/* =====================================================================================
+   WORKSPACE THEMES (owner Okt 2026) — presentation only. html[data-ws-theme] is set by kairo-app.js
+   (paket Pro, semua template). Every colour derives from --v3-primary / --v3-accent, which follow the
+   workspace colours, so changing colours in Settings carries through the whole theme.
+   ===================================================================================== */
+html.kairo-v3[data-ws-theme] body.authenticated{
+  --ws-side-bg:var(--v3-surface);--ws-side-ink:var(--v3-muted);--ws-side-title:var(--v3-ink);
+  --ws-side-active-bg:var(--v3-primary-soft);--ws-side-active-ink:var(--v3-ink);--ws-side-active-shadow:none;
+  --ws-th-bg:var(--v3-surface-subtle);--ws-th-ink:var(--v3-muted);--ws-row-line:var(--v3-line);--ws-row-hover:var(--v3-surface-subtle);
+  --ws-hello-bg:var(--v3-surface);--ws-badge-r:999px;--ws-btn-shadow:none;--ws-deco:transparent;
+  --ws-k1-bg:var(--v3-primary-soft);--ws-k1-ink:var(--v3-primary-dark);
+  --ws-k2-bg:var(--v3-primary-soft);--ws-k2-ink:var(--v3-primary-dark);
+  --ws-k3-bg:var(--v3-primary-soft);--ws-k3-ink:var(--v3-primary-dark);
+  --ws-k4-bg:var(--v3-primary-soft);--ws-k4-ink:var(--v3-primary-dark);
+  --ws-k5-bg:var(--v3-primary-soft);--ws-k5-ink:var(--v3-primary-dark);
+}
+/* ---------- LAVENDER (id girlie): lilac & berry, pill shapes, two-tone icons ---------- */
+html.kairo-v3[data-ws-theme=girlie] body.authenticated:not(.saas-dark){
+  --v3-canvas:color-mix(in srgb,var(--v3-primary) 4%,#fff);--v3-surface:#fff;--v3-surface-subtle:color-mix(in srgb,var(--v3-primary) 3%,#fff);
+  --v3-line:color-mix(in srgb,var(--v3-primary) 14%,#fff);--v3-ink:color-mix(in srgb,var(--v3-primary) 28%,#170b24);--v3-ink-soft:color-mix(in srgb,var(--v3-primary) 30%,#2b1d3d);
+  --v3-muted:color-mix(in srgb,var(--v3-primary) 22%,#4a4158);--muted:var(--v3-muted);--line:var(--v3-line);--ink:var(--v3-ink);
+  --v3-primary-soft:color-mix(in srgb,var(--v3-primary) 12%,#fff);--v3-primary-dark:color-mix(in srgb,var(--v3-primary) 78%,#000);
+  --v3-sky:color-mix(in srgb,var(--v3-primary) 6%,#fff);--v3-sky-strong:color-mix(in srgb,var(--v3-primary) 24%,#fff);
+  --v3-r-sm:14px;--v3-r-md:18px;--v3-r-lg:22px;
+  --v3-shadow:0 10px 26px color-mix(in srgb,var(--v3-primary) 10%,transparent);--v3-shadow-hover:0 14px 30px color-mix(in srgb,var(--v3-primary) 16%,transparent);
+  --ws-side-bg:linear-gradient(180deg,color-mix(in srgb,var(--v3-primary) 12%,#fff),color-mix(in srgb,var(--v3-primary) 18%,#fff));
+  --ws-side-ink:color-mix(in srgb,var(--v3-primary) 40%,#2b1d3d);--ws-side-title:var(--v3-ink);
+  --ws-side-active-bg:#fff;--ws-side-active-ink:var(--v3-primary-dark);--ws-side-active-shadow:0 6px 16px color-mix(in srgb,var(--v3-primary) 18%,transparent);
+  --ws-th-bg:color-mix(in srgb,var(--v3-primary) 7%,#fff);--ws-th-ink:var(--v3-muted);--ws-row-line:color-mix(in srgb,var(--v3-primary) 8%,#fff);--ws-row-hover:color-mix(in srgb,var(--v3-primary) 4%,#fff);
+  --ws-hello-bg:linear-gradient(120deg,#fff,color-mix(in srgb,var(--v3-primary) 5%,#fff) 60%,color-mix(in srgb,var(--v3-accent) 7%,#fff));
+  --ws-btn-shadow:0 8px 18px color-mix(in srgb,var(--v3-primary) 28%,transparent);--ws-deco:var(--v3-accent);
+  --ws-k1-bg:color-mix(in srgb,var(--v3-primary) 12%,#fff);--ws-k1-ink:color-mix(in srgb,var(--v3-primary) 80%,#000);
+  --ws-k2-bg:color-mix(in srgb,var(--v3-accent) 12%,#fff);--ws-k2-ink:color-mix(in srgb,var(--v3-accent) 75%,#000);
+  --ws-k3-bg:#e3f4ec;--ws-k3-ink:#1f6b52;--ws-k4-bg:#fff2d6;--ws-k4-ink:#7a5310;--ws-k5-bg:#e6f0fb;--ws-k5-ink:#2c5a8c;
+}
+html.kairo-v3[data-ws-theme=girlie] body.authenticated.saas-dark{
+  --v3-canvas:color-mix(in srgb,var(--v3-primary) 10%,#120c19);--v3-surface:color-mix(in srgb,var(--v3-primary) 12%,#1b1424);--v3-surface-subtle:color-mix(in srgb,var(--v3-primary) 16%,#211930);
+  --v3-line:color-mix(in srgb,var(--v3-primary) 26%,#2c2338);--v3-ink:#f3ecfb;--v3-ink-soft:#ddd0ee;--v3-muted:#c6b8d9;--muted:#c6b8d9;--line:var(--v3-line);
+  --v3-primary-soft:color-mix(in srgb,var(--v3-primary) 28%,#1b1424);--v3-sky:color-mix(in srgb,var(--v3-primary) 18%,#1b1424);--v3-sky-strong:color-mix(in srgb,var(--v3-primary) 40%,#1b1424);
+  --v3-r-sm:14px;--v3-r-md:18px;--v3-r-lg:22px;--v3-shadow:0 10px 26px rgba(0,0,0,.30);--v3-shadow-hover:0 14px 30px rgba(0,0,0,.38);
+  --ws-side-bg:linear-gradient(180deg,color-mix(in srgb,var(--v3-primary) 18%,#17101f),color-mix(in srgb,var(--v3-primary) 12%,#140e1b));
+  --ws-side-ink:#d2c3e6;--ws-side-title:#f3ecfb;--ws-side-active-bg:color-mix(in srgb,var(--v3-primary) 34%,#1b1424);--ws-side-active-ink:#fff;
+  --ws-th-bg:color-mix(in srgb,var(--v3-primary) 16%,#211930);--ws-th-ink:#d2c3e6;--ws-row-line:color-mix(in srgb,var(--v3-primary) 18%,#2a2136);--ws-row-hover:color-mix(in srgb,var(--v3-primary) 20%,#221a2e);
+  --ws-hello-bg:linear-gradient(120deg,var(--v3-surface),color-mix(in srgb,var(--v3-accent) 14%,#1b1424));
+  --ws-btn-shadow:0 8px 18px rgba(0,0,0,.35);--ws-deco:color-mix(in srgb,var(--v3-accent) 60%,#fff);
+  --ws-k1-bg:color-mix(in srgb,var(--v3-primary) 30%,#1b1424);--ws-k1-ink:color-mix(in srgb,var(--v3-primary) 35%,#fff);
+  --ws-k2-bg:color-mix(in srgb,var(--v3-accent) 28%,#1b1424);--ws-k2-ink:color-mix(in srgb,var(--v3-accent) 35%,#fff);
+  --ws-k3-bg:#173a2e;--ws-k3-ink:#8fdcb8;--ws-k4-bg:#3d3016;--ws-k4-ink:#f2cf7e;--ws-k5-bg:#1d3047;--ws-k5-ink:#a9c8ee;
+}
+/* ---------- KAYU (id wood): walnut sidebar, paper cards, serif titles ---------- */
+html.kairo-v3[data-ws-theme=wood] body.authenticated:not(.saas-dark){
+  --v3-canvas:color-mix(in srgb,var(--v3-primary) 7%,#f8f2e8);--v3-surface:#fffcf7;--v3-surface-subtle:color-mix(in srgb,var(--v3-primary) 5%,#fdf7ee);
+  --v3-line:color-mix(in srgb,var(--v3-primary) 18%,#f4ecdf);--v3-ink:color-mix(in srgb,var(--v3-primary) 30%,#1f140c);--v3-ink-soft:color-mix(in srgb,var(--v3-primary) 35%,#33241a);
+  --v3-muted:color-mix(in srgb,var(--v3-primary) 30%,#4d4136);--muted:var(--v3-muted);--line:var(--v3-line);--ink:var(--v3-ink);
+  --v3-primary-soft:color-mix(in srgb,var(--v3-primary) 12%,#fffaf2);--v3-primary-dark:color-mix(in srgb,var(--v3-primary) 75%,#000);
+  --v3-sky:color-mix(in srgb,var(--v3-primary) 7%,#fffaf2);--v3-sky-strong:color-mix(in srgb,var(--v3-primary) 25%,#fffaf2);
+  --v3-r-sm:10px;--v3-r-md:12px;--v3-r-lg:14px;
+  --v3-shadow:0 1px 0 color-mix(in srgb,var(--v3-primary) 16%,#fff),0 10px 22px color-mix(in srgb,var(--v3-primary) 8%,transparent);
+  --v3-shadow-hover:0 1px 0 color-mix(in srgb,var(--v3-primary) 20%,#fff),0 14px 26px color-mix(in srgb,var(--v3-primary) 12%,transparent);
+  --ws-side-bg:linear-gradient(180deg,color-mix(in srgb,var(--v3-primary) 52%,#1c110a),color-mix(in srgb,var(--v3-primary) 40%,#140c07));
+  --ws-side-ink:#efe1cf;--ws-side-title:#fff4e6;--ws-side-active-bg:color-mix(in srgb,var(--v3-primary) 70%,#000);--ws-side-active-ink:#fffaf2;
+  --ws-th-bg:color-mix(in srgb,var(--v3-primary) 10%,#fbf3e7);--ws-th-ink:var(--v3-muted);--ws-row-line:color-mix(in srgb,var(--v3-primary) 12%,#fbf3e7);--ws-row-hover:color-mix(in srgb,var(--v3-primary) 5%,#fffaf2);
+  --ws-hello-bg:linear-gradient(120deg,#fffcf7,color-mix(in srgb,var(--v3-primary) 7%,#fdf6ec));--ws-badge-r:7px;
+  --ws-btn-shadow:0 3px 0 color-mix(in srgb,var(--v3-primary) 70%,#000);--ws-deco:color-mix(in srgb,var(--v3-primary) 45%,#fff);
+  --ws-k1-bg:#fbf3e7;--ws-k1-ink:color-mix(in srgb,var(--v3-primary) 80%,#000);--ws-k2-bg:color-mix(in srgb,var(--v3-accent) 12%,#fff);--ws-k2-ink:color-mix(in srgb,var(--v3-accent) 70%,#000);
+  --ws-k3-bg:#fbf3e7;--ws-k3-ink:color-mix(in srgb,var(--v3-primary) 80%,#000);--ws-k4-bg:color-mix(in srgb,var(--v3-accent) 12%,#fff);--ws-k4-ink:color-mix(in srgb,var(--v3-accent) 70%,#000);
+  --ws-k5-bg:#fbf3e7;--ws-k5-ink:color-mix(in srgb,var(--v3-primary) 80%,#000);
+}
+html.kairo-v3[data-ws-theme=wood] body.authenticated.saas-dark{
+  --v3-canvas:color-mix(in srgb,var(--v3-primary) 8%,#15100c);--v3-surface:color-mix(in srgb,var(--v3-primary) 10%,#1f1813);--v3-surface-subtle:color-mix(in srgb,var(--v3-primary) 14%,#251d17);
+  --v3-line:color-mix(in srgb,var(--v3-primary) 22%,#30261e);--v3-ink:#f4eadf;--v3-ink-soft:#e4d4c2;--v3-muted:#cfbca8;--muted:#cfbca8;--line:var(--v3-line);
+  --v3-primary-soft:color-mix(in srgb,var(--v3-primary) 26%,#1f1813);--v3-sky:color-mix(in srgb,var(--v3-primary) 16%,#1f1813);--v3-sky-strong:color-mix(in srgb,var(--v3-primary) 36%,#1f1813);
+  --v3-r-sm:10px;--v3-r-md:12px;--v3-r-lg:14px;--v3-shadow:0 1px 0 rgba(255,255,255,.03),0 10px 22px rgba(0,0,0,.32);--v3-shadow-hover:0 14px 26px rgba(0,0,0,.4);
+  --ws-side-bg:linear-gradient(180deg,#120d0a,#0e0a07);--ws-side-ink:#dcc9b4;--ws-side-title:#fff1e2;--ws-side-active-bg:color-mix(in srgb,var(--v3-primary) 55%,#120d0a);--ws-side-active-ink:#fff1e2;
+  --ws-th-bg:color-mix(in srgb,var(--v3-primary) 14%,#251d17);--ws-th-ink:#e4d4c2;--ws-row-line:color-mix(in srgb,var(--v3-primary) 16%,#2a211a);--ws-row-hover:color-mix(in srgb,var(--v3-primary) 18%,#221a14);
+  --ws-hello-bg:linear-gradient(120deg,var(--v3-surface),color-mix(in srgb,var(--v3-primary) 16%,#1f1813));--ws-badge-r:7px;
+  --ws-btn-shadow:0 3px 0 color-mix(in srgb,var(--v3-primary) 60%,#000);--ws-deco:color-mix(in srgb,var(--v3-primary) 60%,#1f1813);
+  --ws-k1-bg:color-mix(in srgb,var(--v3-primary) 22%,#1f1813);--ws-k1-ink:color-mix(in srgb,var(--v3-primary) 35%,#fff);--ws-k2-bg:color-mix(in srgb,var(--v3-accent) 24%,#1f1813);--ws-k2-ink:color-mix(in srgb,var(--v3-accent) 35%,#fff);
+  --ws-k3-bg:var(--ws-k1-bg);--ws-k3-ink:var(--ws-k1-ink);--ws-k4-bg:var(--ws-k2-bg);--ws-k4-ink:var(--ws-k2-ink);--ws-k5-bg:var(--ws-k1-bg);--ws-k5-ink:var(--ws-k1-ink);
+}
+/* ---------- AWAN (id cloudy): sky-to-lavender wash, frosted cards, morning glow ---------- */
+html.kairo-v3[data-ws-theme=cloudy] body.authenticated:not(.saas-dark){
+  --v3-canvas:color-mix(in srgb,var(--v3-primary) 8%,#f4f6fb);--v3-surface:rgba(255,255,255,.84);--v3-surface-subtle:color-mix(in srgb,var(--v3-primary) 4%,#f7f9fd);
+  --v3-line:color-mix(in srgb,var(--v3-primary) 10%,#eef2f9);--v3-ink:color-mix(in srgb,var(--v3-primary) 30%,#141d2e);--v3-ink-soft:color-mix(in srgb,var(--v3-primary) 30%,#28344a);
+  --v3-muted:color-mix(in srgb,var(--v3-primary) 25%,#45505f);--muted:var(--v3-muted);--line:var(--v3-line);--ink:var(--v3-ink);
+  --v3-primary-soft:color-mix(in srgb,var(--v3-primary) 11%,#fff);--v3-primary-dark:color-mix(in srgb,var(--v3-primary) 80%,#000);
+  --v3-sky:color-mix(in srgb,var(--v3-primary) 6%,#fff);--v3-sky-strong:color-mix(in srgb,var(--v3-primary) 22%,#fff);
+  --v3-r-sm:14px;--v3-r-md:18px;--v3-r-lg:22px;
+  --v3-shadow:0 16px 36px color-mix(in srgb,var(--v3-primary) 10%,transparent);--v3-shadow-hover:0 20px 40px color-mix(in srgb,var(--v3-primary) 15%,transparent);
+  --ws-side-bg:rgba(255,255,255,.72);--ws-side-ink:var(--v3-muted);--ws-side-title:var(--v3-ink);
+  --ws-side-active-bg:linear-gradient(135deg,var(--v3-primary),color-mix(in srgb,var(--v3-primary) 55%,var(--v3-accent)));--ws-side-active-ink:#fff;--ws-side-active-shadow:0 8px 18px color-mix(in srgb,var(--v3-primary) 26%,transparent);
+  --ws-th-bg:color-mix(in srgb,var(--v3-primary) 7%,#f8faff);--ws-th-ink:var(--v3-muted);--ws-row-line:color-mix(in srgb,var(--v3-primary) 7%,#f2f5fb);--ws-row-hover:color-mix(in srgb,var(--v3-primary) 4%,#fff);
+  --ws-hello-bg:linear-gradient(115deg,rgba(255,255,255,.92),color-mix(in srgb,var(--v3-primary) 8%,#fff) 55%,color-mix(in srgb,var(--v3-accent) 10%,#fff));
+  --ws-btn-shadow:0 10px 22px color-mix(in srgb,var(--v3-primary) 24%,transparent);--ws-deco:#fff;
+  --ws-k1-bg:color-mix(in srgb,var(--v3-primary) 14%,#fff);--ws-k1-ink:color-mix(in srgb,var(--v3-primary) 85%,#000);
+  --ws-k2-bg:color-mix(in srgb,var(--v3-accent) 14%,#fff);--ws-k2-ink:color-mix(in srgb,var(--v3-accent) 75%,#000);
+  --ws-k3-bg:#dcf1ea;--ws-k3-ink:#1f6b52;--ws-k4-bg:#fde6d8;--ws-k4-ink:#8a4a1f;--ws-k5-bg:#fbe3ec;--ws-k5-ink:#9a2f55;
+}
+html.kairo-v3[data-ws-theme=cloudy] body.authenticated.saas-dark{
+  --v3-canvas:color-mix(in srgb,var(--v3-primary) 10%,#0e1424);--v3-surface:rgba(28,37,58,.88);--v3-surface-subtle:color-mix(in srgb,var(--v3-primary) 14%,#1a2238);
+  --v3-line:rgba(255,255,255,.09);--v3-ink:#e9eef8;--v3-ink-soft:#cfd8ea;--v3-muted:#aeb9ce;--muted:#aeb9ce;--line:var(--v3-line);
+  --v3-primary-soft:color-mix(in srgb,var(--v3-primary) 28%,#1c253a);--v3-sky:color-mix(in srgb,var(--v3-primary) 18%,#1c253a);--v3-sky-strong:color-mix(in srgb,var(--v3-primary) 40%,#1c253a);
+  --v3-r-sm:14px;--v3-r-md:18px;--v3-r-lg:22px;--v3-shadow:0 16px 36px rgba(0,0,0,.35);--v3-shadow-hover:0 20px 40px rgba(0,0,0,.42);
+  --ws-side-bg:rgba(28,37,58,.82);--ws-side-ink:#aeb9ce;--ws-side-title:#e9eef8;
+  --ws-side-active-bg:linear-gradient(135deg,color-mix(in srgb,var(--v3-primary) 55%,#fff),color-mix(in srgb,var(--v3-accent) 55%,#fff));--ws-side-active-ink:#0f1a30;--ws-side-active-shadow:0 8px 18px rgba(0,0,0,.35);
+  --ws-th-bg:color-mix(in srgb,var(--v3-primary) 16%,#1e2840);--ws-th-ink:#cfd8ea;--ws-row-line:rgba(255,255,255,.07);--ws-row-hover:color-mix(in srgb,var(--v3-primary) 18%,#1e2840);
+  --ws-hello-bg:linear-gradient(115deg,rgba(28,37,58,.9),color-mix(in srgb,var(--v3-accent) 20%,#1c2440));
+  --ws-btn-shadow:0 10px 22px rgba(0,0,0,.35);--ws-deco:color-mix(in srgb,var(--v3-primary) 35%,#2a3656);
+  --ws-k1-bg:color-mix(in srgb,var(--v3-primary) 30%,#1c253a);--ws-k1-ink:color-mix(in srgb,var(--v3-primary) 35%,#fff);
+  --ws-k2-bg:color-mix(in srgb,var(--v3-accent) 30%,#1c253a);--ws-k2-ink:color-mix(in srgb,var(--v3-accent) 30%,#fff);
+  --ws-k3-bg:#173a2e;--ws-k3-ink:#8fdcb8;--ws-k4-bg:#3a2a1c;--ws-k4-ink:#f2c29a;--ws-k5-bg:#3e2232;--ws-k5-ink:#f2aecb;
+}
+/* ---------- MAWAR (id pinky): rose & peach cream, tinted stat cards, soft pills ---------- */
+html.kairo-v3[data-ws-theme=pinky] body.authenticated:not(.saas-dark){
+  --v3-canvas:color-mix(in srgb,var(--v3-accent) 7%,#fff7f3);--v3-surface:#fffaf8;--v3-surface-subtle:color-mix(in srgb,var(--v3-primary) 4%,#fff6f2);
+  --v3-line:color-mix(in srgb,var(--v3-primary) 15%,#fbefea);--v3-ink:color-mix(in srgb,var(--v3-primary) 32%,#22090f);--v3-ink-soft:color-mix(in srgb,var(--v3-primary) 35%,#3a1a22);
+  --v3-muted:color-mix(in srgb,var(--v3-primary) 28%,#544046);--muted:var(--v3-muted);--line:var(--v3-line);--ink:var(--v3-ink);
+  --v3-primary-soft:color-mix(in srgb,var(--v3-primary) 12%,#fff);--v3-primary-dark:color-mix(in srgb,var(--v3-primary) 78%,#000);
+  --v3-sky:color-mix(in srgb,var(--v3-primary) 5%,#fff);--v3-sky-strong:color-mix(in srgb,var(--v3-primary) 22%,#fff);
+  --v3-r-sm:16px;--v3-r-md:18px;--v3-r-lg:20px;
+  --v3-shadow:0 6px 18px color-mix(in srgb,var(--v3-primary) 8%,transparent);--v3-shadow-hover:0 10px 22px color-mix(in srgb,var(--v3-primary) 13%,transparent);
+  --ws-side-bg:#fffaf8;--ws-side-ink:var(--v3-muted);--ws-side-title:var(--v3-ink);--ws-side-active-bg:color-mix(in srgb,var(--v3-primary) 13%,#fff);--ws-side-active-ink:var(--v3-primary-dark);
+  --ws-th-bg:color-mix(in srgb,var(--v3-accent) 12%,#fff4ef);--ws-th-ink:var(--v3-muted);--ws-row-line:color-mix(in srgb,var(--v3-primary) 9%,#fdf2ee);--ws-row-hover:color-mix(in srgb,var(--v3-primary) 4%,#fff);
+  --ws-hello-bg:linear-gradient(120deg,#fffaf8,color-mix(in srgb,var(--v3-accent) 8%,#fff4ef));
+  --ws-btn-shadow:0 4px 0 color-mix(in srgb,var(--v3-primary) 75%,#000);--ws-deco:color-mix(in srgb,var(--v3-primary) 35%,#fff);
+  --ws-k1-bg:color-mix(in srgb,var(--v3-accent) 26%,#fff);--ws-k2-bg:color-mix(in srgb,var(--v3-primary) 22%,#fff);--ws-k3-bg:#ecdcf5;
+  --ws-k4-bg:color-mix(in srgb,var(--v3-accent) 18%,#fff5e8);--ws-k5-bg:color-mix(in srgb,var(--v3-primary) 14%,#fdeee6);
+  --ws-k1-ink:color-mix(in srgb,var(--v3-primary) 30%,#2a0f17);--ws-k2-ink:var(--ws-k1-ink);--ws-k3-ink:var(--ws-k1-ink);--ws-k4-ink:var(--ws-k1-ink);--ws-k5-ink:var(--ws-k1-ink);
+}
+html.kairo-v3[data-ws-theme=pinky] body.authenticated.saas-dark{
+  --v3-canvas:color-mix(in srgb,var(--v3-primary) 10%,#170c10);--v3-surface:color-mix(in srgb,var(--v3-primary) 12%,#21131a);--v3-surface-subtle:color-mix(in srgb,var(--v3-primary) 16%,#28171f);
+  --v3-line:color-mix(in srgb,var(--v3-primary) 26%,#33212a);--v3-ink:#fbeef0;--v3-ink-soft:#efd8de;--v3-muted:#dcbac2;--muted:#dcbac2;--line:var(--v3-line);
+  --v3-primary-soft:color-mix(in srgb,var(--v3-primary) 28%,#21131a);--v3-sky:color-mix(in srgb,var(--v3-primary) 18%,#21131a);--v3-sky-strong:color-mix(in srgb,var(--v3-primary) 40%,#21131a);
+  --v3-r-sm:16px;--v3-r-md:18px;--v3-r-lg:20px;--v3-shadow:0 6px 18px rgba(0,0,0,.30);--v3-shadow-hover:0 10px 22px rgba(0,0,0,.38);
+  --ws-side-bg:color-mix(in srgb,var(--v3-primary) 8%,#1b0f14);--ws-side-ink:#dcbac2;--ws-side-title:#fbeef0;--ws-side-active-bg:color-mix(in srgb,var(--v3-primary) 32%,#21131a);--ws-side-active-ink:#ffe3ea;
+  --ws-th-bg:color-mix(in srgb,var(--v3-primary) 16%,#28171f);--ws-th-ink:#efd8de;--ws-row-line:color-mix(in srgb,var(--v3-primary) 18%,#2c1a22);--ws-row-hover:color-mix(in srgb,var(--v3-primary) 20%,#24151b);
+  --ws-hello-bg:linear-gradient(120deg,var(--v3-surface),color-mix(in srgb,var(--v3-accent) 14%,#21131a));
+  --ws-btn-shadow:0 4px 0 color-mix(in srgb,var(--v3-primary) 55%,#000);--ws-deco:color-mix(in srgb,var(--v3-primary) 55%,#21131a);
+  --ws-k1-bg:color-mix(in srgb,var(--v3-accent) 22%,#21131a);--ws-k2-bg:color-mix(in srgb,var(--v3-primary) 22%,#21131a);--ws-k3-bg:#2f2240;
+  --ws-k4-bg:color-mix(in srgb,var(--v3-accent) 18%,#21131a);--ws-k5-bg:color-mix(in srgb,var(--v3-primary) 16%,#21131a);
+  --ws-k1-ink:#fff0f3;--ws-k2-ink:#fff0f3;--ws-k3-ink:#fff0f3;--ws-k4-ink:#fff0f3;--ws-k5-ink:#fff0f3;
+}
+
+/* ---------- shared theme treatments (same components for every theme) ---------- */
+html.kairo-v3[data-ws-theme] body.authenticated.authenticated{background:var(--v3-canvas)!important}
+html.kairo-v3[data-ws-theme=cloudy] body.authenticated.authenticated:not(.saas-dark){background:
+  radial-gradient(520px 340px at 100% 0%,color-mix(in srgb,#fdd6be 60%,transparent),transparent 70%),
+  radial-gradient(760px 320px at 15% 100%,color-mix(in srgb,var(--v3-accent) 14%,transparent),transparent 70%),
+  linear-gradient(170deg,color-mix(in srgb,var(--v3-primary) 10%,#eef2f9),color-mix(in srgb,var(--v3-accent) 8%,#f6f2f7))!important;background-attachment:fixed!important}
+html.kairo-v3[data-ws-theme=cloudy] body.authenticated.authenticated.saas-dark{background:
+  radial-gradient(520px 340px at 100% 0%,color-mix(in srgb,var(--v3-accent) 22%,transparent),transparent 70%),
+  linear-gradient(170deg,color-mix(in srgb,var(--v3-primary) 10%,#0e1424),color-mix(in srgb,var(--v3-accent) 10%,#171630))!important;background-attachment:fixed!important}
+html.kairo-v3[data-ws-theme] body.authenticated #saas-sidebar{background:var(--ws-side-bg)!important;color:var(--ws-side-ink)!important;border-color:color-mix(in srgb,var(--v3-line) 80%,transparent)!important}
+html.kairo-v3[data-ws-theme] body.authenticated #saas-sidebar .saas-side-brand strong{color:var(--ws-side-title)!important}
+html.kairo-v3[data-ws-theme] body.authenticated #saas-sidebar .saas-side-brand small{color:var(--ws-side-ink)!important}
+html.kairo-v3[data-ws-theme] body.authenticated #saas-sidebar .tab,
+html.kairo-v3[data-ws-theme] body.authenticated #saas-sidebar .saas-settings-side-btn,
+html.kairo-v3[data-ws-theme] body.authenticated #saas-sidebar .saas-settings-submenu-btn{color:var(--ws-side-ink)!important}
+html.kairo-v3[data-ws-theme] body.authenticated #saas-sidebar .saas-nav-icon{color:inherit!important}
+html.kairo-v3[data-ws-theme] body.authenticated #saas-sidebar .tab.active,
+html.kairo-v3[data-ws-theme] body.authenticated #saas-sidebar .saas-settings-side-btn.active{background:var(--ws-side-active-bg)!important;color:var(--ws-side-active-ink)!important;box-shadow:var(--ws-side-active-shadow)!important}
+html.kairo-v3[data-ws-theme] body.authenticated #saas-sidebar .tab:not(.active):hover,
+html.kairo-v3[data-ws-theme] body.authenticated #saas-sidebar .saas-settings-side-btn:not(.active):hover{background:color-mix(in srgb,var(--ws-side-ink) 10%,transparent)!important}
+html.kairo-v3[data-ws-theme] body.authenticated #app-shell .header{background:var(--v3-surface)!important;border-color:var(--v3-line)!important}
+html.kairo-v3[data-ws-theme] body.authenticated #app-shell .card,
+html.kairo-v3[data-ws-theme] body.authenticated #app-shell .kpi{border-radius:var(--v3-r-lg)!important}
+html.kairo-v3[data-ws-theme] body.authenticated #kairo-v3-dashboard-head{background:var(--ws-hello-bg)!important;border-color:var(--v3-line)!important;position:relative;overflow:hidden}
+html.kairo-v3[data-ws-theme] body.authenticated #app-shell .btn-green,
+html.kairo-v3[data-ws-theme] body.authenticated #app-shell .btn-gold,
+html.kairo-v3[data-ws-theme] body.authenticated #app-shell .btn-pink{box-shadow:var(--ws-btn-shadow)!important}
+html.kairo-v3[data-ws-theme] body.authenticated #app-shell th{background:var(--ws-th-bg)!important;color:var(--ws-th-ink)!important}
+html.kairo-v3[data-ws-theme] body.authenticated #app-shell td{border-bottom-color:var(--ws-row-line)!important}
+html.kairo-v3[data-ws-theme] body.authenticated #app-shell tbody tr:hover td{background:var(--ws-row-hover)!important}
+html.kairo-v3[data-ws-theme] body.authenticated [class*=seller-expiry-badge],
+html.kairo-v3[data-ws-theme] body.authenticated .reading-status-pill,
+html.kairo-v3[data-ws-theme] body.authenticated #app-shell .badge{border-radius:var(--ws-badge-r)!important}
+/* stat cards: one tile colour per card */
+html.kairo-v3[data-ws-theme] body.authenticated #dashboard .kpi-grid>.kpi:nth-child(1){--ws-k-bg:var(--ws-k1-bg);--ws-k-ink:var(--ws-k1-ink)}
+html.kairo-v3[data-ws-theme] body.authenticated #dashboard .kpi-grid>.kpi:nth-child(2){--ws-k-bg:var(--ws-k2-bg);--ws-k-ink:var(--ws-k2-ink)}
+html.kairo-v3[data-ws-theme] body.authenticated #dashboard .kpi-grid>.kpi:nth-child(3){--ws-k-bg:var(--ws-k3-bg);--ws-k-ink:var(--ws-k3-ink)}
+html.kairo-v3[data-ws-theme] body.authenticated #dashboard .kpi-grid>.kpi:nth-child(4){--ws-k-bg:var(--ws-k4-bg);--ws-k-ink:var(--ws-k4-ink)}
+html.kairo-v3[data-ws-theme] body.authenticated #dashboard .kpi-grid>.kpi:nth-child(5){--ws-k-bg:var(--ws-k5-bg);--ws-k-ink:var(--ws-k5-ink)}
+html.kairo-v3[data-ws-theme] body.authenticated #dashboard .kpi .kairo-stat-icon{background:var(--ws-k-bg)!important;color:var(--ws-k-ink)!important}
+html.kairo-v3[data-ws-theme=girlie] body.authenticated #dashboard .kpi .kairo-stat-icon,
+html.kairo-v3[data-ws-theme=cloudy] body.authenticated #dashboard .kpi .kairo-stat-icon,
+html.kairo-v3[data-ws-theme=wood] body.authenticated #dashboard .kpi .kairo-stat-icon{border-radius:999px!important}
+html.kairo-v3[data-ws-theme=wood] body.authenticated #dashboard .kpi .kairo-stat-icon{border:1px solid color-mix(in srgb,var(--ws-k-ink) 22%,transparent)}
+html.kairo-v3[data-ws-theme=cloudy] body.authenticated #dashboard .kpi .kairo-stat-icon{box-shadow:0 6px 14px color-mix(in srgb,var(--v3-primary) 12%,transparent)}
+/* Pinky: the whole stat card carries the soft colour */
+html.kairo-v3[data-ws-theme=pinky] body.authenticated #dashboard .kpi{background:var(--ws-k-bg)!important;border-color:transparent!important}
+html.kairo-v3[data-ws-theme=pinky] body.authenticated #dashboard .kpi .kairo-stat-icon{background:color-mix(in srgb,#fff 70%,transparent)!important;color:var(--ws-k-ink)!important}
+html.kairo-v3[data-ws-theme=pinky] body.authenticated.saas-dark #dashboard .kpi .kairo-stat-icon{background:rgba(255,255,255,.10)!important}
+html.kairo-v3[data-ws-theme=pinky] body.authenticated #dashboard .kpi .kpi-label,
+html.kairo-v3[data-ws-theme=pinky] body.authenticated #dashboard .kpi .kpi-value,
+html.kairo-v3[data-ws-theme=pinky] body.authenticated #dashboard .kpi .kpi-eye{color:var(--ws-k-ink)!important}
+/* Wood: serif titles */
+html.kairo-v3[data-ws-theme=wood] body.authenticated #app-shell .card-title,
+html.kairo-v3[data-ws-theme=wood] body.authenticated #app-shell .promo-title,
+html.kairo-v3[data-ws-theme=wood] body.authenticated #kairo-v3-dashboard-head h2{font-family:Georgia,"Times New Roman",serif!important;font-weight:700!important;letter-spacing:0}
+html.kairo-v3[data-ws-theme=girlie] body.authenticated #app-shell .btn,
+html.kairo-v3[data-ws-theme=pinky] body.authenticated #app-shell .btn,
+html.kairo-v3[data-ws-theme=girlie] body.authenticated #app-shell .period-btn,
+html.kairo-v3[data-ws-theme=pinky] body.authenticated #app-shell .period-btn{border-radius:999px!important}
+html.kairo-v3[data-ws-theme=cloudy] body.authenticated .kairo-live-clock{color:var(--v3-primary-dark)}
+html.kairo-v3[data-ws-theme=cloudy] body.authenticated.saas-dark .kairo-live-clock{color:#cfdcf7}
+
+/* ---------- icons: menu, bottom nav & stat icons get their own shapes per theme (kairo-themes.js, svg.kti);
+   other inline icons (card titles) are only painted per theme ---------- */
+html.kairo-v3[data-ws-theme] body.authenticated svg.kti{fill:none!important;stroke:currentColor!important;stroke-linecap:round!important;stroke-linejoin:round!important}
+html.kairo-v3[data-ws-theme] body.authenticated svg.kti :is(.f,.n){fill:currentColor;stroke:none}
+html.kairo-v3[data-ws-theme] body.authenticated svg.kti .b{fill:currentColor;fill-opacity:.2}
+html.kairo-v3[data-ws-theme] body.authenticated svg.kti .p{fill:currentColor;fill-opacity:.35}
+html.kairo-v3[data-ws-theme] body.authenticated svg.kti .k{fill:color-mix(in srgb,var(--v3-accent) 72%,currentColor);stroke:none}
+html.kairo-v3[data-ws-theme] body.authenticated .kairo-mobile-orders-main svg.kti .k{fill:currentColor}
+html.kairo-v3[data-ws-theme=girlie] body.authenticated svg.kti{stroke-width:2.1!important}
+html.kairo-v3[data-ws-theme=wood] body.authenticated svg.kti{stroke-width:1.8!important;stroke-linecap:square!important;stroke-linejoin:miter!important}
+html.kairo-v3[data-ws-theme=cloudy] body.authenticated svg.kti{stroke-width:1.5!important}
+html.kairo-v3[data-ws-theme=pinky] body.authenticated svg.kti{stroke-width:2!important}
+html.kairo-v3[data-ws-theme] body.authenticated #app-shell .title-svg-icon svg{stroke-linecap:round;stroke-linejoin:round}
+html.kairo-v3[data-ws-theme=girlie] body.authenticated .title-svg-icon svg{stroke-width:2.2!important}
+html.kairo-v3[data-ws-theme=girlie] body.authenticated .title-svg-icon svg :is(rect,circle,ellipse,polygon){fill:color-mix(in srgb,var(--v3-accent) 26%,transparent)!important}
+html.kairo-v3[data-ws-theme=wood] body.authenticated .title-svg-icon svg{stroke-width:1.45!important}
+html.kairo-v3[data-ws-theme=wood] body.authenticated .title-svg-icon svg :is(rect,circle,ellipse,polygon){fill:color-mix(in srgb,currentColor 18%,transparent)!important}
+html.kairo-v3[data-ws-theme=cloudy] body.authenticated .title-svg-icon svg{stroke-width:2.4!important}
+html.kairo-v3[data-ws-theme=pinky] body.authenticated .title-svg-icon svg{stroke-width:2.1!important}
+html.kairo-v3[data-ws-theme=pinky] body.authenticated .title-svg-icon svg :is(rect,circle,ellipse,polygon){fill:currentColor!important;fill-opacity:.24}
+
+/* ---------- small ornaments: inline SVG masks (no requests), recoloured by token, never over content ---------- */
+html.kairo-v3[data-ws-theme] body.authenticated #kairo-v3-dashboard-head::after{content:"";position:absolute;pointer-events:none;background:var(--ws-deco);-webkit-mask:var(--ws-orn) center/contain no-repeat;mask:var(--ws-orn) center/contain no-repeat;z-index:0}
+html.kairo-v3[data-ws-theme] body.authenticated #kairo-v3-dashboard-head>*{position:relative;z-index:1}
+html.kairo-v3[data-ws-theme=girlie] body.authenticated #kairo-v3-dashboard-head::after{--ws-orn:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 32'%3E%3Cpath d='M16 2l2.4 8.3L27 13l-8.6 2.7L16 24l-2.4-8.3L5 13l8.6-2.7z'/%3E%3Cpath d='M38 14l1.3 4.5L44 20l-4.7 1.5L38 26l-1.3-4.5L32 20l4.7-1.5z' opacity='.6'/%3E%3C/svg%3E");width:60px;height:40px;right:210px;top:22px;opacity:.7}
+html.kairo-v3[data-ws-theme=wood] body.authenticated #kairo-v3-dashboard-head::after{--ws-orn:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120' fill='none' stroke='%23000' stroke-width='1.6' stroke-linecap='round'%3E%3Cpath d='M20 112C40 80 62 52 104 14'/%3E%3Cpath d='M40 84c-14-2-22-12-24-24 12 0 22 8 24 24zM52 68c-4-14 0-26 10-32 4 12 0 24-10 32zM62 58c14-6 26-2 32 8-12 4-24 2-32-8zM76 42c-2-14 4-24 14-28 2 12-4 22-14 28zM86 30c12-6 22-4 28 4-10 6-20 4-28-4z'/%3E%3C/svg%3E");width:110px;height:110px;right:190px;top:-10px;opacity:.75}
+html.kairo-v3[data-ws-theme=cloudy] body.authenticated #kairo-v3-dashboard-head::after{--ws-orn:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 50'%3E%3Cpath d='M30 46a17 17 0 0 1-1.6-34A22 22 0 0 1 70 15a15 15 0 1 1 4 31z'/%3E%3Cpath d='M92 44a9 9 0 0 1-.8-18 12 12 0 0 1 22.5 1.5 8.5 8.5 0 1 1 1.5 16.5z' opacity='.8'/%3E%3C/svg%3E");width:150px;height:62px;right:180px;top:14px;filter:drop-shadow(0 6px 12px rgba(47,79,138,.10))}
+html.kairo-v3[data-ws-theme=pinky] body.authenticated #kairo-v3-dashboard-head::after{--ws-orn:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 40'%3E%3Cpath d='M32 20C22 6 6 4 6 16s14 14 26 4zM32 20c10-14 26-16 26-4s-14 14-26 4z'/%3E%3Cpath d='M29 21l-8 16h4l7-13 7 13h4l-8-16z'/%3E%3Ccircle cx='32' cy='20' r='5.5'/%3E%3C/svg%3E");width:58px;height:38px;right:200px;top:26px;opacity:.85}
+@media (max-width:900px){html.kairo-v3[data-ws-theme] body.authenticated #kairo-v3-dashboard-head::after{display:none}}
+
+/* ---------- Settings › Tema Workspace picker ---------- */
+#kairo-theme-picker{display:grid;gap:8px;padding-top:4px}
+#kairo-theme-picker .kairo-theme-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+#kairo-theme-picker .kairo-theme-opt{display:flex;flex-direction:column;gap:3px;text-align:left;padding:8px 8px 10px;border:1.5px solid var(--v3-line);border-radius:16px;background:var(--v3-surface);color:var(--v3-ink);font:inherit;cursor:pointer;transition:border-color .15s,box-shadow .15s}
+#kairo-theme-picker .kairo-theme-opt:hover{border-color:color-mix(in srgb,var(--v3-primary) 45%,var(--v3-line))}
+#kairo-theme-picker .kairo-theme-opt.is-active{border-color:var(--v3-primary);box-shadow:0 0 0 3px color-mix(in srgb,var(--v3-primary) 22%,transparent)}
+#kairo-theme-picker .kairo-theme-opt strong{font-size:12.5px;font-weight:800;margin-top:6px}
+#kairo-theme-picker .kairo-theme-opt small{font-size:11px;color:var(--v3-muted);line-height:1.35}
+#kairo-theme-picker.is-locked .kairo-theme-opt{opacity:.6}
+#kairo-theme-picker .kairo-theme-lock{font-size:12px;font-weight:700;color:var(--v3-muted)}
+.kairo-theme-swatch{display:grid;grid-template-columns:24% 1fr 1fr;grid-template-rows:12px 1fr;gap:4px;height:62px;padding:6px;border-radius:10px;background:var(--sw-canvas)}
+.kairo-theme-swatch i{grid-row:1/3;border-radius:6px;background:var(--sw-side)}
+.kairo-theme-swatch em{grid-column:2/4;grid-row:1;width:40%;border-radius:999px;background:var(--sw-primary)}
+.kairo-theme-swatch b{border-radius:6px;background:var(--sw-card);box-shadow:0 2px 6px rgba(0,0,0,.06)}
+.kairo-theme-swatch[data-swatch=girlie]{--sw-canvas:#fbf8ff;--sw-side:linear-gradient(#efe4fd,#e6d7fb);--sw-primary:#7b3fc4;--sw-card:#fff}
+.kairo-theme-swatch[data-swatch=wood]{--sw-canvas:#f5eee4;--sw-side:#4a3022;--sw-primary:#8a5a37;--sw-card:#fffcf7}
+.kairo-theme-swatch[data-swatch=cloudy]{--sw-canvas:linear-gradient(170deg,#e6eef9,#f4eff6);--sw-side:rgba(255,255,255,.85);--sw-primary:linear-gradient(90deg,#2f4f8a,#6c63b5);--sw-card:rgba(255,255,255,.9)}
+.kairo-theme-swatch[data-swatch=pinky]{--sw-canvas:#fdf3ee;--sw-side:#fffaf7;--sw-primary:#b8405f;--sw-card:#f8ddc0}
+@media (max-width:640px){#kairo-theme-picker .kairo-theme-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+html.kairo-v3[data-ws-theme] body.authenticated #saas-sidebar .saas-side-brand{background:transparent!important;border-color:transparent!important;box-shadow:none!important}
+html.kairo-v3[data-ws-theme] body.authenticated #saas-sidebar .saas-settings-submenu-btn.active{background:var(--ws-side-active-bg)!important;color:var(--ws-side-active-ink)!important}
+html.kairo-v3[data-ws-theme] body.authenticated #saas-sidebar::before{background:none!important}
+body.saas-dark #kairo-theme-picker .kairo-theme-opt.is-active{border-color:color-mix(in srgb,var(--v3-primary) 55%,#fff);box-shadow:0 0 0 3px color-mix(in srgb,var(--v3-primary) 40%,transparent)}
+/* Table cells use the theme surfaces (dark mode used a fixed grey before). */
+html.kairo-v3[data-ws-theme] body.authenticated #app-shell tbody td{background-color:var(--v3-surface)!important}
+html.kairo-v3[data-ws-theme] body.authenticated #app-shell tbody tr:nth-child(2n) td{background-color:var(--v3-surface-subtle)!important}
+html.kairo-v3[data-ws-theme] body.authenticated #app-shell tbody tr:hover td{background-color:var(--ws-row-hover)!important}
+
+/* Mode gelap: teks berwarna tema di atas latar gelap dicerahkan (label "WORKSPACE HARI INI", nama platform di Performance,
+   nama customer, angka Open Store). Dulu warna tema yang gelap (mis. Awan #2F4F8A) dipakai apa adanya: kontras 1,7-4,4. */
+html.kairo-v3[data-ws-theme] body.authenticated.saas-dark #kairo-v3-dashboard-head small,
+html.kairo-v3[data-ws-theme] body.authenticated.saas-dark #app-shell :is(.platform-summary-name,.customer-db-name,.shift-stat-value){color:color-mix(in srgb,var(--v3-primary) 40%,#fff)!important}
