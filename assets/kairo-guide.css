@@ -1,0 +1,84 @@
+/* KAIRO — Panduan pemakaian (panel kanan di desktop, sheet bawah di HP). Token warna dari kairo-v3.css,
+   jadi ikut mode gelap & tema workspace. Dimuat lazy bersama kairo-guide.js. */
+html.kairo-v3 #kairo-guide[hidden] { display: none !important; }
+html.kairo-v3 #kairo-guide { position: fixed; inset: 0; z-index: 1300; }
+html.kairo-v3 .kairo-guide-backdrop { position: absolute; inset: 0; background: rgba(10, 20, 35, .38); opacity: 0; transition: opacity .2s ease; }
+html.kairo-v3 #kairo-guide.is-open .kairo-guide-backdrop { opacity: 1; }
+html.kairo-v3 .kairo-guide-panel {
+  position: absolute; top: 0; right: 0; bottom: 0; width: min(440px, 100%); display: flex; flex-direction: column;
+  background: linear-gradient(var(--v3-surface, #fff), var(--v3-surface, #fff)), var(--v3-canvas, #fff);
+  color: var(--v3-ink, #173a59); border-left: 1px solid var(--v3-line, #dfe7ee);
+  box-shadow: -18px 0 40px rgba(10, 20, 35, .16); transform: translateX(24px); opacity: 0; transition: transform .22s ease, opacity .22s ease;
+}
+html.kairo-v3 #kairo-guide.is-open .kairo-guide-panel { transform: none; opacity: 1; }
+html.kairo-v3 .kairo-guide-head { display: flex; align-items: center; gap: 12px; padding: 18px 18px 12px; }
+html.kairo-v3 .kairo-guide-head h2 { margin: 0; font-size: 17px; font-weight: 800; color: var(--v3-ink, #173a59); }
+html.kairo-v3 .kairo-guide-head p { margin: 2px 0 0; font-size: 12.5px; color: var(--v3-muted, #4e6475); }
+html.kairo-v3 .kairo-guide-head > div { flex: 1; min-width: 0; }
+html.kairo-v3 .kairo-guide-icon { display: grid; place-items: center; width: 40px; height: 40px; flex: none; border-radius: 12px;
+  background: color-mix(in srgb, var(--v3-primary, #25b9b0) 16%, var(--v3-surface, #fff)); color: var(--v3-primary-dark, #168f8a); }
+html.kairo-v3 #kairo-guide svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+html.kairo-v3 .kairo-guide-close { display: grid; place-items: center; width: 36px; height: 36px; border: 0; border-radius: 10px; cursor: pointer;
+  background: transparent; color: var(--v3-muted, #4e6475); }
+html.kairo-v3 .kairo-guide-close:hover { background: color-mix(in srgb, var(--v3-ink, #173a59) 8%, transparent); color: var(--v3-ink, #173a59); }
+html.kairo-v3 .kairo-guide-search { display: flex; align-items: center; gap: 8px; margin: 0 18px 12px; padding: 0 12px; min-height: 42px;
+  border: 1px solid var(--v3-line, #dfe7ee); border-radius: 12px; background: var(--v3-surface-2, var(--v3-surface, #fff)); color: var(--v3-muted, #4e6475); }
+html.kairo-v3 .kairo-guide-search svg { width: 17px !important; height: 17px !important; flex: none; }
+html.kairo-v3 .kairo-guide-search input { flex: 1; min-width: 0; border: 0 !important; outline: 0; background: transparent !important; box-shadow: none !important;
+  padding: 0 !important; min-height: 40px; font: inherit; font-size: 14px; color: var(--v3-ink, #173a59) !important; }
+html.kairo-v3 .kairo-guide-search:focus-within { border-color: var(--v3-primary, #25b9b0); box-shadow: 0 0 0 3px color-mix(in srgb, var(--v3-primary, #25b9b0) 22%, transparent); }
+html.kairo-v3 .kairo-guide-list { flex: 1; overflow-y: auto; overscroll-behavior: contain; padding: 0 18px 24px; display: grid; align-content: start; gap: 8px; }
+html.kairo-v3 .kairo-guide-item { border: 1px solid var(--v3-line, #dfe7ee); border-radius: 14px; background: var(--v3-surface, #fff); }
+html.kairo-v3 .kairo-guide-item[open] { border-color: color-mix(in srgb, var(--v3-primary, #25b9b0) 40%, var(--v3-line, #dfe7ee)); }
+html.kairo-v3 .kairo-guide-item summary { display: flex; align-items: center; gap: 8px; padding: 13px 14px; cursor: pointer; list-style: none;
+  font-size: 14.5px; font-weight: 800; color: var(--v3-ink, #173a59); border-radius: 14px; }
+html.kairo-v3 .kairo-guide-item summary::-webkit-details-marker { display: none; }
+html.kairo-v3 .kairo-guide-item summary > span:first-child { flex: 1; }
+html.kairo-v3 .kairo-guide-item summary::after { content: ""; width: 8px; height: 8px; flex: none; margin-right: 4px; border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor; transform: rotate(45deg); transition: transform .18s ease; opacity: .6; }
+html.kairo-v3 .kairo-guide-item[open] summary::after { transform: rotate(225deg); }
+html.kairo-v3 .kairo-guide-item summary:focus-visible { outline: 3px solid color-mix(in srgb, var(--v3-primary, #25b9b0) 45%, transparent); outline-offset: 2px; }
+html.kairo-v3 .kairo-guide-pro { padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 800; letter-spacing: .02em;
+  background: color-mix(in srgb, #e8b04b 26%, var(--v3-surface, #fff)); color: color-mix(in srgb, #8a5a12 85%, var(--v3-ink, #173a59)); }
+html.kairo-v3 .kairo-guide-body { padding: 0 14px 14px; font-size: 13.5px; line-height: 1.55; color: var(--v3-ink-soft, var(--v3-ink, #173a59)); }
+html.kairo-v3 .kairo-guide-body p { margin: 0 0 8px; }
+html.kairo-v3 .kairo-guide-intro { color: var(--v3-muted, #4e6475); }
+html.kairo-v3 .kairo-guide-body ol { margin: 0 0 8px; padding-left: 20px; display: grid; gap: 6px; }
+html.kairo-v3 .kairo-guide-body b { color: var(--v3-ink, #173a59); }
+html.kairo-v3 .kairo-guide-tip { padding: 8px 10px; border-radius: 10px; background: color-mix(in srgb, var(--v3-primary, #25b9b0) 8%, var(--v3-surface, #fff)); }
+html.kairo-v3 .kairo-guide-lock { padding: 8px 10px; border-radius: 10px; background: color-mix(in srgb, #e8b04b 14%, var(--v3-surface, #fff)); }
+html.kairo-v3 .kairo-guide-lock button { margin-left: 4px; padding: 0; border: 0; background: none; font: inherit; font-weight: 800; color: var(--v3-ink, #173a59);
+  text-decoration: underline; cursor: pointer; }
+html.kairo-v3 .kairo-guide-go { display: inline-flex; align-items: center; gap: 6px; margin-top: 4px; min-height: 36px; padding: 0 12px; border: 0; border-radius: 10px;
+  background: var(--v3-primary, #25b9b0); color: var(--v3-on-primary, #fff); font: inherit; font-size: 13px; font-weight: 800; cursor: pointer; }
+html.kairo-v3 .kairo-guide-go:hover { background: var(--v3-primary-dark, #168f8a); color: #fff; }
+html.kairo-v3 .kairo-guide-go svg { width: 16px !important; height: 16px !important; }
+html.kairo-v3 :is(.kairo-guide-go, .kairo-guide-close):focus-visible { outline: 3px solid color-mix(in srgb, var(--v3-primary, #25b9b0) 45%, transparent); outline-offset: 2px; }
+html.kairo-v3 .kairo-guide-shot { display: block; width: 100%; margin: 0 0 10px; padding: 0; border: 1px solid var(--v3-line, #dfe7ee); border-radius: 12px;
+  overflow: hidden; background: var(--v3-surface-2, #f4f7f9); cursor: zoom-in; text-align: left; }
+html.kairo-v3 .kairo-guide-shot img { display: block; width: 100%; height: auto; aspect-ratio: 900 / 697; object-fit: cover; object-position: top; }
+html.kairo-v3 .kairo-guide-shot span { display: block; padding: 6px 10px; font-size: 11.5px; color: var(--v3-muted, #4e6475); border-top: 1px solid var(--v3-line, #dfe7ee); }
+html.kairo-v3 .kairo-guide-shot:focus-visible { outline: 3px solid color-mix(in srgb, var(--v3-primary, #25b9b0) 45%, transparent); outline-offset: 2px; }
+html.kairo-v3 .kairo-guide-zoom[hidden] { display: none !important; }
+html.kairo-v3 .kairo-guide-zoom { position: fixed; inset: 0; z-index: 2; display: grid; place-items: center; padding: 56px 16px 16px; background: rgba(8, 16, 28, .86); cursor: zoom-out; }
+html.kairo-v3 .kairo-guide-zoom img { max-width: min(1100px, 100%); max-height: 100%; border-radius: 12px; box-shadow: 0 20px 50px rgba(0, 0, 0, .35); cursor: default; }
+html.kairo-v3 .kairo-guide-zoom-close { position: absolute; top: 12px; right: 12px; display: grid; place-items: center; width: 40px; height: 40px; border: 0; border-radius: 12px;
+  background: rgba(255, 255, 255, .14); color: #fff; cursor: pointer; }
+html.kairo-v3 .kairo-guide-empty { margin: 12px 0; text-align: center; color: var(--v3-muted, #4e6475); font-size: 13.5px; }
+body.kairo-guide-open { overflow: hidden; }
+
+/* Mode gelap: teks Pro & kunci tetap terbaca. */
+html.kairo-v3 body.saas-dark .kairo-guide-pro { background: color-mix(in srgb, #e8b04b 22%, var(--v3-surface, #1b2a3a)); color: #f3d38f; }
+html.kairo-v3 body.saas-dark .kairo-guide-lock button,
+html.kairo-v3 body.saas-dark .kairo-guide-icon { color: color-mix(in srgb, var(--v3-primary, #25b9b0) 70%, #fff); }
+
+@media (max-width: 900px) {
+  html.kairo-v3 .kairo-guide-panel { top: auto; left: 0; width: 100%; height: min(88dvh, 760px); border-left: 0; border-top: 1px solid var(--v3-line, #dfe7ee);
+    border-radius: 22px 22px 0 0; transform: translateY(24px); box-shadow: 0 -18px 40px rgba(10, 20, 35, .18); padding-bottom: env(safe-area-inset-bottom); }
+  html.kairo-v3 .kairo-guide-head { padding: 16px 16px 10px; }
+  html.kairo-v3 .kairo-guide-search { margin: 0 16px 10px; }
+  html.kairo-v3 .kairo-guide-list { padding: 0 16px 20px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html.kairo-v3 .kairo-guide-panel, html.kairo-v3 .kairo-guide-backdrop { transition: none; }
+}

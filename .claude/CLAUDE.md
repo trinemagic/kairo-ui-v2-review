@@ -86,9 +86,12 @@ domain = pengguna login ulang & pengaturan browser (Ingat saya, dark mode) mulai
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
 Versi terakhir: `kairo.css?v=20.10.157`, `kairo-v3.css?v=3.35.0`,
-`kairo-v3.js?v=3.24.0`, `kairo-app.js?v=20.10.195`; template seller dimuat dari kairo-app.js
+`kairo-v3.js?v=3.27.0`, `kairo-app.js?v=20.10.198`; template seller dimuat dari kairo-app.js
 (`seller-app-premium.js?v=20.10.159`, `.css?v=20.10.155`) — naikkan juga bila file template diubah.
 Setup Wizard dimuat dari `loadSetupWizard()` di kairo-app.js (`kairo-setup-wizard.js/.css?v=1.0.2`, satu konstanta `v`).
+Panduan dimuat dari `window.kairoOpenGuide()` di kairo-v3.js (`kairo-guide.js/.css?v=` konstanta `GUIDE_V`='1.0.0'; gambar `assets/guide/*.webp?v=` `SHOT_V` di kairo-guide.js).
+Admin: `admin.js?v=1.11.0`. Library CDN dikunci versi + SRI: supabase-js 2.117.2 (index.html & admin), Chart.js 4.4.4 `dist/chart.umd.js`
+(`ensureChartLibrary`, admin), xlsx-js-style 1.2.0. **Ganti versi = hitung ulang SRI** (`npm pack` lalu `openssl dgst -sha384 -binary f | openssl base64 -A`).
 
 **Halaman app** = `main.container > section.section` dengan id:
 `dashboard`, `performance`, `input` (Orders), `customers`, `promo` (dibuat via JS),
@@ -259,6 +262,23 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   kartu Petty Cash/Customer maks 1,1; label sidebar maks 1,1 + boleh 2 baris; label slider tetap 12,5px. Penyesuaian Harga (Orders) kolomnya
   `min-width:0` (dulu bikin halaman HP melebar). Aturan baru dengan font-size di CSS otomatis ikut; nilai yang mengandung `kfs` tidak disalin.
   Tes: scratchpad `fs/fs.js` (geometri kartu/tabel 100% vs 120% + overflow).
+- **Panduan (owner Okt 2026):** tombol ikon buku `#kairo-guide-btn` di samping lonceng (desktop, `mountGuideButton()` kairo-v3.js) + item
+  "Panduan" `#kairo-guide-more-item` di menu More HP (`buildMore()`). Isi `assets/kairo-guide.js` (teks statis, menyesuaikan template seller/dasar
+  & paket; bagian halaman aktif terbuka otomatis; cari; "Buka <menu>" meng-klik tombol sidebar yang sama - Tracker Langganan hanya terisi lewat
+  menunya). Tiap bagian punya contoh tampilan `assets/guide/{base,seller}-{tab}.webp` (data "Toko Demo", dibuat ulang `.claude/testing/shoot-guide.js`,
+  lazy di dalam `<details>`, pencet = perbesar). Jangan klaim fitur yang belum ada; tandai Pro sesuai `FEATURE_MIN_PLAN`.
+- **Alur penjualan Pro (owner Okt 2026, manual):** daftar di landing (paket + durasi) -> pesan WA konfirmasi -> transfer -> admin › Perlu Perhatian
+  "Daftar Pro, pembayaran belum dicatat" -> Catat Penjualan / Simpan Subscription -> Pro aktif sampai tanggal berakhir. Dashboard: kartu
+  `#kairo-upgrade-hint` punya 3 mode (`data-sub-state` di `<html>` dari `loadWorkspaceSaasContext()`): Gratis = ajakan upgrade (X 7 hari);
+  `renew` = Pro tinggal <=7 hari, "Paket Pro berakhir <tgl>" (X sampai besok, `kairo_renew_hint_hidden_until_v1_<ws>`); `lapsed` = Pro habis.
+  Tombol -> `kairoRequestUpgrade()` = WA berisi username dashboard, nama workspace, pilihan durasi. Paket hanya bisa diubah fungsi admin
+  (SQL secure-login mencabut izin tulis `workspace_subscriptions`/`saas_plan_entitlements` dari browser).
+- **Keamanan (audit Okt 2026):** XSS dinamis (semua field teks diisi `<img onerror>` di semua halaman dasar/seller/admin, desktop & HP) = 0 tereksekusi.
+  CSP `<meta>` di index.html & admin (script hanya self + cdn.jsdelivr, connect hanya project Supabase; img `https:` karena logo bisa URL luar) -
+  **tambah domain baru ke CSP bila memakai layanan luar**. Anti-iframe (clickjacking) di awal kairo-v3.js & admin.js. Login username:
+  `kairo_login_email(username,password)` hanya memberi email bila password benar + batas 8 gagal/username & 40/IP per 15 mnt
+  (SQL `.claude/sql/2026-10-secure-login.sql`, BELUM dijalankan owner; sebelum itu kode jatuh ke `get_login_email` lama).
+  `isTrineMagicWorkspace()` hanya lewat ID (dulu nama "Trine Magic" = Pro selamanya). Audit DB hanya-baca: `.claude/sql/2026-10-security-audit.sql`.
 - **Warna layout:** `kairo-v3.js` memetakan `--brand-primary/--brand-accent` ke token
   v3. Default lama `#696F41/#EA97A9` = "belum diatur" (tetap tampilan KAIRO).
   Reset = `#25B9B0` / `#173A59`.
@@ -464,8 +484,8 @@ cd .claude/testing && node example.js                                # lihat REA
 
 - Playwright: `/opt/node22/lib/node_modules/playwright`, Chromium sudah terpasang
   (jangan `playwright install`). Tidak ada WebKit → **Safari tidak bisa diuji**.
-- Chart.js untuk halaman Performance: `npm pack chart.js@4` lalu route
-  `**/npm/chart.js` ke `package/dist/chart.umd.min.js` (registry npm bisa diakses).
+- Chart.js untuk halaman Performance: `npm pack chart.js@4.4.4` ke `.claude/testing/chartjs` (boot.js me-route `**/chart.js@*/**` ke
+  `package/dist/chart.umd.js`; versi harus sama dengan SRI). boot.js membuang atribut SRI supabase di index.html supaya mock bisa dimuat.
 - Template seller: `SELLER=1 node audit-contrast.js …` / `SELLER=1 node audit-hover.js`, plus
   `node audit-seller.js [dark|light]` (keranjang Orders, Settings › Produk, dialog customer, hover).
 - `pixaudit.js` = audit kontras berbasis PIKSEL (`pixAudit(page, rootSel, skipSel, {viewport})`; `viewport:true` untuk dialog

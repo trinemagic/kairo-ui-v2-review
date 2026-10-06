@@ -1,3 +1,9 @@
+// Anti-clickjacking (Okt 2026): GitHub Pages tidak bisa mengirim header X-Frame-Options, jadi halaman menolak
+// ditampilkan di dalam iframe situs lain (tombol bisa "dipencet tanpa sadar" lewat lapisan transparan).
+if (window.top !== window.self) {
+  try { window.top.location.replace(window.location.href); } catch (_e) { document.documentElement.innerHTML = ''; }
+}
+
 /* KAIRO UI V3 — presentation only. No database or business-logic writes. */
 (() => {
   'use strict';
@@ -632,13 +638,43 @@
     if (next) refreshNotifications().then(markNotificationsSeen);
   }
 
+  // Panduan pemakaian (owner Okt 2026): tombol buku di samping lonceng (desktop) + item "Panduan" di menu More (HP).
+  // Isi & gaya ada di assets/kairo-guide.js/.css, baru dimuat saat pertama kali dibuka supaya dashboard tetap ringan.
+  const GUIDE_V = '1.0.0';
+  let guideLoader = null;
+  window.kairoOpenGuide = function () {
+    if (!guideLoader) {
+      guideLoader = new Promise((resolve, reject) => {
+        if (window.kairoGuide) return resolve(window.kairoGuide);
+        const css = document.createElement('link'); css.rel = 'stylesheet'; css.href = `assets/kairo-guide.css?v=${GUIDE_V}`; document.head.appendChild(css);
+        const js = document.createElement('script'); js.src = `assets/kairo-guide.js?v=${GUIDE_V}`;
+        js.onload = () => (window.kairoGuide ? resolve(window.kairoGuide) : reject(new Error('guide')));
+        js.onerror = () => { guideLoader = null; reject(new Error('guide')); };
+        document.head.appendChild(js);
+      });
+    }
+    return guideLoader.then(g => g.open()).catch(() => window.showToast?.('Panduan gagal dimuat. Coba lagi.', 'error'));
+  };
+  function mountGuideButton(anchor) {
+    if (!anchor || q('#kairo-guide-btn')) return;
+    const btn = document.createElement('button');
+    btn.type = 'button'; btn.id = 'kairo-guide-btn'; btn.className = 'kairo-notif-btn kairo-guide-btn';
+    btn.setAttribute('aria-haspopup', 'dialog'); btn.setAttribute('aria-expanded', 'false');
+    btn.setAttribute('aria-label', 'Panduan'); btn.title = 'Panduan';
+    btn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5"/><path d="M8 7h8M8 10.5h6"/></svg>';
+    btn.addEventListener('click', () => window.kairoOpenGuide());
+    anchor.before(btn);
+  }
+
   function mountNotifications() {
     const theme = q('#saas-theme-toggle');
+    if (theme && q('#kairo-notif-btn')) mountGuideButton(q('.kairo-notif'));
     if (!theme || q('#kairo-notif-btn')) return;
     const wrap = document.createElement('div');
     wrap.className = 'kairo-notif';
     wrap.innerHTML = '<button type="button" id="kairo-notif-btn" class="kairo-notif-btn" aria-haspopup="true" aria-expanded="false" aria-label="Notifikasi" title="Notifikasi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9a6 6 0 0 1 12 0c0 6 2.5 7.5 2.5 7.5h-17S6 15 6 9Z"/><path d="M10 19.5a2.2 2.2 0 0 0 4 0"/></svg><span class="kairo-notif-dot" hidden></span></button><div class="kairo-notif-panel" id="kairo-notif-panel" role="dialog" aria-label="Notifikasi order" hidden><div class="kairo-notif-head"><strong>Order belum tuntas</strong><span>Lebih dari 5 menit sejak Start Reading</span></div><div class="kairo-notif-list" id="kairo-notif-list"></div><button type="button" class="kairo-notif-open">Lihat Riwayat Transaksi</button></div>';
     theme.before(wrap);
+    mountGuideButton(wrap);
     q('#kairo-notif-btn', wrap).addEventListener('click', event => { event.stopPropagation(); toggleNotifications(); });
     q('.kairo-notif-open', wrap).addEventListener('click', () => {
       toggleNotifications(false);
@@ -793,26 +829,51 @@
   document.addEventListener('reset', event => { if (event.target.id === 'tx-form') event.target.querySelectorAll('.' + MISSING).forEach(g => g.classList.remove(MISSING)); }, true);
 })();
 
-// Dashboard upgrade hint for Gratis workspaces: one slim card under the stat cards, hidden on Pro,
-// and the X hides it for 7 days on this device (per workspace).
+// Dashboard upgrade hint, one slim card under the stat cards (alur penjualan Okt 2026):
+// - Gratis: ajakan upgrade; X = sembunyi 7 hari per workspace di perangkat ini.
+// - Pro yang sudah habis (data-sub-state="lapsed"): "Masa aktif Pro sudah berakhir" + Perpanjang (X = 7 hari).
+// - Pro tinggal <=7 hari (data-sub-state="renew"): pengingat perpanjang dengan tanggal berakhir (X = 1 hari).
 (function () {
-  const HIDE_DAYS = 7;
-  const key = () => { let id = ''; try { id = activeWorkspaceId || ''; } catch (_e) {} return 'kairo_upgrade_hint_hidden_until_v1_' + (id || 'default'); };
-  const isFree = () => { let p = document.documentElement.dataset.workspacePlan || ''; try { p = p || activeWorkspacePlan; } catch (_e) {} return String(p || 'basic').toLowerCase() === 'basic'; };
-  const dismissed = () => { try { return Number(localStorage.getItem(key()) || 0) > Date.now(); } catch (_e) { return false; } };
+  const root = document.documentElement;
+  const wid = () => { let id = ''; try { id = activeWorkspaceId || ''; } catch (_e) {} return id || 'default'; };
+  const key = mode => (mode === 'renew' ? 'kairo_renew_hint_hidden_until_v1_' : 'kairo_upgrade_hint_hidden_until_v1_') + wid();
+  const isFree = () => { let p = root.dataset.workspacePlan || ''; try { p = p || activeWorkspacePlan; } catch (_e) {} return String(p || 'basic').toLowerCase() === 'basic'; };
+  const dismissed = mode => { try { return Number(localStorage.getItem(key(mode)) || 0) > Date.now(); } catch (_e) { return false; } };
+  const mode = () => { const s = root.dataset.subState || ''; if (s === 'renew' && !isFree()) return 'renew'; if (!isFree()) return ''; return s === 'lapsed' ? 'lapsed' : 'upgrade'; };
+  let original = null;
+  function copy(hint, m) {
+    const parts = { strong: hint.querySelector('.kairo-upgrade-hint-copy strong'), long: hint.querySelector('.is-long'), short: hint.querySelector('.is-short'), cta: hint.querySelector('[data-upgrade-cta]') };
+    if (!original) original = Object.fromEntries(Object.entries(parts).map(([k, el]) => [k, el ? el.textContent : '']));
+    let text = original;
+    if (m === 'lapsed') text = { strong: 'Masa aktif Pro sudah berakhir', long: 'Workspace sementara memakai paket Gratis, data tetap aman. Perpanjang untuk membuka lagi semua fitur Pro.', short: 'Data tetap aman. Perpanjang untuk membuka fitur Pro lagi.', cta: 'Perpanjang Pro' };
+    if (m === 'renew') {
+      const end = Number(root.dataset.subEnd || 0), days = Math.max(0, Math.ceil((end - Date.now()) / 86400000));
+      const date = end ? new Date(end).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+      const left = days <= 0 ? 'Berakhir hari ini.' : `Tinggal ${days} hari lagi.`;
+      text = { strong: `Paket Pro berakhir ${date}`, long: `${left} Perpanjang sekarang supaya Autofill, Customer Database, Promo, Open Store, Petty Cash, dan Export Excel tetap bisa dipakai.`, short: `${left} Perpanjang supaya fitur Pro tetap aktif.`, cta: 'Perpanjang Pro' };
+    }
+    for (const k of Object.keys(parts)) if (parts[k] && parts[k].textContent !== text[k]) parts[k].textContent = text[k];
+    const close = hint.querySelector('[data-upgrade-close]'), label = m === 'renew' ? 'Sembunyikan sampai besok' : 'Sembunyikan selama 7 hari';
+    if (close && close.title !== label) { close.title = label; close.setAttribute('aria-label', label); }
+    hint.setAttribute('aria-label', m === 'upgrade' ? 'Upgrade ke paket Pro' : 'Perpanjang paket Pro');
+    hint.dataset.mode = m;
+  }
   function sync() {
     const hint = document.getElementById('kairo-upgrade-hint');
     if (!hint) return;
-    hint.hidden = !document.body.classList.contains('authenticated') || !isFree() || dismissed();
+    const m = mode();
+    hint.hidden = !document.body.classList.contains('authenticated') || !m || dismissed(m);
+    if (!hint.hidden) copy(hint, m);
   }
   document.addEventListener('click', event => {
     if (event.target.closest('#kairo-upgrade-hint [data-upgrade-cta]')) window.kairoRequestUpgrade?.();
     if (event.target.closest('#kairo-upgrade-hint [data-upgrade-close]')) {
-      try { localStorage.setItem(key(), String(Date.now() + HIDE_DAYS * 86400000)); } catch (_e) {}
+      const m = mode();
+      try { localStorage.setItem(key(m), String(Date.now() + (m === 'renew' ? 1 : 7) * 86400000)); } catch (_e) {}
       sync();
     }
   });
-  new MutationObserver(sync).observe(document.documentElement, { attributes: true, attributeFilter: ['data-workspace-plan'] });
+  new MutationObserver(sync).observe(root, { attributes: true, attributeFilter: ['data-workspace-plan', 'data-sub-state', 'data-sub-end'] });
   new MutationObserver(sync).observe(document.body, { attributes: true, attributeFilter: ['class'] });
   sync();
 })();

@@ -12,29 +12,29 @@ const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   }
 });
 
-/* Heavy optional libraries are loaded only by the feature that needs them. */
+/* Heavy optional libraries are loaded only by the feature that needs them; exact version + SRI hash so a tampered CDN file is refused. */
 const kairoLibraryPromises = new Map();
-function loadKairoLibrary(key,src,test){
+function loadKairoLibrary(key,src,test,integrity){
   if(test())return Promise.resolve();
   if(kairoLibraryPromises.has(key))return kairoLibraryPromises.get(key);
   const promise=new Promise((resolve,reject)=>{
     const existing=document.querySelector(`script[data-kairo-library="${key}"]`);
     if(existing){existing.addEventListener('load',resolve,{once:true});existing.addEventListener('error',reject,{once:true});return;}
-    const script=document.createElement('script');script.src=src;script.async=true;script.dataset.kairoLibrary=key;
+    const script=document.createElement('script');script.src=src;script.async=true;script.dataset.kairoLibrary=key;if(integrity){script.integrity=integrity;script.crossOrigin='anonymous';}
     script.onload=()=>test()?resolve():reject(new Error(`${key} tidak tersedia setelah dimuat.`));
     script.onerror=()=>reject(new Error(`Gagal memuat library ${key}.`));document.head.appendChild(script);
   }).catch(error=>{kairoLibraryPromises.delete(key);throw error});
   kairoLibraryPromises.set(key,promise);return promise;
 }
-function ensureChartLibrary(){return loadKairoLibrary('chart','https://cdn.jsdelivr.net/npm/chart.js',()=>typeof window.Chart!=='undefined')}
-function ensureXlsxLibrary(){return loadKairoLibrary('xlsx','https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js',()=>typeof window.XLSX!=='undefined')}
+function ensureChartLibrary(){return loadKairoLibrary('chart','https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.js',()=>typeof window.Chart!=='undefined','sha384-G436+Z2nlA8+PNoeRvWdxKbvOf8E/y+lYxqht2iBwNHTQDV5CJr3+AGVj8fGZi5t')}
+function ensureXlsxLibrary(){return loadKairoLibrary('xlsx','https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js',()=>typeof window.XLSX!=='undefined','sha384-OUW9euuUyxyHcAhTqbhI+Iyb8LMssXt/cpz0yXhs9UWG2/R/uaWdakx/4cfww7Vb')}
 
 /* =========================
    SAAS WORKSPACE + ROLE/PLAN RUNTIME — V20.3.4
    Visual UI is intentionally unchanged.
    ========================= */
 let activeWorkspaceId = null;
-let activeWorkspaceName = "Trine Magic";
+let activeWorkspaceName = "Workspace";
 let activeWorkspaceRole = null;
 let activeAuthUserId = null;
 let activeWorkspacePlan = "basic";
@@ -57,8 +57,10 @@ async function loadPlatformAccess(){
   return activePlatformAdmin;
 }
 
+// Hanya lewat ID: nama workspace bisa diganti user di Settings, jadi workspace lain yang dinamai "Trine Magic" dulu ikut
+// dianggap Pro selamanya (Okt 2026, celah ditutup).
 function isTrineMagicWorkspace(){
-  return String(activeWorkspaceId||"")===TRINE_MAGIC_WORKSPACE_ID || String(activeWorkspaceName||"").trim().toLowerCase()==="trine magic";
+  return String(activeWorkspaceId||"")===TRINE_MAGIC_WORKSPACE_ID;
 }
 // "KAIRO Admin" shortcut — only inside the Trine Magic workspace (the future KAIRO Workspaces admin
 // panel lives at admin/). Desktop: under Settings in the sidebar; phone: in the More sheet.
@@ -193,6 +195,10 @@ async function loadWorkspaceSaasContext(){
   activeWorkspaceSubscription=subscription||null;
   activeWorkspacePlan=effectiveSubscriptionPlan(subscription);
   document.documentElement.dataset.workspacePlan=activeWorkspacePlan;
+  // Masa aktif untuk banner Dashboard (kairo-v3.js): 'renew' = Pro tinggal <=7 hari, 'lapsed' = Pro sudah habis.
+  const subEnd=subscriptionEnd(subscription);
+  document.documentElement.dataset.subEnd=subEnd?String(subEnd):'';
+  document.documentElement.dataset.subState=isTrineMagicWorkspace()?'':subscriptionLapsed(subscription)?'lapsed':(activeWorkspacePlan==='pro'&&subEnd&&subEnd-Date.now()<=7*864e5)?'renew':'';
   await loadPlanEntitlements();
   noticeLapsedSubscription();
   console.info("Trine SaaS context",{workspaceId:wid,role:activeWorkspaceRole,plan:activeWorkspacePlan});
@@ -224,7 +230,7 @@ async function loadActiveWorkspaceForUser(user){
   const membership=memberships.find(x=>x.workspace_id===savedWorkspaceId) || memberships.find(x=>x.workspaces?.slug==="trine-magic") || memberships[0];
   activeWorkspaceId=membership.workspace_id;
   activeWorkspaceRole=membership.role;
-  activeWorkspaceName=membership.workspaces?.name || "Trine Magic";
+  activeWorkspaceName=membership.workspaces?.name || "Workspace";
   return membership;
 }
 
@@ -278,7 +284,18 @@ async function loginWithUsername(username,password){
   // v20.10.74: login accepts either username or the account email directly.
   // This also keeps login usable if username mapping/provisioning needs repair.
   if(!cleanUsername.includes("@")){
-    const {data,error:lookupError}=await db.rpc("get_login_email",{p_username:cleanUsername});
+    // Okt 2026: kairo_login_email hanya mengembalikan email bila password benar (+ batas percobaan), jadi email user
+    // tidak bisa dipanen dari username. Sebelum SQL .claude/sql/2026-10-secure-login.sql dijalankan fungsinya belum ada
+    // (PGRST202) -> pakai get_login_email lama.
+    let {data,error:lookupError}=await db.rpc("kairo_login_email",{p_username:cleanUsername,p_password:password});
+    if(lookupError&&(lookupError.code==="PGRST202"||/could not find|does not exist/i.test(lookupError.message||""))){
+      ({data,error:lookupError}=await db.rpc("get_login_email",{p_username:cleanUsername}));
+    }
+    if(lookupError&&lookupError.code==="P0429"){
+      setAuthLoading(false);
+      showAuthError(lookupError.message||"Terlalu banyak percobaan masuk. Coba lagi 15 menit lagi.");
+      return;
+    }
     if(lookupError){
       setAuthLoading(false);
       showAuthError("Username belum terdaftar atau sistem login belum disiapkan.");
@@ -2699,7 +2716,7 @@ function escapeHtml(value){
 }
 
 /* =========================
-   EXCEL EXPORT — TRINE MAGIC TEMPLATE
+   EXCEL EXPORT
    ========================= */
 function excelDate(value){
   if(!value) return "";
@@ -2858,7 +2875,8 @@ async function exportExcel(){
 
     const safeFrom=String(range.from||"all").replace(/[^0-9-]/g,"")||"all";
     const safeTo=String(range.to||"all").replace(/[^0-9-]/g,"")||"all";
-    XLSX.writeFile(wb,`Trine_Magic_Report_${safeFrom}_to_${safeTo}.xlsx`);
+    const safeName=String(activeWorkspaceName||'KAIRO').replace(/[^A-Za-z0-9]+/g,'_').replace(/^_+|_+$/g,'')||'KAIRO';
+    XLSX.writeFile(wb,`${safeName}_Laporan_${safeFrom}_sd_${safeTo}.xlsx`);
     showToast("📊 Excel berhasil dibuat.");
   }catch(err){console.error(err);showToast("Gagal membuat Excel: "+(err.message||err),true);}
 }
@@ -3559,7 +3577,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
   function buildSidebar(){
     const app=document.querySelector('.app-shell#app-shell'); if(!app||document.getElementById('saas-sidebar')) return;
     const side=document.createElement('aside');side.id='saas-sidebar';
-    side.innerHTML=`<div class="saas-side-brand" id="saas-side-home"><img class="brand-logo" alt="Logo workspace"><div class="saas-side-brand-copy"><strong id="saas-side-workspace-name">${escapeHtml(typeof activeWorkspaceName!=='undefined'?activeWorkspaceName:'Trine Magic')}</strong><small>Business Dashboard</small></div></div><nav class="saas-sidebar-nav" aria-label="Navigasi dashboard"></nav><div class="saas-side-spacer"></div><button id="saas-collapse-btn" class="saas-collapse-btn" type="button" title="Minimize sidebar">‹</button>`;
+    side.innerHTML=`<div class="saas-side-brand" id="saas-side-home"><img class="brand-logo" alt="Logo workspace"><div class="saas-side-brand-copy"><strong id="saas-side-workspace-name">${escapeHtml(typeof activeWorkspaceName!=='undefined'?activeWorkspaceName:'Workspace')}</strong><small>Business Dashboard</small></div></div><nav class="saas-sidebar-nav" aria-label="Navigasi dashboard"></nav><div class="saas-side-spacer"></div><button id="saas-collapse-btn" class="saas-collapse-btn" type="button" title="Minimize sidebar">‹</button>`;
     document.body.appendChild(side);
     const sideNav=side.querySelector('.saas-sidebar-nav');
     // Sidebar menu buttons (the old top tab bar in the header is gone).
@@ -4815,7 +4833,10 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
  document.addEventListener('submit',e=>{if(e.target?.id!=='kairo-signup-form')return;const plan=document.getElementById('kairo-selected-plan')?.value||'basic',biz=document.querySelector('input[name="kairo-business"]:checked')?.value||'digital_subscription',wa=(document.getElementById('kairo-signup-wa')?.value||'').trim();const hiddenTemplate=document.getElementById('kairo-signup-template');if(hiddenTemplate)hiddenTemplate.value=biz;window.__kairoPendingSignup={plan,biz,wa}},true);
  // Basic-only upgrade frame + feedback in sidebar.
  // Upgrade request for Gratis workspaces (Dashboard banner): WhatsApp when the number is set.
- window.kairoRequestUpgrade=function(){const name=window.activeWorkspaceName||'';if(WA_BUSINESS){window.open(`https://wa.me/${WA_BUSINESS}?text=${encodeURIComponent(`Halo KAIRO, saya mau upgrade workspace ${name} ke paket Pro.`)}`,'_blank');return}showToast('Untuk upgrade ke Pro, hubungi tim KAIRO. Kontak WhatsApp segera tersedia di aplikasi.','info')};
+ // Pesan WhatsApp upgrade/perpanjang Pro (alur penjualan Okt 2026): akun & workspace terisi otomatis supaya admin langsung
+ // bisa mencari workspace-nya di admin › Perlu Perhatian lalu "Catat Penjualan" setelah transfer masuk.
+ function upgradeMessage(){const renew=['renew','lapsed'].includes(document.documentElement.dataset.subState||'');return [`Halo admin Kairo Workspaces!`,'',renew?'Saya ingin memperpanjang paket Pro.':'Saya ingin upgrade ke paket Pro.','',`Nama Pengguna Dashboard: ${window.kairoUsername||''}`,`Nama Workspaces: ${window.activeWorkspaceName||''}`,'Durasi: 1 bulan (Rp43.000) / 6 bulan (Rp238.000) - pilih salah satu','','Mohon info cara pembayarannya. Terima kasih!'].join('\n')}
+ window.kairoRequestUpgrade=function(){if(WA_BUSINESS){window.open(`https://wa.me/${WA_BUSINESS}?text=${encodeURIComponent(upgradeMessage())}`,'_blank');return}showToast('Untuk upgrade ke Pro, hubungi tim KAIRO. Kontak WhatsApp segera tersedia di aplikasi.','info')};
  // Pesan WhatsApp yang dikirim user lewat tombol "Ada masukan/keluhan?" (format owner, Okt 2026).
  // Nama pengguna & workspace terisi otomatis; user tinggal menulis keluhan/masukannya.
  function feedbackMessage(){return ['Halo admin Kairo Workspaces!','','Saya ingin menyampaikan keluhan/masukan:','',`Nama Pengguna Dashboard: ${window.kairoUsername||''}`,`Nama Workspaces: ${window.activeWorkspaceName||''}`,'Keluhan/Masukan: ','','Sertakan bukti screenshot halaman/notifikasi error di dashboard kalau ada','','Terima kasih, sukses selalu!'].join('\n');}
@@ -5245,6 +5266,10 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
       const b=document.createElement('button');b.type='button';b.className='saas-mobile-nav-btn kairo-mobile-more-item';b.dataset.mobileTab=tab;
       b.innerHTML=`<span>${icons[tab]}</span><span>${labels[tab]}</span>`;b.addEventListener('click',()=>navTo(tab));grid.appendChild(b);
     });
+    // Panduan pemakaian (kairo-v3.js window.kairoOpenGuide); di desktop tombolnya di samping lonceng.
+    const guide=document.createElement('button');guide.type='button';guide.id='kairo-guide-more-item';guide.className='saas-mobile-nav-btn kairo-mobile-more-item';
+    guide.innerHTML='<span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5"/><path d="M8 7h8M8 10.5h6"/></svg></span><span>Panduan</span>';
+    guide.addEventListener('click',()=>{closeMore();window.kairoOpenGuide?.();});grid.appendChild(guide);
     // Sidebar "Ada masukan/keluhan?" is hidden on phones, so the same WhatsApp feedback lives here.
     const fb=document.createElement('button');fb.type='button';fb.id='kairo-feedback-more-item';fb.className='saas-mobile-nav-btn kairo-mobile-more-item';
     fb.innerHTML='<span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4V5Z"/><path d="M8 9h8M8 12h5"/></svg></span><span>Masukan / Keluhan</span>';

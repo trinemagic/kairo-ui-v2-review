@@ -8,6 +8,7 @@ const SUPABASE_KEY='sb_publishable_cylO3B4mLWoohXAWlI0R1A_uanf1qYM';
    dashboard Trine Magic; tab dashboard itulah yang memberi token sesi (lihat openKairoAdmin di
    assets/kairo-app.js). Token diminta ulang saat hampir kedaluwarsa, jadi bila dashboard ditutup atau
    logout, admin ikut terkunci. Server tetap memeriksa is_platform_admin di setiap fungsi. */
+if(window.top!==window.self){try{window.top.location.replace(window.location.href)}catch(_e){document.documentElement.innerHTML=''}}
 let session=null;
 function requestToken(){
   return new Promise((resolve,reject)=>{
