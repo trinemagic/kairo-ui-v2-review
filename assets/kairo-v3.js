@@ -1,3 +1,9 @@
+// Anti-clickjacking (Okt 2026): GitHub Pages tidak bisa mengirim header X-Frame-Options, jadi halaman menolak
+// ditampilkan di dalam iframe situs lain (tombol bisa "dipencet tanpa sadar" lewat lapisan transparan).
+if (window.top !== window.self) {
+  try { window.top.location.replace(window.location.href); } catch (_e) { document.documentElement.innerHTML = ''; }
+}
+
 /* KAIRO UI V3 — presentation only. No database or business-logic writes. */
 (() => {
   'use strict';

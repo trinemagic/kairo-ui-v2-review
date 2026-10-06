@@ -12,9 +12,16 @@ async function bootApp(browser, { width = 1440, height = 900, mobile = false, pl
   page.errs = [];
   page.on('pageerror', e => page.errs.push(e.message));
   page.on('console', m => { if (m.type() === 'error') page.errs.push('console: ' + m.text()); });
-  await page.route('**/supabase-js@2', r => r.fulfill({ contentType: 'application/javascript', body: MOCK }));
-  const chart = path.join(__dirname, 'chartjs/package/dist/chart.umd.min.js');
-  if (fs.existsSync(chart)) await page.route('**/npm/chart.js', r => r.fulfill({ contentType: 'application/javascript', body: fs.readFileSync(chart, 'utf8') }));
+  // supabase-js is pinned with an SRI hash in index.html; the mock has a different hash, so serve index.html without it.
+  await page.route('**/supabase-js@*/**', r => r.fulfill({ contentType: 'application/javascript', body: MOCK, headers: { 'access-control-allow-origin': '*' } }));
+  await page.route(/\/(index\.html)?(\?.*)?$/, async r => {
+    if (r.request().resourceType() !== 'document') return r.continue();
+    const res = await r.fetch(); const html = (await res.text()).replace(/(supabase-js@[^"]+") integrity="[^"]+"/, '$1');
+    return r.fulfill({ response: res, body: html });
+  });
+  // Chart.js is loaded with its real SRI hash: keep the exact pinned version here (npm pack chart.js@4.4.4).
+  const chart = path.join(__dirname, 'chartjs/package/dist/chart.umd.js');
+  if (fs.existsSync(chart)) await page.route('**/chart.js@*/**', r => r.fulfill({ contentType: 'application/javascript', body: fs.readFileSync(chart), headers: { 'access-control-allow-origin': '*' } }));
   await page.goto(BASE);
   await page.waitForTimeout(1500);
   await page.evaluate(({ plan, seed, workspaceName }) => {
