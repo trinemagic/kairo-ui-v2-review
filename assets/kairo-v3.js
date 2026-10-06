@@ -799,26 +799,51 @@ if (window.top !== window.self) {
   document.addEventListener('reset', event => { if (event.target.id === 'tx-form') event.target.querySelectorAll('.' + MISSING).forEach(g => g.classList.remove(MISSING)); }, true);
 })();
 
-// Dashboard upgrade hint for Gratis workspaces: one slim card under the stat cards, hidden on Pro,
-// and the X hides it for 7 days on this device (per workspace).
+// Dashboard upgrade hint, one slim card under the stat cards (alur penjualan Okt 2026):
+// - Gratis: ajakan upgrade; X = sembunyi 7 hari per workspace di perangkat ini.
+// - Pro yang sudah habis (data-sub-state="lapsed"): "Masa aktif Pro sudah berakhir" + Perpanjang (X = 7 hari).
+// - Pro tinggal <=7 hari (data-sub-state="renew"): pengingat perpanjang dengan tanggal berakhir (X = 1 hari).
 (function () {
-  const HIDE_DAYS = 7;
-  const key = () => { let id = ''; try { id = activeWorkspaceId || ''; } catch (_e) {} return 'kairo_upgrade_hint_hidden_until_v1_' + (id || 'default'); };
-  const isFree = () => { let p = document.documentElement.dataset.workspacePlan || ''; try { p = p || activeWorkspacePlan; } catch (_e) {} return String(p || 'basic').toLowerCase() === 'basic'; };
-  const dismissed = () => { try { return Number(localStorage.getItem(key()) || 0) > Date.now(); } catch (_e) { return false; } };
+  const root = document.documentElement;
+  const wid = () => { let id = ''; try { id = activeWorkspaceId || ''; } catch (_e) {} return id || 'default'; };
+  const key = mode => (mode === 'renew' ? 'kairo_renew_hint_hidden_until_v1_' : 'kairo_upgrade_hint_hidden_until_v1_') + wid();
+  const isFree = () => { let p = root.dataset.workspacePlan || ''; try { p = p || activeWorkspacePlan; } catch (_e) {} return String(p || 'basic').toLowerCase() === 'basic'; };
+  const dismissed = mode => { try { return Number(localStorage.getItem(key(mode)) || 0) > Date.now(); } catch (_e) { return false; } };
+  const mode = () => { const s = root.dataset.subState || ''; if (s === 'renew' && !isFree()) return 'renew'; if (!isFree()) return ''; return s === 'lapsed' ? 'lapsed' : 'upgrade'; };
+  let original = null;
+  function copy(hint, m) {
+    const parts = { strong: hint.querySelector('.kairo-upgrade-hint-copy strong'), long: hint.querySelector('.is-long'), short: hint.querySelector('.is-short'), cta: hint.querySelector('[data-upgrade-cta]') };
+    if (!original) original = Object.fromEntries(Object.entries(parts).map(([k, el]) => [k, el ? el.textContent : '']));
+    let text = original;
+    if (m === 'lapsed') text = { strong: 'Masa aktif Pro sudah berakhir', long: 'Workspace sementara memakai paket Gratis, data tetap aman. Perpanjang untuk membuka lagi semua fitur Pro.', short: 'Data tetap aman. Perpanjang untuk membuka fitur Pro lagi.', cta: 'Perpanjang Pro' };
+    if (m === 'renew') {
+      const end = Number(root.dataset.subEnd || 0), days = Math.max(0, Math.ceil((end - Date.now()) / 86400000));
+      const date = end ? new Date(end).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+      const left = days <= 0 ? 'Berakhir hari ini.' : `Tinggal ${days} hari lagi.`;
+      text = { strong: `Paket Pro berakhir ${date}`, long: `${left} Perpanjang sekarang supaya Autofill, Customer Database, Promo, Open Store, Petty Cash, dan Export Excel tetap bisa dipakai.`, short: `${left} Perpanjang supaya fitur Pro tetap aktif.`, cta: 'Perpanjang Pro' };
+    }
+    for (const k of Object.keys(parts)) if (parts[k] && parts[k].textContent !== text[k]) parts[k].textContent = text[k];
+    const close = hint.querySelector('[data-upgrade-close]'), label = m === 'renew' ? 'Sembunyikan sampai besok' : 'Sembunyikan selama 7 hari';
+    if (close && close.title !== label) { close.title = label; close.setAttribute('aria-label', label); }
+    hint.setAttribute('aria-label', m === 'upgrade' ? 'Upgrade ke paket Pro' : 'Perpanjang paket Pro');
+    hint.dataset.mode = m;
+  }
   function sync() {
     const hint = document.getElementById('kairo-upgrade-hint');
     if (!hint) return;
-    hint.hidden = !document.body.classList.contains('authenticated') || !isFree() || dismissed();
+    const m = mode();
+    hint.hidden = !document.body.classList.contains('authenticated') || !m || dismissed(m);
+    if (!hint.hidden) copy(hint, m);
   }
   document.addEventListener('click', event => {
     if (event.target.closest('#kairo-upgrade-hint [data-upgrade-cta]')) window.kairoRequestUpgrade?.();
     if (event.target.closest('#kairo-upgrade-hint [data-upgrade-close]')) {
-      try { localStorage.setItem(key(), String(Date.now() + HIDE_DAYS * 86400000)); } catch (_e) {}
+      const m = mode();
+      try { localStorage.setItem(key(m), String(Date.now() + (m === 'renew' ? 1 : 7) * 86400000)); } catch (_e) {}
       sync();
     }
   });
-  new MutationObserver(sync).observe(document.documentElement, { attributes: true, attributeFilter: ['data-workspace-plan'] });
+  new MutationObserver(sync).observe(root, { attributes: true, attributeFilter: ['data-workspace-plan', 'data-sub-state', 'data-sub-end'] });
   new MutationObserver(sync).observe(document.body, { attributes: true, attributeFilter: ['class'] });
   sync();
 })();

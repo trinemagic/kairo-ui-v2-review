@@ -195,6 +195,10 @@ async function loadWorkspaceSaasContext(){
   activeWorkspaceSubscription=subscription||null;
   activeWorkspacePlan=effectiveSubscriptionPlan(subscription);
   document.documentElement.dataset.workspacePlan=activeWorkspacePlan;
+  // Masa aktif untuk banner Dashboard (kairo-v3.js): 'renew' = Pro tinggal <=7 hari, 'lapsed' = Pro sudah habis.
+  const subEnd=subscriptionEnd(subscription);
+  document.documentElement.dataset.subEnd=subEnd?String(subEnd):'';
+  document.documentElement.dataset.subState=isTrineMagicWorkspace()?'':subscriptionLapsed(subscription)?'lapsed':(activeWorkspacePlan==='pro'&&subEnd&&subEnd-Date.now()<=7*864e5)?'renew':'';
   await loadPlanEntitlements();
   noticeLapsedSubscription();
   console.info("Trine SaaS context",{workspaceId:wid,role:activeWorkspaceRole,plan:activeWorkspacePlan});
@@ -4829,7 +4833,10 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
  document.addEventListener('submit',e=>{if(e.target?.id!=='kairo-signup-form')return;const plan=document.getElementById('kairo-selected-plan')?.value||'basic',biz=document.querySelector('input[name="kairo-business"]:checked')?.value||'digital_subscription',wa=(document.getElementById('kairo-signup-wa')?.value||'').trim();const hiddenTemplate=document.getElementById('kairo-signup-template');if(hiddenTemplate)hiddenTemplate.value=biz;window.__kairoPendingSignup={plan,biz,wa}},true);
  // Basic-only upgrade frame + feedback in sidebar.
  // Upgrade request for Gratis workspaces (Dashboard banner): WhatsApp when the number is set.
- window.kairoRequestUpgrade=function(){const name=window.activeWorkspaceName||'';if(WA_BUSINESS){window.open(`https://wa.me/${WA_BUSINESS}?text=${encodeURIComponent(`Halo KAIRO, saya mau upgrade workspace ${name} ke paket Pro.`)}`,'_blank');return}showToast('Untuk upgrade ke Pro, hubungi tim KAIRO. Kontak WhatsApp segera tersedia di aplikasi.','info')};
+ // Pesan WhatsApp upgrade/perpanjang Pro (alur penjualan Okt 2026): akun & workspace terisi otomatis supaya admin langsung
+ // bisa mencari workspace-nya di admin › Perlu Perhatian lalu "Catat Penjualan" setelah transfer masuk.
+ function upgradeMessage(){const renew=['renew','lapsed'].includes(document.documentElement.dataset.subState||'');return [`Halo admin Kairo Workspaces!`,'',renew?'Saya ingin memperpanjang paket Pro.':'Saya ingin upgrade ke paket Pro.','',`Nama Pengguna Dashboard: ${window.kairoUsername||''}`,`Nama Workspaces: ${window.activeWorkspaceName||''}`,'Durasi: 1 bulan (Rp43.000) / 6 bulan (Rp238.000) - pilih salah satu','','Mohon info cara pembayarannya. Terima kasih!'].join('\n')}
+ window.kairoRequestUpgrade=function(){if(WA_BUSINESS){window.open(`https://wa.me/${WA_BUSINESS}?text=${encodeURIComponent(upgradeMessage())}`,'_blank');return}showToast('Untuk upgrade ke Pro, hubungi tim KAIRO. Kontak WhatsApp segera tersedia di aplikasi.','info')};
  // Pesan WhatsApp yang dikirim user lewat tombol "Ada masukan/keluhan?" (format owner, Okt 2026).
  // Nama pengguna & workspace terisi otomatis; user tinggal menulis keluhan/masukannya.
  function feedbackMessage(){return ['Halo admin Kairo Workspaces!','','Saya ingin menyampaikan keluhan/masukan:','',`Nama Pengguna Dashboard: ${window.kairoUsername||''}`,`Nama Workspaces: ${window.activeWorkspaceName||''}`,'Keluhan/Masukan: ','','Sertakan bukti screenshot halaman/notifikasi error di dashboard kalau ada','','Terima kasih, sukses selalu!'].join('\n');}
