@@ -54,6 +54,8 @@ if (window.top !== window.self) {
     });
   }
 
+  window.kairoOpenLogin = openLogin; // dipakai kairo-app.js setelah daftar akun ("Kembali ke Masuk")
+
   function focusLoginField() {
     const dialog = q('#kairo-login-dialog');
     if (!dialog || dialog.hidden) return;
