@@ -638,13 +638,43 @@ if (window.top !== window.self) {
     if (next) refreshNotifications().then(markNotificationsSeen);
   }
 
+  // Panduan pemakaian (owner Okt 2026): tombol buku di samping lonceng (desktop) + item "Panduan" di menu More (HP).
+  // Isi & gaya ada di assets/kairo-guide.js/.css, baru dimuat saat pertama kali dibuka supaya dashboard tetap ringan.
+  const GUIDE_V = '1.0.0';
+  let guideLoader = null;
+  window.kairoOpenGuide = function () {
+    if (!guideLoader) {
+      guideLoader = new Promise((resolve, reject) => {
+        if (window.kairoGuide) return resolve(window.kairoGuide);
+        const css = document.createElement('link'); css.rel = 'stylesheet'; css.href = `assets/kairo-guide.css?v=${GUIDE_V}`; document.head.appendChild(css);
+        const js = document.createElement('script'); js.src = `assets/kairo-guide.js?v=${GUIDE_V}`;
+        js.onload = () => (window.kairoGuide ? resolve(window.kairoGuide) : reject(new Error('guide')));
+        js.onerror = () => { guideLoader = null; reject(new Error('guide')); };
+        document.head.appendChild(js);
+      });
+    }
+    return guideLoader.then(g => g.open()).catch(() => window.showToast?.('Panduan gagal dimuat. Coba lagi.', 'error'));
+  };
+  function mountGuideButton(anchor) {
+    if (!anchor || q('#kairo-guide-btn')) return;
+    const btn = document.createElement('button');
+    btn.type = 'button'; btn.id = 'kairo-guide-btn'; btn.className = 'kairo-notif-btn kairo-guide-btn';
+    btn.setAttribute('aria-haspopup', 'dialog'); btn.setAttribute('aria-expanded', 'false');
+    btn.setAttribute('aria-label', 'Panduan'); btn.title = 'Panduan';
+    btn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5"/><path d="M8 7h8M8 10.5h6"/></svg>';
+    btn.addEventListener('click', () => window.kairoOpenGuide());
+    anchor.before(btn);
+  }
+
   function mountNotifications() {
     const theme = q('#saas-theme-toggle');
+    if (theme && q('#kairo-notif-btn')) mountGuideButton(q('.kairo-notif'));
     if (!theme || q('#kairo-notif-btn')) return;
     const wrap = document.createElement('div');
     wrap.className = 'kairo-notif';
     wrap.innerHTML = '<button type="button" id="kairo-notif-btn" class="kairo-notif-btn" aria-haspopup="true" aria-expanded="false" aria-label="Notifikasi" title="Notifikasi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9a6 6 0 0 1 12 0c0 6 2.5 7.5 2.5 7.5h-17S6 15 6 9Z"/><path d="M10 19.5a2.2 2.2 0 0 0 4 0"/></svg><span class="kairo-notif-dot" hidden></span></button><div class="kairo-notif-panel" id="kairo-notif-panel" role="dialog" aria-label="Notifikasi order" hidden><div class="kairo-notif-head"><strong>Order belum tuntas</strong><span>Lebih dari 5 menit sejak Start Reading</span></div><div class="kairo-notif-list" id="kairo-notif-list"></div><button type="button" class="kairo-notif-open">Lihat Riwayat Transaksi</button></div>';
     theme.before(wrap);
+    mountGuideButton(wrap);
     q('#kairo-notif-btn', wrap).addEventListener('click', event => { event.stopPropagation(); toggleNotifications(); });
     q('.kairo-notif-open', wrap).addEventListener('click', () => {
       toggleNotifications(false);

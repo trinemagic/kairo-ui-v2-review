@@ -5266,6 +5266,10 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
       const b=document.createElement('button');b.type='button';b.className='saas-mobile-nav-btn kairo-mobile-more-item';b.dataset.mobileTab=tab;
       b.innerHTML=`<span>${icons[tab]}</span><span>${labels[tab]}</span>`;b.addEventListener('click',()=>navTo(tab));grid.appendChild(b);
     });
+    // Panduan pemakaian (kairo-v3.js window.kairoOpenGuide); di desktop tombolnya di samping lonceng.
+    const guide=document.createElement('button');guide.type='button';guide.id='kairo-guide-more-item';guide.className='saas-mobile-nav-btn kairo-mobile-more-item';
+    guide.innerHTML='<span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5"/><path d="M8 7h8M8 10.5h6"/></svg></span><span>Panduan</span>';
+    guide.addEventListener('click',()=>{closeMore();window.kairoOpenGuide?.();});grid.appendChild(guide);
     // Sidebar "Ada masukan/keluhan?" is hidden on phones, so the same WhatsApp feedback lives here.
     const fb=document.createElement('button');fb.type='button';fb.id='kairo-feedback-more-item';fb.className='saas-mobile-nav-btn kairo-mobile-more-item';
     fb.innerHTML='<span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4V5Z"/><path d="M8 9h8M8 12h5"/></svg></span><span>Masukan / Keluhan</span>';
