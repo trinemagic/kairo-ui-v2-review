@@ -954,3 +954,65 @@ if (window.top !== window.self) {
   mountPicker(); apply();
   new MutationObserver(() => { if (!document.getElementById('kairo-font-scale-picker')) mountPicker(); }).observe(document.getElementById('settings') || document.body, { childList: true, subtree: true });
 })();
+
+/* ---- Kolom nominal Rupiah (owner Okt 2026) ----
+   Orders (Tip, Penyesuaian Harga mode Nominal), Withdraw, Petty Cash: saat mengetik tampil "Rp150.000".
+   Kolomnya tetap kolom yang sama: properti `value` elemen ini mengembalikan angka murni ("150000"), jadi semua kode lama
+   (Number(el.value), reset form, template seller) tidak berubah. Mode Persentase di Penyesuaian Harga tidak diformat. */
+(function () {
+  'use strict';
+  const IDS = ['tx-tip', 'tx-adjustment-value', 'payout-amount', 'cash-expense-amount', 'cash-injection-amount'];
+  const desc = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
+  const raw = el => desc.get.call(el);
+  const put = (el, v) => desc.set.call(el, v);
+  const isMoney = el => el.id !== 'tx-adjustment-value' || document.getElementById('tx-adjustment-mode')?.value === 'fixed';
+  const digits = v => String(v ?? '').replace(/\D/g, '').replace(/^0+(?=\d)/, '').slice(0, 13);
+  const money = d => (d === '' ? '' : 'Rp' + d.replace(/\B(?=(\d{3})+(?!\d))/g, '.'));
+  // Persentase: angka + satu tanda desimal (koma diterima, disimpan sebagai titik).
+  const percent = v => { const s = String(v ?? '').replace(',', '.').replace(/[^\d.]/g, ''); const i = s.indexOf('.'); return i < 0 ? s : s.slice(0, i + 1) + s.slice(i + 1).replace(/\./g, ''); };
+
+  function show(el) {
+    const before = raw(el);
+    const caret = el === document.activeElement ? el.selectionStart : null;
+    const next = isMoney(el) ? money(digits(before)) : percent(before);
+    if (next === before) return;
+    // Kursor tetap di belakang digit yang sama (dihitung dari kanan).
+    const right = caret == null ? 0 : before.slice(caret).replace(/\D/g, '').length;
+    put(el, next);
+    if (caret == null) return;
+    let pos = next.length, seen = 0;
+    while (pos > 0 && seen < right) { pos--; if (/\d/.test(next[pos])) seen++; }
+    if (right === 0) pos = next.length;
+    try { el.setSelectionRange(pos, pos); } catch (_e) {}
+  }
+
+  function setup(el) {
+    if (!el || el.dataset.kairoMoney) return;
+    el.dataset.kairoMoney = '1';
+    el.type = 'text';
+    el.inputMode = isMoney(el) ? 'numeric' : 'decimal';
+    el.autocomplete = 'off';
+    if (el.id !== 'tx-tip' && el.id !== 'tx-adjustment-value') el.placeholder = 'Rp0';
+    Object.defineProperty(el, 'value', {
+      configurable: true,
+      get() { const v = raw(this); return isMoney(this) ? digits(v) : percent(v); },
+      set(v) { put(this, isMoney(this) ? money(digits(v)) : percent(v)); }
+    });
+    el.addEventListener('input', () => show(el), true);
+    show(el);
+  }
+
+  function init() {
+    IDS.forEach(id => setup(document.getElementById(id)));
+    const mode = document.getElementById('tx-adjustment-mode');
+    const adj = document.getElementById('tx-adjustment-value');
+    mode?.addEventListener('change', () => {
+      if (!adj) return;
+      // Ganti mode: angka yang sudah diketik dipertahankan, hanya bentuk tampilannya yang berubah.
+      const was = raw(adj);
+      put(adj, isMoney(adj) ? money(digits(percent(was).split('.')[0])) : digits(was));
+      adj.inputMode = isMoney(adj) ? 'numeric' : 'decimal';
+    });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
