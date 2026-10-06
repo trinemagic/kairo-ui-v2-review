@@ -23,7 +23,7 @@ button{cursor:pointer}
 svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
 h1,h2,h3,h4{margin:0;font-weight:700;letter-spacing:-.01em}
 .muted{color:var(--muted)}
-.t-warn{color:var(--warn)}.t-danger{color:var(--danger)}.t-ok{color:var(--ok)}
+.t-warn{color:var(--warn)}.t-danger{color:var(--danger)}
 :focus-visible{outline:2px solid var(--primary);outline-offset:2px}
 
 /* Login */
