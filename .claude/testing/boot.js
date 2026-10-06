@@ -39,7 +39,7 @@ async function bootApp(browser, { width = 1440, height = 900, mobile = false, pl
   if (template === 'seller') {
     await page.evaluate(() => {
       document.documentElement.dataset.businessTemplate = 'digital_subscription';
-      const l = document.createElement('link'); l.rel = 'stylesheet'; l.id = 'seller-app-premium-css'; l.href = 'assets/templates/seller-app-premium.css'; document.head.appendChild(l);
+      const l = document.createElement('link'); l.rel = 'stylesheet'; l.id = 'seller-app-premium-css'; l.href = 'assets/templates/seller-app-premium.css'; document.head.insertBefore(l, document.getElementById('kairo-themes-css'));
       const s = document.createElement('script'); s.id = 'seller-app-premium-js'; s.src = 'assets/templates/seller-app-premium.js'; document.body.appendChild(s);
     });
     await page.waitForFunction(() => document.body.classList.contains('seller-app-premium'), null, { timeout: 8000 });

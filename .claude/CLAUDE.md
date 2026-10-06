@@ -86,10 +86,10 @@ domain = pengguna login ulang & pengaturan browser (Ingat saya, dark mode) mulai
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
 Versi terakhir: `kairo.css?v=20.10.158`, `kairo-v3.css?v=3.35.1`,
-`kairo-v3.js?v=3.27.0`, `kairo-app.js?v=20.10.199`; template seller dimuat dari kairo-app.js
-(`seller-app-premium.js?v=20.10.159`, `.css?v=20.10.156`) — naikkan juga bila file template diubah.
-Setup Wizard dimuat dari `loadSetupWizard()` di kairo-app.js (`kairo-setup-wizard.js/.css?v=1.0.2`, satu konstanta `v`).
-Panduan dimuat dari `window.kairoOpenGuide()` di kairo-v3.js (`kairo-guide.js/.css?v=` konstanta `GUIDE_V`='1.0.0'; gambar `assets/guide/*.webp?v=` `SHOT_V` di kairo-guide.js).
+`kairo-v3.js?v=3.28.0`, `kairo-app.js?v=20.10.200`, `kairo-themes.css/.js?v=1.0.0`; template seller dimuat dari kairo-app.js
+(`seller-app-premium.js?v=20.10.160`, `.css?v=20.10.157`) — naikkan juga bila file template diubah.
+Setup Wizard dimuat dari `loadSetupWizard()` di kairo-app.js (`kairo-setup-wizard.js/.css?v=1.0.3`, satu konstanta `v`).
+Panduan dimuat dari `window.kairoOpenGuide()` di kairo-v3.js (`kairo-guide.js/.css?v=` konstanta `GUIDE_V`='1.0.1'; gambar `assets/guide/*.webp?v=` `SHOT_V` di kairo-guide.js).
 Admin: `admin.js?v=1.11.0`, `admin.css?v=1.8.1`. Library CDN dikunci versi + SRI: supabase-js 2.117.2 (index.html & admin), Chart.js 4.4.4 `dist/chart.umd.js`
 (`ensureChartLibrary`, admin), xlsx-js-style 1.2.0. **Ganti versi = hitung ulang SRI** (`npm pack` lalu `openssl dgst -sha384 -binary f | openssl base64 -A`).
 
@@ -217,16 +217,17 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   dibuat seller JS): 1 baris per pelanggan+produk+plan (perpanjangan menggantikan), filter ≤7 hari/Aktif/Expired/Semua, cari, WhatsApp
   (dari `tx.whatsapp`), Perpanjang -> Orders dengan nama terisi. Lonceng seller = `window.kairoSellerNotifications` (expired ≤3 hari s/d
   lewat 7 hari + order Baru/Diproses ≥5 mnt, merah ≥30 mnt/expired); judul panel "Pengingat", tanpa "Start Reading".
-- **Tema workspace Seller App Premium (owner Okt 2026, tahap 1):** Lavender / Kayu / Awan / Mawar (id tetap girlie/wood/cloudy/pinky;
-  nama lama dari referensi owner diganti Okt 2026), hanya
-  seller + Pro (`workspace_theme:'pro'`). Lapisan tampilan saja: `html[data-ws-theme]`, semua token tema di akhir
-  `seller-app-premium.css` dan diturunkan dari `--v3-primary/--v3-accent` (warna workspace) lewat `color-mix`, jadi warna yang diubah
+- **Tema workspace (owner Okt 2026):** Lavender / Kayu / Awan / Mawar (id tetap girlie/wood/cloudy/pinky;
+  nama lama dari referensi owner diganti Okt 2026), **semua template usaha** + Pro (`workspace_theme:'pro'`; dulu seller saja,
+  dibuka untuk semua Okt 2026). Lapisan tampilan saja: `html[data-ws-theme]`, semua token tema di `assets/kairo-themes.css`
+  (dimuat index.html, selector `body.authenticated` = kekuatan sama dengan `body.seller-app-premium` dulu; loader seller menyisipkan
+  CSS seller SEBELUM `#kairo-themes-css` supaya tema tetap menang) dan diturunkan dari `--v3-primary/--v3-accent` (warna workspace) lewat `color-mix`, jadi warna yang diubah
   user ikut ke sidebar/kartu/ornamen. `WORKSPACE_THEMES` (kairo-app.js) = warna bawaan tiap tema; bila warna tersimpan masih bawaan lama
   (#696F41/#EA97A9) warna tema yang dipakai. Disimpan di `workspace_branding.theme` (SQL `.claude/sql/2026-10-workspace-theme.sql`,
   **sudah dijalankan owner Okt 2026**) + cache `kairo_ws_theme_v1` per workspace. Settings › Identitas: kartu "Tema Workspace" (`#kairo-theme-picker`,
   klik = pratinjau langsung, Simpan Pengaturan = simpan); tombol Reset warna kembali ke warna tema (bukan teal KAIRO). Anti-kedip: loader
   seller memberi `html.kairo-template-pending` (app disembunyikan + spinner) sampai event `kairo:seller-mounted` (failsafe 5 dtk).
-  Mode gelap tiap tema punya token sendiri. **Ikon per tema (owner Okt 2026):** blok terakhir seller-app-premium.js (`SETS`, `SLOTS`)
+  Mode gelap tiap tema punya token sendiri. **Ikon per tema (owner Okt 2026):** `assets/kairo-themes.js` (`SETS`, `SLOTS`)
   mengganti isi `<svg>` menu sidebar, bottom nav HP, menu More dan ikon kartu statistik Dashboard dengan bentuk khusus tema (class `kti`,
   ikon asli dipulihkan bila tema dilepas; dipicu MutationObserver `data-ws-theme` + DOM). Kelas di dalam ikon: `.b` isian lembut,
   `.k` aksen (hati/bintang), `.f/.n` isi penuh, `.p` pasak, `.ko/.kl` = potongan -> dijadikan `<mask>` (tembus ke latar apa pun).
@@ -242,7 +243,7 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   workspace). Semua template: seller = Tema&warna · Produk (pilih aplikasi, disimpan di setup_state.products, tidak memfilter Orders; tombol "Pilih
   semua" = semua yang tampil di filter; "Produk sendiri" = `kairoSellerCatalog.addCustom` -> `saveCustomSellerProduct()` yang sama dengan
   Settings › Tambah Produk, tersimpan permanen di `seller_product_settings`; produk tanpa file logo tampil ikon huruf awal) ·
-  Harga&modal (`seller_product_settings` via `window.kairoSellerCatalog.saveMany`) · Kas&omzet · Struk · Logo; template lain = Paket&harga
+  Harga&modal (`seller_product_settings` via `window.kairoSellerCatalog.saveMany`) · Kas&omzet · Struk · Logo; template lain = Tema&warna · Paket&harga
   (`package_masters`, termasuk `cost_price`) · Kas&omzet · Struk · Logo. Kas&omzet = versi pembagian baru mulai sekarang (sama dengan
   Settings; partner lama yang tidak dipilih tetap aktif 0%, Kas mati = `cash_off` + `cash_enabled=false`; Kas 0% ditampilkan "mati").
   "Nanti saja"/tutup = `dismissed_at`, lalu banner `#kairo-setup-banner` (di bawah `#kairo-upgrade-hint`) di 3 login berikutnya
@@ -442,6 +443,17 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   gpg AES-256. Keep-alive memanggil RPC `is_username_available` - jangan hapus/ubah fungsi itu tanpa update workflow.
   **Terpasang Okt 2026** di repo private `trinemagic/kairo-backups` (4 secrets diisi owner); run pertama 4 Okt 2026 sukses
   (data.sql ±540 KB, file terkunci ±116 KB). Status run bisa dicek via actions_list repo itu.
+
+- **Kolom nominal Rupiah (owner Okt 2026):** Tip & Penyesuaian Harga (mode Nominal) di Orders, `payout-amount`, `cash-expense-amount`,
+  `cash-injection-amount` tampil "Rp150.000" saat mengetik (blok terakhir kairo-v3.js). Elemennya tetap sama: properti `value` di-override
+  per elemen -> mengembalikan angka murni, jadi `Number(el.value)`/reset/template seller tidak berubah. `type` jadi text (min/max dicek JS).
+  Mode Persentase tidak diformat (koma desimal diterima). Kolom nominal baru: tambahkan id-nya ke `IDS`.
+- **Daftar akun (Okt 2026):** `submitSignup` memakai klien Supabase terpisah (`signupClient()`, tanpa simpan sesi) untuk signUp + login tes;
+  dulu login tes di klien utama memicu `handleAuthSession` yang selesai SETELAH logout -> dashboard setengah terbuka tanpa sesi.
+  `handleAuthSession` kini mengabaikan hasil panggilan yang bukan terakhir (`authSessionSeq`). "Kembali ke Masuk" = `backToLogin()`:
+  tutup halaman Daftar + buka form Masuk (`window.kairoOpenLogin`, kairo-v3.js) dengan username terisi.
+- **Loader template** (kairo-app.js, `maybeBootSellerTemplate`) mengecek template SEKALI per login (`templateChecked`, reset saat logout);
+  dulu diulang tiap class `<body>` berubah (spinner sekejap + pratinjau tema dibatalkan). Cat awal tema hanya bila belum ada tema terpasang.
 
 ## 4. Jebakan yang sudah pernah terjadi
 

@@ -45,10 +45,10 @@
   };
   function buildSteps() {
     const list = [];
-    if (sellerWs()) {
-      if (window.kairoThemeSetup?.allowed()) list.push('theme');
-      list.push('products', 'prices');
-    } else list.push('packages');
+    // Tema untuk semua template usaha (owner Okt 2026; dulu hanya seller).
+    if (window.kairoThemeSetup?.allowed()) list.push('theme');
+    if (sellerWs()) list.push('products', 'prices');
+    else list.push('packages');
     list.push('cash', 'receipt', 'logo');
     return list;
   }

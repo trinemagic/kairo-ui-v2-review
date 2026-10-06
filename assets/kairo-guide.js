@@ -109,7 +109,7 @@
           seller ? '<b>Produk</b>: harga jual dan modal tiap plan/durasi, tambah produk sendiri.' : '<b>Package, Add-on, Topik</b>: daftar yang muncul di Orders.',
           '<b>Pembagian Omzet</b>: persentase partner dan Kas; perubahan berlaku mulai tanggal yang dipilih.',
           '<b>Struk</b> (paket Pro): desain, label, dan logo struk.',
-          seller ? '<b>Tema Workspace</b> (paket Pro): Lavender, Kayu, Awan, atau Mawar.' : null
+          '<b>Tema Workspace</b> (paket Pro): Lavender, Kayu, Awan, atau Mawar.'
         ].filter(Boolean)
       },
       {
