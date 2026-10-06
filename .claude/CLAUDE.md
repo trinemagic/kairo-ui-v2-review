@@ -280,7 +280,8 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   (SQL `.claude/sql/2026-10-secure-login.sql`, **sudah dijalankan owner Okt 2026**, 3 cek ok; `get_login_email` tertutup untuk browser).
   Hasil audit DB (Okt 2026): semua tabel public sudah RLS; temuan = fungsi `platform_admin_*`/`update_my_username` bisa dipanggil anon,
   tabel `platform_*` punya izin tulis bawaan untuk anon/authenticated (masih tertahan RLS), policy `seller_product_settings` roles=public ->
-  ditutup lewat `.claude/sql/2026-10-security-hardening.sql` (BELUM dijalankan owner). Yang memang disengaja: `kairo_login_email` &
+  ditutup lewat `.claude/sql/2026-10-security-hardening.sql` (**sudah dijalankan owner Okt 2026**, 3 cek ok). Baris "PERIKSA" untuk
+  `platform_admin_delete_preview/_delete_workspace` = alarm palsu: keduanya memanggil `kairo_delete_guard()` yang mengecek `is_platform_admin()`. Yang memang disengaja: `kairo_login_email` &
   `is_username_available` untuk anon, bucket `workspace-branding` publik (1 MB, gambar saja), `saas_plan_entitlements` dibaca semua user login,
   fungsi trigger (tidak bisa dipanggil lewat RPC).
   `isTrineMagicWorkspace()` hanya lewat ID (dulu nama "Trine Magic" = Pro selamanya). Audit DB hanya-baca: `.claude/sql/2026-10-security-audit.sql`.
