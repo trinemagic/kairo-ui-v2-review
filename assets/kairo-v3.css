@@ -155,22 +155,17 @@ html.kairo-v3 #saas-sidebar::before {
   background: linear-gradient(180deg, var(--v3-sky), transparent) !important;
 }
 
-html.kairo-v3 .saas-side-brand img {
-  display: none !important;
-}
-
-html.kairo-v3 .saas-side-brand::before {
-  content: "K";
-  display: grid;
-  width: 38px;
-  height: 38px;
-  flex: 0 0 38px;
-  place-items: center;
-  border-radius: 12px;
-  background: var(--v3-ink);
-  color: var(--v3-primary);
-  font-size: 19px;
-  font-weight: 800;
+/* Logo workspace (default: ikon KAIRO; diganti logo upload user). Ukuran sama saat sidebar diperkecil supaya tidak bergeser. */
+html.kairo-v3 #saas-sidebar .saas-side-brand img,
+html.kairo-v3 body.saas-sidebar-collapsed #saas-sidebar .saas-side-brand img {
+  width: 38px !important;
+  height: 38px !important;
+  flex: 0 0 38px !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: 12px !important;
+  box-shadow: none !important;
+  object-fit: cover !important;
 }
 
 html.kairo-v3 .saas-side-brand-copy strong {
@@ -2376,25 +2371,11 @@ html.kairo-v3 .kairo-login-brand {
   text-decoration: none;
 }
 
-html.kairo-v3 .kairo-entry-brand > span,
-html.kairo-v3 .kairo-login-brand > span {
-  display: grid;
-  gap: 1px;
-}
-
-html.kairo-v3 .kairo-entry-brand strong,
-html.kairo-v3 .kairo-login-brand strong {
-  font-size: 13px;
-  line-height: 1;
-  letter-spacing: -.02em;
-}
-
-html.kairo-v3 .kairo-entry-brand small,
-html.kairo-v3 .kairo-login-brand small {
-  color: var(--kairo-entry-muted);
-  font-size: 7px;
-  font-weight: 800;
-  letter-spacing: .18em;
+/* Logo resmi (simbol + wordmark digambar, jangan diketik ulang); min. lebar 120px sesuai panduan logo. */
+html.kairo-v3 .kairo-brand-lockup {
+  display: block;
+  width: auto;
+  height: 46px;
 }
 
 html.kairo-v3 .kairo-nav-menu,
@@ -4020,10 +4001,6 @@ html.kairo-v3 .kairo-entry :focus-visible {
 
   html.kairo-v3 .kairo-nav-inner {
     min-height: 66px;
-  }
-
-  html.kairo-v3 .kairo-entry-brand small {
-    display: none;
   }
 
   html.kairo-v3 .kairo-lp-hero {
