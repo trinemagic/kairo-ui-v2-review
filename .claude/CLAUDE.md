@@ -85,8 +85,8 @@ domain = pengguna login ulang & pengaturan browser (Ingat saya, dark mode) mulai
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
 Versi terakhir: `kairo.css?v=20.10.157`, `kairo-v3.css?v=3.34.0`,
-`kairo-v3.js?v=3.24.0`, `kairo-app.js?v=20.10.193`; template seller dimuat dari kairo-app.js
-(`seller-app-premium.js?v=20.10.158`, `.css?v=20.10.154`) — naikkan juga bila file template diubah.
+`kairo-v3.js?v=3.24.0`, `kairo-app.js?v=20.10.194`; template seller dimuat dari kairo-app.js
+(`seller-app-premium.js?v=20.10.159`, `.css?v=20.10.154`) — naikkan juga bila file template diubah.
 Setup Wizard dimuat dari `loadSetupWizard()` di kairo-app.js (`kairo-setup-wizard.js/.css?v=1.0.2`, satu konstanta `v`).
 
 **Halaman app** = `main.container > section.section` dengan id:
@@ -443,6 +443,9 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   callback itu memanggil `removeChannel` lagi -> berulang ribuan kali -> "Maximum call stack size exceeded" (laporan error
   Safari iPhone/Mac Okt 2026, saat koneksi putus/tab tidur). Sekarang: kosongkan `realtimeChannel` dulu, baru hapus; callback
   mengabaikan channel yang bukan `realtimeChannel` aktif. Jangan balik ke pola lama.
+- Tombol yang mengganti `innerHTML`-nya sendiri saat diklik (mis. `.kpi-eye` lewat `updateKpiEyeButtons()`): saat event sampai ke
+  `document` (bubble) target `<svg>` sudah lepas dari halaman -> `closest()` gagal. Pakai listener capture (`true`). Tes klik dengan
+  koordinat/tap di ikon, bukan `el.click()` (yang targetnya tombol) - bug ikon mata Profit seller Okt 2026 lolos karena itu.
 - Topik: tabel `topic_masters` mungkin tidak punya kolom `code`; simpan topik sudah
   retry tanpa `code`. Belum diverifikasi di DB asli.
 

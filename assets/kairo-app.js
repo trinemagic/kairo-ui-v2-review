@@ -5420,7 +5420,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
       if(!document.getElementById('seller-app-premium-js')){
         const script=document.createElement('script');
         script.id='seller-app-premium-js';
-        script.src='assets/templates/seller-app-premium.js?v=20.10.158';
+        script.src='assets/templates/seller-app-premium.js?v=20.10.159';
         script.defer=true;
         document.body.appendChild(script);
       }

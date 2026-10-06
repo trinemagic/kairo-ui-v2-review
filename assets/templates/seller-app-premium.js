@@ -597,7 +597,8 @@
   }
 
   // Tombol mata di kartu mana pun menyamarkan/menampilkan semua nominal: kartu seller (Penjualan, Profit) digambar ulang setelahnya.
-  document.addEventListener('click',e=>{if(e.target.closest?.('#dashboard .kpi-eye'))setTimeout(renderSellerDashboardKpis,0)});
+  // Fase capture: ikon <svg> di dalam tombol diganti saat toggle, jadi saat bubble target klik sudah lepas dari halaman.
+  document.addEventListener('click',e=>{if(e.target.closest?.('#dashboard .kpi-eye'))setTimeout(renderSellerDashboardKpis,0)},true);
 
   function decorateCustomerDatabase(){
     if(!mounted)return;
