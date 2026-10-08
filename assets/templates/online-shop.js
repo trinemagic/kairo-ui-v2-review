@@ -236,7 +236,7 @@
     })), 5, rest => ({ label: 'Lainnya', other: true, value: rest.reduce((s, x) => s + x.profit, 0), margin: null, profit: rest.reduce((s, x) => s + x.profit, 0), revenue: rest.reduce((s, x) => s + x.revenue, 0), qty: rest.reduce((s, x) => s + x.qty, 0) }));
     drawBars('shop-profit-chart', chartRows.map(r => ({
       label: r.label, value: r.value, other: r.other,
-      tip: [`Laba ${money(r.profit)}`, `Omzet ${money(r.revenue)}${r.margin !== null ? ' · margin ' + (r.margin * 100).toLocaleString('id-ID', { maximumFractionDigits: 1 }) + '%' : ''}`, `${r.qty.toLocaleString('id-ID')} terjual`]
+      tip: [`Laba ${money(r.profit)}`, `${r.qty.toLocaleString('id-ID')} terjual`]
     })), 'Belum ada penjualan');
   }
 
