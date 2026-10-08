@@ -229,6 +229,11 @@ function renderChart(series){
 
 // Duration a user picked when signing up for Pro (needs SQL 2026-10-admin-requested-period).
 function requestedPro(id){const a=wsActivity.find(x=>x.workspace_id===id);return a&&a.requested_plan==='pro'&&a.requested_variant!=='custom'&&PERIOD[a.requested_period]?a:null;}
+// Template usaha yang dipilih user saat daftar (business_template dari platform_admin_workspace_activity).
+function templateLabel(id){
+  const a=wsActivity.find(x=>x.workspace_id===id),t=a&&TEMPLATES.find(t=>t.key===a.business_template);
+  return t?`<span class="tpl-chip">${esc(t.name)}</span>`:'<span class="muted">Belum tercatat</span>';
+}
 function renderWorkspaces(){
   const q=$('search').value.trim().toLowerCase(),now=Date.now(),d30=now+30*864e5;
   const r=all.filter(x=>{
@@ -237,7 +242,7 @@ function renderWorkspaces(){
     if(activeFilter==='expiring')return x.valid_until&&+new Date(x.valid_until)>=now&&+new Date(x.valid_until)<=d30;
     if(activeFilter==='issue')return isIssue(x);
     return true;});
-  $('rows').innerHTML=r.map(x=>`<tr class="click" data-id="${esc(x.workspace_id)}" tabindex="0"><td><b>${esc(x.workspace_name)}</b><br><small>${esc(x.slug||'')}</small></td><td>${esc(x.owner_username||'—')}</td><td>${planBadge(x.plan)}${planKey(x.plan)!=='pro'&&requestedPro(x.workspace_id)?`<br><small>Daftar Pro ${esc(PERIOD[requestedPro(x.workspace_id).requested_period])}</small>`:''}</td><td>${badge(SUB,x.subscription_status)}</td><td>${badge(WS,x.workspace_status)}</td><td>${dateID(x.valid_until)}</td><td class="${remainClass(x.valid_until)}">${esc(remain(x.valid_until))}</td></tr>`).join('');
+  $('rows').innerHTML=r.map(x=>`<tr class="click" data-id="${esc(x.workspace_id)}" tabindex="0"><td><b>${esc(x.workspace_name)}</b><br><small>${esc(x.slug||'')}</small></td><td>${esc(x.owner_username||'—')}</td><td>${templateLabel(x.workspace_id)}</td><td>${planBadge(x.plan)}${planKey(x.plan)!=='pro'&&requestedPro(x.workspace_id)?`<br><small>Daftar Pro ${esc(PERIOD[requestedPro(x.workspace_id).requested_period])}</small>`:''}</td><td>${badge(SUB,x.subscription_status)}</td><td>${badge(WS,x.workspace_status)}</td><td>${dateID(x.valid_until)}</td><td class="${remainClass(x.valid_until)}">${esc(remain(x.valid_until))}</td></tr>`).join('');
   $('empty').classList.toggle('hidden',r.length>0);
   $('rows').querySelectorAll('tr').forEach(tr=>{tr.onclick=()=>openWorkspace(tr.dataset.id);tr.onkeydown=e=>{if(e.key==='Enter')openWorkspace(tr.dataset.id);};});
 }
@@ -445,8 +450,10 @@ const TEMPLATES=[
    features:['Orders: Package + Add-on + Topik','Start Reading + status On Progress / Done','Notifikasi order On Progress ≥ 5 menit','Open / Close Store (sesi kerja)','Bagi hasil partner & Withdraw','Struk yang bisa diatur'],
    files:['assets/kairo-app.js (tampilan dasar KAIRO)'],
    note:'Tampilan dasar KAIRO (asal mula dari dashboard Trine Magic). Akun lama yang tidak tercatat templatenya juga tampil seperti ini.'},
-  {key:'online_shop',name:'Online Shop',desc:'Kreasikan produkmu sendiri pada dashboard.',kind:'none',preview:'jasa-online',features:[],files:[],
-   note:'Belum ada tampilan khusus. User yang memilih ini sekarang melihat tampilan Jasa Online (ada istilah Start Reading & Topik).'},
+  {key:'online_shop',name:'Online Shop',desc:'Kreasikan produkmu sendiri pada dashboard.',kind:'custom',preview:'jasa-online',
+   features:['Istilah toko: Waktu Order, Produk, Kategori','Kartu Profit di Dashboard (opsional dipotong komisi channel)','Laba per Produk, Performa Channel, Stok Produk, Batal & Retur','Channel Penjualan bisa diatur (Shopee, Tokopedia, dll) + komisi per channel','Stok produk: stok 0 memblokir order, stok menipis masuk lonceng'],
+   files:['assets/templates/online-shop.js','assets/templates/online-shop.css'],
+   note:'Memakai kerangka tampilan dasar KAIRO dengan istilah dan analitik toko.'},
   {key:'digital_product',name:'Digital Product',desc:'Produk digital, file, akses, atau layanan digital.',kind:'none',preview:'jasa-online',features:[],files:[],
    note:'Belum ada tampilan khusus. User yang memilih ini sekarang melihat tampilan Jasa Online (ada istilah Start Reading & Topik).'}
 ];

@@ -85,12 +85,12 @@ domain = pengguna login ulang & pengaturan browser (Ingat saya, dark mode) mulai
 | `assets/brand/` | Logo resmi KAIRO Workspaces (kit dari owner, Okt 2026) | `kairo-horizontal-color.svg` = landing (header, footer, dialog Masuk; latar terang, min. lebar 120px); `kairo-app-icon.svg` = logo default dashboard (`KAIRO_LOGO`, sidebar, header HP, preview Settings, admin) sampai user upload logo sendiri; `favicon.svg/.ico`; `assets/og/apple-touch-icon.png` dari kit. Wordmark digambar - jangan diketik ulang pakai font. `assets/kairo-mark.svg` (logo lama) sudah dihapus. |
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
-Versi terakhir: `kairo.css?v=20.10.158`, `kairo-v3.css?v=3.36.0`,
-`kairo-v3.js?v=3.29.0`, `kairo-app.js?v=20.10.210`, `kairo-themes.css?v=1.0.0`/`.js?v=1.0.1`; template seller dimuat dari kairo-app.js
+Versi terakhir: `kairo.css?v=20.10.158`, `kairo-v3.css?v=3.37.0`,
+`kairo-v3.js?v=3.30.0`, `kairo-app.js?v=20.10.211`, `kairo-themes.css?v=1.0.0`/`.js?v=1.0.1`; template seller dimuat dari kairo-app.js
 (`seller-app-premium.js?v=20.10.160`, `.css?v=20.10.157`) — naikkan juga bila file template diubah.
 Setup Wizard dimuat dari `loadSetupWizard()` di kairo-app.js (`kairo-setup-wizard.js/.css?v=1.0.4`, satu konstanta `v`).
 Panduan dimuat dari `window.kairoOpenGuide()` di kairo-v3.js (`kairo-guide.js/.css?v=` konstanta `GUIDE_V`='1.0.1'; gambar `assets/guide/*.webp?v=` `SHOT_V` di kairo-guide.js).
-Admin: `admin.js?v=1.11.0`, `admin.css?v=1.8.1`. Library CDN dikunci versi + SRI: supabase-js 2.117.2 (index.html & admin), Chart.js 4.4.4 `dist/chart.umd.js`
+Admin: `admin.js?v=1.12.0`, `admin.css?v=1.8.2`. Library CDN dikunci versi + SRI: supabase-js 2.117.2 (index.html & admin), Chart.js 4.4.4 `dist/chart.umd.js`
 (`ensureChartLibrary`, admin), xlsx-js-style 1.2.0. **Ganti versi = hitung ulang SRI** (`npm pack` lalu `openssl dgst -sha384 -binary f | openssl base64 -A`).
 
 **Halaman app** = `main.container > section.section` dengan id:
@@ -157,6 +157,10 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   punya baris Kas). Saldo Kas dihitung ulang dari SEMUA transaksi, jadi Pro lama tanpa baris Kas (mis. TOKO SEMPA 60/35) dikunci 5% lewat
   `.claude/sql/2026-10-kas-default-zero.sql` - SQL ini WAJIB jalan sebelum kode 0% dipasang.
 - **HPP & pembagian per produk (owner Okt 2026):** kategori Settings `profit` dibuka untuk Gratis (termasuk mode manual).
+  **Modal (HPP) diinput di Package & Harga / Add-on & Harga (owner Okt 2026):** tiap baris punya kolom "Modal (HPP)" di bawah Harga (`.master-price-stack`,
+  `.settings-master-cost` -> `cost_price`); harga & modal tampil "Rp50.000" (formatter Rupiah kairo-v3.js, `setupMasterMoney()`, nilai `.value` tetap angka murni).
+  Di Pembagian Omzet › HPP & pembagian per produk, HPP kini hanya tampilan (input hidden `.profit-product-cost`), yang tersisa = metode pembagian
+  (persentase global / nominal manual per partner).
 - **Masa aktif (owner Okt 2026):** `effectiveSubscriptionPlan()` - Pro lewat tanggal berakhir (current_period_end/expires_at/end_date/
   valid_until, akhir hari) atau status canceled/inactive/expired dibaca Gratis (data aman), toast sekali per workspace; Trine Magic
   selalu Pro; Pro tanpa tanggal = Pro selamanya (admin › Perlu Perhatian: "Pro tanpa masa aktif").
@@ -327,6 +331,9 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   lalu, Pilih tanggal + ringkasan "N catatan · Total". `renderCashHistories()` membaca
   `allCashExpenses()/allCashInjections()`, tidak ikut filter Dashboard (tersembunyi di halaman
   ini). `cashExpenses/cashInjections` tetap ikut periode karena dipakai Export Excel.
+- **Perbaikan mobile (owner Okt 2026):** filter Kustom Dashboard = grid `1fr 30px 1fr` + `appearance:none` + `::-webkit-date-and-time-value` (Safari iOS melebarkan input date);
+  pop-up Notifikasi & Menu Lainnya mode terang = latar SOLID (`color-mix(primary 5%, #fff)`), backdrop gelap tanpa blur (tema Mawar/Awan membuat `--card` tembus pandang);
+  baris Settings (Package/Add-on/Topik) di HP = 1 kolom, tombol 3 kolom sama lebar.
 - **Dark mode `.history-filter-date`** (Riwayat Transaksi & Petty Cash) di-override di v3 —
   dulu latar putih + teks terang (kontras 1,1).
 - **Orders — pilih produk dengan klik kartu (owner Okt 2026, semua template berbasis dasar):** Package & Add-on = kartu `.pick-card`
@@ -419,7 +426,7 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
 - **Admin › Template (owner Okt 2026):** daftar template usaha dari form daftar (`TEMPLATES` di admin.js — **perbarui
   bila ada template baru**): Seller App Premium (`digital_subscription`, tampilan khusus), Jasa Online
   (`service_consultation`, tampilan dasar), Online Shop (istilah toko, lihat poin berikut) & Digital Product (belum ada tampilan khusus → user melihat
-  tampilan Jasa Online). Jumlah workspace/Pro/aktif per template dari `business_template` di
+  tampilan Jasa Online). Tabel Workspaces punya kolom **Template** (`templateLabel()`, dari `wsActivity.business_template`; 'Belum tercatat' = akun lama, tampil seperti Jasa Online). Jumlah workspace/Pro/aktif per template dari `business_template` di
   `platform_admin_workspace_activity` (SQL `.claude/sql/2026-10-admin-templates.sql`, **sudah dijalankan owner Okt 2026**). Preview dashboard
   `admin/previews/*.webp` dibuat ulang dengan `.claude/testing/shoot-templates.js`. Cache admin: lihat di atas.
 - **Laporan error user** (kairo-app.js, di atas `showToast`): `reportClientError()` mengirim pesan error script

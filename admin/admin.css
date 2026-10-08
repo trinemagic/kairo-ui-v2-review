@@ -438,3 +438,4 @@ tr.is-resolved .issue-title{text-decoration:line-through}
 .pw-row{display:flex;gap:8px}.pw-row input{flex:1;min-width:0;font-family:ui-monospace,Menlo,Consolas,monospace}
 .acc-done p{margin:0 0 10px;color:var(--text);line-height:1.5}
 .acc-done pre{margin:0;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.05);color:var(--text);font:13px/1.6 ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap;word-break:break-word}
+.tpl-chip{display:inline-block;padding:3px 10px;border-radius:999px;font-size:11.5px;font-weight:700;white-space:nowrap;background:rgba(37,185,176,.14);color:#7be0d8;border:1px solid rgba(37,185,176,.28)}
