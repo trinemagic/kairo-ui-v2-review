@@ -118,6 +118,9 @@ const WORKSPACE_THEMES={
 window.KAIRO_WORKSPACE_THEMES=WORKSPACE_THEMES;
 const WORKSPACE_THEME_CACHE_KEY='kairo_ws_theme_v1';
 function isSellerWorkspace(){return document.documentElement.dataset.businessTemplate==='digital_subscription';}
+// Online Shop (produk fisik) memakai kerangka tampilan dasar dengan istilah toko (Waktu Order / Produk / Kategori).
+function isShopWorkspace(){return document.documentElement.dataset.businessTemplate==='online_shop';}
+function startLabel(){return isShopWorkspace()?'Waktu Order':'Start Reading';}
 function workspaceThemeAllowed(){return canUseFeature('workspace_theme');} // semua template usaha (owner Okt 2026; dulu seller saja)
 function workspaceTheme(){const t=String(activeWorkspaceBranding?.theme||'');return workspaceThemeAllowed()&&WORKSPACE_THEMES[t]?t:'';}
 function cachedWorkspaceTheme(){try{const t=JSON.parse(localStorage.getItem(WORKSPACE_THEME_CACHE_KEY)||'{}')[activeWorkspaceId||''];return WORKSPACE_THEMES[t]?t:'';}catch(_e){return '';}}
@@ -394,7 +397,7 @@ let setupWizardLoader=null;
 function loadSetupWizard(){
   if(window.kairoSetupWizard)return Promise.resolve(window.kairoSetupWizard);
   if(!setupWizardLoader)setupWizardLoader=new Promise((resolve,reject)=>{
-    const v='1.0.3',css=document.createElement('link');css.rel='stylesheet';css.href=`assets/kairo-setup-wizard.css?v=${v}`;document.head.appendChild(css);
+    const v='1.0.4',css=document.createElement('link');css.rel='stylesheet';css.href=`assets/kairo-setup-wizard.css?v=${v}`;document.head.appendChild(css);
     const js=document.createElement('script');js.src=`assets/kairo-setup-wizard.js?v=${v}`;js.onload=()=>resolve(window.kairoSetupWizard);js.onerror=()=>{setupWizardLoader=null;reject(new Error('Setup wizard gagal dimuat.'));};document.head.appendChild(js);
   });
   return setupWizardLoader;
@@ -938,7 +941,8 @@ syncColorPair('settings-primary-color','settings-primary-text');syncColorPair('s
 const DEFAULT_DASHBOARD_SLOGAN='';
 function dashboardSlogan(){return String(activeWorkspaceBranding?.receipt_labels?.__dashboard_slogan||DEFAULT_DASHBOARD_SLOGAN).trim()||DEFAULT_DASHBOARD_SLOGAN;}
 const DEFAULT_TOPIC_LABEL='Topik';
-function topicFieldLabel(){return String(activeWorkspaceBranding?.receipt_labels?.__topic_label||DEFAULT_TOPIC_LABEL).trim()||DEFAULT_TOPIC_LABEL;}
+function defaultTopicLabel(){return isShopWorkspace()?'Kategori':DEFAULT_TOPIC_LABEL;}
+function topicFieldLabel(){return String(activeWorkspaceBranding?.receipt_labels?.__topic_label||defaultTopicLabel()).trim()||defaultTopicLabel();}
 function applyTopicFieldLabel(){const label=topicFieldLabel(); document.querySelectorAll('[data-kairo-topic-label]').forEach(el=>el.textContent=label); const orderLabel=document.querySelector('#tx-topics')?.previousElementSibling; if(orderLabel&&orderLabel.classList.contains('label'))orderLabel.textContent=label+' (bisa lebih dari satu)'; const cardTitle=document.getElementById('settings-topic-card-title');if(cardTitle)cardTitle.textContent=label; const add=document.getElementById('settings-add-topic');if(add)add.textContent='+ Tambah '+label; const inp=document.getElementById('settings-topic-label');if(inp)inp.value=label; const opt=document.querySelector('#settings-category-select option[value="topics"]');if(opt)opt.textContent=label; const sub=document.querySelector('.saas-settings-submenu-btn[data-settings-category="topics"]');if(sub)sub.textContent=label; const perf=[...document.querySelectorAll('.card-title')].find(x=>x.textContent.trim()==='Topik yang Dipilih'||x.dataset.topicTitle==='1');if(perf){perf.dataset.topicTitle='1';perf.textContent=label+' yang Dipilih';}}
 document.getElementById('workspace-settings-form')?.addEventListener('submit',async e=>{
   e.preventDefault();
@@ -1118,7 +1122,7 @@ async function fetchPlatformAnalytics(){
   const b=platformBounds();
   platformAnalyticsRows=(await allTransactions()).filter(row=>String(row.transaction_date||'')>=b.previousStart&&String(row.transaction_date||'')<=b.currentEnd);
 }
-function platformKey(v){const s=String(v||"Other").trim(),n=s.toLowerCase();if(n==="x"||n==="twitter")return "X";if(n.includes("instagram"))return "Instagram";if(n.includes("threads"))return "Threads";if(n.includes("tiktok"))return "TikTok";if(n.includes("whatsapp")||n==="wa")return "WhatsApp";if(n.includes("telegram")||n==="tg")return "Telegram";return s||"Other";}
+function platformKey(v){const s=String(v||"Other").trim(),n=s.toLowerCase();if(n==="x"||n==="twitter")return "X";if(n.includes("instagram"))return "Instagram";if(n.includes("threads"))return "Threads";if(n.includes("tiktok"))return n.includes("shop")?"TikTok Shop":"TikTok";if(n.includes("whatsapp")||n==="wa")return "WhatsApp";if(n.includes("telegram")||n==="tg")return "Telegram";return s||"Other";}
 // Chart colours follow the KAIRO palette (the v3 tokens, which already follow the workspace
 // colours): primary = this period, accent = comparison. In dark mode the accent is lightened
 // so the comparison bars stay visible on the dark cards.
@@ -1840,7 +1844,7 @@ async function toggleReadingStatus(transactionId,checked,el){
     if(tx)tx.reading_status=next;
     const historyTx=historyTransactions.find(t=>String(t.id)===String(transactionId));
     if(historyTx)historyTx.reading_status=next;
-    showToast(next==="done"?"Reading ditandai selesai.":"Reading dikembalikan ke On Progress.");
+    showToast(next==="done"?(isShopWorkspace()?"Order ditandai selesai.":"Reading ditandai selesai."):(isShopWorkspace()?"Order dikembalikan ke On Progress.":"Reading dikembalikan ke On Progress."));
     renderHistory();
     await loadCustomerDirectory();
   }catch(err){
@@ -1849,9 +1853,9 @@ async function toggleReadingStatus(transactionId,checked,el){
   }finally{el.disabled=false;}
 }
 
-async function deleteCancelledTransaction(transactionId,customerName,customerId){
+async function deleteCancelledTransaction(transactionId,customerName,customerId,opts){
   if(!transactionId)return;
-  const ok=confirm(`Hapus transaksi ${customerName||"customer ini"} karena cancel?\n\nTransaksi akan dihapus dari omzet, profit sharing, kas, grafik, dan riwayat. Tindakan ini tidak bisa dibatalkan.`);
+  const ok=(opts&&opts.skipConfirm)||confirm(`Hapus transaksi ${customerName||"customer ini"} karena cancel?\n\nTransaksi akan dihapus dari omzet, profit sharing, kas, grafik, dan riwayat. Tindakan ini tidak bisa dibatalkan.`);
   if(!ok)return;
   try{
     const {error}=await db.from("transactions").delete().eq("workspace_id",requireWorkspaceId()).eq("id",transactionId);
@@ -2442,12 +2446,12 @@ function showReceiptPreview(p){
   const adjustment=p.price_adjustment_type && p.price_adjustment_type!=="none" ? `<div class="receipt-line"><span>${p.price_adjustment_type==="discount"?"Diskon":"Kenaikan Harga"} (${p.price_adjustment_mode==="percent"?p.price_adjustment_value+"%":rupiah(p.price_adjustment_value)})</span><strong>${p.price_adjustment_amount<0?"-":"+"}${rupiah(Math.abs(p.price_adjustment_amount))}</strong></div>` : "";
   document.getElementById("receipt-content").innerHTML=`
     <div><strong>Customer:</strong> ${escapeHtml(p.customer_name)}</div>
-    <div><strong>Start Reading:</strong> ${escapeHtml(formatReadingStartedAt(p.reading_started_at))}</div>
+    <div><strong>${startLabel()}:</strong> ${escapeHtml(formatReadingStartedAt(p.reading_started_at))}</div>
     <div><strong>Status:</strong> On Progress</div>
     <div><strong>Shift:</strong> ${p.shift_id?"Shift aktif":"Tanpa shift"}</div>
     <div><strong>Platform:</strong> ${escapeHtml(p.platform)}</div>
     <div><strong>Pembayaran:</strong> ${escapeHtml(p.payment_method)}</div>
-    <div style="margin-top:12px"><strong>Package</strong>${pkg}</div>
+    <div style="margin-top:12px"><strong>${isShopWorkspace()?'Produk':'Package'}</strong>${pkg}</div>
     <div style="margin-top:10px"><strong>Topic</strong><div>${p.order_topics.map(x=>escapeHtml(x.name)).join(", ")}</div></div>
     ${addon}
     <div class="receipt-line" style="margin-top:10px"><span>Subtotal</span><strong>${rupiah(p.order_items.reduce((s,x)=>s+x.subtotal,0)+p.order_addons.reduce((s,x)=>s+x.subtotal,0))}</strong></div>
@@ -3757,7 +3761,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
 
 (function(){
  const DEFAULT_RECEIPT_LABELS={
-   title:'', customer:'Customer', start:'Start Reading', status:'Status', status_value:'On Progress', shift:'Shift', shift_active:'Shift aktif', shift_none:'Tanpa shift', platform:'Platform', payment:'Pembayaran', package:'Package', topic:'Topic', addon:'Add On', subtotal:'Subtotal', discount:'Diskon', markup:'Kenaikan Harga', tip:'Tip', total:'Total'
+   title:'', customer:'Customer', start:startLabel(), status:'Status', status_value:'On Progress', shift:'Shift', shift_active:'Shift aktif', shift_none:'Tanpa shift', platform:'Platform', payment:'Pembayaran', package:'Package', topic:'Topic', addon:'Add On', subtotal:'Subtotal', discount:'Diskon', markup:'Kenaikan Harga', tip:'Tip', total:'Total'
  };
  const clean=(v,fallback='')=>String(v??fallback).trim()||fallback;
  function receiptLabels(){return {...DEFAULT_RECEIPT_LABELS,...(activeWorkspaceBranding?.receipt_labels||{})};}
@@ -3963,12 +3967,12 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
 
 
 (function(){
- const DEFAULT_LABELS={title:'',customer:'Customer',start:'Start Reading',status:'Status',status_value:'On Progress',shift:'Shift',shift_active:'Shift aktif',shift_none:'Tanpa shift',platform:'Platform',payment:'Pembayaran',package:'Package',topic:'Topic',addon:'Add On',subtotal:'Subtotal',discount:'Diskon',markup:'Kenaikan Harga',tip:'Tip',total:'Total'};
+ const DEFAULT_LABELS={title:'',customer:'Customer',get start(){return startLabel();},status:'Status',status_value:'On Progress',shift:'Shift',shift_active:'Shift aktif',shift_none:'Tanpa shift',platform:'Platform',payment:'Pembayaran',package:'Package',topic:'Topic',addon:'Add On',subtotal:'Subtotal',discount:'Diskon',markup:'Kenaikan Harga',tip:'Tip',total:'Total'};
  const SELLER_RECEIPT_LABELS={start:'Tanggal',status_value:'Diproses',package:'Produk',topic:'Kategori',addon:'Tambahan'};
  function isSellerReceiptContext(){return document.body.classList.contains('seller-app-premium')}
- function receiptDefaultLabels(){return {...DEFAULT_LABELS,...(isSellerReceiptContext()?SELLER_RECEIPT_LABELS:{})}}
+ function receiptDefaultLabels(){return {...DEFAULT_LABELS,...(isSellerReceiptContext()?SELLER_RECEIPT_LABELS:{}),...(isShopWorkspace()?{package:'Produk',topic:topicFieldLabel()}:{})}}
  const svg={pencil:'<svg viewBox="0 0 24 24"><path d="M4 20h4l11-11a2.8 2.8 0 0 0-4-4L4 16v4Z"/><path d="m13.5 6.5 4 4"/></svg>',up:'<svg viewBox="0 0 24 24"><path d="m6 15 6-6 6 6"/></svg>',down:'<svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>',trash:'<svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3m-8 0 1 13h8l1-13M10 11v5m4-5v5"/></svg>',plusPencil:'<svg viewBox="0 0 24 24"><path d="M4 20h4l9.5-9.5a2.8 2.8 0 0 0-4-4L4 16v4Z"/><path d="m12 8 4 4M19 3v6M16 6h6"/></svg>'};
- const builtinNames={title:'Judul Struk',customer:'Customer',start:'Start Reading',status:'Status',shift:'Shift',platform:'Platform',payment:'Pembayaran',package:'Package',topic:'Topic',addon:'Add-on',subtotal:'Subtotal',adjustment:'Penyesuaian Harga',tip:'Tip',total:'Total',footer:'Footer'};
+ const builtinNames={title:'Judul Struk',customer:'Customer',get start(){return startLabel();},status:'Status',shift:'Shift',platform:'Platform',payment:'Pembayaran',package:'Package',topic:'Topic',addon:'Add-on',subtotal:'Subtotal',adjustment:'Penyesuaian Harga',tip:'Tip',total:'Total',footer:'Footer'};
  const RECEIPT_TEMPLATES=[['pastel','Pastel Commission','Playful, pastel, layered headline'],['studio','Studio List','Clean editorial / pricelist'],['receiptify','Receiptify','Thermal typewriter + doodle'],['vintage','Vintage Story','Warm paper + classic serif'],['newspaper','Newspaper Editorial','Bold monochrome editorial'],['boarding','Boarding Pass','Ticket / travel inspired'],['diner','Retro Diner','Playful retro counter receipt'],['luxury','Minimal Luxury','Minimal fashion / premium']];
  function normalizeTemplate(v){const id=String(v||'pastel').toLowerCase();return RECEIPT_TEMPLATES.some(x=>x[0]===id)?id:'pastel';}
  function labels(){return {...receiptDefaultLabels(),...(activeWorkspaceBranding?.receipt_labels||{})};}
@@ -5443,6 +5447,13 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
       if(data?.session)templateChecked=true;
       // Paint the workspace's last theme right away (every template); applyWorkspaceTheme() corrects it once branding/plan are loaded.
       if(!root.dataset.wsTheme){if(activeWorkspaceBranding)applyWorkspaceTheme();else{const t=cachedWorkspaceTheme();if(t)root.dataset.wsTheme=t;}}
+      if(template==='online_shop'){root.dataset.businessTemplate='online_shop';if(typeof applyTopicFieldLabel==='function')applyTopicFieldLabel();document.dispatchEvent(new CustomEvent('kairo:template-ready'));
+        // Analitik toko (laba per produk, channel, batal/retur) + kartu Profit Dashboard dimuat hanya untuk Online Shop.
+        if(!document.getElementById('online-shop-js')){
+          const link=document.createElement('link');link.id='online-shop-css';link.rel='stylesheet';link.href='assets/templates/online-shop.css?v=1.2.0';document.head.appendChild(link);
+          const script=document.createElement('script');script.id='online-shop-js';script.src='assets/templates/online-shop.js?v=1.2.0';script.defer=true;document.body.appendChild(script);
+        }}
+      else if(root.dataset.businessTemplate==='online_shop'){delete root.dataset.businessTemplate;}
       if(template!=='digital_subscription')return;
       sellerTemplateBooted=true;keepPending=true;
       root.dataset.businessTemplate='digital_subscription';

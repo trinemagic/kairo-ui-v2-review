@@ -1,0 +1,61 @@
+/* KAIRO - Online Shop: gaya kartu analitik toko. Hanya dimuat untuk template online_shop. */
+#shop-analytics{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;margin-bottom:18px;min-width:0}
+#shop-analytics .shop-card{min-width:0}
+#shop-analytics .table-wrap{overflow-x:auto}
+#shop-analytics .shop-card[hidden]{display:none}
+.shop-neg{color:#a3384a}
+body.saas-dark .shop-neg{color:#ff9fb0}
+.shop-channel-name{display:inline-flex;align-items:center;gap:8px}
+.shop-logo{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:8px;font-size:13px}
+/* Ringkasan angka, grafik, tombol tabel */
+.shop-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px}
+.shop-toggle{display:inline-flex;align-items:center;gap:6px;flex:0 0 auto;padding:6px 10px 6px 12px;border-radius:999px;border:1px solid color-mix(in srgb,var(--v3-primary,#25b9b0) 30%,transparent);background:transparent;color:inherit;font:inherit;font-size:12.5px;font-weight:700;cursor:pointer}
+.shop-toggle:hover{background:color-mix(in srgb,var(--v3-primary,#25b9b0) 10%,transparent)}
+.shop-toggle svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;transition:transform .2s}
+.shop-toggle[aria-expanded="true"] svg{transform:rotate(180deg)}
+.shop-chart{height:260px}
+.shop-chart-short{height:200px}
+.shop-data{margin-top:14px}
+.shop-data[hidden]{display:none}
+.shop-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:0 0 14px}
+.shop-tiles:empty{display:none}
+.shop-tile{padding:11px 14px;border-radius:12px;border:1px solid color-mix(in srgb,var(--v3-primary,#25b9b0) 18%,transparent);background:color-mix(in srgb,var(--v3-primary,#25b9b0) 5%,transparent)}
+.shop-tile span{display:block;font-size:12px;color:var(--v3-muted,#4e6475)}
+.shop-tile strong{display:block;font-size:18px;margin-top:2px;overflow-wrap:anywhere}
+/* Settings: channel penjualan */
+.shop-chips{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.shop-chip{display:inline-flex;align-items:center;gap:6px;padding:6px 8px 6px 12px;border-radius:999px;font-weight:700;font-size:13px;background:color-mix(in srgb,var(--v3-primary,#25b9b0) 12%,transparent)}
+.shop-chip button{border:0;background:transparent;color:inherit;font-size:16px;line-height:1;cursor:pointer;width:22px;height:22px;border-radius:50%}
+.shop-chip button:hover{background:color-mix(in srgb,currentColor 14%,transparent)}
+.shop-muted{color:var(--v3-muted,#4e6475);font-size:13px}
+.shop-platform-add{display:flex;gap:8px;margin-bottom:12px}
+.shop-platform-add .input{flex:1;min-width:0}
+.shop-platform-actions{display:flex;gap:8px;flex-wrap:wrap}
+/* Dialog hapus: batal / retur */
+.shop-modal{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;padding:16px;background:rgba(10,24,40,.5)}
+.shop-modal-card{width:min(420px,100%);background:var(--card,#fff);color:var(--text,#14304a);border-radius:18px;padding:22px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+body.saas-dark .shop-modal-card{background:#17222e;color:#e6eef7}
+.shop-modal-card h3{margin:0 0 8px;font-size:17px}
+.shop-modal-card p{margin:0 0 14px;font-size:13px;line-height:1.5;color:var(--v3-muted,#4e6475)}
+body.saas-dark .shop-modal-card p{color:#aab9c9}
+.shop-seg{display:flex;gap:10px;margin-bottom:12px}
+.shop-seg label{flex:1;display:flex;align-items:center;gap:8px;padding:10px 12px;border:1px solid color-mix(in srgb,var(--v3-primary,#25b9b0) 30%,transparent);border-radius:12px;font-weight:700;cursor:pointer}
+.shop-modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+/* Dashboard: 5 kartu statistik (Omzet, Profit, Transaksi, Saldo Kas, Omzet Bulan Ini) seperti template seller */
+@media (min-width:1241px){
+  html.kairo-v3[data-business-template="online_shop"] body #dashboard .kpi-grid{grid-template-columns:repeat(6,minmax(0,1fr))!important}
+  html.kairo-v3[data-business-template="online_shop"] body #dashboard .kpi-grid>.kpi{grid-column:span 2}
+  html.kairo-v3[data-business-template="online_shop"] body #dashboard .kpi-grid>.kpi:nth-child(n+4){grid-column:span 3}
+  html.kairo-v3[data-business-template="online_shop"] body.kairo-no-cash #dashboard .kpi-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+  html.kairo-v3[data-business-template="online_shop"] body.kairo-no-cash #dashboard .kpi-grid>.kpi{grid-column:auto}
+}
+@media (max-width:1240px){
+  html.kairo-v3[data-business-template="online_shop"] body.kairo-no-cash #dashboard .kpi-grid>.kpi:last-child{grid-column:auto}
+}
+/* HP: kolom paling tidak penting disembunyikan supaya tabel muat tanpa geser. */
+@media (max-width:640px){
+  #shop-profit-card th:nth-child(2),#shop-profit-card td:nth-child(2),#shop-profit-card th:nth-child(3),#shop-profit-card td:nth-child(3),#shop-profit-card th:nth-child(6),#shop-profit-card td:nth-child(6),
+  #shop-channel-card th:nth-child(2),#shop-channel-card td:nth-child(2),#shop-channel-card th:nth-child(n+6),#shop-channel-card td:nth-child(n+6){display:none}
+  #shop-analytics th,#shop-analytics td{padding-left:8px;padding-right:8px;font-size:12.5px}
+}
+@media (max-width:640px){#shop-channel-card .platform-logo{display:none}}

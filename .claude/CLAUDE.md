@@ -86,9 +86,9 @@ domain = pengguna login ulang & pengaturan browser (Ingat saya, dark mode) mulai
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
 Versi terakhir: `kairo.css?v=20.10.158`, `kairo-v3.css?v=3.35.1`,
-`kairo-v3.js?v=3.28.0`, `kairo-app.js?v=20.10.200`, `kairo-themes.css/.js?v=1.0.0`; template seller dimuat dari kairo-app.js
+`kairo-v3.js?v=3.28.2`, `kairo-app.js?v=20.10.204`, `kairo-themes.css?v=1.0.0`/`.js?v=1.0.1`; template seller dimuat dari kairo-app.js
 (`seller-app-premium.js?v=20.10.160`, `.css?v=20.10.157`) — naikkan juga bila file template diubah.
-Setup Wizard dimuat dari `loadSetupWizard()` di kairo-app.js (`kairo-setup-wizard.js/.css?v=1.0.3`, satu konstanta `v`).
+Setup Wizard dimuat dari `loadSetupWizard()` di kairo-app.js (`kairo-setup-wizard.js/.css?v=1.0.4`, satu konstanta `v`).
 Panduan dimuat dari `window.kairoOpenGuide()` di kairo-v3.js (`kairo-guide.js/.css?v=` konstanta `GUIDE_V`='1.0.1'; gambar `assets/guide/*.webp?v=` `SHOT_V` di kairo-guide.js).
 Admin: `admin.js?v=1.11.0`, `admin.css?v=1.8.1`. Library CDN dikunci versi + SRI: supabase-js 2.117.2 (index.html & admin), Chart.js 4.4.4 `dist/chart.umd.js`
 (`ensureChartLibrary`, admin), xlsx-js-style 1.2.0. **Ganti versi = hitung ulang SRI** (`npm pack` lalu `openssl dgst -sha384 -binary f | openssl base64 -A`).
@@ -124,8 +124,8 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   `requested_period` ('monthly'|'semiannual', sama dengan billing_period admin) + disebut di pesan WA konfirmasi. Halaman **`#syarat` (S&K) & `#privasi`** (`.kairo-lp-legal`, berlaku 5 Okt 2026) +
   footer berisi link keduanya, WhatsApp 0877-9454-5507, ©. Headline hero: "Pencatatan usaha yang rapi untuk seller & jasa
   online." Belum ada: testimoni, medsos, kebijakan refund (menunggu owner). FAQ 8 poin fokus fitur
-  unggulan (tanpa poin dark mode — owner). Jangan klaim fitur yang belum ada (mis. "Owner Menu
-  Lock" hanya baris tabel, belum ada fiturnya).
+  unggulan (tanpa poin dark mode — owner). Jangan klaim fitur yang belum ada ("Owner Menu
+  Lock" dibatalkan owner Okt 2026 - tidak akan dibuat; "Auto Lock dashboard" itu fitur lain yang memang ada).
 - **Riwayat paket Gratis = 60 hari (owner Okt 2026, opsi "Gabungan"):** fitur `full_history` (min `pro`, bisa di-override
   `saas_plan_entitlements`). `historyCutoff()`/`clampHistoryFrom()` di kairo-app.js: `getRange()` (Dashboard, Performance, Withdraw,
   Petty Cash periode), `fetchHistoryTransactions()` dan `renderCashHistoryTable()` tidak menampilkan data < hari ini-59. **Ringkasan saldo**
@@ -413,7 +413,7 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   muncul lagi bila sidik jari berubah (error: last_seen; lainnya: since/valid_until/detail).
 - **Admin › Template (owner Okt 2026):** daftar template usaha dari form daftar (`TEMPLATES` di admin.js — **perbarui
   bila ada template baru**): Seller App Premium (`digital_subscription`, tampilan khusus), Jasa Online
-  (`service_consultation`, tampilan dasar), Online Shop & Digital Product (belum ada tampilan khusus → user melihat
+  (`service_consultation`, tampilan dasar), Online Shop (istilah toko, lihat poin berikut) & Digital Product (belum ada tampilan khusus → user melihat
   tampilan Jasa Online). Jumlah workspace/Pro/aktif per template dari `business_template` di
   `platform_admin_workspace_activity` (SQL `.claude/sql/2026-10-admin-templates.sql`, **sudah dijalankan owner Okt 2026**). Preview dashboard
   `admin/previews/*.webp` dibuat ulang dengan `.claude/testing/shoot-templates.js`. Cache admin: lihat di atas.
@@ -454,6 +454,20 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   tutup halaman Daftar + buka form Masuk (`window.kairoOpenLogin`, kairo-v3.js) dengan username terisi.
 - **Loader template** (kairo-app.js, `maybeBootSellerTemplate`) mengecek template SEKALI per login (`templateChecked`, reset saat logout);
   dulu diulang tiap class `<body>` berubah (spinner sekejap + pratinjau tema dibatalkan). Cat awal tema hanya bila belum ada tema terpasang.
+
+- **Template Online Shop (owner Okt 2026, produk fisik):** kerangka tampilan dasar + istilah toko. Loader template (`maybeBootSellerTemplate`)
+  memberi `html[data-business-template=online_shop]` + event `kairo:template-ready`. Istilah: Start Reading -> **Waktu Order**, Paket/Package -> **Produk**,
+  Topik -> **Kategori** (default `defaultTopicLabel()`; user tetap bisa mengganti di Settings, `__topic_label`). Kode: helper `isShopWorkspace()/startLabel()`
+  (kairo-app.js: detail, struk default, toast), lapisan teks statis di akhir kairo-v3.js (tabel riwayat, form Orders, Performance, Customers, notifikasi),
+  Setup Wizard (Produk & harga). Belum diganti: Settings "Package & Harga" (dicari lewat teks di beberapa fungsi), opsi Platform Media Sosial.
+  Tes: `bootApp(b,{template:'shop'})` (mock `window.__mockSession` -> lewat loader asli).
+  **Analitik toko (owner Okt 2026):** `assets/templates/online-shop.js/.css` (`?v=1.2.0`, dimuat loader HANYA untuk online_shop; owner: tampilan harus bersih, tanpa kalimat insight/legenda/kolom Kelas ABC; tiap kartu = grafik + tombol panah "Tabel" yang membuka tabel data lengkap). Dashboard: kartu **Profit** (laba kotor
+  = total - HPP, ikut filter periode, id `shop-kpi-profit`, grid 3+2 seperti seller). Performance (setelah Penjualan per Produk): **Laba per Produk** (2 angka: Laba Kotor, Margin Kotor + grafik batang top 5 + "Lainnya", label "laba · margin"),
+  **Performa Channel** (grafik omzet per channel, label "omzet · porsi"; tooltip laba/margin/order; laba sebelum komisi channel), **Batal & Retur** (tabel `order_returns`, SQL
+  `.claude/sql/2026-10-online-shop-returns.sql` - **belum dijalankan owner**; tanpa tabel kartu tersembunyi). Hapus order di template ini membuka dialog Batal/Retur +
+  alasan (`deleteCancelledTransaction(..., {skipConfirm:true})`). Channel Penjualan: daftar bisa diatur di Settings › Kategori (`receipt_labels.__platforms`, tanpa SQL),
+  bawaan Shopee/Tokopedia/TikTok Shop/Lazada/WhatsApp/Instagram/Toko Offline/Lainnya; mengisi `#tx-platform`. Belum: stok (butuh SQL), biaya admin/komisi per channel.
+  Tes: `seed-shop.js` + `bootApp(b,{template:'shop',seed:require('./seed-shop.js')})`.
 
 ## 4. Jebakan yang sudah pernah terjadi
 

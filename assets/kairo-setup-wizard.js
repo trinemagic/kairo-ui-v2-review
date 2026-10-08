@@ -26,6 +26,7 @@
   // Profit per baris; minus (modal > harga jual) ditulis merah supaya kerugian kelihatan.
   const profit = (price, cost) => { const v = (Number(price) || 0) - (Number(cost) || 0); return `<span class="ksw-ml">Profit</span><span class="${v < 0 ? 'is-loss' : ''}">${v < 0 ? '−' : ''}${rp(Math.abs(v))}</span>`; };
   const num = v => { const n = Number(String(v ?? '').replace(/[^\d.-]/g, '')); return Number.isFinite(n) ? n : 0; };
+  const shopWs = () => document.documentElement.dataset.businessTemplate === 'online_shop';
   const sellerWs = () => document.documentElement.dataset.businessTemplate === 'digital_subscription';
   const toast = (m, t) => { try { showToast(m, t); } catch (_e) {} };
 
@@ -38,7 +39,7 @@
     theme: { title: 'Tema & warna', sub: 'tampilan toko' },
     products: { title: 'Produk', sub: 'aplikasi yang dijual' },
     prices: { title: 'Harga & modal', sub: 'profit otomatis' },
-    packages: { title: 'Paket & harga', sub: 'layanan yang dijual' },
+    packages: { get title() { return shopWs() ? 'Produk & harga' : 'Paket & harga'; }, get sub() { return shopWs() ? 'barang yang dijual' : 'layanan yang dijual'; } },
     cash: { title: 'Kas & omzet', sub: 'pembagian laba' },
     receipt: { title: 'Struk', sub: 'isi & desain' },
     logo: { title: 'Logo', sub: 'opsional' }
@@ -317,7 +318,7 @@
 
   // 2'. Paket & harga (template lain): tabel Package (package_masters) yang sama dengan Settings.
   STEP.packages = {
-    title: () => 'Paket / layanan & harga',
+    title: () => (shopWs() ? 'Produk & harga' : 'Paket / layanan & harga'),
     lead: () => 'Tulis paket atau layanan yang kamu jual, lengkap dengan harga jual dan modalnya. Profit tiap order langsung terhitung.',
     init() {
       if (D.pk) return;
@@ -361,7 +362,7 @@
     }
   };
   function pkRow(r, i) {
-    return `<div class="ksw-prow" data-i="${i}"><label class="ksw-pname"><span class="ksw-ml">Nama paket</span><input type="text" maxlength="100" placeholder="Contoh: Paket Reguler" data-f="name" value="${esc(r.name)}"></label><label><span class="ksw-ml">Harga jual</span><input type="number" min="0" step="1000" inputmode="numeric" data-f="price" value="${r.price}"></label><label><span class="ksw-ml">Modal</span><input type="number" min="0" step="500" inputmode="numeric" data-f="cost" value="${r.cost}"></label><b class="ksw-profit">${profit(r.price, r.cost)}</b>${r.id ? '<span></span>' : `<button type="button" class="ksw-del" data-del="${i}" aria-label="Hapus baris" title="Hapus baris">${ic('trash')}</button>`}</div>`;
+    return `<div class="ksw-prow" data-i="${i}"><label class="ksw-pname"><span class="ksw-ml">${shopWs() ? 'Nama produk' : 'Nama paket'}</span><input type="text" maxlength="100" placeholder="${shopWs() ? 'Contoh: Kaos Polos Hitam' : 'Contoh: Paket Reguler'}" data-f="name" value="${esc(r.name)}"></label><label><span class="ksw-ml">Harga jual</span><input type="number" min="0" step="1000" inputmode="numeric" data-f="price" value="${r.price}"></label><label><span class="ksw-ml">Modal</span><input type="number" min="0" step="500" inputmode="numeric" data-f="cost" value="${r.cost}"></label><b class="ksw-profit">${profit(r.price, r.cost)}</b>${r.id ? '<span></span>' : `<button type="button" class="ksw-del" data-del="${i}" aria-label="Hapus baris" title="Hapus baris">${ic('trash')}</button>`}</div>`;
   }
 
   // 4. Kas & pembagian omzet: versi pembagian baru mulai sekarang (sama dengan Settings › Pembagian Omzet).
