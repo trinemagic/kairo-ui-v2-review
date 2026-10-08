@@ -371,6 +371,8 @@ async function confirmLogout(){
   if(overlay){overlay.classList.add("show");overlay.setAttribute("aria-hidden","false");}
 
   try{
+    // PIN aktif: cukup lupakan sesi di memori (token di server tetap hidup supaya PIN bisa dipakai lagi).
+    if(window.kairoPin?.active()){stopRealtimeSync();location.reload();return;}
     const {error}=await db.auth.signOut();
     if(error) throw error;
 
@@ -2959,6 +2961,7 @@ if(logoutButton){
     logoutButton.disabled=true;
     try{
       stopRealtimeSync();
+      if(window.kairoPin?.active()){location.reload();return;}
       await db.auth.signOut({scope:"local"});
     }catch(err){
       console.warn("Logout warning:",err);
@@ -4847,7 +4850,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
 
 
 /* Replaces the old fixed 5-minute warning behavior. The legacy interval remains inert because its modal is suppressed and this controller owns locking. */
-(function(){let last=Date.now(),locked=false,timer=null;function minutes(){return Number(localStorage.getItem('kairo_autolock_minutes_v1')??10)}function reset(){last=Date.now();locked=false}window.__kairoResetIdle=reset;['pointerdown','keydown','scroll','touchstart','wheel','click'].forEach(e=>window.addEventListener(e,()=>{if(!locked)last=Date.now()},{passive:true}));function tick(){const m=minutes();if(!m||locked||!document.body.classList.contains('authenticated'))return;if(Date.now()-last>=m*60000){locked=true;try{db.auth.signOut().finally(()=>location.reload())}catch(e){location.reload()}}}timer=setInterval(tick,5000);const legacy=document.getElementById('inactivity-modal');if(legacy){legacy.remove();}}
+(function(){let last=Date.now(),locked=false,timer=null;function minutes(){return Number(localStorage.getItem('kairo_autolock_minutes_v1')??10)}function reset(){last=Date.now();locked=false}window.__kairoResetIdle=reset;['pointerdown','keydown','scroll','touchstart','wheel','click'].forEach(e=>window.addEventListener(e,()=>{if(!locked)last=Date.now()},{passive:true}));function tick(){const m=minutes();if(!m||locked||!document.body.classList.contains('authenticated'))return;if(Date.now()-last>=m*60000){locked=true;if(window.kairoPin?.active()){location.reload();return}try{db.auth.signOut().finally(()=>location.reload())}catch(e){location.reload()}}}timer=setInterval(tick,5000);const legacy=document.getElementById('inactivity-modal');if(legacy){legacy.remove();}}
 )();
 
 
