@@ -1289,13 +1289,10 @@ async function closeReadingShift(){
   const shiftId=currentShift.id;
   const entered=prompt("Close Store di tanggal & jam berapa?\n\nKalau kelupaan tutup, ubah ke jam selesai yang sebenarnya.\nFormat: YYYY-MM-DDTHH:MM",localDateTimeInputValue());
   if(entered===null)return;
-  const closedMinute=parseLocalDateTimeInput(entered.trim());
-  if(!closedMinute){showToast("Tanggal/jam tutup shift tidak valid.",true);return;}
-  // Jam diisi per menit: tutup = akhir menit itu (maks. sekarang). Dulu 10:47 = 10:47:00, jadi order yang disimpan
-  // 10:47:30 ikut dilepas dari sesi dan omzet Riwayat Open Store kurang (owner Okt 2026).
-  const closed=new Date(Math.min(closedMinute.getTime()+59999,Date.now()));
+  const closed=parseLocalDateTimeInput(entered.trim());
+  if(!closed){showToast("Tanggal/jam tutup shift tidak valid.",true);return;}
   if(closed<new Date(currentShift.opened_at)){showToast("Jam Close Store tidak boleh lebih awal dari jam Open Store.",true);return;}
-  if(closedMinute>new Date()){showToast("Jam Close Store tidak boleh di masa depan.",true);return;}
+  if(closed>new Date()){showToast("Jam Close Store tidak boleh di masa depan.",true);return;}
   const btn=document.getElementById("close-shift-btn");btn.disabled=true;
   try{
     const {data:removed,error:removeError}=await db.from("transactions")
