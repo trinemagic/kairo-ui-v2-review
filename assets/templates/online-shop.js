@@ -33,11 +33,33 @@
     sel.value = cur;
   }
 
-  let draftPlatforms = null;
-  function renderPlatformChips() {
-    const box = document.getElementById('shop-platform-chips');
+  /* Komisi per channel: __platform_fees {nama channel: persen}, saklar __fee_enabled. Dipakai Profit Dashboard & Performa Channel. */
+  const brandingLabels = () => (typeof activeWorkspaceBranding !== 'undefined' && activeWorkspaceBranding?.receipt_labels) || {};
+  const feeEnabled = () => brandingLabels().__fee_enabled === true;
+  function feePercent(platform) {
+    if (!feeEnabled()) return 0;
+    const fees = brandingLabels().__platform_fees || {};
+    const raw = String(platform || '').trim().toLowerCase();
+    if (!raw) return 0;
+    for (const [k, v] of Object.entries(fees)) if (k.toLowerCase() === raw) return Math.max(0, Math.min(100, num(v)));
+    const key = typeof platformKey === 'function' ? platformKey(platform) : '';
+    for (const [k, v] of Object.entries(fees)) if (key && typeof platformKey === 'function' && platformKey(k) === key) return Math.max(0, Math.min(100, num(v)));
+    return 0;
+  }
+  const feeOf = t => num(t?.total_price) * feePercent(t?.platform) / 100;
+
+  let draft = null; // { list: [{name, fee}], enabled }
+  function startDraft() {
+    const fees = brandingLabels().__platform_fees || {};
+    draft = { enabled: feeEnabled(), list: platformList().map(n => ({ name: n, fee: fees[n] === undefined || fees[n] === null ? '' : String(fees[n]) })) };
+  }
+  function renderPlatformRows() {
+    const box = document.getElementById('shop-platform-rows');
     if (!box) return;
-    box.innerHTML = draftPlatforms.map((p, i) => `<span class="shop-chip">${esc(p)}<button type="button" data-shop-chip-del="${i}" aria-label="Hapus ${esc(p)}">×</button></span>`).join('') || '<span class="shop-muted">Belum ada channel.</span>';
+    const sw = document.getElementById('shop-fee-enabled');
+    if (sw) sw.checked = draft.enabled;
+    box.classList.toggle('fee-off', !draft.enabled);
+    box.innerHTML = draft.list.map((r, i) => `<div class="shop-platform-row"><strong>${esc(r.name)}</strong><label class="shop-fee"><input class="input" type="number" min="0" max="100" step="0.1" inputmode="decimal" placeholder="0" value="${esc(r.fee)}" data-shop-fee="${i}" aria-label="Komisi ${esc(r.name)} (%)"><span>%</span></label><button type="button" class="shop-row-del" data-shop-chip-del="${i}" aria-label="Hapus ${esc(r.name)}">×</button></div>`).join('') || '<span class="shop-muted">Belum ada channel.</span>';
   }
   function mountPlatformSettings() {
     if (document.getElementById('shop-platform-card')) return;
@@ -46,34 +68,41 @@
     const card = document.createElement('div');
     card.className = 'card settings-master-card';
     card.id = 'shop-platform-card';
-    card.innerHTML = `<div class="settings-master-head"><div><div class="card-title">Channel Penjualan</div><div class="page-sub">Pilihan asal order di menu Orders dan dasar grafik channel di Performance. Contoh: Shopee, Tokopedia, WhatsApp, Toko Offline.</div></div></div>
-      <div id="shop-platform-chips" class="shop-chips"></div>
+    card.innerHTML = `<div class="settings-master-head"><div><div class="card-title">Channel Penjualan</div><div class="page-sub">Pilihan asal order di Orders dan dasar grafik channel.</div></div></div>
+      <div class="shop-fee-switch"><label class="kairo-switch"><input type="checkbox" id="shop-fee-enabled"><span aria-hidden="true"></span><b class="sr-only">Hitung komisi channel</b></label><div><strong>Hitung komisi channel</strong><small>Profit dan laba channel dipotong komisi sesuai persen di bawah.</small></div></div>
+      <div id="shop-platform-rows" class="shop-platform-rows"></div>
       <div class="shop-platform-add"><input class="input" id="shop-platform-input" maxlength="30" placeholder="Nama channel baru"><button type="button" class="btn btn-light" id="shop-platform-add">Tambah</button></div>
       <div class="shop-platform-actions"><button type="button" class="btn btn-green" id="shop-platform-save">Simpan Channel</button><button type="button" class="btn btn-light" id="shop-platform-reset">Kembalikan Bawaan</button></div>`;
     (topicCard.closest('.settings-category-panel') || topicCard.parentNode).appendChild(card);
-    draftPlatforms = platformList();
-    renderPlatformChips();
+    startDraft();
+    renderPlatformRows();
     const input = card.querySelector('#shop-platform-input');
     const add = () => {
       const v = input.value.trim();
       if (!v) return;
-      if (draftPlatforms.some(x => x.toLowerCase() === v.toLowerCase())) { showToast('Channel itu sudah ada.', 'warning'); return; }
-      draftPlatforms.push(v); input.value = ''; renderPlatformChips();
+      if (draft.list.some(x => x.name.toLowerCase() === v.toLowerCase())) { showToast('Channel itu sudah ada.', 'warning'); return; }
+      draft.list.push({ name: v, fee: '' }); input.value = ''; renderPlatformRows();
     };
+    card.addEventListener('input', e => { const f = e.target.closest('[data-shop-fee]'); if (f) draft.list[Number(f.dataset.shopFee)].fee = f.value; });
+    card.addEventListener('change', e => { if (e.target.id === 'shop-fee-enabled') { draft.enabled = e.target.checked; renderPlatformRows(); } });
     card.addEventListener('click', async e => {
       const del = e.target.closest('[data-shop-chip-del]');
-      if (del) { draftPlatforms.splice(Number(del.dataset.shopChipDel), 1); renderPlatformChips(); return; }
+      if (del) { draft.list.splice(Number(del.dataset.shopChipDel), 1); renderPlatformRows(); return; }
       if (e.target.closest('#shop-platform-add')) { add(); return; }
-      if (e.target.closest('#shop-platform-reset')) { draftPlatforms = DEFAULT_PLATFORMS.slice(); renderPlatformChips(); return; }
+      if (e.target.closest('#shop-platform-reset')) { draft.list = DEFAULT_PLATFORMS.map(n => ({ name: n, fee: '' })); renderPlatformRows(); return; }
       if (e.target.closest('#shop-platform-save')) {
         try {
-          if (!draftPlatforms.length) throw new Error('Isi minimal satu channel.');
+          if (!draft.list.length) throw new Error('Isi minimal satu channel.');
+          const fees = {};
+          draft.list.forEach(r => { const v = r.fee === '' ? 0 : Number(r.fee); if (!Number.isFinite(v) || v < 0 || v > 100) throw new Error(`Komisi ${r.name} harus 0–100%.`); if (v > 0) fees[r.name] = v; });
           const wid = requireWorkspaceId();
-          const labels = { ...(activeWorkspaceBranding?.receipt_labels || {}), __platforms: draftPlatforms };
+          const labels = { ...brandingLabels(), __platforms: draft.list.map(r => r.name), __platform_fees: fees, __fee_enabled: draft.enabled };
           const { error } = await db.from('workspace_branding').upsert({ workspace_id: wid, receipt_labels: labels, updated_at: new Date().toISOString() }, { onConflict: 'workspace_id' });
           if (error) throw error;
           await loadWorkspaceSaasContext();
           syncPlatformSelect();
+          renderShopDashboardKpi();
+          if (document.getElementById('shop-analytics')) renderChannelCard();
           showToast('Channel penjualan disimpan.');
         } catch (err) { showToast(err.message || 'Gagal menyimpan channel.', true); }
       }
@@ -96,7 +125,7 @@
   }
 
   /* ---------- Dashboard: kartu Profit ---------- */
-  const profitOf = t => Math.max(-1e12, num(t?.total_price) - transactionProfitBreakdown(t).hpp);
+  const profitOf = t => Math.max(-1e12, num(t?.total_price) - transactionProfitBreakdown(t).hpp - feeOf(t));
   const isRollup = t => typeof isRollupTx === 'function' && isRollupTx(t);
   function periodSuffix() {
     const p = typeof activePeriod !== 'undefined' ? String(activePeriod) : 'today';
@@ -145,10 +174,10 @@
         </div>
       </div>
       <div class="card shop-card" id="shop-channel-card">
-        ${cardHead('Performa Channel', 'Omzet per channel, laba sebelum komisi channel', 'channel')}
+        ${cardHead('Performa Channel', '<span id="shop-channel-sub"></span>', 'channel')}
         <div class="chart-wrap shop-chart"><canvas id="shop-channel-chart"></canvas></div>
         <div class="shop-data" id="shop-channel-data" hidden>
-          <div class="table-wrap"><table><thead><tr><th>Channel</th><th>Order</th><th>Omzet</th><th>Laba</th><th>Margin</th><th>Rata-rata/order</th><th>Porsi omzet</th></tr></thead><tbody id="shop-channel-table"></tbody></table></div>
+          <div class="table-wrap"><table><thead id="shop-channel-head"></thead><tbody id="shop-channel-table"></tbody></table></div>
         </div>
       </div>
       <div class="card shop-card" id="shop-stock-card" hidden>
@@ -240,20 +269,25 @@
   function renderChannelCard() {
     const body = document.getElementById('shop-channel-table');
     if (!body) return;
+    const withFee = feeEnabled();
+    const sub = document.getElementById('shop-channel-sub');
+    if (sub) sub.textContent = withFee ? 'Laba setelah komisi channel' : 'Laba sebelum komisi channel';
+    document.getElementById('shop-channel-head').innerHTML = `<tr><th>Channel</th><th>Order</th><th>Omzet</th>${withFee ? '<th>Komisi</th>' : ''}<th>Laba</th><th>Margin</th><th>Rata-rata/order</th><th>Porsi omzet</th></tr>`;
     const map = new Map();
     rowsInRange().forEach(t => {
       const k = t.platform ? (typeof platformKey === 'function' ? platformKey(t.platform) : t.platform) : 'Tanpa channel';
-      const r = map.get(k) || { name: k, orders: 0, revenue: 0, profit: 0 };
-      r.orders++; r.revenue += num(t.total_price); r.profit += profitOf(t);
+      const r = map.get(k) || { name: k, orders: 0, revenue: 0, fee: 0, profit: 0 };
+      r.orders++; r.revenue += num(t.total_price); r.fee += feeOf(t); r.profit += profitOf(t);
       map.set(k, r);
     });
     const list = [...map.values()].sort((a, b) => b.revenue - a.revenue);
     const totalRev = list.reduce((s, r) => s + r.revenue, 0);
-    body.innerHTML = list.length ? list.map(r => `<tr><td><span class="shop-channel-name">${typeof platformLogo === 'function' ? platformLogo(r.name) : ''}<strong>${esc(r.name)}</strong></span></td><td>${r.orders.toLocaleString('id-ID')}</td><td>${money(r.revenue)}</td><td><strong class="${r.profit < 0 ? 'shop-neg' : ''}">${money(r.profit)}</strong></td><td>${pct(r.profit, r.revenue, 1)}</td><td>${money(r.orders ? r.revenue / r.orders : 0)}</td><td>${pct(r.revenue, totalRev)}</td></tr>`).join('') : '<tr><td colspan="7" class="empty">Belum ada penjualan pada periode ini.</td></tr>';
-    const rows = topRows(list, 5, rest => ({ name: 'Lainnya', other: true, orders: rest.reduce((s, x) => s + x.orders, 0), revenue: rest.reduce((s, x) => s + x.revenue, 0), profit: rest.reduce((s, x) => s + x.profit, 0) }));
+    const cols = withFee ? 8 : 7;
+    body.innerHTML = list.length ? list.map(r => `<tr><td><span class="shop-channel-name">${typeof platformLogo === 'function' ? platformLogo(r.name) : ''}<strong>${esc(r.name)}</strong></span></td><td>${r.orders.toLocaleString('id-ID')}</td><td>${money(r.revenue)}</td>${withFee ? `<td>${r.fee ? '−' + money(r.fee) : '-'}</td>` : ''}<td><strong class="${r.profit < 0 ? 'shop-neg' : ''}">${money(r.profit)}</strong></td><td>${pct(r.profit, r.revenue, 1)}</td><td>${money(r.orders ? r.revenue / r.orders : 0)}</td><td>${pct(r.revenue, totalRev)}</td></tr>`).join('') : `<tr><td colspan="${cols}" class="empty">Belum ada penjualan pada periode ini.</td></tr>`;
+    const rows = topRows(list, 5, rest => ({ name: 'Lainnya', other: true, orders: rest.reduce((s, x) => s + x.orders, 0), revenue: rest.reduce((s, x) => s + x.revenue, 0), fee: rest.reduce((s, x) => s + x.fee, 0), profit: rest.reduce((s, x) => s + x.profit, 0) }));
     drawBars('shop-channel-chart', rows.map(r => ({
       label: r.name, value: r.revenue, other: r.other,
-      tip: [`Omzet ${money(r.revenue)} (${pct(r.revenue, totalRev)})`, `Laba ${money(r.profit)} · margin ${pct(r.profit, r.revenue, 1)}`, `${r.orders} order`]
+      tip: [`Omzet ${money(r.revenue)} (${pct(r.revenue, totalRev)})`, ...(withFee ? [`Komisi ${money(r.fee)}`] : []), `Laba ${money(r.profit)} · margin ${pct(r.profit, r.revenue, 1)}`, `${r.orders} order`]
     })), 'Belum ada penjualan');
   }
 

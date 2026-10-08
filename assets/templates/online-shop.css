@@ -23,10 +23,6 @@ body.saas-dark .shop-neg{color:#ff9fb0}
 .shop-tile span{display:block;font-size:12px;color:var(--v3-muted,#4e6475)}
 .shop-tile strong{display:block;font-size:18px;margin-top:2px;overflow-wrap:anywhere}
 /* Settings: channel penjualan */
-.shop-chips{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
-.shop-chip{display:inline-flex;align-items:center;gap:6px;padding:6px 8px 6px 12px;border-radius:999px;font-weight:700;font-size:13px;background:color-mix(in srgb,var(--v3-primary,#25b9b0) 12%,transparent)}
-.shop-chip button{border:0;background:transparent;color:inherit;font-size:16px;line-height:1;cursor:pointer;width:22px;height:22px;border-radius:50%}
-.shop-chip button:hover{background:color-mix(in srgb,currentColor 14%,transparent)}
 .shop-muted{color:var(--v3-muted,#4e6475);font-size:13px}
 .shop-platform-add{display:flex;gap:8px;margin-bottom:12px}
 .shop-platform-add .input{flex:1;min-width:0}
@@ -104,3 +100,16 @@ body.saas-dark .shop-status.tone-muted{background:#26323f;color:#c3cfdc}
 
 .pick-card.is-soldout{opacity:.55}
 .pick-card.is-soldout:not(:has(input:checked)){cursor:not-allowed}
+
+/* Channel penjualan + komisi */
+.shop-fee-switch{display:flex;align-items:center;gap:12px;margin:12px 0 4px;padding:10px 12px;border-radius:12px;border:1px solid color-mix(in srgb,var(--v3-primary,#25b9b0) 22%,transparent)}
+.shop-fee-switch strong{display:block;font-size:14px}
+.shop-fee-switch small{display:block;font-size:12px;color:var(--v3-muted,#4e6475);margin-top:2px}
+.shop-platform-rows{display:grid;gap:6px;margin:12px 0}
+.shop-platform-row{display:grid;grid-template-columns:minmax(0,1fr) 112px 32px;gap:10px;align-items:center;padding:4px 0;border-bottom:1px solid color-mix(in srgb,var(--v3-primary,#25b9b0) 12%,transparent)}
+.shop-platform-row strong{overflow-wrap:anywhere}
+.shop-fee{display:flex;align-items:center;gap:6px}
+.shop-fee .input{min-width:0;width:100%;text-align:right}
+.shop-platform-rows.fee-off .shop-fee{opacity:.4}
+.shop-row-del{border:0;background:transparent;color:inherit;font-size:18px;line-height:1;cursor:pointer;width:28px;height:28px;border-radius:50%}
+.shop-row-del:hover{background:color-mix(in srgb,currentColor 14%,transparent)}
