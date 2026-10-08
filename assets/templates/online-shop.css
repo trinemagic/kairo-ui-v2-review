@@ -59,3 +59,25 @@ body.saas-dark .shop-modal-card p{color:#aab9c9}
   #shop-analytics th,#shop-analytics td{padding-left:8px;padding-right:8px;font-size:12.5px}
 }
 @media (max-width:640px){#shop-channel-card .platform-logo{display:none}}
+
+/* Stok */
+.shop-stock-rows{display:grid;gap:8px;margin-top:12px}
+.shop-stock-row{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(90px,.8fr) minmax(90px,.8fr) auto;gap:8px;align-items:center}
+.shop-stock-row strong{overflow-wrap:anywhere}
+.shop-stock-head{font-size:12px;color:var(--v3-muted,#4e6475);font-weight:700}
+.shop-stock-row .input{min-width:0}
+.shop-stock-tag{display:inline-block;margin-left:8px;font-size:11.5px;font-weight:800;color:#16794c}
+.shop-stock-tag.is-low{color:#a3384a}
+body.saas-dark .shop-stock-tag{color:#7be0a9}
+body.saas-dark .shop-stock-tag.is-low{color:#ff9fb0}
+.shop-status{font-weight:800;font-size:12.5px}
+.shop-status.tone-ok{color:#16794c}.shop-status.tone-warn{color:#8a5a00}.shop-status.tone-bad{color:#a3384a}.shop-status.tone-muted{color:#526175}
+body.saas-dark .shop-status.tone-ok{color:#7be0a9}body.saas-dark .shop-status.tone-warn{color:#ffd27a}body.saas-dark .shop-status.tone-bad{color:#ff9fb0}body.saas-dark .shop-status.tone-muted{color:#c3cfdc}
+.shop-hint{margin:0 0 10px;font-size:12px;color:var(--v3-muted,#4e6475)}
+@media (max-width:640px){
+  .shop-stock-row{grid-template-columns:1fr 1fr;}
+  .shop-stock-row strong,.shop-stock-head span:first-child{grid-column:1/-1}
+  .shop-stock-row button{grid-column:1/-1}
+  .shop-stock-head{display:none}
+  #shop-stock-card th:nth-child(3),#shop-stock-card td:nth-child(3),#shop-stock-card th:nth-child(5),#shop-stock-card td:nth-child(5){display:none}
+}
