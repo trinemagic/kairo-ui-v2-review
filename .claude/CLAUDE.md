@@ -85,8 +85,8 @@ domain = pengguna login ulang & pengaturan browser (Ingat saya, dark mode) mulai
 | `assets/brand/` | Logo resmi KAIRO Workspaces (kit dari owner, Okt 2026) | `kairo-horizontal-color.svg` = landing (header, footer, dialog Masuk; latar terang, min. lebar 120px); `kairo-app-icon.svg` = logo default dashboard (`KAIRO_LOGO`, sidebar, header HP, preview Settings, admin) sampai user upload logo sendiri; `favicon.svg/.ico`; `assets/og/apple-touch-icon.png` dari kit. Wordmark digambar - jangan diketik ulang pakai font. `assets/kairo-mark.svg` (logo lama) sudah dihapus. |
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
-Versi terakhir: `kairo.css?v=20.10.158`, `kairo-v3.css?v=3.35.1`,
-`kairo-v3.js?v=3.28.3`, `kairo-app.js?v=20.10.208`, `kairo-themes.css?v=1.0.0`/`.js?v=1.0.1`; template seller dimuat dari kairo-app.js
+Versi terakhir: `kairo.css?v=20.10.158`, `kairo-v3.css?v=3.36.0`,
+`kairo-v3.js?v=3.29.0`, `kairo-app.js?v=20.10.209`, `kairo-themes.css?v=1.0.0`/`.js?v=1.0.1`; template seller dimuat dari kairo-app.js
 (`seller-app-premium.js?v=20.10.160`, `.css?v=20.10.157`) — naikkan juga bila file template diubah.
 Setup Wizard dimuat dari `loadSetupWizard()` di kairo-app.js (`kairo-setup-wizard.js/.css?v=1.0.4`, satu konstanta `v`).
 Panduan dimuat dari `window.kairoOpenGuide()` di kairo-v3.js (`kairo-guide.js/.css?v=` konstanta `GUIDE_V`='1.0.1'; gambar `assets/guide/*.webp?v=` `SHOT_V` di kairo-guide.js).
@@ -329,6 +329,11 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   ini). `cashExpenses/cashInjections` tetap ikut periode karena dipakai Export Excel.
 - **Dark mode `.history-filter-date`** (Riwayat Transaksi & Petty Cash) di-override di v3 —
   dulu latar putih + teks terang (kontras 1,1).
+- **Orders — pilih produk dengan klik kartu (owner Okt 2026, semua template berbasis dasar):** Package & Add-on = kartu `.pick-card`
+  (`pickCardHtml()` di kairo-app.js): klik kartu = +1, tombol − di chip `×N` = -1 (0 = batal pilih); checkbox + kolom qty tetap ada tapi `.pick-hidden`
+  (display:none), jadi `calculateTotal`, simpan, autofill, reset tidak berubah. Kode yang mengubah checkbox/qty langsung HARUS memanggil `syncPickCards()`
+  (sudah di render, reset, autofill). Topik tetap checkbox. Seller App Premium sudah punya keranjang sendiri (klik katalog = +1), tidak memakai ini.
+  Online Shop: kartu stok 0 tidak bisa diklik (toast). Label "Package & Qty" jadi "Package".
 - **Orders:** setelah simpan berhasil, form kosong total termasuk Platform & Metode
   Pembayaran (owner: user wajib pilih ulang tiap order). `tx-payment` punya opsi
   kosong "-- Pilih Metode Pembayaran --" + `required`, jadi tidak jatuh ke QRIS.
@@ -461,7 +466,7 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   (kairo-app.js: detail, struk default, toast), lapisan teks statis di akhir kairo-v3.js (tabel riwayat, form Orders, Performance, Customers, notifikasi),
   Setup Wizard (Produk & harga). Belum diganti: Settings "Package & Harga" (dicari lewat teks di beberapa fungsi), opsi Platform Media Sosial.
   Tes: `bootApp(b,{template:'shop'})` (mock `window.__mockSession` -> lewat loader asli).
-  **Analitik toko (owner Okt 2026):** `assets/templates/online-shop.js/.css` (`?v=1.4.0`, dimuat loader HANYA untuk online_shop; owner: tampilan harus bersih, tanpa kalimat insight/legenda/kolom Kelas ABC; tiap kartu = grafik + tombol panah "Tabel" yang membuka tabel data lengkap). Dashboard: kartu **Profit** (laba kotor
+  **Analitik toko (owner Okt 2026):** `assets/templates/online-shop.js/.css` (`?v=1.4.1`, dimuat loader HANYA untuk online_shop; owner: tampilan harus bersih, tanpa kalimat insight/legenda/kolom Kelas ABC; tiap kartu = grafik + tombol panah "Tabel" yang membuka tabel data lengkap). Dashboard: kartu **Profit** (laba kotor
   = total - HPP, ikut filter periode, id `shop-kpi-profit`, grid 3+2 seperti seller). Performance (setelah Penjualan per Produk): **Laba per Produk** (2 angka: Laba Kotor, Margin Kotor + grafik batang top 5 + "Lainnya", label "laba · margin"),
   **Performa Channel** (grafik omzet per channel, label "omzet · porsi"; tooltip laba/margin/order; laba sebelum komisi channel), **Batal & Retur** (tabel `order_returns`, SQL
   `.claude/sql/2026-10-online-shop-returns.sql` - **belum dijalankan owner**; tanpa tabel kartu tersembunyi). Hapus order di template ini membuka dialog Batal/Retur +

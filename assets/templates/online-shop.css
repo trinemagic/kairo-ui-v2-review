@@ -101,3 +101,6 @@ body.saas-dark .shop-status.tone-muted{background:#26323f;color:#c3cfdc}
 .shop-restock{border:1px solid color-mix(in srgb,var(--v3-primary,#25b9b0) 45%,transparent);background:transparent;color:inherit;border-radius:999px;padding:3px 10px;font:inherit;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap}
 .shop-restock:hover{background:color-mix(in srgb,var(--v3-primary,#25b9b0) 14%,transparent)}
 .shop-restock:disabled{opacity:.5;cursor:default}
+
+.pick-card.is-soldout{opacity:.55}
+.pick-card.is-soldout:not(:has(input:checked)){cursor:not-allowed}

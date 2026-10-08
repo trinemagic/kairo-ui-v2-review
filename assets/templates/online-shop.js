@@ -460,6 +460,13 @@
       item.classList.toggle('is-soldout', p.stock_qty <= 0);
     });
   }
+  // Kartu produk dengan stok 0 tidak bisa ditambahkan ke order.
+  document.getElementById('tx-packages')?.addEventListener('click', e => {
+    const card = e.target.closest('.pick-card');
+    if (!card || !stockReady() || e.target.closest('.pick-minus')) return;
+    const p = packages.find(x => String(x.id) === String(card.dataset.id));
+    if (hasStock(p) && p.stock_qty <= 0) { e.stopImmediatePropagation(); e.stopPropagation(); showToast(`Stok ${p.name} habis.`, true); }
+  }, true);
   // Stok 0 = order diblokir. Qty melebihi sisa stok hanya diberi peringatan.
   document.addEventListener('submit', e => {
     if (e.target?.id !== 'tx-form' || !stockReady()) return;

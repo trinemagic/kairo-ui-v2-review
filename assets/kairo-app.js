@@ -1056,24 +1056,53 @@ document.getElementById('settings-add-topic')?.addEventListener('click',()=>appe
 document.getElementById('settings-save-topic-label')?.addEventListener('click',async()=>{try{const label=(document.getElementById('settings-topic-label')?.value||'').trim();if(!label)throw new Error('Nama field wajib diisi.');const wid=requireWorkspaceId(),labels={...(activeWorkspaceBranding?.receipt_labels||{}),__topic_label:label};const {error}=await db.from('workspace_branding').upsert({workspace_id:wid,receipt_labels:labels,updated_at:new Date().toISOString()},{onConflict:'workspace_id'});if(error)throw error;await loadWorkspaceSaasContext();applyTopicFieldLabel();renderSettingsMasterData();showToast(`Nama Topik diubah menjadi “${label}”.`)}catch(err){showToast(err.message||'Gagal menyimpan nama Topik.',true)}});
 document.addEventListener('click',e=>{const row=e.target.closest('.settings-master-row'); if(!row)return; if(e.target.closest('.settings-master-save'))saveExistingMasterRow(row); if(e.target.closest('.settings-master-create'))createMasterRow(row); if(e.target.closest('.settings-master-disable'))disableMasterRow(row); if(e.target.closest('.settings-master-delete'))deleteMasterRow(row); if(e.target.closest('.settings-master-cancel'))renderSettingsMasterData();});
 
+// Orders: produk & add-on dipilih dengan klik kartu; jumlah = berapa kali kartu diklik (tombol − mengurangi).
+// Checkbox & kolom qty tetap ada tersembunyi, jadi semua kode lama (total, simpan, autofill, reset) tidak berubah.
+function pickCardHtml(kind,x){
+  const name=escapeHtml(x.name);
+  return `<div class="master-item pick-card" data-pick="${kind}" data-id="${x.id}" role="button" tabindex="0" aria-pressed="false">
+      <input type="checkbox" class="${kind}-check pick-hidden" tabindex="-1" aria-hidden="true" data-id="${x.id}" data-code="${escapeHtml(x.code)}" data-name="${name}" data-price="${x.price}">
+      <div class="master-main"><strong>${escapeHtml(x.code)}</strong> — ${name}<small>${rupiah(x.price)}</small></div>
+      <span class="pick-qty" hidden><button type="button" class="pick-minus" aria-label="Kurangi ${name}">−</button><b>1</b></span>
+      <input class="input qty-input ${kind}-qty pick-hidden" type="number" min="1" step="1" value="1" disabled tabindex="-1" aria-hidden="true" data-id="${x.id}">
+    </div>`;
+}
+function syncPickCards(){
+  document.querySelectorAll("#tx-packages .pick-card,#tx-addons .pick-card").forEach(card=>{
+    const c=card.querySelector("input[type=checkbox]"),q=card.querySelector(".qty-input"),chip=card.querySelector(".pick-qty");
+    const n=c&&c.checked?Math.max(1,Number(q&&q.value)||1):0;
+    card.setAttribute("aria-pressed",n>0?"true":"false");
+    if(chip){chip.hidden=n<=0;const b=chip.querySelector("b");if(b&&b.textContent!==`×${n}`)b.textContent=`×${n}`;}
+  });
+}
+function setPickQty(card,n){
+  const c=card.querySelector("input[type=checkbox]"),q=card.querySelector(".qty-input");
+  if(!c||!q)return;
+  n=Math.max(0,Math.min(999,n));
+  c.checked=n>0;q.disabled=n<=0;q.value=Math.max(1,n);
+  syncPickCards();calculateTotal();
+}
+["tx-packages","tx-addons"].forEach(id=>{
+  const box=document.getElementById(id);if(!box)return;
+  const cur=card=>{const c=card.querySelector("input[type=checkbox]"),q=card.querySelector(".qty-input");return c&&c.checked?Math.max(1,Number(q&&q.value)||1):0;};
+  box.addEventListener("click",e=>{
+    const card=e.target.closest(".pick-card");if(!card)return;
+    setPickQty(card,e.target.closest(".pick-minus")?cur(card)-1:cur(card)+1);
+  });
+  box.addEventListener("keydown",e=>{
+    const card=e.target.closest(".pick-card");if(!card||e.target!==card)return;
+    if(e.key==="Enter"||e.key===" "){e.preventDefault();setPickQty(card,cur(card)+1);}
+    else if((e.key==="Backspace"||e.key==="Delete"||e.key==="-")&&cur(card)>0){e.preventDefault();setPickQty(card,cur(card)-1);}
+  });
+});
 function renderMasterOptions(){
   window.trineMasters={packages,addons,topics};
-  document.getElementById("tx-packages").innerHTML = packages.map(x=>`
-    <div class="master-item">
-      <input type="checkbox" class="package-check" data-id="${x.id}" data-code="${escapeHtml(x.code)}" data-name="${escapeHtml(x.name)}" data-price="${x.price}">
-      <div class="master-main"><strong>${escapeHtml(x.code)}</strong> — ${escapeHtml(x.name)}<small>${rupiah(x.price)}</small></div>
-      <input class="input qty-input package-qty" type="number" min="1" step="1" value="1" disabled data-id="${x.id}">
-    </div>`).join("");
+  document.getElementById("tx-packages").innerHTML = packages.map(x=>pickCardHtml("package",x)).join("");
 
   document.getElementById("tx-topics").innerHTML = topics.map(x=>`
     <label class="master-item"><input type="checkbox" class="topic-check" data-id="${x.id}" data-name="${escapeHtml(x.name)}"> <span class="master-main">${escapeHtml(x.name)}</span></label>`).join("");
 
-  document.getElementById("tx-addons").innerHTML = addons.map(x=>`
-    <div class="master-item">
-      <input type="checkbox" class="addon-check" data-id="${x.id}" data-code="${escapeHtml(x.code)}" data-name="${escapeHtml(x.name)}" data-price="${x.price}">
-      <div class="master-main"><strong>${escapeHtml(x.code)}</strong> — ${escapeHtml(x.name)}<small>${rupiah(x.price)}</small></div>
-      <input class="input qty-input addon-qty" type="number" min="1" step="1" value="1" disabled data-id="${x.id}">
-    </div>`).join("");
+  document.getElementById("tx-addons").innerHTML = addons.map(x=>pickCardHtml("addon",x)).join("");
 
   document.getElementById("payout-partner").innerHTML =
     `<option value="">-- Pilih Partner --</option>` +
@@ -1082,6 +1111,7 @@ function renderMasterOptions(){
   document.querySelectorAll('.package-check').forEach(c=>c.addEventListener('change',()=>{ const q=document.querySelector(`.package-qty[data-id="${c.dataset.id}"]`); q.disabled=!c.checked; calculateTotal(); }));
   document.querySelectorAll('.addon-check').forEach(c=>c.addEventListener('change',()=>{ const q=document.querySelector(`.addon-qty[data-id="${c.dataset.id}"]`); q.disabled=!c.checked; calculateTotal(); }));
   document.querySelectorAll('.package-qty,.addon-qty').forEach(q=>q.addEventListener('input',calculateTotal));
+  syncPickCards();
   const tipInput=document.getElementById("tx-tip");
   if(tipInput) tipInput.addEventListener("input",()=>{
     try{ calculateTotal(); }catch(err){
@@ -2701,6 +2731,7 @@ function resetTxForm(){
   document.getElementById("tx-date").value=todayISO();
   document.querySelectorAll('.package-check,.topic-check,.addon-check').forEach(c=>c.checked=false);
   document.querySelectorAll('.package-qty,.addon-qty').forEach(q=>{q.value=1;q.disabled=true;});
+  syncPickCards();
   document.getElementById("tx-total").textContent="Rp0";
   const at=document.getElementById("tx-adjustment-type"); if(at) at.value="none";
   const am=document.getElementById("tx-adjustment-mode"); if(am) am.value="percent";
@@ -3364,7 +3395,7 @@ db.auth.onAuthStateChange((event,session)=>{
       }
     }
 
-    try{calculateTotal();}catch(e){}
+    try{syncPickCards();calculateTotal();}catch(e){}
 
     // Reset AUTOFILL FORM after its data has been applied to the sales form.
     // This only clears the Autofill helper; the populated sales form stays intact.
@@ -5450,8 +5481,8 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
       if(template==='online_shop'){root.dataset.businessTemplate='online_shop';if(typeof applyTopicFieldLabel==='function')applyTopicFieldLabel();document.dispatchEvent(new CustomEvent('kairo:template-ready'));
         // Analitik toko (laba per produk, channel, batal/retur) + kartu Profit Dashboard dimuat hanya untuk Online Shop.
         if(!document.getElementById('online-shop-js')){
-          const link=document.createElement('link');link.id='online-shop-css';link.rel='stylesheet';link.href='assets/templates/online-shop.css?v=1.4.0';document.head.appendChild(link);
-          const script=document.createElement('script');script.id='online-shop-js';script.src='assets/templates/online-shop.js?v=1.4.0';script.defer=true;document.body.appendChild(script);
+          const link=document.createElement('link');link.id='online-shop-css';link.rel='stylesheet';link.href='assets/templates/online-shop.css?v=1.4.1';document.head.appendChild(link);
+          const script=document.createElement('script');script.id='online-shop-js';script.src='assets/templates/online-shop.js?v=1.4.1';script.defer=true;document.body.appendChild(script);
         }}
       else if(root.dataset.businessTemplate==='online_shop'){delete root.dataset.businessTemplate;}
       if(template!=='digital_subscription')return;

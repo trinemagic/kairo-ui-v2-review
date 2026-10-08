@@ -1043,7 +1043,7 @@ if (window.top !== window.self) {
       else if (t === 'Topic') setText(th, topic());
     });
     const pk = document.getElementById('tx-packages')?.previousElementSibling;
-    if (pk && pk.classList.contains('label')) setText(pk, 'Produk & Qty');
+    if (pk && pk.classList.contains('label')) setText(pk, 'Produk');
     document.querySelectorAll('#performance .card-title').forEach(el => {
       if (el.textContent.trim() === 'Penjualan Berdasarkan Paket') setText(el, 'Penjualan Berdasarkan Produk');
     });
