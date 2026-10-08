@@ -139,7 +139,6 @@
     wrap.innerHTML = `
       <div class="card shop-card" id="shop-profit-card">
         ${cardHead('Laba per Produk', 'Laba kotor = omzet − HPP', 'profit')}
-        <div class="shop-tiles" id="shop-profit-tiles"></div>
         <div class="chart-wrap shop-chart"><canvas id="shop-profit-chart"></canvas></div>
         <div class="shop-data" id="shop-profit-data" hidden>
           <div class="table-wrap"><table><thead><tr><th>Produk</th><th>Terjual</th><th>Omzet</th><th>Laba</th><th>Margin</th><th>Kontribusi laba</th></tr></thead><tbody id="shop-profit-table"></tbody></table></div>
@@ -150,6 +149,14 @@
         <div class="chart-wrap shop-chart"><canvas id="shop-channel-chart"></canvas></div>
         <div class="shop-data" id="shop-channel-data" hidden>
           <div class="table-wrap"><table><thead><tr><th>Channel</th><th>Order</th><th>Omzet</th><th>Laba</th><th>Margin</th><th>Rata-rata/order</th><th>Porsi omzet</th></tr></thead><tbody id="shop-channel-table"></tbody></table></div>
+        </div>
+      </div>
+      <div class="card shop-card" id="shop-stock-card" hidden>
+        ${cardHead('Stok Produk', 'Sisa hari stok = stok ÷ rata-rata terjual per hari (30 hari terakhir)', 'stock')}
+        <div class="shop-tiles" id="shop-stock-tiles"></div>
+        <div class="chart-wrap shop-chart"><canvas id="shop-stock-chart"></canvas></div>
+        <div class="shop-data" id="shop-stock-data" hidden>
+          <div class="table-wrap"><table><thead><tr><th>Produk</th><th>Stok</th><th>Terjual 30 hari</th><th>Sisa hari</th><th>Nilai stok</th><th>Status</th></tr></thead><tbody id="shop-stock-table"></tbody></table></div>
         </div>
       </div>
       <div class="card shop-card" id="shop-returns-card" hidden>
@@ -185,16 +192,15 @@
     const short = v => { const t = String(v); return t.length > 22 ? t.slice(0, 21) + '…' : t; };
     const has = rows.length > 0;
     charts[id] = new Chart(canvas, {
-      type: 'bar', plugins: [chartBarValues],
+      type: 'bar',
       data: { labels: has ? rows.map(r => r.label) : [empty], datasets: [{ data: has ? rows.map(r => r.value) : [0], backgroundColor: has ? rows.map(r => (r.other ? c.other : c.primary)) : [c.other], borderRadius: 6, barThickness: 'flex', maxBarThickness: 26 }] },
       options: {
-        indexAxis: 'y', responsive: true, maintainAspectRatio: false, layout: { padding: { right: 8 } },
+        indexAxis: 'y', responsive: true, maintainAspectRatio: false, layout: { padding: { right: 12 } },
         plugins: {
           legend: { display: false },
-          kairoBarValues: { color: c.text, format: (v, i) => (has ? rows[i].text : '') },
           tooltip: { callbacks: { title: items => items[0]?.label || '', label: x => (has ? rows[x.dataIndex].tip : empty) } }
         },
-        scales: chartAxes(c, { x: { beginAtZero: true, grace: '45%', ticks: { callback: v => (id === 'shop-returns-chart' ? v : shortRupiah(v)), precision: 0 }, grid: { display: true } }, y: { grid: { display: false }, ticks: { callback() { return short(this.getLabelForValue(arguments[0])); } } } })
+        scales: chartAxes(c, { x: { beginAtZero: true, grace: '5%', ticks: { callback: v => (id === 'shop-profit-chart' || id === 'shop-channel-chart' ? shortRupiah(v) : v), precision: 0 }, grid: { display: true } }, y: { grid: { display: false }, ticks: { callback() { return short(this.getLabelForValue(arguments[0])); } } } })
       }
     });
   }
@@ -223,17 +229,14 @@
       });
     });
     const list = [...map.values()].map(r => ({ ...r, profit: r.revenue - r.cost, noCost: r.cost <= 0 })).sort((a, b) => b.profit - a.profit);
-    const totalRev = list.reduce((s, r) => s + r.revenue, 0), totalProfit = list.reduce((s, r) => s + r.profit, 0);
     const positive = list.reduce((s, r) => s + Math.max(0, r.profit), 0);
-    document.getElementById('shop-profit-tiles').innerHTML = list.length ? [tile('Laba Kotor', money(totalProfit)), tile('Margin Kotor', pct(totalProfit, totalRev, 1))].join('') : '';
     body.innerHTML = list.length ? list.map(r => `<tr><td><strong>${esc(r.name)}</strong></td><td>${r.qty.toLocaleString('id-ID')}</td><td>${money(r.revenue)}</td><td><strong class="${r.profit < 0 ? 'shop-neg' : ''}">${money(r.profit)}</strong></td><td${r.noCost ? ' title="Harga modal belum diisi"' : ''}>${r.noCost ? '-' : pct(r.profit, r.revenue, 1)}</td><td>${pct(Math.max(0, r.profit), positive)}</td></tr>`).join('') : '<tr><td colspan="6" class="empty">Belum ada penjualan pada periode ini.</td></tr>';
     const chartRows = topRows(list.filter(r => r.profit > 0).map(r => ({
       label: r.name, value: r.profit, margin: r.noCost ? null : r.profit / r.revenue, profit: r.profit, revenue: r.revenue, qty: r.qty
     })), 5, rest => ({ label: 'Lainnya', other: true, value: rest.reduce((s, x) => s + x.profit, 0), margin: null, profit: rest.reduce((s, x) => s + x.profit, 0), revenue: rest.reduce((s, x) => s + x.revenue, 0), qty: rest.reduce((s, x) => s + x.qty, 0) }));
     drawBars('shop-profit-chart', chartRows.map(r => ({
       label: r.label, value: r.value, other: r.other,
-      text: `${rpShort(r.profit)}${r.margin !== null ? ' · ' + (r.margin * 100).toLocaleString('id-ID', { maximumFractionDigits: 0 }) + '%' : ''}`,
-      tip: `Laba ${money(r.profit)} dari omzet ${money(r.revenue)}${r.margin !== null ? ' (margin ' + (r.margin * 100).toLocaleString('id-ID', { maximumFractionDigits: 1 }) + '%)' : ''}, ${r.qty.toLocaleString('id-ID')} terjual`
+      tip: [`Laba ${money(r.profit)}`, `${r.qty.toLocaleString('id-ID')} terjual`]
     })), 'Belum ada penjualan');
   }
 
@@ -253,8 +256,7 @@
     const rows = topRows(list, 5, rest => ({ name: 'Lainnya', other: true, orders: rest.reduce((s, x) => s + x.orders, 0), revenue: rest.reduce((s, x) => s + x.revenue, 0), profit: rest.reduce((s, x) => s + x.profit, 0) }));
     drawBars('shop-channel-chart', rows.map(r => ({
       label: r.name, value: r.revenue, other: r.other,
-      text: `${rpShort(r.revenue)} · ${pct(r.revenue, totalRev)}`,
-      tip: `Omzet ${money(r.revenue)}, laba ${money(r.profit)} (margin ${pct(r.profit, r.revenue, 1)}), ${r.orders} order`
+      tip: [`Omzet ${money(r.revenue)} (${pct(r.revenue, totalRev)})`, `Laba ${money(r.profit)} · margin ${pct(r.profit, r.revenue, 1)}`, `${r.orders} order`]
     })), 'Belum ada penjualan');
   }
 
@@ -288,8 +290,8 @@
     const reasons = [...byReason.entries()].sort((a, b) => (b[1].b + b[1].r) - (a[1].b + a[1].r));
     document.getElementById('shop-return-table').innerHTML = reasons.length ? reasons.map(([k, x]) => `<tr><td>${esc(k)}</td><td>${x.b}</td><td>${x.r}</td><td>${money(x.v)}</td></tr>`).join('') : '<tr><td colspan="4" class="empty">Belum ada batal/retur pada periode ini.</td></tr>';
     drawBars('shop-returns-chart', reasons.map(([k, x]) => ({
-      label: k, value: x.b + x.r, text: `${x.b + x.r} · ${pct(x.b + x.r, bad)}`,
-      tip: `${x.b} batal, ${x.r} retur, nilai ${money(x.v)}`
+      label: k, value: x.b + x.r,
+      tip: [`${x.b} batal, ${x.r} retur`, `Nilai ${money(x.v)}`]
     })), 'Belum ada batal/retur');
   }
 
@@ -297,6 +299,7 @@
     if (!ensurePerfCards()) return;
     renderProfitCard();
     renderChannelCard();
+    renderStockCard();
     renderReturnsCard();
   }
   // Warna grafik ikut tema/mode gelap: gambar ulang hanya saat tema atau mode gelap berubah.
@@ -308,7 +311,7 @@
     if (now === lastLook) return;
     lastLook = now;
     clearTimeout(lookTimer);
-    lookTimer = setTimeout(() => { if (document.getElementById('shop-analytics')) { renderProfitCard(); renderChannelCard(); if (!returnsMissing) renderReturnsCard(); } }, 150);
+    lookTimer = setTimeout(() => { if (document.getElementById('shop-analytics')) { renderProfitCard(); renderChannelCard(); renderStockCard(); if (!returnsMissing) renderReturnsCard(); } }, 150);
   };
   new MutationObserver(onLook).observe(document.documentElement, { attributes: true, attributeFilter: ['data-ws-theme'] });
   new MutationObserver(onLook).observe(document.body, { attributes: true, attributeFilter: ['class'] });
@@ -322,6 +325,7 @@
       const opts = k => REASONS[k].map(r => `<option>${esc(r)}</option>`).join('');
       ov.innerHTML = `<div class="shop-modal-card" role="dialog" aria-modal="true" aria-label="Hapus order"><h3>Hapus order ${esc(customerName || '')}?</h3>
         <p>Order dihapus dari omzet, profit, kas, grafik, dan riwayat. Tindakan ini tidak bisa dibatalkan. Pilih alasannya supaya tercatat di Performance.</p>
+        ${stockReady() ? '<p class="shop-hint">Batal mengembalikan stok. Retur tidak, tambahkan stok manual bila barang layak dijual.</p>' : ''}
         <div class="shop-seg"><label><input type="radio" name="shop-kind" value="batal" checked> Batal</label><label><input type="radio" name="shop-kind" value="retur"> Retur</label></div>
         <label class="label" for="shop-reason">Alasan</label><select id="shop-reason" class="input">${opts('batal')}</select>
         <div class="shop-modal-actions"><button type="button" class="btn btn-light" data-shop-no>Kembali</button><button type="button" class="btn btn-danger" data-shop-yes>Hapus Order</button></div></div>`;
@@ -369,6 +373,113 @@
     window.deleteCancelledTransaction = w;
   }
 
+  /* ---------- Stok produk ----------
+     Kolom package_masters.stock_qty / stock_min + trigger database (SQL .claude/sql/2026-10-online-shop-stock.sql).
+     Kolom belum ada = semua bagian stok tersembunyi. stock_qty kosong = produk tidak dilacak. */
+  const stockReady = () => Array.isArray(packages) && packages.length > 0 && packages.some(p => 'stock_qty' in p);
+  const tracked = () => (Array.isArray(packages) ? packages : []).filter(p => p.stock_qty !== null && p.stock_qty !== undefined);
+
+  function mountStockSettings() {
+    const panel = document.querySelector('.settings-category-panel[data-settings-panel="packages"]');
+    const old = document.getElementById('shop-stock-settings');
+    if (!panel || !stockReady()) { if (old) old.hidden = true; return; }
+    let card = old;
+    if (!card) {
+      card = document.createElement('div');
+      card.className = 'card settings-master-card';
+      card.id = 'shop-stock-settings';
+      card.innerHTML = '<div class="settings-master-head"><div><div class="card-title">Stok Produk</div><div class="page-sub">Isi stok untuk melacak produk. Kosongkan jika tidak dilacak. Stok berkurang otomatis saat order disimpan.</div></div></div><div id="shop-stock-rows" class="shop-stock-rows"></div>';
+      panel.appendChild(card);
+      card.addEventListener('click', async e => {
+        const btn = e.target.closest('[data-shop-stock-save]');
+        if (!btn) return;
+        const row = btn.closest('.shop-stock-row');
+        const read = sel => { const v = row.querySelector(sel).value.trim(); return v === '' ? null : Math.round(Number(v)); };
+        const qty = read('.shop-stock-qty'), min = read('.shop-stock-min');
+        if ((qty !== null && !Number.isFinite(qty)) || (min !== null && (!Number.isFinite(min) || min < 0))) { showToast('Isi stok dengan angka.', true); return; }
+        btn.disabled = true;
+        try {
+          const { error } = await db.from('package_masters').update({ stock_qty: qty, stock_min: min }).eq('workspace_id', requireWorkspaceId()).eq('id', row.dataset.id);
+          if (error) throw error;
+          await loadMasters();
+          showToast('Stok disimpan.');
+        } catch (err) { showToast(err.message || 'Gagal menyimpan stok.', true); }
+        finally { btn.disabled = false; }
+      });
+    }
+    card.hidden = false;
+    const sig = packages.map(p => `${p.id}|${p.name}|${p.stock_qty}|${p.stock_min}`).join(';');
+    if (card.dataset.sig === sig) return;
+    card.dataset.sig = sig;
+    document.getElementById('shop-stock-rows').innerHTML = `<div class="shop-stock-row shop-stock-head"><span>Produk</span><span>Stok</span><span>Batas menipis</span><span></span></div>` + packages.map(p => `<div class="shop-stock-row" data-id="${esc(p.id)}"><strong>${esc(p.name)}</strong><input class="input shop-stock-qty" type="number" step="1" inputmode="numeric" placeholder="Tidak dilacak" value="${p.stock_qty ?? ''}" aria-label="Stok ${esc(p.name)}"><input class="input shop-stock-min" type="number" min="0" step="1" inputmode="numeric" placeholder="-" value="${p.stock_min ?? ''}" aria-label="Batas menipis ${esc(p.name)}"><button type="button" class="btn btn-light" data-shop-stock-save>Simpan</button></div>`).join('');
+  }
+
+  // Order: "Sisa N" di samping harga produk + peringatan bila qty melebihi stok.
+  function decorateOrderStock() {
+    if (!stockReady()) return;
+    document.querySelectorAll('#tx-packages .master-item').forEach(item => {
+      const id = item.querySelector('.package-check')?.dataset.id;
+      const p = packages.find(x => String(x.id) === String(id));
+      const small = item.querySelector('.master-main small');
+      if (!p || !small) return;
+      let tag = item.querySelector('.shop-stock-tag');
+      if (p.stock_qty === null || p.stock_qty === undefined) { tag?.remove(); return; }
+      if (!tag) { tag = document.createElement('span'); tag.className = 'shop-stock-tag'; small.insertAdjacentElement('afterend', tag); }
+      const low = p.stock_qty <= 0 || (p.stock_min !== null && p.stock_min !== undefined && p.stock_qty <= p.stock_min);
+      const text = p.stock_qty <= 0 ? 'Habis' : `Sisa ${p.stock_qty}`;
+      if (tag.textContent !== text) tag.textContent = text;
+      tag.classList.toggle('is-low', low);
+    });
+  }
+  document.addEventListener('submit', e => {
+    if (e.target?.id !== 'tx-form' || !stockReady()) return;
+    const over = [];
+    document.querySelectorAll('.package-check:checked').forEach(c => {
+      const p = packages.find(x => String(x.id) === String(c.dataset.id));
+      const q = num(document.querySelector(`.package-qty[data-id="${c.dataset.id}"]`)?.value || 1);
+      if (p && p.stock_qty !== null && p.stock_qty !== undefined && q > p.stock_qty) over.push(`${p.name} (sisa ${Math.max(0, p.stock_qty)}, order ${q})`);
+    });
+    if (over.length) showToast('Stok kurang: ' + over.join(', ') + '. Stok akan minus.', 'warning');
+  }, true);
+
+  let stockSeq = 0;
+  async function renderStockCard() {
+    const card = document.getElementById('shop-stock-card');
+    if (!card) return;
+    const list = tracked();
+    if (!stockReady() || !list.length) { card.hidden = true; return; }
+    const seq = ++stockSeq;
+    let rows = [];
+    try { rows = typeof allTransactions === 'function' ? await allTransactions() : []; } catch (_e) { rows = []; }
+    if (seq !== stockSeq) return;
+    const since = new Date(); since.setDate(since.getDate() - 29);
+    const sinceISO = typeof localISODate === 'function' ? localISODate(since) : since.toISOString().slice(0, 10);
+    const sold = new Map();
+    rows.filter(t => !isRollup(t) && String(t.transaction_date || '') >= sinceISO).forEach(t => {
+      (Array.isArray(t.order_items) ? t.order_items : []).forEach(x => { const k = String(x?.id ?? ''); sold.set(k, (sold.get(k) || 0) + Math.max(0, num(x?.qty || 1))); });
+    });
+    const data = list.map(p => {
+      const stock = num(p.stock_qty), min = p.stock_min === null || p.stock_min === undefined ? null : num(p.stock_min);
+      const s30 = sold.get(String(p.id)) || 0, perDay = s30 / 30, days = perDay > 0 ? stock / perDay : null;
+      let status = 'Aman', tone = 'ok';
+      if (stock <= 0) { status = 'Habis'; tone = 'bad'; }
+      else if ((min !== null && stock <= min) || (days !== null && days <= 7)) { status = 'Menipis'; tone = 'warn'; }
+      else if (s30 === 0) { status = 'Tidak laku 30 hari'; tone = 'muted'; }
+      return { name: p.name, stock, s30, days, value: Math.max(0, stock) * num(p.cost_price), status, tone };
+    });
+    const nLow = data.filter(d => d.tone === 'warn').length, nOut = data.filter(d => d.tone === 'bad').length;
+    card.hidden = false;
+    document.getElementById('shop-stock-tiles').innerHTML = [tile('Produk Dilacak', data.length), tile('Stok Menipis', nLow), tile('Stok Habis', nOut), tile('Nilai Stok (modal)', money(data.reduce((s, d) => s + d.value, 0)))].join('');
+    const order = { bad: 0, warn: 1, ok: 2, muted: 3 };
+    const sorted = [...data].sort((a, b) => (order[a.tone] - order[b.tone]) || ((a.days ?? 1e9) - (b.days ?? 1e9)));
+    document.getElementById('shop-stock-table').innerHTML = sorted.map(d => `<tr><td><strong>${esc(d.name)}</strong></td><td>${d.stock.toLocaleString('id-ID')}</td><td>${d.s30.toLocaleString('id-ID')}</td><td>${d.days === null ? '-' : Math.floor(d.days).toLocaleString('id-ID')}</td><td>${money(d.value)}</td><td><span class="shop-status tone-${d.tone}">${esc(d.status)}</span></td></tr>`).join('');
+    const chartRows = sorted.filter(d => d.days !== null || d.tone === 'bad').slice(0, 6);
+    drawBars('shop-stock-chart', chartRows.map(d => ({
+      label: d.name, value: d.tone === 'bad' ? 0 : Math.min(Math.floor(d.days), 90),
+      tip: [`Stok ${d.stock}`, `Terjual ${d.s30} dalam 30 hari`, ...(d.days === null ? [] : [`Cukup ±${Math.floor(d.days)} hari`])]
+    })), 'Belum ada penjualan 30 hari terakhir');
+  }
+
   /* ---------- Pasang ---------- */
   function wrap(name, after) {
     const core = window[name];
@@ -385,6 +496,10 @@
     wrap('applyTopicFieldLabel', syncPlatformSelect);
     mountPlatformSettings();
     syncPlatformSelect();
+    wrap('renderMasterOptions', () => { decorateOrderStock(); if (document.getElementById('shop-analytics')) renderStockCard(); });
+    wrap('renderSettingsMasterData', mountStockSettings);
+    mountStockSettings();
+    decorateOrderStock();
     renderShopDashboardKpi();
     if (document.getElementById('product-sales-card')) renderPerformanceExtras();
   }
