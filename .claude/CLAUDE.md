@@ -124,8 +124,8 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   `requested_period` ('monthly'|'semiannual', sama dengan billing_period admin) + disebut di pesan WA konfirmasi. Halaman **`#syarat` (S&K) & `#privasi`** (`.kairo-lp-legal`, berlaku 5 Okt 2026) +
   footer berisi link keduanya, WhatsApp 0877-9454-5507, ©. Headline hero: "Pencatatan usaha yang rapi untuk seller & jasa
   online." Belum ada: testimoni, medsos, kebijakan refund (menunggu owner). FAQ 8 poin fokus fitur
-  unggulan (tanpa poin dark mode — owner). Jangan klaim fitur yang belum ada (mis. "Owner Menu
-  Lock" hanya baris tabel, belum ada fiturnya).
+  unggulan (tanpa poin dark mode — owner). Jangan klaim fitur yang belum ada ("Owner Menu
+  Lock" dibatalkan owner Okt 2026 - tidak akan dibuat; "Auto Lock dashboard" itu fitur lain yang memang ada).
 - **Riwayat paket Gratis = 60 hari (owner Okt 2026, opsi "Gabungan"):** fitur `full_history` (min `pro`, bisa di-override
   `saas_plan_entitlements`). `historyCutoff()`/`clampHistoryFrom()` di kairo-app.js: `getRange()` (Dashboard, Performance, Withdraw,
   Petty Cash periode), `fetchHistoryTransactions()` dan `renderCashHistoryTable()` tidak menampilkan data < hari ini-59. **Ringkasan saldo**
