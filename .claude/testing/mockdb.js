@@ -7,8 +7,6 @@ window.supabase = { createClient: () => {
     if (op === 'eq') return String(x) === String(v);
     if (op === 'lte') return String(x ?? '') <= String(v);
     if (op === 'gte') return String(x ?? '') >= String(v);
-    if (op === 'gt') return String(x ?? '') > String(v);
-    if (op === 'lt') return String(x ?? '') < String(v);
     if (op === 'in') return v.map(String).includes(String(x));
     return true;
   });
@@ -17,7 +15,7 @@ window.supabase = { createClient: () => {
     const b = {
       select() { return b; }, order() { return b; }, limit() { return b; }, range(a, z) { st.range = [a, z]; return b; },
       eq(k, v) { st.filters.push(['eq', k, v]); return b; }, lte(k, v) { st.filters.push(['lte', k, v]); return b; },
-      gte(k, v) { st.filters.push(['gte', k, v]); return b; }, gt(k, v) { st.filters.push(['gt', k, v]); return b; }, lt(k, v) { st.filters.push(['lt', k, v]); return b; }, in(k, v) { st.filters.push(['in', k, v]); return b; },
+      gte(k, v) { st.filters.push(['gte', k, v]); return b; }, in(k, v) { st.filters.push(['in', k, v]); return b; },
       neq() { return b; }, is() { return b; }, not() { return b; }, or() { return b; }, ilike() { return b; },
       insert(p) { st.op = 'insert'; st.payload = p; return b; }, update(p) { st.op = 'update'; st.payload = p; return b; },
       upsert(p, o) { st.op = 'upsert'; st.payload = p; st.conflict = o?.onConflict; return b; }, delete() { st.op = 'delete'; return b; },
