@@ -5029,3 +5029,33 @@ html.kairo-v3 .kairo-lp-actions .kairo-button { white-space: nowrap; }
 /* Tautan WhatsApp: logo + teks (nomor tidak ditampilkan). */
 html.kairo-v3 .kairo-wa-link { display: inline-flex; align-items: center; gap: 7px; }
 html.kairo-v3 .kairo-wa-ico { width: 17px; height: 17px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ---- Login PIN (owner Okt 2026) ---- */
+html.kairo-v3 .kairo-pin-pad { display: grid; justify-items: center; gap: 6px; }
+html.kairo-v3 .kairo-pin-pad:focus, html.kairo-v3 .kairo-pin-pad:focus-visible { outline: none !important; box-shadow: none !important; }
+html.kairo-v3 .kairo-pin-title { font-size: 18px; font-weight: 800; color: var(--v3-ink); }
+html.kairo-v3 .kairo-pin-sub { font-size: 12.5px; color: var(--v3-muted); text-align: center; }
+html.kairo-v3 .kairo-pin-dots { display: flex; gap: 16px; margin: 14px 0 4px; }
+html.kairo-v3 .kairo-pin-dots i { width: 20px; height: 20px; border-radius: 999px; border: 2px solid var(--v3-primary-dark); background: transparent; transition: background .12s ease, transform .12s ease; }
+html.kairo-v3 .kairo-pin-dots i.on { background: var(--v3-primary-dark); transform: scale(1.1); }
+html.kairo-v3 .kairo-pin-msg { min-height: 18px; font-size: 12.5px; font-weight: 700; color: var(--v3-muted); }
+html.kairo-v3 .kairo-pin-msg.bad { color: var(--v3-danger); }
+html.kairo-v3 .kairo-pin-keys { display: grid; grid-template-columns: repeat(3, 62px); gap: 14px; margin-top: 6px; }
+html.kairo-v3 .kairo-pin-keys button {
+  height: 62px; border: 1px solid var(--v3-line); border-radius: 999px; padding: 0; background: var(--v3-surface-subtle);
+  color: var(--v3-ink); font-size: 28px; font-weight: 700; line-height: 1; font-family: inherit; cursor: pointer; touch-action: manipulation;
+}
+html.kairo-v3 .kairo-pin-keys button:active { background: color-mix(in srgb, var(--v3-primary) 18%, var(--v3-surface)); }
+html.kairo-v3 .kairo-pin-keys button:focus-visible { outline: 3px solid color-mix(in srgb, var(--v3-primary) 45%, transparent); outline-offset: 2px; }
+html.kairo-v3 .kairo-pin-pad.is-busy .kairo-pin-keys { opacity: .5; pointer-events: none; }
+html.kairo-v3 .kairo-pin-alt { display: block; margin: 14px auto 0; padding: 8px 12px; border: 0; background: none; color: var(--v3-primary-dark); font-size: 13px; font-weight: 700; line-height: 1; font-family: inherit; cursor: pointer; }
+html.kairo-v3 #kairo-pin-login { padding: 6px 0 2px; }
+html.kairo-v3 .kairo-login-card.has-pin .kairo-login-intro { display: none; }
+html.kairo-v3 .kairo-pin-modal { position: fixed; inset: 0; z-index: 2600; display: grid; place-items: center; padding: 16px; background: rgba(8, 24, 38, .6); }
+html.kairo-v3 .kairo-pin-modal-card, html.kairo-v3 .kairo-pin-modal-card *:focus { outline: none; }
+html.kairo-v3 .kairo-pin-modal-card { width: min(100%, 340px); padding: 26px 20px 18px; border-radius: 20px; background: var(--v3-surface); border: 1px solid var(--v3-line); box-shadow: 0 28px 80px rgba(8, 24, 38, .35); }
+html.kairo-v3 .kairo-pin-settings { display: grid; gap: 6px; padding-top: 14px; border-top: 1px solid var(--v3-line); }
+html.kairo-v3 .kairo-pin-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-top: 6px; }
+html.kairo-v3 .kairo-pin-state { font-weight: 800; color: var(--v3-ink); }
+html.kairo-v3 .kairo-pin-btns { display: flex; flex-wrap: wrap; gap: 8px; }
+html.kairo-v3 .kairo-pin-btns [hidden] { display: none; }

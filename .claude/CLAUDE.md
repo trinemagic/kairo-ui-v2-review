@@ -86,8 +86,8 @@ domain = pengguna login ulang & pengaturan browser (Ingat saya, dark mode) mulai
 | `assets/brand/` | Logo resmi KAIRO Workspaces (kit dari owner, Okt 2026) | `kairo-horizontal-color.svg` = landing (header, footer, dialog Masuk; latar terang, min. lebar 120px); `kairo-app-icon.svg` = logo default dashboard (`KAIRO_LOGO`, sidebar, header HP, preview Settings, admin) sampai user upload logo sendiri; `favicon.svg/.ico`; `assets/og/apple-touch-icon.png` dari kit. Wordmark digambar - jangan diketik ulang pakai font. `assets/kairo-mark.svg` (logo lama) sudah dihapus. |
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
-Versi terakhir: `kairo.css?v=20.10.159`, `kairo-v3.css?v=3.39.1`,
-`kairo-v3.js?v=3.30.1`, `kairo-app.js?v=20.10.213`, `kairo-themes.css?v=1.0.0`/`.js?v=1.0.1`; template seller dimuat dari kairo-app.js
+Versi terakhir: `kairo.css?v=20.10.159`, `kairo-v3.css?v=3.40.3`,
+`kairo-v3.js?v=3.30.1`, `kairo-app.js?v=20.10.214`, `kairo-pin.js?v=1.0.0`, `kairo-themes.css?v=1.0.0`/`.js?v=1.0.1`; template seller dimuat dari kairo-app.js
 (`seller-app-premium.js?v=20.10.161`, `.css?v=20.10.157`) — naikkan juga bila file template diubah.
 Setup Wizard dimuat dari `loadSetupWizard()` di kairo-app.js (`kairo-setup-wizard.js/.css?v=1.0.4`, satu konstanta `v`).
 Panduan dimuat dari `window.kairoOpenGuide()` di kairo-v3.js (`kairo-guide.js/.css?v=` konstanta `GUIDE_V`='1.0.1'; gambar `assets/guide/*.webp?v=` `SHOT_V` di kairo-guide.js).
@@ -192,6 +192,15 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   lalu memanggil `handleAuthSession(session)` asli (jalur masuk sama seperti login sungguhan, paket Pro, wizard setup dimatikan lewat `setup_state.completed_at`). Perubahan hanya di
   memori halaman (hilang saat reload). Bilah `#kairo-demo-bar` (HP: di atas; desktop: pil melayang kanan bawah): ganti template, Daftar Gratis (reload ke landing + form daftar),
   Keluar. Export Excel dinonaktifkan di demo. Tes: Playwright ke `http://localhost:8123/index.html#demo-shop` (Chart.js lokal seperti boot.js; CDN supabase tidak dipakai).
+- **Alamat pendek (owner Okt 2026):** folder `app/`, `masuk/` (-> `/#masuk`, form Masuk langsung) dan `daftar/` (-> `/?signup=1`, form Daftar) berisi
+  halaman kecil yang hanya redirect ke `index.html` yang sama. Dokumen app SENGAJA tidak dipindah ke subfolder: banyak path relatif
+  (`assets/...` dimuat dinamis dari JS, link `#home`, demo `#demo-...`) akan rusak. Jangan tambah `<base>`.
+- **Login PIN (owner Okt 2026, tanpa Face ID):** `assets/kairo-pin.js` (`?v=1.0.0`, dimuat setelah kairo-app.js; memakai `db` global). Settings › Workspace & Branding
+  › kartu "PIN Login" (`#kairo-pin-settings`): PIN 6 angka dibuat 2x. Refresh token sesi dienkripsi AES-GCM (kunci PBKDF2-SHA256 600k iterasi dari PIN, AAD = user id)
+  di `localStorage` `kairo_pin_v1`; password TIDAK disimpan; kunci turunan hanya di memori, token diperbarui tiap `TOKEN_REFRESHED`. Dialog Masuk menampilkan keypad bila PIN ada
+  ("Pakai password" = form biasa); unlock = `db.auth.refreshSession`. Salah 5x (`kairo_pin_tries_v1`, dihitung SEBELUM dekripsi) atau token kedaluwarsa = blob dihapus.
+  Saat PIN aktif, Keluar/auto-lock hanya `location.reload()` (TIDAK `signOut`, karena signOut mencabut token di server dan PIN jadi percuma). `persistSession:false` tetap.
+  Batas jujur: PIN 6 angka bisa ditebak offline bila localStorage perangkat dicuri; tidak aktif di demo. Tes: scratchpad `pin.js` + `mockdb.js` (`refreshSession`, `__mockRT`).
 - **Login:** "Ingat saya" menyimpan **username saja** (`kairo_remember_username_v1`);
   `persistSession:false` sengaja (wajib login tiap buka) — jangan diubah tanpa izin.
 - **Riwayat Transaksi:** 7 kolom (Tanggal, Start Reading, Nama, Status, Paket=kode,
