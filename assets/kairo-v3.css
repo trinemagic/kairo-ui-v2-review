@@ -4670,10 +4670,7 @@ html.kairo-v3 .product-sales-summary b { color: var(--v3-ink); font-size: 17px; 
 
 /* Paket Gratis: tanpa partner tambahan & pembagian persentase (owner Okt 2026). HPP per produk tetap tampil:
    laba bersih = harga jual dikurangi harga modal, 100% untuk pemilik. */
-html.kairo-v3[data-workspace-plan="basic"] #profit-share-editor-form,
-html.kairo-v3[data-workspace-plan="basic"] #kairo-add-partner,
-html.kairo-v3[data-workspace-plan="basic"] #profit-share-active-label,
-html.kairo-v3[data-workspace-plan="basic"] .profit-product-divider { display: none !important; }
+html.kairo-v3[data-workspace-plan="basic"] #profit-share-editor-form,html.kairo-v3[data-workspace-plan="basic"] #kairo-add-partner,html.kairo-v3[data-workspace-plan="basic"] #profit-share-active-label{ display: none !important; }
 html.kairo-v3 .kairo-cash-off-panel { display: grid; gap: 10px; margin: -6px 0 16px; padding: 12px 14px; border: 1px solid color-mix(in srgb, #b26a00 40%, var(--v3-line)); border-radius: 12px; background: color-mix(in srgb, #b26a00 7%, var(--v3-surface)); }
 html.kairo-v3 .kairo-cash-off-panel[hidden] { display: none; }
 html.kairo-v3 .kairo-cash-off-panel > div:first-child { display: grid; gap: 2px; }
@@ -4850,3 +4847,170 @@ html.kairo-v3 .pick-qty { margin-left: auto; flex: 0 0 auto; display: inline-fle
 html.kairo-v3 .pick-qty[hidden] { display: none; }
 html.kairo-v3 .pick-minus { width: 26px; height: 26px; border: 0; border-radius: 50%; background: rgba(255, 255, 255, .28); color: inherit; font: inherit; font-size: 17px; line-height: 1; cursor: pointer; }
 html.kairo-v3 .pick-minus:hover { background: rgba(255, 255, 255, .45); }
+
+/* ---- Perbaikan mobile (Okt 2026) ---- */
+/* Filter tanggal Kustom: dua kolom tanggal sama lebar, "s/d" di tengah, tidak melebar keluar layar (Safari iOS). */
+@media (max-width: 900px) {
+  html.kairo-v3 #app-shell main.container > .toolbar #custom-range.show {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    grid-template-columns: minmax(0, 1fr) 30px minmax(0, 1fr);
+    gap: 4px;
+    overflow: hidden;
+  }
+
+  html.kairo-v3 #app-shell main.container > .toolbar #custom-range.show > span {
+    justify-self: center;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  html.kairo-v3 #app-shell main.container > .toolbar #custom-range .control {
+    -webkit-appearance: none;
+    appearance: none;
+    display: block;
+    inline-size: 100%;
+    max-width: 100%;
+    overflow: hidden;
+    text-align: center;
+  }
+
+  html.kairo-v3 #custom-range .control::-webkit-date-and-time-value {
+    min-width: 0;
+    text-align: center;
+  }
+}
+
+/* Pop-up Notifikasi & Menu Lainnya (mode terang): latar solid, bukan tembus pandang. */
+html.kairo-v3 body:not(.saas-dark) .kairo-mobile-more-backdrop {
+  background: rgba(24, 18, 28, .55) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html.kairo-v3 body:not(.saas-dark) .kairo-mobile-more-panel {
+  background: color-mix(in srgb, var(--v3-primary) 5%, #ffffff) !important;
+  border: 1px solid color-mix(in srgb, var(--v3-ink) 24%, #ffffff) !important;
+  box-shadow: 0 -10px 40px rgba(20, 24, 40, .28) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html.kairo-v3 body:not(.saas-dark) .kairo-mobile-more-item,
+html.kairo-v3 body:not(.saas-dark) .kairo-mobile-sheet-tip,
+html.kairo-v3 body:not(.saas-dark) .kairo-mobile-sheet-close {
+  background: #ffffff !important;
+  border-color: color-mix(in srgb, var(--v3-ink) 22%, #ffffff) !important;
+  box-shadow: 0 1px 2px rgba(20, 24, 40, .08);
+}
+
+html.kairo-v3 body:not(.saas-dark) .kairo-mobile-more-item > span:last-child,
+html.kairo-v3 body:not(.saas-dark) .kairo-mobile-sheet-head strong {
+  color: var(--v3-ink) !important;
+}
+
+html.kairo-v3 body:not(.saas-dark) .kairo-mobile-sheet-head small,
+html.kairo-v3 body:not(.saas-dark) .kairo-mobile-sheet-tip small {
+  color: var(--v3-muted) !important;
+}
+
+/* Settings › baris Package / Add-on / Topik di HP: satu kolom, tombol sama lebar. */
+
+@media (max-width: 700px) {
+  html.kairo-v3 #settings .settings-master-row,
+  html.kairo-v3 #settings .settings-master-row.settings-topic-master-row {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 12px !important;
+    padding: 14px !important;
+  }
+
+  html.kairo-v3 #settings .settings-master-row > .form-group,
+  html.kairo-v3 #settings .settings-master-row > .master-name-field {
+    grid-column: 1 !important;
+    min-width: 0;
+  }
+
+  html.kairo-v3 #settings .settings-master-row .settings-master-actions {
+    grid-column: 1 !important;
+    display: grid !important;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    gap: 8px;
+    width: 100%;
+    flex-wrap: nowrap;
+  }
+
+  html.kairo-v3 #settings .settings-master-row .settings-master-actions .btn {
+    min-width: 0 !important;
+    width: 100%;
+    height: 44px !important;
+    padding: 0 6px !important;
+    font-size: 13px !important;
+    white-space: nowrap;
+  }
+}
+
+/* Settings › Package / Add-on: Kode | Nama | Harga | Modal | Pembagian dalam satu baris; tombol di baris yang sama bila
+   kartu cukup lebar (container query), kalau tidak di bawahnya (rata kanan, satu baris).
+   Nominal manual per partner muncul hanya bila metode "Nominal manual". */
+html.kairo-v3 #settings :is(#settings-package-list, #settings-addon-list) { container-type: inline-size; }
+
+@media (min-width: 701px) {
+  html.kairo-v3 #settings .settings-master-row:has(.master-price-field) {
+    grid-template-columns: minmax(70px, .5fr) minmax(150px, 1.7fr) minmax(104px, 1fr) minmax(104px, 1fr) minmax(140px, 1.1fr) !important;
+    gap: 10px !important;
+    align-items: end !important;
+  }
+
+  html.kairo-v3 #settings .settings-master-row:has(.master-price-field) .settings-master-actions {
+    grid-column: 1 / -1;
+    flex-wrap: nowrap !important;
+    justify-content: flex-end;
+  }
+
+  html.kairo-v3 #settings .settings-master-row:has(.master-price-field) .settings-master-actions .btn {
+    min-width: 0 !important;
+    padding: 9px 14px;
+    font-size: 12.5px;
+  }
+}
+
+@container (min-width: 1180px) {
+  html.kairo-v3 #settings .settings-master-row:has(.master-price-field) {
+    grid-template-columns: minmax(70px, .45fr) minmax(150px, 1.5fr) minmax(100px, .85fr) minmax(100px, .85fr) minmax(138px, 1fr) auto !important;
+  }
+
+  html.kairo-v3 #settings .settings-master-row:has(.master-price-field) .settings-master-actions {
+    grid-column: auto;
+  }
+}
+
+html.kairo-v3 #settings .master-manual {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed color-mix(in srgb, var(--v3-ink) 22%, transparent);
+}
+
+html.kairo-v3 #settings .master-manual[hidden] { display: none; }
+html.kairo-v3 #settings .master-manual-field .label { margin-bottom: 4px; }
+html.kairo-v3 #settings .master-manual-note { grid-column: 1 / -1; font-size: 12px; font-weight: 700; color: var(--v3-muted); }
+html.kairo-v3 #settings .master-manual-note.invalid { color: var(--v3-danger, #a3384a); }
+
+@media (max-width: 700px) {
+  /* Harga & Modal berdampingan, sisanya satu kolom. */
+  html.kairo-v3 #settings .settings-master-row:has(.master-price-field) {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+  }
+
+  html.kairo-v3 #settings .settings-master-row:has(.master-price-field) > .master-price-field { grid-column: 1 !important; }
+  html.kairo-v3 #settings .settings-master-row:has(.master-price-field) > .master-cost-field { grid-column: 2 !important; }
+
+  html.kairo-v3 #settings .settings-master-row:has(.master-price-field) > :is(.master-name-field, .master-split-field, .master-manual, .settings-master-actions, .form-group:first-child) {
+    grid-column: 1 / -1 !important;
+  }
+}
