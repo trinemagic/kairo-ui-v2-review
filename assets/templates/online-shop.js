@@ -127,6 +127,7 @@
   document.addEventListener('click', e => { if (e.target.closest?.('#dashboard .kpi-eye')) setTimeout(renderShopDashboardKpi, 0); }, true);
 
   /* ---------- Performance ---------- */
+  const tile = (label, value, hint) => `<div class="shop-tile"><span>${label}</span><strong>${value}</strong>${hint ? `<small>${hint}</small>` : ''}</div>`;
   function ensurePerfCards() {
     if (document.getElementById('shop-analytics')) return true;
     const anchor = document.getElementById('product-sales-card');
@@ -135,24 +136,18 @@
     wrap.id = 'shop-analytics';
     wrap.innerHTML = `
       <div class="card shop-card" id="shop-profit-card">
-        <div class="card-title">Laba per Produk</div>
-        <div class="page-sub">Laba kotor = omzet produk dikurangi harga modal (HPP), sebelum diskon/penyesuaian harga dan biaya admin marketplace. Ikut filter tanggal di atas.</div>
-        <div class="shop-insights" id="shop-profit-insights"></div>
-        <div class="table-wrap"><table><thead><tr><th>Produk</th><th>Terjual</th><th>Omzet</th><th>Laba</th><th>Margin</th><th>Status</th></tr></thead><tbody id="shop-profit-table"></tbody></table></div>
+        <div class="shop-head"><div><div class="card-title">Laba per Produk</div><div class="page-sub">Laba kotor = omzet − HPP. Kelas ABC: A = produk penyumbang 80% laba, B = 15% berikutnya, C = sisanya.</div></div></div>
+        <div class="shop-tiles" id="shop-profit-tiles"></div>
+        <div class="table-wrap"><table><thead><tr><th>Produk</th><th>Terjual</th><th>Omzet</th><th>Laba</th><th>Margin</th><th>Kontribusi laba</th><th>Kelas</th></tr></thead><tbody id="shop-profit-table"></tbody></table></div>
         <button type="button" class="btn btn-light shop-more" id="shop-profit-more" hidden>Lihat semua produk</button>
-        <div class="shop-legend" id="shop-profit-legend" hidden><span><b class="shop-tag tone-green">Andalan</b> laris dan margin di atas rata-rata</span><span><b class="shop-tag tone-amber">Laris, margin tipis</b> cek harga jual atau modal</span><span><b class="shop-tag tone-blue">Margin tebal, kurang laku</b> layak dipromosikan</span><span><b class="shop-tag tone-red">Perlu dievaluasi</b> kurang laku dan margin tipis</span></div>
       </div>
       <div class="card shop-card" id="shop-channel-card">
-        <div class="card-title">Analisis Channel</div>
-        <div class="page-sub">Perbandingan tiap channel penjualan pada periode terpilih. Laba belum memotong biaya admin/komisi channel.</div>
-        <div class="shop-insights" id="shop-channel-insights"></div>
+        <div class="shop-head"><div><div class="card-title">Performa Channel</div><div class="page-sub">Laba sebelum komisi dan biaya admin channel.</div></div></div>
         <div class="table-wrap"><table><thead><tr><th>Channel</th><th>Order</th><th>Omzet</th><th>Laba</th><th>Margin</th><th>Rata-rata/order</th><th>Porsi omzet</th></tr></thead><tbody id="shop-channel-table"></tbody></table></div>
       </div>
       <div class="card shop-card" id="shop-returns-card" hidden>
-        <div class="card-title">Batal &amp; Retur</div>
-        <div class="page-sub">Dicatat saat order dihapus lewat Aksi › Hapus/Cancel. Ikut filter tanggal di atas.</div>
-        <div class="shop-return-kpis" id="shop-return-kpis"></div>
-        <div class="shop-insights" id="shop-return-insights"></div>
+        <div class="shop-head"><div><div class="card-title">Batal &amp; Retur</div></div></div>
+        <div class="shop-tiles" id="shop-return-tiles"></div>
         <div class="table-wrap"><table><thead><tr><th>Alasan</th><th>Batal</th><th>Retur</th><th>Nilai order</th></tr></thead><tbody id="shop-return-table"></tbody></table></div>
       </div>`;
     anchor.insertAdjacentElement('afterend', wrap);
@@ -163,6 +158,7 @@
   let showAllProducts = false;
   function rowsInRange() { return (Array.isArray(transactions) ? transactions : []).filter(t => !isRollup(t)); }
 
+  // Analisis ABC (Pareto) atas laba kotor: A = produk yang membentuk 80% laba, B = 15% berikutnya, C = sisanya.
   function renderProfitCard() {
     const body = document.getElementById('shop-profit-table');
     if (!body) return;
@@ -171,49 +167,33 @@
       (Array.isArray(t.order_items) ? t.order_items : []).forEach(x => {
         const name = String(x?.name || x?.code || '').trim() || '-';
         const qty = Math.max(0, num(x?.qty || 1));
-        const revenue = Number.isFinite(Number(x?.subtotal)) && x?.subtotal !== undefined ? num(x.subtotal) : num(x?.unit_price ?? x?.price) * qty;
-        const cost = Number.isFinite(Number(x?.cost_subtotal)) && x?.cost_subtotal !== undefined && x?.cost_subtotal !== null ? num(x.cost_subtotal) : num(x?.cost_price) * qty;
+        const revenue = x?.subtotal !== undefined && x?.subtotal !== null ? num(x.subtotal) : num(x?.unit_price ?? x?.price) * qty;
+        const cost = x?.cost_subtotal !== undefined && x?.cost_subtotal !== null ? num(x.cost_subtotal) : num(x?.cost_price) * qty;
         const r = map.get(name) || { name, qty: 0, revenue: 0, cost: 0 };
         r.qty += qty; r.revenue += revenue; r.cost += cost;
         map.set(name, r);
       });
     });
-    const list = [...map.values()].map(r => ({ ...r, profit: r.revenue - r.cost, margin: r.revenue > 0 ? (r.revenue - r.cost) / r.revenue : 0, noCost: r.cost <= 0 })).sort((a, b) => b.profit - a.profit);
+    const list = [...map.values()].map(r => ({ ...r, profit: r.revenue - r.cost, noCost: r.cost <= 0 })).sort((a, b) => b.profit - a.profit);
     const totalRev = list.reduce((s, r) => s + r.revenue, 0), totalProfit = list.reduce((s, r) => s + r.profit, 0);
-    const avgMargin = totalRev > 0 ? totalProfit / totalRev : 0;
-    const withCost = list.filter(r => !r.noCost);
-    const sortedQty = list.map(r => r.qty).sort((a, b) => a - b);
-    const median = sortedQty.length ? sortedQty[Math.floor((sortedQty.length - 1) / 2)] : 0;
-    const classify = r => {
-      if (r.noCost) return ['Isi modal', 'gray', 'Harga modal produk ini belum diisi di Settings, jadi laba belum akurat.'];
-      if (list.length < 3) return ['-', 'gray', 'Perlu minimal 3 produk terjual pada periode ini untuk dibandingkan.'];
-      const laris = r.qty >= median && r.qty > 0, tebal = r.margin >= avgMargin;
-      if (laris && tebal) return ['Andalan', 'green', 'Laris dan margin di atas rata-rata.'];
-      if (laris) return ['Laris, margin tipis', 'amber', 'Laris tapi margin di bawah rata-rata: cek harga jual atau modal.'];
-      if (tebal) return ['Margin tebal, kurang laku', 'blue', 'Margin tebal tapi jarang laku: layak dipromosikan.'];
-      return ['Perlu dievaluasi', 'red', 'Kurang laku dan margin tipis.'];
-    };
-    const ins = [];
-    if (list.length) {
-      const top = list[0];
-      ins.push(`Penyumbang laba terbesar: <b>${esc(top.name)}</b> (${money(top.profit)}, ${pct(top.profit, totalProfit)} dari total laba ${money(totalProfit)}).`);
-      const thin = withCost.filter(r => r.qty > 0).sort((a, b) => a.margin - b.margin)[0];
-      if (thin && withCost.length > 1) ins.push(`Margin tertipis: <b>${esc(thin.name)}</b> (${pct(thin.profit, thin.revenue)}). Rata-rata toko ${pct(totalProfit, totalRev, 1)}.`);
-      const lowLaris = list.filter(r => classify(r)[1] === 'amber').length;
-      if (lowLaris) ins.push(`${lowLaris} produk laris tapi margin tipis. Naikkan harga sedikit atau cari modal lebih murah.`);
-      const noCost = list.filter(r => r.noCost).length;
-      if (noCost) ins.push(`${noCost} produk belum punya harga modal. Isi di Settings › Package & Harga supaya laba akurat.`);
-    }
-    document.getElementById('shop-profit-insights').innerHTML = ins.map(x => `<div>${x}</div>`).join('');
+    const positive = list.reduce((s, r) => s + Math.max(0, r.profit), 0);
+    let cum = 0;
+    list.forEach(r => {
+      if (list.length < 3 || positive <= 0) { r.cls = '-'; }
+      else if (r.profit <= 0) { r.cls = 'C'; }
+      else { r.cls = cum < positive * 0.8 ? 'A' : cum < positive * 0.95 ? 'B' : 'C'; cum += r.profit; }
+      r.share = positive > 0 ? Math.max(0, r.profit) / positive : 0;
+    });
+    const nA = list.filter(r => r.cls === 'A').length;
+    document.getElementById('shop-profit-tiles').innerHTML = list.length ? [
+      tile('Laba Kotor', money(totalProfit)),
+      tile('Margin Kotor', pct(totalProfit, totalRev, 1)),
+      tile('Produk Kelas A', nA ? `${nA} dari ${list.length}` : '-')
+    ].join('') : '';
     const LIMIT = 8, shown = showAllProducts ? list : list.slice(0, LIMIT);
-    body.innerHTML = shown.length ? shown.map(r => {
-      const [label, tone, tip] = classify(r);
-      return `<tr><td><strong>${esc(r.name)}</strong></td><td>${r.qty.toLocaleString('id-ID')}</td><td>${money(r.revenue)}</td><td><strong class="${r.profit < 0 ? 'shop-neg' : ''}">${money(r.profit)}</strong></td><td>${r.noCost ? '-' : pct(r.profit, r.revenue, 1)}</td><td><span class="shop-tag tone-${tone}" title="${esc(tip)}">${esc(label)}</span></td></tr>`;
-    }).join('') : '<tr><td colspan="6" class="empty">Belum ada penjualan pada periode ini.</td></tr>';
+    body.innerHTML = shown.length ? shown.map(r => `<tr><td><strong>${esc(r.name)}</strong></td><td>${r.qty.toLocaleString('id-ID')}</td><td>${money(r.revenue)}</td><td><strong class="${r.profit < 0 ? 'shop-neg' : ''}">${money(r.profit)}</strong></td><td${r.noCost ? ' title="Harga modal belum diisi"' : ''}>${r.noCost ? '-' : pct(r.profit, r.revenue, 1)}</td><td><span class="shop-bar"><i style="width:${Math.round(r.share * 100)}%"></i></span> ${pct(r.share, 1)}</td><td><span class="shop-abc abc-${r.cls}">${r.cls}</span></td></tr>`).join('') : '<tr><td colspan="7" class="empty">Belum ada penjualan pada periode ini.</td></tr>';
     const more = document.getElementById('shop-profit-more');
-    if (more) { more.hidden = list.length <= LIMIT; more.textContent = showAllProducts ? 'Ringkas' : `Lihat semua produk (${list.length})`; }
-    const legend = document.getElementById('shop-profit-legend');
-    if (legend) legend.hidden = list.length < 3;
+    if (more) { more.hidden = list.length <= LIMIT; more.textContent = showAllProducts ? 'Ringkas' : `Lihat semua (${list.length})`; }
   }
 
   function renderChannelCard() {
@@ -228,17 +208,6 @@
     });
     const list = [...map.values()].sort((a, b) => b.revenue - a.revenue);
     const totalRev = list.reduce((s, r) => s + r.revenue, 0);
-    const ins = [];
-    if (list.length) {
-      ins.push(`Channel terbesar: <b>${esc(list[0].name)}</b> (${pct(list[0].revenue, totalRev)} dari omzet, ${list[0].orders} order).`);
-      const m = list.filter(r => r.orders >= 2 && r.revenue > 0).sort((a, b) => b.profit / b.revenue - a.profit / a.revenue);
-      if (m.length > 1) {
-        ins.push(`Margin tertinggi: <b>${esc(m[0].name)}</b> (${pct(m[0].profit, m[0].revenue, 1)}). Terendah: <b>${esc(m[m.length - 1].name)}</b> (${pct(m[m.length - 1].profit, m[m.length - 1].revenue, 1)}).`);
-      }
-      const noCh = map.get('Tanpa channel');
-      if (noCh) ins.push(`${noCh.orders} order belum punya channel. Pilih channel di form Orders supaya analisis lengkap.`);
-    }
-    document.getElementById('shop-channel-insights').innerHTML = ins.map(x => `<div>${x}</div>`).join('');
     body.innerHTML = list.length ? list.map(r => `<tr><td><span class="shop-channel-name">${typeof platformLogo === 'function' ? platformLogo(r.name) : ''}<strong>${esc(r.name)}</strong></span></td><td>${r.orders.toLocaleString('id-ID')}</td><td>${money(r.revenue)}</td><td><strong class="${r.profit < 0 ? 'shop-neg' : ''}">${money(r.profit)}</strong></td><td>${pct(r.profit, r.revenue, 1)}</td><td>${money(r.orders ? r.revenue / r.orders : 0)}</td><td><span class="shop-bar"><i style="width:${totalRev > 0 ? Math.max(2, r.revenue / totalRev * 100) : 0}%"></i></span> ${pct(r.revenue, totalRev)}</td></tr>`).join('') : '<tr><td colspan="7" class="empty">Belum ada penjualan pada periode ini.</td></tr>';
   }
 
@@ -263,22 +232,13 @@
     }
     if (seq !== returnsSeq) return;
     const orders = rowsInRange().length, bad = rows.length;
-    const batal = rows.filter(r => r.kind !== 'retur'), retur = rows.filter(r => r.kind === 'retur');
+    const batal = rows.filter(r => r.kind !== 'retur').length, retur = bad - batal;
     const value = rows.reduce((s, r) => s + num(r.total_price), 0);
     card.hidden = false;
-    document.getElementById('shop-return-kpis').innerHTML = [['Batal', batal.length], ['Retur', retur.length], ['% dari semua order', pct(bad, orders + bad, 1)], ['Nilai order terpengaruh', money(value)]].map(([l, v]) => `<div class="shop-mini"><span>${l}</span><strong>${typeof v === 'number' ? v.toLocaleString('id-ID') : v}</strong></div>`).join('');
+    document.getElementById('shop-return-tiles').innerHTML = [tile('Batal', batal.toLocaleString('id-ID')), tile('Retur', retur.toLocaleString('id-ID')), tile('Tingkat Batal/Retur', pct(bad, orders + bad, 1)), tile('Nilai Order', money(value))].join('');
     const byReason = new Map();
     rows.forEach(r => { const k = r.reason || 'Lainnya'; const x = byReason.get(k) || { b: 0, r: 0, v: 0 }; if (r.kind === 'retur') x.r++; else x.b++; x.v += num(r.total_price); byReason.set(k, x); });
     const reasons = [...byReason.entries()].sort((a, b) => (b[1].b + b[1].r) - (a[1].b + a[1].r));
-    const ins = [];
-    if (reasons.length && reasons[0][1].b + reasons[0][1].r >= 2) ins.push(`Alasan terbanyak: <b>${esc(reasons[0][0])}</b> (${reasons[0][1].b + reasons[0][1].r} kali).`);
-    const byCh = new Map();
-    rows.forEach(r => { const k = r.platform ? platformKey(r.platform) : 'Tanpa channel'; byCh.set(k, (byCh.get(k) || 0) + 1); });
-    const tot = new Map();
-    rowsInRange().forEach(t => { const k = t.platform ? platformKey(t.platform) : 'Tanpa channel'; tot.set(k, (tot.get(k) || 0) + 1); });
-    const worst = [...byCh.entries()].map(([k, n]) => ({ k, n, rate: n / ((tot.get(k) || 0) + n) })).filter(x => x.n >= 2).sort((a, b) => b.rate - a.rate)[0];
-    if (worst) ins.push(`Channel dengan batal/retur tertinggi: <b>${esc(worst.k)}</b> (${pct(worst.n, (tot.get(worst.k) || 0) + worst.n, 1)} dari ordernya).`);
-    document.getElementById('shop-return-insights').innerHTML = ins.map(x => `<div>${x}</div>`).join('');
     document.getElementById('shop-return-table').innerHTML = reasons.length ? reasons.map(([k, x]) => `<tr><td>${esc(k)}</td><td>${x.b}</td><td>${x.r}</td><td>${money(x.v)}</td></tr>`).join('') : '<tr><td colspan="4" class="empty">Belum ada batal/retur pada periode ini.</td></tr>';
   }
 

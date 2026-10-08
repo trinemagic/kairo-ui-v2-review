@@ -3,34 +3,28 @@
 #shop-analytics .shop-card{min-width:0}
 #shop-analytics .table-wrap{overflow-x:auto}
 #shop-analytics .shop-card[hidden]{display:none}
-.shop-insights{display:grid;gap:4px;margin:10px 0 12px;font-size:13px;line-height:1.5;color:var(--v3-ink,var(--text,#14304a))}
-.shop-insights:empty{display:none}
-.shop-insights>div{padding:8px 12px;border-radius:10px;background:color-mix(in srgb,var(--v3-primary,#25b9b0) 9%,transparent)}
-.shop-insights b{font-weight:800}
 .shop-neg{color:#a3384a}
 body.saas-dark .shop-neg{color:#ff9fb0}
-.shop-tag{display:inline-block;padding:3px 9px;border-radius:999px;font-size:11.5px;font-weight:800;white-space:nowrap;line-height:1.35}
-.shop-tag.tone-green{background:#e3f5ea;color:#16794c}
-.shop-tag.tone-amber{background:#fff1d1;color:#8a5a00}
-.shop-tag.tone-blue{background:#e1eefc;color:#1f5fa8}
-.shop-tag.tone-red{background:#fde6ea;color:#a3384a}
-.shop-tag.tone-gray{background:#e9eef4;color:#41546a}
-body.saas-dark .shop-tag.tone-green{background:#123524;color:#7be0a9}
-body.saas-dark .shop-tag.tone-amber{background:#3a2a08;color:#ffd27a}
-body.saas-dark .shop-tag.tone-blue{background:#12273f;color:#9cc8ff}
-body.saas-dark .shop-tag.tone-red{background:#3d1620;color:#ff9fb0}
-body.saas-dark .shop-tag.tone-gray{background:#26323f;color:#c3cfdc}
-.shop-legend{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:12px;font-size:12px;color:var(--v3-muted,#4e6475)}
-.shop-legend span{display:inline-flex;align-items:center;gap:6px}
-.shop-more{margin-top:10px}
+body.saas-dark body.saas-dark body.saas-dark body.saas-dark body.saas-dark .shop-more{margin-top:10px}
 .shop-channel-name{display:inline-flex;align-items:center;gap:8px}
 .shop-logo{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:8px;font-size:13px}
 .shop-bar{display:inline-block;width:70px;height:6px;border-radius:99px;background:color-mix(in srgb,var(--v3-primary,#25b9b0) 16%,transparent);vertical-align:middle;overflow:hidden;margin-right:6px}
 .shop-bar i{display:block;height:100%;border-radius:99px;background:var(--v3-primary,#25b9b0)}
-.shop-return-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:10px 0}
-.shop-mini{padding:10px 12px;border-radius:12px;border:1px solid color-mix(in srgb,var(--v3-primary,#25b9b0) 18%,transparent)}
-.shop-mini span{display:block;font-size:12px;color:var(--v3-muted,#4e6475)}
-.shop-mini strong{display:block;font-size:17px;margin-top:2px;overflow-wrap:anywhere}
+/* Ringkasan angka + kelas ABC */
+.shop-head{margin-bottom:12px}
+.shop-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:0 0 14px}
+.shop-tiles:empty{display:none}
+.shop-tile{padding:11px 14px;border-radius:12px;border:1px solid color-mix(in srgb,var(--v3-primary,#25b9b0) 18%,transparent);background:color-mix(in srgb,var(--v3-primary,#25b9b0) 5%,transparent)}
+.shop-tile span{display:block;font-size:12px;color:var(--v3-muted,#4e6475)}
+.shop-tile strong{display:block;font-size:18px;margin-top:2px;overflow-wrap:anywhere}
+.shop-abc{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:8px;font-weight:800;font-size:13px}
+.shop-abc.abc-A{background:#e3f5ea;color:#16794c}
+.shop-abc.abc-B{background:#fff1d1;color:#8a5a00}
+.shop-abc.abc-C{background:#e9eef4;color:#41546a}
+.shop-abc.abc--{background:transparent;color:inherit}
+body.saas-dark .shop-abc.abc-A{background:#123524;color:#7be0a9}
+body.saas-dark .shop-abc.abc-B{background:#3a2a08;color:#ffd27a}
+body.saas-dark .shop-abc.abc-C{background:#26323f;color:#c3cfdc}
 /* Settings: channel penjualan */
 .shop-chips{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
 .shop-chip{display:inline-flex;align-items:center;gap:6px;padding:6px 8px 6px 12px;border-radius:999px;font-weight:700;font-size:13px;background:color-mix(in srgb,var(--v3-primary,#25b9b0) 12%,transparent)}
@@ -62,14 +56,12 @@ body.saas-dark .shop-modal-card p{color:#aab9c9}
   html.kairo-v3[data-business-template="online_shop"] body.kairo-no-cash #dashboard .kpi-grid>.kpi:last-child{grid-column:auto}
 }
 @media (max-width:760px){
-  .shop-return-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .shop-bar{width:44px}
+    .shop-bar{width:44px}
 }
 /* HP: kolom paling tidak penting disembunyikan supaya tabel muat tanpa geser. */
 @media (max-width:640px){
-  #shop-profit-card th:nth-child(2),#shop-profit-card td:nth-child(2),#shop-profit-card th:nth-child(3),#shop-profit-card td:nth-child(3),
+  #shop-profit-card th:nth-child(2),#shop-profit-card td:nth-child(2),#shop-profit-card th:nth-child(3),#shop-profit-card td:nth-child(3),#shop-profit-card th:nth-child(6),#shop-profit-card td:nth-child(6),
   #shop-channel-card th:nth-child(2),#shop-channel-card td:nth-child(2),#shop-channel-card th:nth-child(n+6),#shop-channel-card td:nth-child(n+6){display:none}
   #shop-analytics th,#shop-analytics td{padding-left:8px;padding-right:8px;font-size:12.5px}
-  #shop-analytics .shop-tag{white-space:normal;font-size:11px}
-}
+  #shop-analytics }
 @media (max-width:640px){#shop-channel-card .platform-logo{display:none}}
