@@ -982,6 +982,7 @@
       b.addEventListener('click',openSubscriptionTracker);
       const after=nav.querySelector('[data-tab="input"]');if(after)after.insertAdjacentElement('afterend',b);else nav.appendChild(b);
     }
+    { const t=nav&&nav.querySelector('[data-tab="subscriptions"]'),inp=nav&&nav.querySelector('[data-tab="input"]'); if(t&&inp&&inp.nextElementSibling!==t)inp.insertAdjacentElement('afterend',t); }
     const grid=document.querySelector('#kairo-mobile-more-sheet .kairo-mobile-more-grid');
     if(grid&&!grid.querySelector('[data-mobile-tab="subscriptions"]')){
       const m=document.createElement('button');m.type='button';m.className='saas-mobile-nav-btn kairo-mobile-more-item';m.dataset.mobileTab='subscriptions';

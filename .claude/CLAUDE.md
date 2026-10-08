@@ -85,9 +85,9 @@ domain = pengguna login ulang & pengaturan browser (Ingat saya, dark mode) mulai
 | `assets/brand/` | Logo resmi KAIRO Workspaces (kit dari owner, Okt 2026) | `kairo-horizontal-color.svg` = landing (header, footer, dialog Masuk; latar terang, min. lebar 120px); `kairo-app-icon.svg` = logo default dashboard (`KAIRO_LOGO`, sidebar, header HP, preview Settings, admin) sampai user upload logo sendiri; `favicon.svg/.ico`; `assets/og/apple-touch-icon.png` dari kit. Wordmark digambar - jangan diketik ulang pakai font. `assets/kairo-mark.svg` (logo lama) sudah dihapus. |
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
-Versi terakhir: `kairo.css?v=20.10.159`, `kairo-v3.css?v=3.38.0`,
-`kairo-v3.js?v=3.30.1`, `kairo-app.js?v=20.10.212`, `kairo-themes.css?v=1.0.0`/`.js?v=1.0.1`; template seller dimuat dari kairo-app.js
-(`seller-app-premium.js?v=20.10.160`, `.css?v=20.10.157`) — naikkan juga bila file template diubah.
+Versi terakhir: `kairo.css?v=20.10.159`, `kairo-v3.css?v=3.39.0`,
+`kairo-v3.js?v=3.30.1`, `kairo-app.js?v=20.10.213`, `kairo-themes.css?v=1.0.0`/`.js?v=1.0.1`; template seller dimuat dari kairo-app.js
+(`seller-app-premium.js?v=20.10.161`, `.css?v=20.10.157`) — naikkan juga bila file template diubah.
 Setup Wizard dimuat dari `loadSetupWizard()` di kairo-app.js (`kairo-setup-wizard.js/.css?v=1.0.4`, satu konstanta `v`).
 Panduan dimuat dari `window.kairoOpenGuide()` di kairo-v3.js (`kairo-guide.js/.css?v=` konstanta `GUIDE_V`='1.0.1'; gambar `assets/guide/*.webp?v=` `SHOT_V` di kairo-guide.js).
 Admin: `admin.js?v=1.12.0`, `admin.css?v=1.8.2`. Library CDN dikunci versi + SRI: supabase-js 2.117.2 (index.html & admin), Chart.js 4.4.4 `dist/chart.umd.js`
@@ -185,6 +185,12 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   sekarang dropdown tepat di bawah tombol seperti desktop (bukan sheet `position:fixed` di atas
   bottom nav — owner lapor tidak bisa ganti ke Autofill di HP; dugaan Safari). Tombol yang terkunci paket pakai `aria-disabled`, bukan `disabled`
   (tombol disabled menelan klik → pesan "tersedia di paket Pro" tidak muncul).
+- **Demo langsung (owner Okt 2026, PREVIEW - belum di-merge saat catatan ini ditulis):** tombol "Coba Demo" di hero landing + link "Demo" di header membuka pilihan 4 template
+  (`assets/demo/demo-entry.js`) -> alamat `#demo-<seller|jasa|shop|digital>` (`#demo` = jasa) + reload. `index.html` (inline script di head) memuat `demo-data.js` + `demo-db.js`
+  HANYA bila hash itu ada: `demo-db.js` mengunci `window.supabase` ke klien "database" di memori (data contoh `demo-data.js`, tanggal relatif hari ini, tanpa koneksi ke Supabase),
+  lalu memanggil `handleAuthSession(session)` asli (jalur masuk sama seperti login sungguhan, paket Pro, wizard setup dimatikan lewat `setup_state.completed_at`). Perubahan hanya di
+  memori halaman (hilang saat reload). Bilah `#kairo-demo-bar` (HP: di atas; desktop: pil melayang kanan bawah): ganti template, Daftar Gratis (reload ke landing + form daftar),
+  Keluar. Export Excel dinonaktifkan di demo. Tes: Playwright ke `http://localhost:8123/index.html#demo-shop` (Chart.js lokal seperti boot.js; CDN supabase tidak dipakai).
 - **Login:** "Ingat saya" menyimpan **username saja** (`kairo_remember_username_v1`);
   `persistSession:false` sengaja (wajib login tiap buka) — jangan diubah tanpa izin.
 - **Riwayat Transaksi:** 7 kolom (Tanggal, Start Reading, Nama, Status, Paket=kode,

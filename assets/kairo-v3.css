@@ -5014,3 +5014,7 @@ html.kairo-v3 #settings .master-manual-note.invalid { color: var(--v3-danger, #a
     grid-column: 1 / -1 !important;
   }
 }
+
+/* Landing: tombol hero tidak memecah teks jadi dua baris; baris baru bila kolom sempit. */
+html.kairo-v3 .kairo-lp-actions { flex-wrap: wrap; }
+html.kairo-v3 .kairo-lp-actions .kairo-button { white-space: nowrap; }
