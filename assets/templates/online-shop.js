@@ -129,7 +129,7 @@
   /* ---------- Performance ---------- */
   const tile = (label, value) => `<div class="shop-tile"><span>${label}</span><strong>${value}</strong></div>`;
   const CHEVRON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
-  const cardHead = (title, sub, key) => `<div class="shop-head"><div><div class="card-title">${title}</div>${sub ? `<div class="page-sub">${sub}</div>` : ''}</div><button type="button" class="shop-toggle" data-shop-toggle="${key}" aria-expanded="false" aria-controls="shop-${key}-data" title="Tampilkan tabel data"><span>Tabel</span>${CHEVRON}</button></div>`;
+  const cardHead = (title, sub, key, toggle = true) => `<div class="shop-head"><div><div class="card-title">${title}</div>${sub ? `<div class="page-sub">${sub}</div>` : ''}</div>${toggle ? `<button type="button" class="shop-toggle" data-shop-toggle="${key}" aria-expanded="false" aria-controls="shop-${key}-data" title="Tampilkan tabel data"><span>Tabel</span>${CHEVRON}</button>` : ''}</div>`;
   function ensurePerfCards() {
     if (document.getElementById('shop-analytics')) return true;
     const anchor = document.getElementById('product-sales-card');
@@ -152,12 +152,9 @@
         </div>
       </div>
       <div class="card shop-card" id="shop-stock-card" hidden>
-        ${cardHead('Stok Produk', 'Sisa hari stok = stok ÷ rata-rata terjual per hari (30 hari terakhir)', 'stock')}
+        ${cardHead('Stok Produk', '', 'stock', false)}
         <div class="shop-tiles" id="shop-stock-tiles"></div>
-        <div class="chart-wrap shop-chart"><canvas id="shop-stock-chart"></canvas></div>
-        <div class="shop-data" id="shop-stock-data" hidden>
-          <div class="table-wrap"><table><thead><tr><th>Produk</th><th>Stok</th><th>Terjual 30 hari</th><th>Sisa hari</th><th>Nilai stok</th><th>Status</th></tr></thead><tbody id="shop-stock-table"></tbody></table></div>
-        </div>
+        <div class="table-wrap shop-stock-table-wrap"><table class="shop-stock-table"><thead id="shop-stock-head"></thead><tbody id="shop-stock-table"></tbody></table></div>
       </div>
       <div class="card shop-card" id="shop-returns-card" hidden>
         ${cardHead('Batal &amp; Retur', '', 'returns')}
@@ -325,7 +322,7 @@
       const opts = k => REASONS[k].map(r => `<option>${esc(r)}</option>`).join('');
       ov.innerHTML = `<div class="shop-modal-card" role="dialog" aria-modal="true" aria-label="Hapus order"><h3>Hapus order ${esc(customerName || '')}?</h3>
         <p>Order dihapus dari omzet, profit, kas, grafik, dan riwayat. Tindakan ini tidak bisa dibatalkan. Pilih alasannya supaya tercatat di Performance.</p>
-        ${stockReady() ? '<p class="shop-hint">Batal mengembalikan stok. Retur tidak, tambahkan stok manual bila barang layak dijual.</p>' : ''}
+        ${stockReady() ? '<p class="shop-hint">Batal mengembalikan stok. Retur tidak, kembalikan manual dari tabel Stok.</p>' : ''}
         <div class="shop-seg"><label><input type="radio" name="shop-kind" value="batal" checked> Batal</label><label><input type="radio" name="shop-kind" value="retur"> Retur</label></div>
         <label class="label" for="shop-reason">Alasan</label><select id="shop-reason" class="input">${opts('batal')}</select>
         <div class="shop-modal-actions"><button type="button" class="btn btn-light" data-shop-no>Kembali</button><button type="button" class="btn btn-danger" data-shop-yes>Hapus Order</button></div></div>`;
@@ -359,7 +356,8 @@
             workspace_id: requireWorkspaceId(), transaction_id: String(transactionId), transaction_date: t.transaction_date || null,
             kind: answer.kind, reason: answer.reason, platform: t.platform || null, customer_name: t.customer_name || customerName || null,
             total_price: num(t.total_price), hpp: transactionProfitBreakdown(t).hpp,
-            items: (Array.isArray(t.order_items) ? t.order_items : []).map(x => ({ name: x.name || x.code || '-', qty: num(x.qty || 1) }))
+            items: (Array.isArray(t.order_items) ? t.order_items : []).map(x => ({ id: x.id ?? null, name: x.name || x.code || '-', qty: num(x.qty || 1) })),
+            restocked: false
           });
           if (error) throw error;
         } catch (err) {
@@ -377,7 +375,37 @@
      Kolom package_masters.stock_qty / stock_min + trigger database (SQL .claude/sql/2026-10-online-shop-stock.sql).
      Kolom belum ada = semua bagian stok tersembunyi. stock_qty kosong = produk tidak dilacak. */
   const stockReady = () => Array.isArray(packages) && packages.length > 0 && packages.some(p => 'stock_qty' in p);
-  const tracked = () => (Array.isArray(packages) ? packages : []).filter(p => p.stock_qty !== null && p.stock_qty !== undefined);
+  const hasStock = p => p && p.stock_qty !== null && p.stock_qty !== undefined;
+  const tracked = () => (Array.isArray(packages) ? packages : []).filter(hasStock);
+  const isLow = p => hasStock(p) && p.stock_qty > 0 && p.stock_min !== null && p.stock_min !== undefined && p.stock_qty <= p.stock_min;
+  window.kairoShopStock = { ready: () => stockReady(), left: id => { const p = (packages || []).find(x => String(x.id) === String(id)); return hasStock(p) ? num(p.stock_qty) : null; } };
+
+  // Lonceng: stok menipis (sesuai batas minimum user) dan stok habis.
+  window.kairoShopStockNotifications = () => {
+    if (!stockReady()) return [];
+    return tracked().filter(p => p.stock_qty <= 0 || isLow(p)).map(p => ({
+      id: `stock:${p.id}:${p.stock_qty}`, name: p.name, pkg: p.stock_qty <= 0 ? 'Stok habis' : 'Stok menipis',
+      note: p.stock_qty <= 0 ? 'Habis' : `Sisa ${p.stock_qty}`, urgent: p.stock_qty <= 0
+    })).sort((a, b) => Number(b.urgent) - Number(a.urgent));
+  };
+  const refreshBell = () => { try { window.kairoNotifications?.refresh?.(); } catch (_e) { /* lonceng belum siap */ } };
+
+  // Toast saat stok baru saja melewati batas minimum / habis (misalnya setelah order disimpan).
+  const lastQty = new Map();
+  function watchStockLevels() {
+    if (!stockReady()) return;
+    const warn = [];
+    tracked().forEach(p => {
+      const prev = lastQty.get(String(p.id));
+      if (prev !== undefined && prev > p.stock_qty) {
+        if (p.stock_qty <= 0) warn.push(`${p.name} habis`);
+        else if (isLow(p) && !(prev > 0 && prev <= num(p.stock_min))) warn.push(`${p.name} menipis (sisa ${p.stock_qty})`);
+      }
+      lastQty.set(String(p.id), p.stock_qty);
+    });
+    if (warn.length) showToast('Stok: ' + warn.join(', '), 'warning');
+    refreshBell();
+  }
 
   function mountStockSettings() {
     const panel = document.querySelector('.settings-category-panel[data-settings-panel="packages"]');
@@ -388,7 +416,7 @@
       card = document.createElement('div');
       card.className = 'card settings-master-card';
       card.id = 'shop-stock-settings';
-      card.innerHTML = '<div class="settings-master-head"><div><div class="card-title">Stok Produk</div><div class="page-sub">Isi stok untuk melacak produk. Kosongkan jika tidak dilacak. Stok berkurang otomatis saat order disimpan.</div></div></div><div id="shop-stock-rows" class="shop-stock-rows"></div>';
+      card.innerHTML = '<div class="settings-master-head"><div><div class="card-title">Stok Produk</div><div class="page-sub">Kosongkan stok jika produk tidak dilacak.</div></div></div><div id="shop-stock-rows" class="shop-stock-rows"></div>';
       panel.appendChild(card);
       card.addEventListener('click', async e => {
         const btn = e.target.closest('[data-shop-stock-save]');
@@ -401,6 +429,7 @@
         try {
           const { error } = await db.from('package_masters').update({ stock_qty: qty, stock_min: min }).eq('workspace_id', requireWorkspaceId()).eq('id', row.dataset.id);
           if (error) throw error;
+          lastQty.clear();
           await loadMasters();
           showToast('Stok disimpan.');
         } catch (err) { showToast(err.message || 'Gagal menyimpan stok.', true); }
@@ -414,33 +443,81 @@
     document.getElementById('shop-stock-rows').innerHTML = `<div class="shop-stock-row shop-stock-head"><span>Produk</span><span>Stok</span><span>Batas menipis</span><span></span></div>` + packages.map(p => `<div class="shop-stock-row" data-id="${esc(p.id)}"><strong>${esc(p.name)}</strong><input class="input shop-stock-qty" type="number" step="1" inputmode="numeric" placeholder="Tidak dilacak" value="${p.stock_qty ?? ''}" aria-label="Stok ${esc(p.name)}"><input class="input shop-stock-min" type="number" min="0" step="1" inputmode="numeric" placeholder="-" value="${p.stock_min ?? ''}" aria-label="Batas menipis ${esc(p.name)}"><button type="button" class="btn btn-light" data-shop-stock-save>Simpan</button></div>`).join('');
   }
 
-  // Order: "Sisa N" di samping harga produk + peringatan bila qty melebihi stok.
+  // Orders: "Sisa N" di samping harga produk.
   function decorateOrderStock() {
     if (!stockReady()) return;
     document.querySelectorAll('#tx-packages .master-item').forEach(item => {
-      const id = item.querySelector('.package-check')?.dataset.id;
+      const id = item.dataset.id || item.querySelector('.package-check')?.dataset.id;
       const p = packages.find(x => String(x.id) === String(id));
       const small = item.querySelector('.master-main small');
       if (!p || !small) return;
       let tag = item.querySelector('.shop-stock-tag');
-      if (p.stock_qty === null || p.stock_qty === undefined) { tag?.remove(); return; }
+      if (!hasStock(p)) { tag?.remove(); item.classList.remove('is-soldout'); return; }
       if (!tag) { tag = document.createElement('span'); tag.className = 'shop-stock-tag'; small.insertAdjacentElement('afterend', tag); }
-      const low = p.stock_qty <= 0 || (p.stock_min !== null && p.stock_min !== undefined && p.stock_qty <= p.stock_min);
       const text = p.stock_qty <= 0 ? 'Habis' : `Sisa ${p.stock_qty}`;
       if (tag.textContent !== text) tag.textContent = text;
-      tag.classList.toggle('is-low', low);
+      tag.classList.toggle('is-low', p.stock_qty <= 0 || isLow(p));
+      item.classList.toggle('is-soldout', p.stock_qty <= 0);
     });
   }
+  // Kartu produk dengan stok 0 tidak bisa ditambahkan ke order.
+  document.getElementById('tx-packages')?.addEventListener('click', e => {
+    const card = e.target.closest('.pick-card');
+    if (!card || !stockReady() || e.target.closest('.pick-minus')) return;
+    const p = packages.find(x => String(x.id) === String(card.dataset.id));
+    if (hasStock(p) && p.stock_qty <= 0) { e.stopImmediatePropagation(); e.stopPropagation(); showToast(`Stok ${p.name} habis.`, true); }
+  }, true);
+  // Stok 0 = order diblokir. Qty melebihi sisa stok hanya diberi peringatan.
   document.addEventListener('submit', e => {
     if (e.target?.id !== 'tx-form' || !stockReady()) return;
-    const over = [];
+    const empty = [], over = [];
     document.querySelectorAll('.package-check:checked').forEach(c => {
       const p = packages.find(x => String(x.id) === String(c.dataset.id));
       const q = num(document.querySelector(`.package-qty[data-id="${c.dataset.id}"]`)?.value || 1);
-      if (p && p.stock_qty !== null && p.stock_qty !== undefined && q > p.stock_qty) over.push(`${p.name} (sisa ${Math.max(0, p.stock_qty)}, order ${q})`);
+      if (!hasStock(p)) return;
+      if (p.stock_qty <= 0) empty.push(p.name);
+      else if (q > p.stock_qty) over.push(`${p.name} (sisa ${p.stock_qty}, order ${q})`);
     });
+    if (empty.length) {
+      e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+      showToast('Stok habis: ' + empty.join(', ') + '. Order tidak bisa disimpan.', true);
+      return;
+    }
     if (over.length) showToast('Stok kurang: ' + over.join(', ') + '. Stok akan minus.', 'warning');
   }, true);
+
+  // Retur yang belum dikembalikan ke stok: dari order_returns (kind retur, restocked=false).
+  async function pendingReturns() {
+    if (returnsMissing) return new Map();
+    try {
+      const { data, error } = await db.from('order_returns').select('id,items').eq('workspace_id', requireWorkspaceId()).eq('kind', 'retur').eq('restocked', false);
+      if (error) throw error;
+      const map = new Map();
+      (data || []).forEach(r => (Array.isArray(r.items) ? r.items : []).forEach(it => {
+        if (it?.id === undefined || it?.id === null) return;
+        const m = map.get(String(it.id)) || { qty: 0, ids: new Set() };
+        m.qty += Math.max(0, num(it.qty || 1)); m.ids.add(r.id); map.set(String(it.id), m);
+      }));
+      return map;
+    } catch (_e) { return new Map(); }
+  }
+
+  async function restockReturn(productId) {
+    const pend = (await pendingReturns()).get(String(productId));
+    if (!pend || !pend.qty) { renderStockCard(); return; }
+    const p = packages.find(x => String(x.id) === String(productId));
+    if (!hasStock(p)) return;
+    try {
+      const wid = requireWorkspaceId();
+      const { error } = await db.from('package_masters').update({ stock_qty: num(p.stock_qty) + pend.qty }).eq('workspace_id', wid).eq('id', productId);
+      if (error) throw error;
+      const { error: e2 } = await db.from('order_returns').update({ restocked: true }).eq('workspace_id', wid).in('id', [...pend.ids]);
+      if (e2) throw e2;
+      lastQty.clear();
+      await loadMasters();
+      showToast(`${pend.qty} ${p.name} dikembalikan ke stok.`);
+    } catch (err) { showToast(err.message || 'Gagal mengembalikan stok.', true); }
+  }
 
   let stockSeq = 0;
   async function renderStockCard() {
@@ -449,8 +526,9 @@
     const list = tracked();
     if (!stockReady() || !list.length) { card.hidden = true; return; }
     const seq = ++stockSeq;
-    let rows = [];
+    let rows = [], pend = new Map();
     try { rows = typeof allTransactions === 'function' ? await allTransactions() : []; } catch (_e) { rows = []; }
+    pend = await pendingReturns();
     if (seq !== stockSeq) return;
     const since = new Date(); since.setDate(since.getDate() - 29);
     const sinceISO = typeof localISODate === 'function' ? localISODate(since) : since.toISOString().slice(0, 10);
@@ -464,21 +542,20 @@
       let status = 'Aman', tone = 'ok';
       if (stock <= 0) { status = 'Habis'; tone = 'bad'; }
       else if ((min !== null && stock <= min) || (days !== null && days <= 7)) { status = 'Menipis'; tone = 'warn'; }
-      else if (s30 === 0) { status = 'Tidak laku 30 hari'; tone = 'muted'; }
-      return { name: p.name, stock, s30, days, value: Math.max(0, stock) * num(p.cost_price), status, tone };
+      else if (s30 === 0) { status = 'Tidak laku'; tone = 'muted'; }
+      return { id: p.id, name: p.name, stock, s30, days, value: Math.max(0, stock) * num(p.cost_price), status, tone, retur: pend.get(String(p.id))?.qty || 0 };
     });
     const nLow = data.filter(d => d.tone === 'warn').length, nOut = data.filter(d => d.tone === 'bad').length;
     card.hidden = false;
-    document.getElementById('shop-stock-tiles').innerHTML = [tile('Produk Dilacak', data.length), tile('Stok Menipis', nLow), tile('Stok Habis', nOut), tile('Nilai Stok (modal)', money(data.reduce((s, d) => s + d.value, 0)))].join('');
+    document.getElementById('shop-stock-tiles').innerHTML = [tile('Produk Dilacak', data.length), tile('Stok Menipis', nLow), tile('Stok Habis', nOut), tile('Nilai Stok', money(data.reduce((s, d) => s + d.value, 0)))].join('');
     const order = { bad: 0, warn: 1, ok: 2, muted: 3 };
     const sorted = [...data].sort((a, b) => (order[a.tone] - order[b.tone]) || ((a.days ?? 1e9) - (b.days ?? 1e9)));
-    document.getElementById('shop-stock-table').innerHTML = sorted.map(d => `<tr><td><strong>${esc(d.name)}</strong></td><td>${d.stock.toLocaleString('id-ID')}</td><td>${d.s30.toLocaleString('id-ID')}</td><td>${d.days === null ? '-' : Math.floor(d.days).toLocaleString('id-ID')}</td><td>${money(d.value)}</td><td><span class="shop-status tone-${d.tone}">${esc(d.status)}</span></td></tr>`).join('');
-    const chartRows = sorted.filter(d => d.days !== null || d.tone === 'bad').slice(0, 6);
-    drawBars('shop-stock-chart', chartRows.map(d => ({
-      label: d.name, value: d.tone === 'bad' ? 0 : Math.min(Math.floor(d.days), 90),
-      tip: [`Stok ${d.stock}`, `Terjual ${d.s30} dalam 30 hari`, ...(d.days === null ? [] : [`Cukup ±${Math.floor(d.days)} hari`])]
-    })), 'Belum ada penjualan 30 hari terakhir');
+    const maxStock = Math.max(1, ...data.map(d => d.stock));
+    const showRetur = data.some(d => d.retur > 0);
+    document.getElementById('shop-stock-head').innerHTML = `<tr><th>Produk</th><th>Stok</th><th>Terjual 30 hari</th><th>Sisa hari</th><th>Nilai stok</th>${showRetur ? '<th>Retur</th>' : ''}<th>Status</th></tr>`;
+    document.getElementById('shop-stock-table').innerHTML = sorted.map(d => `<tr class="tone-${d.tone}"><td><strong>${esc(d.name)}</strong></td><td><span class="shop-level"><b>${d.stock.toLocaleString('id-ID')}</b><i><u style="width:${Math.max(d.stock > 0 ? 6 : 0, d.stock / maxStock * 100)}%"></u></i></span></td><td>${d.s30.toLocaleString('id-ID')}</td><td>${d.days === null ? '-' : Math.floor(d.days).toLocaleString('id-ID')}</td><td>${money(d.value)}</td>${showRetur ? `<td>${d.retur ? `<button type="button" class="shop-restock" data-shop-restock="${esc(d.id)}" title="Kembalikan ${d.retur} ke stok">+${d.retur} ke stok</button>` : ''}</td>` : ''}<td><span class="shop-status tone-${d.tone}">${esc(d.status)}</span></td></tr>`).join('');
   }
+  document.addEventListener('click', e => { const b = e.target.closest?.('[data-shop-restock]'); if (b) { b.disabled = true; restockReturn(b.dataset.shopRestock).finally(() => { b.disabled = false; }); } });
 
   /* ---------- Pasang ---------- */
   function wrap(name, after) {
@@ -496,7 +573,7 @@
     wrap('applyTopicFieldLabel', syncPlatformSelect);
     mountPlatformSettings();
     syncPlatformSelect();
-    wrap('renderMasterOptions', () => { decorateOrderStock(); if (document.getElementById('shop-analytics')) renderStockCard(); });
+    wrap('renderMasterOptions', () => { decorateOrderStock(); watchStockLevels(); if (document.getElementById('shop-analytics')) renderStockCard(); });
     wrap('renderSettingsMasterData', mountStockSettings);
     mountStockSettings();
     decorateOrderStock();

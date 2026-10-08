@@ -564,7 +564,8 @@ if (window.top !== window.self) {
     let rows = [];
     try { rows = await allTransactions(); } catch (_) { return notifyItems; }
     const now = Date.now();
-    return rows.filter(tx => (tx.reading_status || 'done') !== 'done' && tx.reading_started_at)
+    const stockItems = document.documentElement.dataset.businessTemplate === 'online_shop' && typeof window.kairoShopStockNotifications === 'function' ? window.kairoShopStockNotifications() : [];
+    return stockItems.concat(rows.filter(tx => (tx.reading_status || 'done') !== 'done' && tx.reading_started_at)
       .map(tx => ({ tx, minutes: Math.floor((now - new Date(tx.reading_started_at).getTime()) / 60000) }))
       .filter(({ minutes }) => minutes >= NOTIFY_AFTER_MIN)
       .sort((a, b) => b.minutes - a.minutes)
@@ -574,7 +575,7 @@ if (window.top !== window.self) {
         pkg: packageCodes(tx) || tx.package_code || '-',
         minutes,
         urgent: minutes >= NOTIFY_URGENT_MIN
-      }));
+      })));
   }
 
   function notifyAge(minutes) {
@@ -592,7 +593,8 @@ if (window.top !== window.self) {
     const urgent = notifyItems.some(item => item.urgent);
     const unseen = urgent || notifyItems.some(item => !seen.has(notifyStage(item)));
     const seller = document.body.classList.contains('seller-app-premium');
-    const label = notifyItems.length ? `Notifikasi: ${notifyItems.length} ${seller ? 'pengingat' : 'order belum tuntas'}` : 'Notifikasi';
+    const shop = document.documentElement.dataset.businessTemplate === 'online_shop';
+    const label = notifyItems.length ? `Notifikasi: ${notifyItems.length} ${seller || shop ? 'pengingat' : 'order belum tuntas'}` : 'Notifikasi';
     qa('#kairo-notif-btn, #kairo-mobile-notif-btn').forEach(btn => {
       const dot = q('.kairo-notif-dot', btn);
       if (dot) { dot.hidden = !unseen; dot.classList.toggle('is-urgent', urgent); }
@@ -600,16 +602,17 @@ if (window.top !== window.self) {
     });
     const html = notifyItems.length
       ? notifyItems.map(item => `<div class="kairo-notif-item${item.urgent ? ' is-urgent' : ''}"><div><strong>${escapeHtml(item.name)}</strong><span>${escapeHtml(item.pkg)}</span></div><em>${item.note ? escapeHtml(item.note) : `${item.status ? `${escapeHtml(item.status)} · ` : ''}${item.urgent ? 'Lewat 30 menit · ' : ''}${escapeHtml(notifyAge(item.minutes))}`}</em></div>`).join('')
-      : `<div class="kairo-notif-empty">${seller ? 'Tidak ada akun yang akan expired dan semua order sudah selesai.' : 'Semua order sudah ditandai selesai.'}</div>`;
+      : `<div class="kairo-notif-empty">${seller ? 'Tidak ada akun yang akan expired dan semua order sudah selesai.' : shop ? 'Semua order selesai dan stok aman.' : 'Semua order sudah ditandai selesai.'}</div>`;
     qa('#kairo-notif-list, #kairo-mobile-notif-list').forEach(list => { if (list.innerHTML !== html) list.innerHTML = html; });
     // Judul panel ikut jenis usaha: seller tidak memakai istilah "Start Reading".
-    const [title, sub] = seller ? ['Pengingat', 'Akun pelanggan yang akan expired & order belum selesai'] : ['Order belum tuntas', 'Lebih dari 5 menit sejak ' + (document.documentElement.dataset.businessTemplate === 'online_shop' ? 'Waktu Order' : 'Start Reading')];
+    const [title, sub] = seller ? ['Pengingat', 'Akun pelanggan yang akan expired & order belum selesai'] : shop ? ['Pengingat', 'Order belum tuntas dan stok menipis'] : ['Order belum tuntas', 'Lebih dari 5 menit sejak ' + (document.documentElement.dataset.businessTemplate === 'online_shop' ? 'Waktu Order' : 'Start Reading')];
     qa('.kairo-notif-head strong, #kairo-mobile-notif-sheet .kairo-mobile-sheet-head strong').forEach(el => { if (el.textContent !== title) el.textContent = title; });
     qa('.kairo-notif-head span, #kairo-mobile-notif-sheet .kairo-mobile-sheet-head small').forEach(el => { if (el.textContent !== sub) el.textContent = sub; });
   }
 
   window.kairoNotifications = {
     render: renderNotifications,
+    refresh: refreshNotifications,
     open: () => refreshNotifications().then(markNotificationsSeen)
   };
 
@@ -1040,7 +1043,7 @@ if (window.top !== window.self) {
       else if (t === 'Topic') setText(th, topic());
     });
     const pk = document.getElementById('tx-packages')?.previousElementSibling;
-    if (pk && pk.classList.contains('label')) setText(pk, 'Produk & Qty');
+    if (pk && pk.classList.contains('label')) setText(pk, 'Produk');
     document.querySelectorAll('#performance .card-title').forEach(el => {
       if (el.textContent.trim() === 'Penjualan Berdasarkan Paket') setText(el, 'Penjualan Berdasarkan Produk');
     });

@@ -14,7 +14,7 @@ module.exports = require('./seed.js') + `
   }
   T.order_returns=[
     {id:'r1',workspace_id:'w1',transaction_date:iso(now-86400000),kind:'batal',reason:'Pembeli batal',platform:'Shopee',total_price:85000},
-    {id:'r2',workspace_id:'w1',transaction_date:iso(now-2*86400000),kind:'retur',reason:'Barang rusak/cacat',platform:'Shopee',total_price:210000},
+    {id:'r2',workspace_id:'w1',transaction_date:iso(now-2*86400000),kind:'retur',reason:'Barang rusak/cacat',platform:'Shopee',total_price:210000,restocked:false,items:[{id:'sp3',name:'Tumbler 500ml',qty:2}]},
     {id:'r3',workspace_id:'w1',transaction_date:iso(now-3*86400000),kind:'retur',reason:'Salah kirim',platform:'Tokopedia',total_price:65000},
     {id:'r4',workspace_id:'w1',transaction_date:iso(now-4*86400000),kind:'batal',reason:'Stok habis',platform:'Shopee',total_price:120000}];
 })();`;
