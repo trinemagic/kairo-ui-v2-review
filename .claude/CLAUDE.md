@@ -192,6 +192,9 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   lalu memanggil `handleAuthSession(session)` asli (jalur masuk sama seperti login sungguhan, paket Pro, wizard setup dimatikan lewat `setup_state.completed_at`). Perubahan hanya di
   memori halaman (hilang saat reload). Bilah `#kairo-demo-bar` (HP: di atas; desktop: pil melayang kanan bawah): ganti template, Daftar Gratis (reload ke landing + form daftar),
   Keluar. Export Excel dinonaktifkan di demo. Tes: Playwright ke `http://localhost:8123/index.html#demo-shop` (Chart.js lokal seperti boot.js; CDN supabase tidak dipakai).
+- **Alamat pendek (owner Okt 2026):** folder `app/`, `masuk/` (-> `/#masuk`, form Masuk langsung) dan `daftar/` (-> `/?signup=1`, form Daftar) berisi
+  halaman kecil yang hanya redirect ke `index.html` yang sama. Dokumen app SENGAJA tidak dipindah ke subfolder: banyak path relatif
+  (`assets/...` dimuat dinamis dari JS, link `#home`, demo `#demo-...`) akan rusak. Jangan tambah `<base>`.
 - **Login:** "Ingat saya" menyimpan **username saja** (`kairo_remember_username_v1`);
   `persistSession:false` sengaja (wajib login tiap buka) — jangan diubah tanpa izin.
 - **Riwayat Transaksi:** 7 kolom (Tanggal, Start Reading, Nama, Status, Paket=kode,
