@@ -37,9 +37,10 @@ yang diawali titik). Tetap: **jangan pernah menulis rahasia di sini.**
   `sb_publishable_…` (memang publik, dilindungi RLS). Tidak boleh ada `service_role`
   atau secret key di repo.
 
-- **Perubahan Supabase (owner Okt 2026):** Claude tidak mengubah database. Kalau perlu tabel/kolom/
-  RLS/data baru, tulis **SQL siap tempel** (aman diulang: `if not exists`, `on conflict`) + penjelasan
-  singkat; owner yang menjalankan di SQL Editor Supabase. Jangan pernah minta key/password.
+- **Perubahan Supabase (owner Okt 2026, diperbarui):** owner menyambungkan Claude ke project Supabase (MCP `Supabase`, project `sbjmvsiwngmfxfktxbgr`),
+  jadi Claude BOLEH menjalankan SQL sendiri (`apply_migration` untuk DDL, `execute_sql` untuk cek). Tetap: (1) cek dulu kondisi DB (tabel/kolom/policy yang sudah ada),
+  (2) tulis juga file SQL aman-diulang di `.claude/sql/` (jejak di repo), (3) SQL hanya bersifat menambah; JANGAN hapus/ubah data pengguna atau jatuhkan tabel/kolom tanpa izin
+  eksplisit, (4) jalankan `get_advisors` (security) setelah DDL dan laporkan, (5) laporkan apa yang dijalankan. Jangan pernah minta key/password.
 
 ### Git, PR, merge
 - Kerja di branch sesi yang ditentukan sistem (format `claude/...`). Jangan push ke
@@ -85,7 +86,7 @@ domain = pengguna login ulang & pengaturan browser (Ingat saya, dark mode) mulai
 | `assets/brand/` | Logo resmi KAIRO Workspaces (kit dari owner, Okt 2026) | `kairo-horizontal-color.svg` = landing (header, footer, dialog Masuk; latar terang, min. lebar 120px); `kairo-app-icon.svg` = logo default dashboard (`KAIRO_LOGO`, sidebar, header HP, preview Settings, admin) sampai user upload logo sendiri; `favicon.svg/.ico`; `assets/og/apple-touch-icon.png` dari kit. Wordmark digambar - jangan diketik ulang pakai font. `assets/kairo-mark.svg` (logo lama) sudah dihapus. |
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
-Versi terakhir: `kairo.css?v=20.10.159`, `kairo-v3.css?v=3.39.0`,
+Versi terakhir: `kairo.css?v=20.10.159`, `kairo-v3.css?v=3.39.1`,
 `kairo-v3.js?v=3.30.1`, `kairo-app.js?v=20.10.213`, `kairo-themes.css?v=1.0.0`/`.js?v=1.0.1`; template seller dimuat dari kairo-app.js
 (`seller-app-premium.js?v=20.10.161`, `.css?v=20.10.157`) — naikkan juga bila file template diubah.
 Setup Wizard dimuat dari `loadSetupWizard()` di kairo-app.js (`kairo-setup-wizard.js/.css?v=1.0.4`, satu konstanta `v`).
@@ -122,7 +123,7 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   **Pilihan durasi Pro saat daftar (owner Okt 2026):** kotak "Durasi paket Pro" (`.kairo-pp-period`, hanya saat Pro
   dipilih): 1 bulan Rp43.000 / 6 bulan ~~Rp258.000~~ Rp238.000 → `#kairo-selected-period` → metadata signup
   `requested_period` ('monthly'|'semiannual', sama dengan billing_period admin) + disebut di pesan WA konfirmasi. Halaman **`#syarat` (S&K) & `#privasi`** (`.kairo-lp-legal`, berlaku 5 Okt 2026) +
-  footer berisi link keduanya, WhatsApp 0877-9454-5507, ©. Headline hero: "Pencatatan usaha yang rapi untuk seller & jasa
+  footer berisi link keduanya, tautan "WhatsApp Kairo Admin" (logo + teks, nomor TIDAK ditampilkan - owner Okt 2026), ©. Headline hero: "Pencatatan usaha yang rapi untuk seller & jasa
   online." Belum ada: testimoni, medsos, kebijakan refund (menunggu owner). FAQ 8 poin fokus fitur
   unggulan (tanpa poin dark mode — owner). Jangan klaim fitur yang belum ada ("Owner Menu
   Lock" dibatalkan owner Okt 2026 - tidak akan dibuat; "Auto Lock dashboard" itu fitur lain yang memang ada).
@@ -185,7 +186,7 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   sekarang dropdown tepat di bawah tombol seperti desktop (bukan sheet `position:fixed` di atas
   bottom nav — owner lapor tidak bisa ganti ke Autofill di HP; dugaan Safari). Tombol yang terkunci paket pakai `aria-disabled`, bukan `disabled`
   (tombol disabled menelan klik → pesan "tersedia di paket Pro" tidak muncul).
-- **Demo langsung (owner Okt 2026, PREVIEW - belum di-merge saat catatan ini ditulis):** tombol "Coba Demo" di hero landing + link "Demo" di header membuka pilihan 4 template
+- **Demo langsung (owner Okt 2026, sudah di-merge, PR #69):** tombol "Coba Demo" di hero landing + link "Demo" di header membuka pilihan 4 template
   (`assets/demo/demo-entry.js`) -> alamat `#demo-<seller|jasa|shop|digital>` (`#demo` = jasa) + reload. `index.html` (inline script di head) memuat `demo-data.js` + `demo-db.js`
   HANYA bila hash itu ada: `demo-db.js` mengunci `window.supabase` ke klien "database" di memori (data contoh `demo-data.js`, tanggal relatif hari ini, tanpa koneksi ke Supabase),
   lalu memanggil `handleAuthSession(session)` asli (jalur masuk sama seperti login sungguhan, paket Pro, wizard setup dimatikan lewat `setup_state.completed_at`). Perubahan hanya di

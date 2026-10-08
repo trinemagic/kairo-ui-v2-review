@@ -5018,3 +5018,14 @@ html.kairo-v3 #settings .master-manual-note.invalid { color: var(--v3-danger, #a
 /* Landing: tombol hero tidak memecah teks jadi dua baris; baris baru bila kolom sempit. */
 html.kairo-v3 .kairo-lp-actions { flex-wrap: wrap; }
 html.kairo-v3 .kairo-lp-actions .kairo-button { white-space: nowrap; }
+
+/* Landing HP: "Coba KAIRO Gratis" dan "Coba Demo" sebaris seperti di desktop; link "Lihat Cara Kerjanya" di bawahnya. */
+@media (max-width: 900px) {
+  html.kairo-v3 .kairo-lp-actions { flex-direction: row; flex-wrap: wrap; align-items: stretch; gap: 10px; }
+  html.kairo-v3 .kairo-lp-actions > .kairo-button:not(.kairo-button-text) { flex: 1 1 0; min-width: 0; padding-inline: 10px; justify-content: center; }
+  html.kairo-v3 .kairo-lp-actions > .kairo-button-text { flex: 1 1 100%; justify-content: center; }
+}
+
+/* Tautan WhatsApp: logo + teks (nomor tidak ditampilkan). */
+html.kairo-v3 .kairo-wa-link { display: inline-flex; align-items: center; gap: 7px; }
+html.kairo-v3 .kairo-wa-ico { width: 17px; height: 17px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
