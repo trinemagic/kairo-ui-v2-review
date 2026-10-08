@@ -86,7 +86,7 @@ domain = pengguna login ulang & pengaturan browser (Ingat saya, dark mode) mulai
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
 Versi terakhir: `kairo.css?v=20.10.158`, `kairo-v3.css?v=3.35.1`,
-`kairo-v3.js?v=3.28.2`, `kairo-app.js?v=20.10.205`, `kairo-themes.css?v=1.0.0`/`.js?v=1.0.1`; template seller dimuat dari kairo-app.js
+`kairo-v3.js?v=3.28.2`, `kairo-app.js?v=20.10.206`, `kairo-themes.css?v=1.0.0`/`.js?v=1.0.1`; template seller dimuat dari kairo-app.js
 (`seller-app-premium.js?v=20.10.160`, `.css?v=20.10.157`) — naikkan juga bila file template diubah.
 Setup Wizard dimuat dari `loadSetupWizard()` di kairo-app.js (`kairo-setup-wizard.js/.css?v=1.0.4`, satu konstanta `v`).
 Panduan dimuat dari `window.kairoOpenGuide()` di kairo-v3.js (`kairo-guide.js/.css?v=` konstanta `GUIDE_V`='1.0.1'; gambar `assets/guide/*.webp?v=` `SHOT_V` di kairo-guide.js).
@@ -461,7 +461,7 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   (kairo-app.js: detail, struk default, toast), lapisan teks statis di akhir kairo-v3.js (tabel riwayat, form Orders, Performance, Customers, notifikasi),
   Setup Wizard (Produk & harga). Belum diganti: Settings "Package & Harga" (dicari lewat teks di beberapa fungsi), opsi Platform Media Sosial.
   Tes: `bootApp(b,{template:'shop'})` (mock `window.__mockSession` -> lewat loader asli).
-  **Analitik toko (owner Okt 2026):** `assets/templates/online-shop.js/.css` (`?v=1.3.0`, dimuat loader HANYA untuk online_shop; owner: tampilan harus bersih, tanpa kalimat insight/legenda/kolom Kelas ABC; tiap kartu = grafik + tombol panah "Tabel" yang membuka tabel data lengkap). Dashboard: kartu **Profit** (laba kotor
+  **Analitik toko (owner Okt 2026):** `assets/templates/online-shop.js/.css` (`?v=1.3.1`, dimuat loader HANYA untuk online_shop; owner: tampilan harus bersih, tanpa kalimat insight/legenda/kolom Kelas ABC; tiap kartu = grafik + tombol panah "Tabel" yang membuka tabel data lengkap). Dashboard: kartu **Profit** (laba kotor
   = total - HPP, ikut filter periode, id `shop-kpi-profit`, grid 3+2 seperti seller). Performance (setelah Penjualan per Produk): **Laba per Produk** (2 angka: Laba Kotor, Margin Kotor + grafik batang top 5 + "Lainnya", label "laba · margin"),
   **Performa Channel** (grafik omzet per channel, label "omzet · porsi"; tooltip laba/margin/order; laba sebelum komisi channel), **Batal & Retur** (tabel `order_returns`, SQL
   `.claude/sql/2026-10-online-shop-returns.sql` - **belum dijalankan owner**; tanpa tabel kartu tersembunyi). Hapus order di template ini membuka dialog Batal/Retur +

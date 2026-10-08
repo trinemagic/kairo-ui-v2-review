@@ -139,7 +139,6 @@
     wrap.innerHTML = `
       <div class="card shop-card" id="shop-profit-card">
         ${cardHead('Laba per Produk', 'Laba kotor = omzet − HPP', 'profit')}
-        <div class="shop-tiles" id="shop-profit-tiles"></div>
         <div class="chart-wrap shop-chart"><canvas id="shop-profit-chart"></canvas></div>
         <div class="shop-data" id="shop-profit-data" hidden>
           <div class="table-wrap"><table><thead><tr><th>Produk</th><th>Terjual</th><th>Omzet</th><th>Laba</th><th>Margin</th><th>Kontribusi laba</th></tr></thead><tbody id="shop-profit-table"></tbody></table></div>
@@ -193,16 +192,15 @@
     const short = v => { const t = String(v); return t.length > 22 ? t.slice(0, 21) + '…' : t; };
     const has = rows.length > 0;
     charts[id] = new Chart(canvas, {
-      type: 'bar', plugins: [chartBarValues],
+      type: 'bar',
       data: { labels: has ? rows.map(r => r.label) : [empty], datasets: [{ data: has ? rows.map(r => r.value) : [0], backgroundColor: has ? rows.map(r => (r.other ? c.other : c.primary)) : [c.other], borderRadius: 6, barThickness: 'flex', maxBarThickness: 26 }] },
       options: {
-        indexAxis: 'y', responsive: true, maintainAspectRatio: false, layout: { padding: { right: 8 } },
+        indexAxis: 'y', responsive: true, maintainAspectRatio: false, layout: { padding: { right: 12 } },
         plugins: {
           legend: { display: false },
-          kairoBarValues: { color: c.text, format: (v, i) => (has ? rows[i].text : '') },
           tooltip: { callbacks: { title: items => items[0]?.label || '', label: x => (has ? rows[x.dataIndex].tip : empty) } }
         },
-        scales: chartAxes(c, { x: { beginAtZero: true, grace: '45%', ticks: { callback: v => (id === 'shop-profit-chart' || id === 'shop-channel-chart' ? shortRupiah(v) : v), precision: 0 }, grid: { display: true } }, y: { grid: { display: false }, ticks: { callback() { return short(this.getLabelForValue(arguments[0])); } } } })
+        scales: chartAxes(c, { x: { beginAtZero: true, grace: '5%', ticks: { callback: v => (id === 'shop-profit-chart' || id === 'shop-channel-chart' ? shortRupiah(v) : v), precision: 0 }, grid: { display: true } }, y: { grid: { display: false }, ticks: { callback() { return short(this.getLabelForValue(arguments[0])); } } } })
       }
     });
   }
@@ -231,17 +229,14 @@
       });
     });
     const list = [...map.values()].map(r => ({ ...r, profit: r.revenue - r.cost, noCost: r.cost <= 0 })).sort((a, b) => b.profit - a.profit);
-    const totalRev = list.reduce((s, r) => s + r.revenue, 0), totalProfit = list.reduce((s, r) => s + r.profit, 0);
     const positive = list.reduce((s, r) => s + Math.max(0, r.profit), 0);
-    document.getElementById('shop-profit-tiles').innerHTML = list.length ? [tile('Laba Kotor', money(totalProfit)), tile('Margin Kotor', pct(totalProfit, totalRev, 1))].join('') : '';
     body.innerHTML = list.length ? list.map(r => `<tr><td><strong>${esc(r.name)}</strong></td><td>${r.qty.toLocaleString('id-ID')}</td><td>${money(r.revenue)}</td><td><strong class="${r.profit < 0 ? 'shop-neg' : ''}">${money(r.profit)}</strong></td><td${r.noCost ? ' title="Harga modal belum diisi"' : ''}>${r.noCost ? '-' : pct(r.profit, r.revenue, 1)}</td><td>${pct(Math.max(0, r.profit), positive)}</td></tr>`).join('') : '<tr><td colspan="6" class="empty">Belum ada penjualan pada periode ini.</td></tr>';
     const chartRows = topRows(list.filter(r => r.profit > 0).map(r => ({
       label: r.name, value: r.profit, margin: r.noCost ? null : r.profit / r.revenue, profit: r.profit, revenue: r.revenue, qty: r.qty
     })), 5, rest => ({ label: 'Lainnya', other: true, value: rest.reduce((s, x) => s + x.profit, 0), margin: null, profit: rest.reduce((s, x) => s + x.profit, 0), revenue: rest.reduce((s, x) => s + x.revenue, 0), qty: rest.reduce((s, x) => s + x.qty, 0) }));
     drawBars('shop-profit-chart', chartRows.map(r => ({
       label: r.label, value: r.value, other: r.other,
-      text: `${rpShort(r.profit)}${r.margin !== null ? ' · ' + (r.margin * 100).toLocaleString('id-ID', { maximumFractionDigits: 0 }) + '%' : ''}`,
-      tip: `Laba ${money(r.profit)} dari omzet ${money(r.revenue)}${r.margin !== null ? ' (margin ' + (r.margin * 100).toLocaleString('id-ID', { maximumFractionDigits: 1 }) + '%)' : ''}, ${r.qty.toLocaleString('id-ID')} terjual`
+      tip: [`Laba ${money(r.profit)}`, `Omzet ${money(r.revenue)}${r.margin !== null ? ' · margin ' + (r.margin * 100).toLocaleString('id-ID', { maximumFractionDigits: 1 }) + '%' : ''}`, `${r.qty.toLocaleString('id-ID')} terjual`]
     })), 'Belum ada penjualan');
   }
 
@@ -261,8 +256,7 @@
     const rows = topRows(list, 5, rest => ({ name: 'Lainnya', other: true, orders: rest.reduce((s, x) => s + x.orders, 0), revenue: rest.reduce((s, x) => s + x.revenue, 0), profit: rest.reduce((s, x) => s + x.profit, 0) }));
     drawBars('shop-channel-chart', rows.map(r => ({
       label: r.name, value: r.revenue, other: r.other,
-      text: `${rpShort(r.revenue)} · ${pct(r.revenue, totalRev)}`,
-      tip: `Omzet ${money(r.revenue)}, laba ${money(r.profit)} (margin ${pct(r.profit, r.revenue, 1)}), ${r.orders} order`
+      tip: [`Omzet ${money(r.revenue)} (${pct(r.revenue, totalRev)})`, `Laba ${money(r.profit)} · margin ${pct(r.profit, r.revenue, 1)}`, `${r.orders} order`]
     })), 'Belum ada penjualan');
   }
 
@@ -296,8 +290,8 @@
     const reasons = [...byReason.entries()].sort((a, b) => (b[1].b + b[1].r) - (a[1].b + a[1].r));
     document.getElementById('shop-return-table').innerHTML = reasons.length ? reasons.map(([k, x]) => `<tr><td>${esc(k)}</td><td>${x.b}</td><td>${x.r}</td><td>${money(x.v)}</td></tr>`).join('') : '<tr><td colspan="4" class="empty">Belum ada batal/retur pada periode ini.</td></tr>';
     drawBars('shop-returns-chart', reasons.map(([k, x]) => ({
-      label: k, value: x.b + x.r, text: `${x.b + x.r} · ${pct(x.b + x.r, bad)}`,
-      tip: `${x.b} batal, ${x.r} retur, nilai ${money(x.v)}`
+      label: k, value: x.b + x.r,
+      tip: [`${x.b} batal, ${x.r} retur`, `Nilai ${money(x.v)}`]
     })), 'Belum ada batal/retur');
   }
 
@@ -482,8 +476,7 @@
     const chartRows = sorted.filter(d => d.days !== null || d.tone === 'bad').slice(0, 6);
     drawBars('shop-stock-chart', chartRows.map(d => ({
       label: d.name, value: d.tone === 'bad' ? 0 : Math.min(Math.floor(d.days), 90),
-      text: d.tone === 'bad' ? 'Habis' : `${Math.floor(d.days) > 90 ? '90+' : Math.floor(d.days)} hari · ${d.stock} pcs`,
-      tip: `Stok ${d.stock}, terjual ${d.s30} dalam 30 hari${d.days === null ? '' : `, cukup ±${Math.floor(d.days)} hari`}`
+      tip: [`Stok ${d.stock}`, `Terjual ${d.s30} dalam 30 hari`, ...(d.days === null ? [] : [`Cukup ±${Math.floor(d.days)} hari`])]
     })), 'Belum ada penjualan 30 hari terakhir');
   }
 
