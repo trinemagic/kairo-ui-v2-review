@@ -35,6 +35,12 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preload" as="font" type="font/woff2" href="assets/fonts/plus-jakarta-sans-latin-wght-normal.woff2" crossorigin>
 
+<!-- Mode demo: alamat #demo / #demo-<seller|jasa|shop|digital> memakai data contoh di browser (tanpa database). -->
+<link rel="stylesheet" href="assets/demo/demo.css?v=1.0.2">
+<script>
+(function(){var m=/^#demo(?:-(seller|jasa|shop|digital))?$/.exec(location.hash);if(!m)return;window.__kairoDemoKind=m[1]||'jasa';document.write('<script src="assets/demo/demo-data.js?v=1.0.0"><\/script><script src="assets/demo/demo-db.js?v=1.0.2"><\/script>');})();
+</script>
+<script defer src="assets/demo/demo-entry.js?v=1.0.0"></script>
 <!-- Stable auth boot order. Feature-heavy libraries remain lazy inside kairo-app.js. -->
 <script defer src="assets/kairo-v3.js?v=3.30.1"></script>
 <script defer src="assets/kairo-themes.js?v=1.0.1"></script>
@@ -84,7 +90,7 @@
 
 
 <link rel="stylesheet" href="assets/kairo.css?v=20.10.159">
-<link rel="stylesheet" href="assets/kairo-v3.css?v=3.38.0">
+<link rel="stylesheet" href="assets/kairo-v3.css?v=3.39.0">
 <link rel="stylesheet" id="kairo-themes-css" href="assets/kairo-themes.css?v=1.0.0">
 </head>
 
@@ -106,6 +112,7 @@
           <a href="#solutions">Solutions</a>
           <a href="#pricing">Pricing</a>
           <a href="#about">About</a>
+          <a href="#demo-pilih" data-kairo-demo>Demo</a>
         </div>
         <div class="kairo-nav-actions">
           <button type="button" class="kairo-button kairo-button-secondary" data-v3-login>Masuk</button>
@@ -123,6 +130,7 @@
           <p>Catat order, pantau omzet, kelola customer dan langganan, sampai buat struk profesional. Semua dari satu workspace di browser, tanpa sistem yang ribet.</p>
           <div class="kairo-lp-actions">
             <button type="button" class="kairo-button kairo-button-primary kairo-button-large" data-v3-signup>Coba KAIRO Gratis</button>
+            <button type="button" class="kairo-button kairo-button-secondary kairo-button-large" data-kairo-demo>Coba Demo</button>
             <a class="kairo-button kairo-button-text kairo-button-large" href="#about">Lihat Cara Kerjanya <span aria-hidden="true">↓</span></a>
           </div>
           <div class="kairo-lp-trust">
@@ -1256,6 +1264,6 @@
 
 
 
-<script defer src="assets/kairo-app.js?v=20.10.212"></script>
+<script defer src="assets/kairo-app.js?v=20.10.213"></script>
 </body>
 </html>
