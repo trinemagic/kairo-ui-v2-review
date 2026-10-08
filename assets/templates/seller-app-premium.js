@@ -756,13 +756,6 @@
       settings.querySelectorAll(`[data-settings-panel="${key}"]`).forEach(el=>el.classList.add('seller-template-hidden'));
     });
     if(select&&['addons','topics'].includes(select.value)){select.value='packages';select.dispatchEvent(new Event('change',{bubbles:true}))}
-    const profit=document.getElementById('profit-share-editor-card');
-    if(profit){
-      profit.querySelector('.profit-product-divider')?.classList.add('seller-template-hidden');
-      profit.querySelector('.profit-product-head')?.classList.add('seller-template-hidden');
-      profit.querySelector('#profit-product-rules')?.classList.add('seller-template-hidden');
-      profit.querySelector('.profit-product-note')?.classList.add('seller-template-hidden');
-    }
     const pageSub=document.querySelector('main.container .page-sub');
     if(document.getElementById('settings')?.classList.contains('active')&&pageSub)pageSub.textContent='Identitas bisnis, produk, pembagian omzet, struk, dan akses workspace aktif.';
   }

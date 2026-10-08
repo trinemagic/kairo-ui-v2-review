@@ -618,7 +618,7 @@ body.saas-sidebar-collapsed .saas-side-brand img{
 @media(max-width:680px){.profit-editor-head{display:block}.profit-editor-badge{display:inline-flex;margin-top:8px}.profit-rule-grid{grid-template-columns:1fr 1fr}.profit-editor-actions{align-items:stretch}.profit-editor-date{width:100%}.profit-editor-date .control{flex:1}.profit-editor-actions .btn{width:100%}}
 
 /* V20.10.17 — HPP + net profit sharing */
-.profit-product-divider{height:1px;background:var(--line);margin:18px 0}.profit-product-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}.profit-product-badge{display:inline-flex;padding:6px 9px;border-radius:999px;background:color-mix(in srgb,var(--brand-primary) 10%,var(--white));border:1px solid color-mix(in srgb,var(--brand-primary) 20%,var(--line));font-size:10px;font-weight:850;color:var(--brand-primary);white-space:nowrap}.profit-product-rules{display:grid;gap:10px}.profit-product-row{border:1px solid var(--line);border-radius:15px;background:rgba(255,255,255,.74);padding:12px}.profit-product-top{display:grid;grid-template-columns:minmax(180px,1.25fr) minmax(120px,.6fr) minmax(120px,.6fr) minmax(170px,.8fr) auto;gap:10px;align-items:end}.profit-product-name strong{display:block;font-size:13px}.profit-product-name small{display:block;margin-top:3px;color:var(--muted);font-size:10px}.profit-product-net{font-size:12px;font-weight:850;color:var(--brand-primary);padding:10px 11px;border-radius:11px;background:color-mix(in srgb,var(--brand-primary) 7%,#fff);border:1px solid color-mix(in srgb,var(--brand-primary) 13%,var(--line));min-height:42px;display:flex;align-items:center}.profit-product-manual{display:none;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)}.profit-product-row.manual .profit-product-manual{display:grid}.profit-manual-field{background:rgba(250,248,245,.7);border:1px solid var(--line);border-radius:11px;padding:9px}.profit-manual-field label{display:block;font-size:10px;font-weight:800;margin-bottom:5px}.profit-manual-field .input{width:100%}.profit-manual-total{grid-column:1/-1;font-size:11px;font-weight:800;color:var(--muted)}.profit-manual-total.invalid{color:var(--danger)}.profit-product-note{margin-top:11px;font-size:11px;line-height:1.5;color:var(--muted)}@media(max-width:980px){.profit-product-top{grid-template-columns:1fr 1fr}.profit-product-name{grid-column:1/-1}.profit-product-save{width:100%}}@media(max-width:620px){.profit-product-head{display:block}.profit-product-badge{margin-top:8px}.profit-product-top{grid-template-columns:1fr}.profit-product-name{grid-column:auto}}
+
 
 /* v20.10.57 — Petty Cash note input reliability */
 #cash-expense-note.cash-expense-note-input{display:block!important;width:100%!important;min-height:82px!important;resize:vertical!important;pointer-events:auto!important;user-select:text!important;-webkit-user-select:text!important;position:relative!important;z-index:2!important;line-height:1.45!important}
@@ -1014,23 +1014,8 @@ body.saas-dark #settings .receipt-layout-card{
   color:#EEF3F8!important;
   box-shadow:none!important;
 }
-body.saas-dark #settings .card-title,
-body.saas-dark #settings .label,
-body.saas-dark #settings label,
-body.saas-dark #settings strong,
-body.saas-dark #settings .receipt-layout-name,
-body.saas-dark #settings .profit-product-name strong,
-body.saas-dark #settings .profit-manual-field label{color:#F5F7FA!important;opacity:1!important;}
-body.saas-dark #settings .page-sub,
-body.saas-dark #settings .settings-meta-item small,
-body.saas-dark #settings .profit-product-name small,
-body.saas-dark #settings .profit-product-note,
-body.saas-dark #settings .profit-history,
-body.saas-dark #settings .receipt-layout-preview,
-body.saas-dark #settings .receipt-layout-note,
-body.saas-dark #settings .receipt-color-hex,
-body.saas-dark #settings .receipt-font-sample,
-body.saas-dark #settings .profit-manual-total{color:#B8C3D0!important;opacity:1!important;}
+body.saas-dark #settings .card-title,body.saas-dark #settings .label,body.saas-dark #settings label,body.saas-dark #settings strong,body.saas-dark #settings .receipt-layout-name{color:#F5F7FA!important;opacity:1!important;}
+body.saas-dark #settings .page-sub,body.saas-dark #settings .settings-meta-item small,body.saas-dark #settings .profit-history,body.saas-dark #settings .receipt-layout-preview,body.saas-dark #settings .receipt-layout-note,body.saas-dark #settings .receipt-color-hex,body.saas-dark #settings .receipt-font-sample{color:#B8C3D0!important;opacity:1!important;}
 
 /* Inputs/selects/textareas: never leave light controls floating on dark Settings. */
 body.saas-dark #settings .input,
@@ -1079,22 +1064,14 @@ body.saas-dark #settings .profit-editor-card{
   background:#20242A!important;
   border-color:#3B424C!important;
 }
-body.saas-dark #settings .profit-rule-item,
-body.saas-dark #settings .profit-product-row,
-body.saas-dark #settings .profit-manual-field{
+body.saas-dark #settings .profit-rule-item{
   background:#272C33!important;
   border-color:#414A55!important;
   color:#EEF3F8!important;
 }
-body.saas-dark #settings .profit-product-row:hover{background:#2B3037!important;}
-body.saas-dark #settings .profit-product-net{
-  background:#25323A!important;
-  border-color:#3C5866!important;
-  color:#73C3E5!important;
-}
-body.saas-dark #settings .profit-product-divider,
-body.saas-dark #settings .profit-product-manual{border-color:#46505C!important;}
-body.saas-dark #settings .profit-product-badge,
+
+
+
 body.saas-dark #settings .profit-editor-badge{
   background:#2B3138!important;
   border:1px solid #47515D!important;
@@ -1170,17 +1147,7 @@ body.saas-dark #receipt-item-editor select{
 }
 
 /* Keep transition soft for the newly covered Settings surfaces. */
-body.saas-theme-transition #settings .card,
-body.saas-theme-transition #settings .settings-master-row,
-body.saas-theme-transition #settings .profit-product-row,
-body.saas-theme-transition #settings .profit-rule-item,
-body.saas-theme-transition #settings .receipt-layout-row,
-body.saas-theme-transition #settings .receipt-design-card,
-body.saas-theme-transition #settings .settings-meta-item,
-body.saas-theme-transition #settings input,
-body.saas-theme-transition #settings select,
-body.saas-theme-transition #settings textarea,
-body.saas-theme-transition #settings button{
+body.saas-theme-transition #settings .card,body.saas-theme-transition #settings .settings-master-row,body.saas-theme-transition #settings .profit-rule-item,body.saas-theme-transition #settings .receipt-layout-row,body.saas-theme-transition #settings .receipt-design-card,body.saas-theme-transition #settings .settings-meta-item,body.saas-theme-transition #settings input,body.saas-theme-transition #settings select,body.saas-theme-transition #settings textarea,body.saas-theme-transition #settings button{
   transition:background-color .52s ease,color .52s ease,border-color .52s ease,box-shadow .52s ease!important;
 }
 

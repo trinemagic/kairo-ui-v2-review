@@ -85,8 +85,8 @@ domain = pengguna login ulang & pengaturan browser (Ingat saya, dark mode) mulai
 | `assets/brand/` | Logo resmi KAIRO Workspaces (kit dari owner, Okt 2026) | `kairo-horizontal-color.svg` = landing (header, footer, dialog Masuk; latar terang, min. lebar 120px); `kairo-app-icon.svg` = logo default dashboard (`KAIRO_LOGO`, sidebar, header HP, preview Settings, admin) sampai user upload logo sendiri; `favicon.svg/.ico`; `assets/og/apple-touch-icon.png` dari kit. Wordmark digambar - jangan diketik ulang pakai font. `assets/kairo-mark.svg` (logo lama) sudah dihapus. |
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
-Versi terakhir: `kairo.css?v=20.10.158`, `kairo-v3.css?v=3.37.0`,
-`kairo-v3.js?v=3.30.0`, `kairo-app.js?v=20.10.211`, `kairo-themes.css?v=1.0.0`/`.js?v=1.0.1`; template seller dimuat dari kairo-app.js
+Versi terakhir: `kairo.css?v=20.10.159`, `kairo-v3.css?v=3.38.0`,
+`kairo-v3.js?v=3.30.1`, `kairo-app.js?v=20.10.212`, `kairo-themes.css?v=1.0.0`/`.js?v=1.0.1`; template seller dimuat dari kairo-app.js
 (`seller-app-premium.js?v=20.10.160`, `.css?v=20.10.157`) — naikkan juga bila file template diubah.
 Setup Wizard dimuat dari `loadSetupWizard()` di kairo-app.js (`kairo-setup-wizard.js/.css?v=1.0.4`, satu konstanta `v`).
 Panduan dimuat dari `window.kairoOpenGuide()` di kairo-v3.js (`kairo-guide.js/.css?v=` konstanta `GUIDE_V`='1.0.1'; gambar `assets/guide/*.webp?v=` `SHOT_V` di kairo-guide.js).
@@ -157,10 +157,12 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   punya baris Kas). Saldo Kas dihitung ulang dari SEMUA transaksi, jadi Pro lama tanpa baris Kas (mis. TOKO SEMPA 60/35) dikunci 5% lewat
   `.claude/sql/2026-10-kas-default-zero.sql` - SQL ini WAJIB jalan sebelum kode 0% dipasang.
 - **HPP & pembagian per produk (owner Okt 2026):** kategori Settings `profit` dibuka untuk Gratis (termasuk mode manual).
-  **Modal (HPP) diinput di Package & Harga / Add-on & Harga (owner Okt 2026):** tiap baris punya kolom "Modal (HPP)" di bawah Harga (`.master-price-stack`,
-  `.settings-master-cost` -> `cost_price`); harga & modal tampil "Rp50.000" (formatter Rupiah kairo-v3.js, `setupMasterMoney()`, nilai `.value` tetap angka murni).
-  Di Pembagian Omzet › HPP & pembagian per produk, HPP kini hanya tampilan (input hidden `.profit-product-cost`), yang tersisa = metode pembagian
-  (persentase global / nominal manual per partner).
+  **Modal (HPP) + pembagian laba per produk diatur di Package & Harga / Add-on & Harga (owner Okt 2026):** satu baris = Kode | Nama | Harga | Modal (HPP) |
+  Pembagian laba (Persentase global / Nominal manual) | tombol (container query: tombol di baris yang sama bila kartu >=1180px, kalau tidak di bawahnya).
+  Nominal manual membuka isian per partner (`.settings-master-manual`, total wajib = harga − modal, divalidasi saat Simpan). Disimpan ke `cost_price`,
+  `profit_share_mode`, `manual_profit_split` (tabel `package_masters`/`addon_masters`). Harga/modal/nominal tampil "Rp50.000" (formatter Rupiah kairo-v3.js
+  `setupMasterMoney()`; `.value` tetap angka murni). Baris baru: harga & modal kosong (placeholder Rp0). Bagian lama "HPP & Pembagian per Produk" di
+  Pembagian Omzet sudah DIHAPUS (markup, JS, CSS); Pembagian Omzet kini hanya persentase global partner. Seller App Premium punya pengaturan produk sendiri.
 - **Masa aktif (owner Okt 2026):** `effectiveSubscriptionPlan()` - Pro lewat tanggal berakhir (current_period_end/expires_at/end_date/
   valid_until, akhir hari) atau status canceled/inactive/expired dibaca Gratis (data aman), toast sekali per workspace; Trine Magic
   selalu Pro; Pro tanpa tanggal = Pro selamanya (admin › Perlu Perhatian: "Pro tanpa masa aktif").

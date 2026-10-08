@@ -1012,7 +1012,7 @@ if (window.top !== window.self) {
   // Settings › Package & Harga / Add-on & Harga: harga dan modal tampil "Rp85.000" (baris dibuat ulang tiap render).
   function setupMasterMoney() {
     document.querySelectorAll('#settings-package-list, #settings-addon-list').forEach(host => {
-      host.querySelectorAll('.settings-master-price, .settings-master-cost').forEach(setup);
+      host.querySelectorAll('.settings-master-price, .settings-master-cost, .settings-master-manual').forEach(setup);
     });
   }
   new MutationObserver(setupMasterMoney).observe(document.getElementById('settings') || document.body, { childList: true, subtree: true });
