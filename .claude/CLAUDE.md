@@ -86,9 +86,9 @@ domain = pengguna login ulang & pengaturan browser (Ingat saya, dark mode) mulai
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
 Versi terakhir: `kairo.css?v=20.10.158`, `kairo-v3.css?v=3.35.1`,
-`kairo-v3.js?v=3.28.0`, `kairo-app.js?v=20.10.200`, `kairo-themes.css/.js?v=1.0.0`; template seller dimuat dari kairo-app.js
+`kairo-v3.js?v=3.28.1`, `kairo-app.js?v=20.10.201`, `kairo-themes.css/.js?v=1.0.0`; template seller dimuat dari kairo-app.js
 (`seller-app-premium.js?v=20.10.160`, `.css?v=20.10.157`) — naikkan juga bila file template diubah.
-Setup Wizard dimuat dari `loadSetupWizard()` di kairo-app.js (`kairo-setup-wizard.js/.css?v=1.0.3`, satu konstanta `v`).
+Setup Wizard dimuat dari `loadSetupWizard()` di kairo-app.js (`kairo-setup-wizard.js/.css?v=1.0.4`, satu konstanta `v`).
 Panduan dimuat dari `window.kairoOpenGuide()` di kairo-v3.js (`kairo-guide.js/.css?v=` konstanta `GUIDE_V`='1.0.1'; gambar `assets/guide/*.webp?v=` `SHOT_V` di kairo-guide.js).
 Admin: `admin.js?v=1.11.0`, `admin.css?v=1.8.1`. Library CDN dikunci versi + SRI: supabase-js 2.117.2 (index.html & admin), Chart.js 4.4.4 `dist/chart.umd.js`
 (`ensureChartLibrary`, admin), xlsx-js-style 1.2.0. **Ganti versi = hitung ulang SRI** (`npm pack` lalu `openssl dgst -sha384 -binary f | openssl base64 -A`).
@@ -413,7 +413,7 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   muncul lagi bila sidik jari berubah (error: last_seen; lainnya: since/valid_until/detail).
 - **Admin › Template (owner Okt 2026):** daftar template usaha dari form daftar (`TEMPLATES` di admin.js — **perbarui
   bila ada template baru**): Seller App Premium (`digital_subscription`, tampilan khusus), Jasa Online
-  (`service_consultation`, tampilan dasar), Online Shop & Digital Product (belum ada tampilan khusus → user melihat
+  (`service_consultation`, tampilan dasar), Online Shop (istilah toko, lihat poin berikut) & Digital Product (belum ada tampilan khusus → user melihat
   tampilan Jasa Online). Jumlah workspace/Pro/aktif per template dari `business_template` di
   `platform_admin_workspace_activity` (SQL `.claude/sql/2026-10-admin-templates.sql`, **sudah dijalankan owner Okt 2026**). Preview dashboard
   `admin/previews/*.webp` dibuat ulang dengan `.claude/testing/shoot-templates.js`. Cache admin: lihat di atas.
@@ -454,6 +454,13 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   tutup halaman Daftar + buka form Masuk (`window.kairoOpenLogin`, kairo-v3.js) dengan username terisi.
 - **Loader template** (kairo-app.js, `maybeBootSellerTemplate`) mengecek template SEKALI per login (`templateChecked`, reset saat logout);
   dulu diulang tiap class `<body>` berubah (spinner sekejap + pratinjau tema dibatalkan). Cat awal tema hanya bila belum ada tema terpasang.
+
+- **Template Online Shop (owner Okt 2026, produk fisik):** kerangka tampilan dasar + istilah toko. Loader template (`maybeBootSellerTemplate`)
+  memberi `html[data-business-template=online_shop]` + event `kairo:template-ready`. Istilah: Start Reading -> **Waktu Order**, Paket/Package -> **Produk**,
+  Topik -> **Kategori** (default `defaultTopicLabel()`; user tetap bisa mengganti di Settings, `__topic_label`). Kode: helper `isShopWorkspace()/startLabel()`
+  (kairo-app.js: detail, struk default, toast), lapisan teks statis di akhir kairo-v3.js (tabel riwayat, form Orders, Performance, Customers, notifikasi),
+  Setup Wizard (Produk & harga). Belum diganti: Settings "Package & Harga" (dicari lewat teks di beberapa fungsi), opsi Platform Media Sosial.
+  Tes: `bootApp(b,{template:'shop'})` (mock `window.__mockSession` -> lewat loader asli).
 
 ## 4. Jebakan yang sudah pernah terjadi
 

@@ -51,6 +51,6 @@ window.supabase = { createClient: () => {
       async remove(paths) { paths.forEach(x => { if (D.storage) delete D.storage[bucket + '/' + x]; }); return { data: [], error: null }; },
       getPublicUrl(path) { return { data: { publicUrl: 'assets/brand/kairo-app-icon.svg#' + bucket + '/' + path } }; }
     }) },
-    auth: { getSession: async () => ({ data: { session: null }, error: null }), onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }), signOut: async () => ({}), getUser: async () => ({ data: { user: null } }) }
+    auth: { getSession: async () => ({ data: { session: window.__mockSession || null }, error: null }), onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }), signOut: async () => ({}), getUser: async () => ({ data: { user: null } }) }
   };
 } };

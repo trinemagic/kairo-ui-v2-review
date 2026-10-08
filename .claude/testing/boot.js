@@ -22,6 +22,7 @@ async function bootApp(browser, { width = 1440, height = 900, mobile = false, pl
   // Chart.js is loaded with its real SRI hash: keep the exact pinned version here (npm pack chart.js@4.4.4).
   const chart = path.join(__dirname, 'chartjs/package/dist/chart.umd.js');
   if (fs.existsSync(chart)) await page.route('**/chart.js@*/**', r => r.fulfill({ contentType: 'application/javascript', body: fs.readFileSync(chart), headers: { 'access-control-allow-origin': '*' } }));
+  if (template === 'shop') await page.addInitScript(() => { window.__mockSession = { user: { user_metadata: { business_template: 'online_shop' } } }; });
   await page.goto(BASE);
   await page.waitForTimeout(1500);
   await page.evaluate(({ plan, seed, workspaceName }) => {
@@ -35,7 +36,7 @@ async function bootApp(browser, { width = 1440, height = 900, mobile = false, pl
   }, { plan, seed, workspaceName });
   await page.waitForTimeout(500);
   // template: 'seller' loads Seller App Premium the way kairo-app.js does for
-  // business_template=digital_subscription (the mock session has no user metadata).
+  // business_template=digital_subscription; template:'shop' = online_shop via the real loader (the mock session has no user metadata).
   if (template === 'seller') {
     await page.evaluate(() => {
       document.documentElement.dataset.businessTemplate = 'digital_subscription';
