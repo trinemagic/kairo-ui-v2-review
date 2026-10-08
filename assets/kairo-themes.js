@@ -12,7 +12,7 @@
     ['#kairo-mobile-notif-btn>span:first-child svg',()=>'bell'],
     ['#kairo-mobile-more-btn>span:first-child svg',()=>'more'],
     ['.kairo-mobile-more-item[data-mobile-tab]>span:first-child svg',el=>el.closest('[data-mobile-tab]').dataset.mobileTab],
-    ['#dashboard .kairo-stat-icon svg',el=>({'kpi-revenue':'performance','seller-kpi-profit':'profit','kpi-tx':'input','kpi-cash':'cash','kpi-rights':'subscriptions'})[el.closest('.kpi')?.querySelector('.kpi-value')?.id]]
+    ['#dashboard .kairo-stat-icon svg',el=>({'kpi-revenue':'performance','seller-kpi-profit':'profit','shop-kpi-profit':'profit','kpi-tx':'input','kpi-cash':'cash','kpi-rights':'subscriptions'})[el.closest('.kpi')?.querySelector('.kpi-value')?.id]]
   ];
   const original=new WeakMap();let uid=0;
   function build(body){

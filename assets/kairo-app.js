@@ -1122,7 +1122,7 @@ async function fetchPlatformAnalytics(){
   const b=platformBounds();
   platformAnalyticsRows=(await allTransactions()).filter(row=>String(row.transaction_date||'')>=b.previousStart&&String(row.transaction_date||'')<=b.currentEnd);
 }
-function platformKey(v){const s=String(v||"Other").trim(),n=s.toLowerCase();if(n==="x"||n==="twitter")return "X";if(n.includes("instagram"))return "Instagram";if(n.includes("threads"))return "Threads";if(n.includes("tiktok"))return "TikTok";if(n.includes("whatsapp")||n==="wa")return "WhatsApp";if(n.includes("telegram")||n==="tg")return "Telegram";return s||"Other";}
+function platformKey(v){const s=String(v||"Other").trim(),n=s.toLowerCase();if(n==="x"||n==="twitter")return "X";if(n.includes("instagram"))return "Instagram";if(n.includes("threads"))return "Threads";if(n.includes("tiktok"))return n.includes("shop")?"TikTok Shop":"TikTok";if(n.includes("whatsapp")||n==="wa")return "WhatsApp";if(n.includes("telegram")||n==="tg")return "Telegram";return s||"Other";}
 // Chart colours follow the KAIRO palette (the v3 tokens, which already follow the workspace
 // colours): primary = this period, accent = comparison. In dark mode the accent is lightened
 // so the comparison bars stay visible on the dark cards.
@@ -1853,9 +1853,9 @@ async function toggleReadingStatus(transactionId,checked,el){
   }finally{el.disabled=false;}
 }
 
-async function deleteCancelledTransaction(transactionId,customerName,customerId){
+async function deleteCancelledTransaction(transactionId,customerName,customerId,opts){
   if(!transactionId)return;
-  const ok=confirm(`Hapus transaksi ${customerName||"customer ini"} karena cancel?\n\nTransaksi akan dihapus dari omzet, profit sharing, kas, grafik, dan riwayat. Tindakan ini tidak bisa dibatalkan.`);
+  const ok=(opts&&opts.skipConfirm)||confirm(`Hapus transaksi ${customerName||"customer ini"} karena cancel?\n\nTransaksi akan dihapus dari omzet, profit sharing, kas, grafik, dan riwayat. Tindakan ini tidak bisa dibatalkan.`);
   if(!ok)return;
   try{
     const {error}=await db.from("transactions").delete().eq("workspace_id",requireWorkspaceId()).eq("id",transactionId);
@@ -5447,7 +5447,12 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
       if(data?.session)templateChecked=true;
       // Paint the workspace's last theme right away (every template); applyWorkspaceTheme() corrects it once branding/plan are loaded.
       if(!root.dataset.wsTheme){if(activeWorkspaceBranding)applyWorkspaceTheme();else{const t=cachedWorkspaceTheme();if(t)root.dataset.wsTheme=t;}}
-      if(template==='online_shop'){root.dataset.businessTemplate='online_shop';if(typeof applyTopicFieldLabel==='function')applyTopicFieldLabel();document.dispatchEvent(new CustomEvent('kairo:template-ready'));}
+      if(template==='online_shop'){root.dataset.businessTemplate='online_shop';if(typeof applyTopicFieldLabel==='function')applyTopicFieldLabel();document.dispatchEvent(new CustomEvent('kairo:template-ready'));
+        // Analitik toko (laba per produk, channel, batal/retur) + kartu Profit Dashboard dimuat hanya untuk Online Shop.
+        if(!document.getElementById('online-shop-js')){
+          const link=document.createElement('link');link.id='online-shop-css';link.rel='stylesheet';link.href='assets/templates/online-shop.css?v=1.0.0';document.head.appendChild(link);
+          const script=document.createElement('script');script.id='online-shop-js';script.src='assets/templates/online-shop.js?v=1.0.0';script.defer=true;document.body.appendChild(script);
+        }}
       else if(root.dataset.businessTemplate==='online_shop'){delete root.dataset.businessTemplate;}
       if(template!=='digital_subscription')return;
       sellerTemplateBooted=true;keepPending=true;

@@ -198,6 +198,10 @@ if (window.top !== window.self) {
       tone: 'primary',
       icon: '<path d="M4 7h16v10H4z"/><path d="M8 11h8M8 14h5"/>'
     },
+    'shop-kpi-profit': {
+      tone: 'gold',
+      icon: '<path d="M5 16 10 11l3 3 6-7"/><path d="M14 7h5v5"/>'
+    },
     'seller-kpi-profit': {
       tone: 'gold',
       icon: '<path d="M5 16 10 11l3 3 6-7"/><path d="M14 7h5v5"/>'
@@ -1043,6 +1047,16 @@ if (window.top !== window.self) {
     const tc = document.getElementById('topic-selection-total')?.closest('.toolbar');
     setText(tc?.querySelector('.page-sub'), 'Jumlah pemilihan ' + topic().toLowerCase() + ' sesuai filter tanggal aktif.');
     document.querySelectorAll('#customers th').forEach(th => { if (th.textContent.trim() === 'Paket Favorit') setText(th, 'Produk Favorit'); });
+    // Channel penjualan (marketplace/toko) menggantikan istilah "platform media sosial".
+    const pl = document.getElementById('tx-platform')?.closest('.form-group')?.querySelector('.label');
+    setText(pl, 'Channel Penjualan');
+    const sn = document.getElementById('tx-social-name')?.closest('.form-group')?.querySelector('.label');
+    setText(sn, 'Akun / Username Pembeli (Opsional)');
+    document.querySelectorAll('#performance .card-title').forEach(el => {
+      const t = el.textContent.trim();
+      if (t === 'Performa Platform Media Sosial') setText(el, 'Performa Channel Penjualan');
+      else if (t === 'Perkembangan Platform') setText(el, 'Perkembangan Channel');
+    });
   }
   let t = 0;
   const later = () => { clearTimeout(t); t = setTimeout(apply, 50); };

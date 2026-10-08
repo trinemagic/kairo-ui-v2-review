@@ -86,7 +86,7 @@ domain = pengguna login ulang & pengaturan browser (Ingat saya, dark mode) mulai
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
 Versi terakhir: `kairo.css?v=20.10.158`, `kairo-v3.css?v=3.35.1`,
-`kairo-v3.js?v=3.28.1`, `kairo-app.js?v=20.10.201`, `kairo-themes.css/.js?v=1.0.0`; template seller dimuat dari kairo-app.js
+`kairo-v3.js?v=3.28.2`, `kairo-app.js?v=20.10.202`, `kairo-themes.css?v=1.0.0`/`.js?v=1.0.1`; template seller dimuat dari kairo-app.js
 (`seller-app-premium.js?v=20.10.160`, `.css?v=20.10.157`) — naikkan juga bila file template diubah.
 Setup Wizard dimuat dari `loadSetupWizard()` di kairo-app.js (`kairo-setup-wizard.js/.css?v=1.0.4`, satu konstanta `v`).
 Panduan dimuat dari `window.kairoOpenGuide()` di kairo-v3.js (`kairo-guide.js/.css?v=` konstanta `GUIDE_V`='1.0.1'; gambar `assets/guide/*.webp?v=` `SHOT_V` di kairo-guide.js).
@@ -461,6 +461,14 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   (kairo-app.js: detail, struk default, toast), lapisan teks statis di akhir kairo-v3.js (tabel riwayat, form Orders, Performance, Customers, notifikasi),
   Setup Wizard (Produk & harga). Belum diganti: Settings "Package & Harga" (dicari lewat teks di beberapa fungsi), opsi Platform Media Sosial.
   Tes: `bootApp(b,{template:'shop'})` (mock `window.__mockSession` -> lewat loader asli).
+  **Analitik toko (owner Okt 2026):** `assets/templates/online-shop.js/.css` (`?v=1.0.0`, dimuat loader HANYA untuk online_shop). Dashboard: kartu **Profit** (laba kotor
+  = total - HPP, ikut filter periode, id `shop-kpi-profit`, grid 3+2 seperti seller). Performance (setelah Penjualan per Produk): **Laba per Produk** (omzet, laba,
+  margin, status Andalan / Laris-margin tipis / Margin tebal-kurang laku / Perlu dievaluasi / Isi modal; kuadran dari median qty & margin rata-rata, min. 3 produk),
+  **Analisis Channel** (order, omzet, laba, margin, rata-rata/order, porsi; belum memotong komisi marketplace), **Batal & Retur** (tabel `order_returns`, SQL
+  `.claude/sql/2026-10-online-shop-returns.sql` - **belum dijalankan owner**; tanpa tabel kartu tersembunyi). Hapus order di template ini membuka dialog Batal/Retur +
+  alasan (`deleteCancelledTransaction(..., {skipConfirm:true})`). Channel Penjualan: daftar bisa diatur di Settings › Kategori (`receipt_labels.__platforms`, tanpa SQL),
+  bawaan Shopee/Tokopedia/TikTok Shop/Lazada/WhatsApp/Instagram/Toko Offline/Lainnya; mengisi `#tx-platform`. Belum: stok (butuh SQL), biaya admin/komisi per channel.
+  Tes: `seed-shop.js` + `bootApp(b,{template:'shop',seed:require('./seed-shop.js')})`.
 
 ## 4. Jebakan yang sudah pernah terjadi
 
