@@ -86,7 +86,7 @@ domain = pengguna login ulang & pengaturan browser (Ingat saya, dark mode) mulai
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
 Versi terakhir: `kairo.css?v=20.10.158`, `kairo-v3.css?v=3.35.1`,
-`kairo-v3.js?v=3.28.0`, `kairo-app.js?v=20.10.200`, `kairo-themes.css/.js?v=1.0.0`; template seller dimuat dari kairo-app.js
+`kairo-v3.js?v=3.28.0`, `kairo-app.js?v=20.10.201`, `kairo-themes.css/.js?v=1.0.0`; template seller dimuat dari kairo-app.js
 (`seller-app-premium.js?v=20.10.160`, `.css?v=20.10.157`) — naikkan juga bila file template diubah.
 Setup Wizard dimuat dari `loadSetupWizard()` di kairo-app.js (`kairo-setup-wizard.js/.css?v=1.0.3`, satu konstanta `v`).
 Panduan dimuat dari `window.kairoOpenGuide()` di kairo-v3.js (`kairo-guide.js/.css?v=` konstanta `GUIDE_V`='1.0.1'; gambar `assets/guide/*.webp?v=` `SHOT_V` di kairo-guide.js).
@@ -454,6 +454,9 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   tutup halaman Daftar + buka form Masuk (`window.kairoOpenLogin`, kairo-v3.js) dengan username terisi.
 - **Loader template** (kairo-app.js, `maybeBootSellerTemplate`) mengecek template SEKALI per login (`templateChecked`, reset saat logout);
   dulu diulang tiap class `<body>` berubah (spinner sekejap + pratinjau tema dibatalkan). Cat awal tema hanya bila belum ada tema terpasang.
+
+- **Close Store (Okt 2026):** jam tutup diisi per menit -> disimpan sebagai AKHIR menit itu (maks. sekarang). Dulu 10:47 = 10:47:00 dan
+  `closeReadingShift()` melepas order 10:47:xx dari sesi (omzet Riwayat Open Store kurang). Data lama: `.claude/sql/2026-10-open-store-close-minute.sql`.
 
 ## 4. Jebakan yang sudah pernah terjadi
 
