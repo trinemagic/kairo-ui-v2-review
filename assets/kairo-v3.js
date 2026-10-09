@@ -649,7 +649,7 @@ if (window.top !== window.self) {
 
   // Panduan pemakaian (owner Okt 2026): tombol buku di samping lonceng (desktop) + item "Panduan" di menu More (HP).
   // Isi & gaya ada di assets/kairo-guide.js/.css, baru dimuat saat pertama kali dibuka supaya dashboard tetap ringan.
-  const GUIDE_V = '1.0.1';
+  const GUIDE_V = '1.0.2';
   let guideLoader = null;
   window.kairoOpenGuide = function () {
     if (!guideLoader) {
@@ -853,13 +853,15 @@ if (window.top !== window.self) {
   function copy(hint, m) {
     const parts = { strong: hint.querySelector('.kairo-upgrade-hint-copy strong'), long: hint.querySelector('.is-long'), short: hint.querySelector('.is-short'), cta: hint.querySelector('[data-upgrade-cta]') };
     if (!original) original = Object.fromEntries(Object.entries(parts).map(([k, el]) => [k, el ? el.textContent : '']));
-    let text = original;
+    // Online Shop tidak punya Open Store: daftar fitur Pro tanpa itu.
+    const feats = root.dataset.businessTemplate === 'online_shop' ? 'Autofill Orders, Customer Database, Promo, Petty Cash, dan Export Excel' : 'Autofill Orders, Customer Database, Promo, Open Store, Petty Cash, dan Export Excel';
+    let text = original ? { ...original, long: original.long.replace('Autofill Orders, Customer Database, Promo, Open Store, Petty Cash, dan Export Excel', feats) } : original;
     if (m === 'lapsed') text = { strong: 'Masa aktif Pro sudah berakhir', long: 'Workspace sementara memakai paket Gratis, data tetap aman. Perpanjang untuk membuka lagi semua fitur Pro.', short: 'Data tetap aman. Perpanjang untuk membuka fitur Pro lagi.', cta: 'Perpanjang Pro' };
     if (m === 'renew') {
       const end = Number(root.dataset.subEnd || 0), days = Math.max(0, Math.ceil((end - Date.now()) / 86400000));
       const date = end ? new Date(end).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
       const left = days <= 0 ? 'Berakhir hari ini.' : `Tinggal ${days} hari lagi.`;
-      text = { strong: `Paket Pro berakhir ${date}`, long: `${left} Perpanjang sekarang supaya Autofill, Customer Database, Promo, Open Store, Petty Cash, dan Export Excel tetap bisa dipakai.`, short: `${left} Perpanjang supaya fitur Pro tetap aktif.`, cta: 'Perpanjang Pro' };
+      text = { strong: `Paket Pro berakhir ${date}`, long: `${left} Perpanjang sekarang supaya ${feats.replace('Autofill Orders', 'Autofill')} tetap bisa dipakai.`, short: `${left} Perpanjang supaya fitur Pro tetap aktif.`, cta: 'Perpanjang Pro' };
     }
     for (const k of Object.keys(parts)) if (parts[k] && parts[k].textContent !== text[k]) parts[k].textContent = text[k];
     const close = hint.querySelector('[data-upgrade-close]'), label = m === 'renew' ? 'Sembunyikan sampai besok' : 'Sembunyikan selama 7 hari';
@@ -882,7 +884,7 @@ if (window.top !== window.self) {
       sync();
     }
   });
-  new MutationObserver(sync).observe(root, { attributes: true, attributeFilter: ['data-workspace-plan', 'data-sub-state', 'data-sub-end'] });
+  new MutationObserver(sync).observe(root, { attributes: true, attributeFilter: ['data-workspace-plan', 'data-sub-state', 'data-sub-end', 'data-business-template'] });
   new MutationObserver(sync).observe(document.body, { attributes: true, attributeFilter: ['class'] });
   sync();
 })();
@@ -1061,13 +1063,13 @@ if (window.top !== window.self) {
     document.querySelectorAll('#customers th').forEach(th => { if (th.textContent.trim() === 'Paket Favorit') setText(th, 'Produk Favorit'); });
     // Channel penjualan (marketplace/toko) menggantikan istilah "platform media sosial".
     const pl = document.getElementById('tx-platform')?.closest('.form-group')?.querySelector('.label');
-    setText(pl, 'Channel Penjualan');
+    setText(pl, 'Platform Penjualan');
     const sn = document.getElementById('tx-social-name')?.closest('.form-group')?.querySelector('.label');
     setText(sn, 'Akun / Username Pembeli (Opsional)');
     document.querySelectorAll('#performance .card-title').forEach(el => {
       const t = el.textContent.trim();
-      if (t === 'Performa Platform Media Sosial') setText(el, 'Performa Channel Penjualan');
-      else if (t === 'Perkembangan Platform') setText(el, 'Perkembangan Channel');
+      if (t === 'Performa Platform Media Sosial') setText(el, 'Performa Platform Penjualan');
+      else if (t === 'Perkembangan Platform') setText(el, 'Perkembangan Platform');
     });
   }
   let t = 0;

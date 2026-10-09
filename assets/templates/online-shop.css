@@ -113,3 +113,23 @@ body.saas-dark .shop-status.tone-muted{background:#26323f;color:#c3cfdc}
 .shop-platform-rows.fee-off .shop-fee{opacity:.4}
 .shop-row-del{border:0;background:transparent;color:inherit;font-size:18px;line-height:1;cursor:pointer;width:28px;height:28px;border-radius:50%}
 .shop-row-del:hover{background:color-mix(in srgb,currentColor 14%,transparent)}
+/* Dashboard: Riwayat Open Store diganti tabel Stok Produk (markup riwayat tetap ada, hanya disembunyikan) */
+#dashboard > .shift-card #shift-history-panel{display:none}
+.shop-dash-stock{display:flex;flex-direction:column;min-width:0;margin-top:16px}
+.shop-dash-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:8px}
+.shop-dash-head .card-title{font-size:15px;margin:0}
+.shop-dash-head span{font-size:12px;font-weight:700;color:#8a5a00}
+body.saas-dark .shop-dash-head span{color:#f0c36a}
+.shop-dash-stock .table-wrap{max-height:360px;overflow:auto}
+.shop-dash-stock :is(th,td){text-align:center;white-space:nowrap}
+.shop-dash-stock :is(th,td):first-child{text-align:left}
+.shop-dash-stock td.empty{white-space:normal;text-align:center}
+/* Online Shop tidak memakai Open/Close Store: tombol + statistik sesi disembunyikan, tabel stok memenuhi kartu */
+html.kairo-v3 #dashboard > .shift-card :is(.shift-top,.shift-grid){display:none}
+html.kairo-v3 #dashboard > .shift-card{display:block}
+html.kairo-v3 #dashboard > .shift-card .shop-dash-stock{height:auto;min-height:0;margin-top:0}
+
+@media (max-width:700px){
+  .shop-dash-stock .c-days{display:none}
+  .shop-dash-stock :is(th,td){padding-left:8px;padding-right:8px}
+}
