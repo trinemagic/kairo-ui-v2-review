@@ -87,7 +87,7 @@ domain = pengguna login ulang & pengaturan browser (Ingat saya, dark mode) mulai
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
 Versi terakhir: `kairo.css?v=20.10.159`, `kairo-v3.css?v=3.41.0`,
-`kairo-v3.js?v=3.30.3`, `kairo-app.js?v=20.10.216`, `kairo-pin.js?v=1.0.1`, `kairo-themes.css?v=1.0.0`/`.js?v=1.0.1`; template seller dimuat dari kairo-app.js
+`kairo-v3.js?v=3.30.4`, `kairo-app.js?v=20.10.216`, `kairo-pin.js?v=1.0.1`, `kairo-themes.css?v=1.0.0`/`.js?v=1.0.1`; template seller dimuat dari kairo-app.js
 (`seller-app-premium.js?v=20.10.161`, `.css?v=20.10.157`) — naikkan juga bila file template diubah.
 Setup Wizard dimuat dari `loadSetupWizard()` di kairo-app.js (`kairo-setup-wizard.js/.css?v=1.0.4`, satu konstanta `v`).
 Panduan dimuat dari `window.kairoOpenGuide()` di kairo-v3.js (`kairo-guide.js/.css?v=` konstanta `GUIDE_V`='1.0.2'; gambar `assets/guide/*.webp?v=` `SHOT_V` di kairo-guide.js).

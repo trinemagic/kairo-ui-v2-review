@@ -853,13 +853,15 @@ if (window.top !== window.self) {
   function copy(hint, m) {
     const parts = { strong: hint.querySelector('.kairo-upgrade-hint-copy strong'), long: hint.querySelector('.is-long'), short: hint.querySelector('.is-short'), cta: hint.querySelector('[data-upgrade-cta]') };
     if (!original) original = Object.fromEntries(Object.entries(parts).map(([k, el]) => [k, el ? el.textContent : '']));
-    let text = original;
+    // Online Shop tidak punya Open Store: daftar fitur Pro tanpa itu.
+    const feats = root.dataset.businessTemplate === 'online_shop' ? 'Autofill Orders, Customer Database, Promo, Petty Cash, dan Export Excel' : 'Autofill Orders, Customer Database, Promo, Open Store, Petty Cash, dan Export Excel';
+    let text = original ? { ...original, long: original.long.replace('Autofill Orders, Customer Database, Promo, Open Store, Petty Cash, dan Export Excel', feats) } : original;
     if (m === 'lapsed') text = { strong: 'Masa aktif Pro sudah berakhir', long: 'Workspace sementara memakai paket Gratis, data tetap aman. Perpanjang untuk membuka lagi semua fitur Pro.', short: 'Data tetap aman. Perpanjang untuk membuka fitur Pro lagi.', cta: 'Perpanjang Pro' };
     if (m === 'renew') {
       const end = Number(root.dataset.subEnd || 0), days = Math.max(0, Math.ceil((end - Date.now()) / 86400000));
       const date = end ? new Date(end).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
       const left = days <= 0 ? 'Berakhir hari ini.' : `Tinggal ${days} hari lagi.`;
-      text = { strong: `Paket Pro berakhir ${date}`, long: `${left} Perpanjang sekarang supaya Autofill, Customer Database, Promo, Open Store, Petty Cash, dan Export Excel tetap bisa dipakai.`, short: `${left} Perpanjang supaya fitur Pro tetap aktif.`, cta: 'Perpanjang Pro' };
+      text = { strong: `Paket Pro berakhir ${date}`, long: `${left} Perpanjang sekarang supaya ${feats.replace('Autofill Orders', 'Autofill')} tetap bisa dipakai.`, short: `${left} Perpanjang supaya fitur Pro tetap aktif.`, cta: 'Perpanjang Pro' };
     }
     for (const k of Object.keys(parts)) if (parts[k] && parts[k].textContent !== text[k]) parts[k].textContent = text[k];
     const close = hint.querySelector('[data-upgrade-close]'), label = m === 'renew' ? 'Sembunyikan sampai besok' : 'Sembunyikan selama 7 hari';
@@ -882,7 +884,7 @@ if (window.top !== window.self) {
       sync();
     }
   });
-  new MutationObserver(sync).observe(root, { attributes: true, attributeFilter: ['data-workspace-plan', 'data-sub-state', 'data-sub-end'] });
+  new MutationObserver(sync).observe(root, { attributes: true, attributeFilter: ['data-workspace-plan', 'data-sub-state', 'data-sub-end', 'data-business-template'] });
   new MutationObserver(sync).observe(document.body, { attributes: true, attributeFilter: ['class'] });
   sync();
 })();
