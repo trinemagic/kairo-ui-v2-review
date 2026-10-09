@@ -42,6 +42,7 @@
           'Pencet <b>ikon mata</b> di kartu mana pun untuk menyembunyikan/menampilkan semua nominal (aman kalau layar dilihat orang lain).',
           'Pencet <b>Refresh</b> untuk mengambil data terbaru tanpa keluar dari akun.',
           seller ? 'Kartu <b>Akan Expired</b> menampilkan langganan customer yang segera habis.'
+                 : document.documentElement.dataset.businessTemplate === 'online_shop' ? 'Tabel <b>Stok Produk</b> menampilkan sisa stok dan produk yang menipis atau habis.'
                  : 'Panel <b>Open Store</b> mencatat sesi buka-tutup toko (paket Pro).',
           'Di HP, menu <b>History</b> di bawah membuka riwayat transaksi.'
         ],

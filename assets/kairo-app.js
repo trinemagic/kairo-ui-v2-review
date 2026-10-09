@@ -5492,7 +5492,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
       if(template==='online_shop'){root.dataset.businessTemplate='online_shop';if(typeof applyTopicFieldLabel==='function')applyTopicFieldLabel();document.dispatchEvent(new CustomEvent('kairo:template-ready'));
         // Analitik toko (laba per produk, channel, batal/retur) + kartu Profit Dashboard dimuat hanya untuk Online Shop.
         if(!document.getElementById('online-shop-js')){
-          const link=document.createElement('link');link.id='online-shop-css';link.rel='stylesheet';link.href='assets/templates/online-shop.css?v=1.6.1';document.head.appendChild(link);
+          const link=document.createElement('link');link.id='online-shop-css';link.rel='stylesheet';link.href='assets/templates/online-shop.css?v=1.6.2';document.head.appendChild(link);
           const script=document.createElement('script');script.id='online-shop-js';script.src='assets/templates/online-shop.js?v=1.6.1';script.defer=true;document.body.appendChild(script);
         }}
       else if(root.dataset.businessTemplate==='online_shop'){delete root.dataset.businessTemplate;}

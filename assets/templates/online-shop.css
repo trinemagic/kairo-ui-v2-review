@@ -120,14 +120,15 @@ body.saas-dark .shop-status.tone-muted{background:#26323f;color:#c3cfdc}
 .shop-dash-head .card-title{font-size:15px;margin:0}
 .shop-dash-head span{font-size:12px;font-weight:700;color:#8a5a00}
 body.saas-dark .shop-dash-head span{color:#f0c36a}
-.shop-dash-stock .table-wrap{flex:1 1 auto;min-height:0;max-height:300px;overflow:auto}
+.shop-dash-stock .table-wrap{max-height:360px;overflow:auto}
 .shop-dash-stock :is(th,td){text-align:center;white-space:nowrap}
 .shop-dash-stock :is(th,td):first-child{text-align:left}
 .shop-dash-stock td.empty{white-space:normal;text-align:center}
-@media (min-width:901px){
-  #dashboard > .shift-card .shop-dash-stock{grid-column:2;grid-row:1 / span 2;align-self:stretch;height:0;min-height:100%;margin-top:0}
-  .shop-dash-stock .table-wrap{max-height:none}
-}
+/* Online Shop tidak memakai Open/Close Store: tombol + statistik sesi disembunyikan, tabel stok memenuhi kartu */
+html.kairo-v3 #dashboard > .shift-card :is(.shift-top,.shift-grid){display:none}
+html.kairo-v3 #dashboard > .shift-card{display:block}
+html.kairo-v3 #dashboard > .shift-card .shop-dash-stock{height:auto;min-height:0;margin-top:0}
+
 @media (max-width:700px){
   .shop-dash-stock .c-days{display:none}
   .shop-dash-stock :is(th,td){padding-left:8px;padding-right:8px}
