@@ -121,7 +121,7 @@
     if (box || card.classList.contains('pin-off')) return;
     const b = blob();
     const p = pad({
-      title: 'Masukkan PIN', sub: b.name ? `Masuk sebagai <b>${b.name.replace(/[&<>"]/g, '')}</b>` : 'PIN 6 angka perangkat ini',
+      title: 'Masukkan PIN', sub: b.name ? `Masuk sebagai <b>${b.name.replace(/[&<>"]/g, '')}</b>` : '',
       async onDone(pin, api) {
         api.lock(true); api.say('Memeriksa…');
         const r = await unlock(pin);

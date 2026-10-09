@@ -1061,13 +1061,13 @@ if (window.top !== window.self) {
     document.querySelectorAll('#customers th').forEach(th => { if (th.textContent.trim() === 'Paket Favorit') setText(th, 'Produk Favorit'); });
     // Channel penjualan (marketplace/toko) menggantikan istilah "platform media sosial".
     const pl = document.getElementById('tx-platform')?.closest('.form-group')?.querySelector('.label');
-    setText(pl, 'Channel Penjualan');
+    setText(pl, 'Platform Penjualan');
     const sn = document.getElementById('tx-social-name')?.closest('.form-group')?.querySelector('.label');
     setText(sn, 'Akun / Username Pembeli (Opsional)');
     document.querySelectorAll('#performance .card-title').forEach(el => {
       const t = el.textContent.trim();
-      if (t === 'Performa Platform Media Sosial') setText(el, 'Performa Channel Penjualan');
-      else if (t === 'Perkembangan Platform') setText(el, 'Perkembangan Channel');
+      if (t === 'Performa Platform Media Sosial') setText(el, 'Performa Platform Penjualan');
+      else if (t === 'Perkembangan Platform') setText(el, 'Perkembangan Platform');
     });
   }
   let t = 0;

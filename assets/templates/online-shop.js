@@ -1,7 +1,7 @@
 /* KAIRO - Online Shop (produk fisik): analitik toko di atas kerangka tampilan dasar.
    Dimuat HANYA untuk workspace dengan business_template=online_shop (loader di kairo-app.js).
    Isi: kartu Profit di Dashboard, Performance (Laba per Produk, Analisis Channel, Batal & Retur),
-   daftar Channel Penjualan yang bisa diatur (Settings), dialog Batal/Retur saat hapus order.
+   daftar Platform Penjualan yang bisa diatur (Settings), dialog Batal/Retur saat hapus order.
    Memakai fungsi/variabel global kairo-app.js (transactions, rupiah, transactionProfitBreakdown, ...). */
 (function () {
   'use strict';
@@ -26,14 +26,14 @@
     if (!sel) return;
     const cur = sel.value, list = platformList();
     if (cur && !list.includes(cur)) list.push(cur);
-    const html = '<option value="">-- Pilih Channel --</option>' + list.map(p => `<option value="${esc(p)}">${esc(p)}</option>`).join('');
+    const html = '<option value="">-- Pilih Platform --</option>' + list.map(p => `<option value="${esc(p)}">${esc(p)}</option>`).join('');
     if (sel.dataset.shopOptions === html) return;
     sel.innerHTML = html;
     sel.dataset.shopOptions = html;
     sel.value = cur;
   }
 
-  /* Komisi per channel: __platform_fees {nama channel: persen}, saklar __fee_enabled. Dipakai Profit Dashboard & Performa Channel. */
+  /* Komisi per channel: __platform_fees {nama channel: persen}, saklar __fee_enabled. Dipakai Profit Dashboard & Performa Platform. */
   const brandingLabels = () => (typeof activeWorkspaceBranding !== 'undefined' && activeWorkspaceBranding?.receipt_labels) || {};
   const feeEnabled = () => brandingLabels().__fee_enabled === true;
   function feePercent(platform) {
@@ -59,7 +59,7 @@
     const sw = document.getElementById('shop-fee-enabled');
     if (sw) sw.checked = draft.enabled;
     box.classList.toggle('fee-off', !draft.enabled);
-    box.innerHTML = draft.list.map((r, i) => `<div class="shop-platform-row"><strong>${esc(r.name)}</strong><label class="shop-fee"><input class="input" type="number" min="0" max="100" step="0.1" inputmode="decimal" placeholder="0" value="${esc(r.fee)}" data-shop-fee="${i}" aria-label="Komisi ${esc(r.name)} (%)"><span>%</span></label><button type="button" class="shop-row-del" data-shop-chip-del="${i}" aria-label="Hapus ${esc(r.name)}">×</button></div>`).join('') || '<span class="shop-muted">Belum ada channel.</span>';
+    box.innerHTML = draft.list.map((r, i) => `<div class="shop-platform-row"><strong>${esc(r.name)}</strong><label class="shop-fee"><input class="input" type="number" min="0" max="100" step="0.1" inputmode="decimal" placeholder="0" value="${esc(r.fee)}" data-shop-fee="${i}" aria-label="Komisi ${esc(r.name)} (%)"><span>%</span></label><button type="button" class="shop-row-del" data-shop-chip-del="${i}" aria-label="Hapus ${esc(r.name)}">×</button></div>`).join('') || '<span class="shop-muted">Belum ada platform.</span>';
   }
   function mountPlatformSettings() {
     if (document.getElementById('shop-platform-card')) return;
@@ -68,11 +68,11 @@
     const card = document.createElement('div');
     card.className = 'card settings-master-card';
     card.id = 'shop-platform-card';
-    card.innerHTML = `<div class="settings-master-head"><div><div class="card-title">Channel Penjualan</div><div class="page-sub">Pilihan asal order di Orders dan dasar grafik channel.</div></div></div>
-      <div class="shop-fee-switch"><label class="kairo-switch"><input type="checkbox" id="shop-fee-enabled"><span aria-hidden="true"></span><b class="sr-only">Hitung komisi channel</b></label><div><strong>Hitung komisi channel</strong><small>Profit dan laba channel dipotong komisi sesuai persen di bawah.</small></div></div>
+    card.innerHTML = `<div class="settings-master-head"><div><div class="card-title">Platform Penjualan</div><div class="page-sub">Pilihan asal order di Orders dan dasar grafik platform.</div></div></div>
+      <div class="shop-fee-switch"><label class="kairo-switch"><input type="checkbox" id="shop-fee-enabled"><span aria-hidden="true"></span><b class="sr-only">Hitung komisi platform</b></label><div><strong>Hitung komisi platform</strong><small>Profit dan laba platform dipotong komisi sesuai persen di bawah.</small></div></div>
       <div id="shop-platform-rows" class="shop-platform-rows"></div>
-      <div class="shop-platform-add"><input class="input" id="shop-platform-input" maxlength="30" placeholder="Nama channel baru"><button type="button" class="btn btn-light" id="shop-platform-add">Tambah</button></div>
-      <div class="shop-platform-actions"><button type="button" class="btn btn-green" id="shop-platform-save">Simpan Channel</button><button type="button" class="btn btn-light" id="shop-platform-reset">Kembalikan Bawaan</button></div>`;
+      <div class="shop-platform-add"><input class="input" id="shop-platform-input" maxlength="30" placeholder="Nama platform baru"><button type="button" class="btn btn-light" id="shop-platform-add">Tambah</button></div>
+      <div class="shop-platform-actions"><button type="button" class="btn btn-green" id="shop-platform-save">Simpan Platform</button><button type="button" class="btn btn-light" id="shop-platform-reset">Kembalikan Bawaan</button></div>`;
     (topicCard.closest('.settings-category-panel') || topicCard.parentNode).appendChild(card);
     startDraft();
     renderPlatformRows();
@@ -80,7 +80,7 @@
     const add = () => {
       const v = input.value.trim();
       if (!v) return;
-      if (draft.list.some(x => x.name.toLowerCase() === v.toLowerCase())) { showToast('Channel itu sudah ada.', 'warning'); return; }
+      if (draft.list.some(x => x.name.toLowerCase() === v.toLowerCase())) { showToast('Platform itu sudah ada.', 'warning'); return; }
       draft.list.push({ name: v, fee: '' }); input.value = ''; renderPlatformRows();
     };
     card.addEventListener('input', e => { const f = e.target.closest('[data-shop-fee]'); if (f) draft.list[Number(f.dataset.shopFee)].fee = f.value; });
@@ -92,7 +92,7 @@
       if (e.target.closest('#shop-platform-reset')) { draft.list = DEFAULT_PLATFORMS.map(n => ({ name: n, fee: '' })); renderPlatformRows(); return; }
       if (e.target.closest('#shop-platform-save')) {
         try {
-          if (!draft.list.length) throw new Error('Isi minimal satu channel.');
+          if (!draft.list.length) throw new Error('Isi minimal satu platform.');
           const fees = {};
           draft.list.forEach(r => { const v = r.fee === '' ? 0 : Number(r.fee); if (!Number.isFinite(v) || v < 0 || v > 100) throw new Error(`Komisi ${r.name} harus 0–100%.`); if (v > 0) fees[r.name] = v; });
           const wid = requireWorkspaceId();
@@ -103,8 +103,75 @@
           syncPlatformSelect();
           renderShopDashboardKpi();
           if (document.getElementById('shop-analytics')) renderChannelCard();
-          showToast('Channel penjualan disimpan.');
-        } catch (err) { showToast(err.message || 'Gagal menyimpan channel.', true); }
+          showToast('Platform penjualan disimpan.');
+        } catch (err) { showToast(err.message || 'Gagal menyimpan platform.', true); }
+      }
+    });
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); add(); } });
+  }
+
+
+  /* ---------- Metode pembayaran (bisa diatur user): receipt_labels.__payments ---------- */
+  const DEFAULT_PAYMENTS = ['QRIS', 'Cash', 'Transfer', 'Other'];
+  function paymentList() {
+    const l = brandingLabels().__payments;
+    const clean = Array.isArray(l) ? l.map(x => String(x || '').trim()).filter(Boolean) : [];
+    return clean.length ? clean : DEFAULT_PAYMENTS.slice();
+  }
+  function syncPaymentSelect() {
+    const sel = document.getElementById('tx-payment');
+    if (!sel) return;
+    const cur = sel.value, list = paymentList();
+    if (cur && !list.some(x => x.toLowerCase() === cur.toLowerCase())) list.push(cur);
+    const html = '<option value="">-- Pilih Metode Pembayaran --</option>' + list.map(p => `<option value="${esc(p)}">${esc(p)}</option>`).join('');
+    if (sel.dataset.shopOptions === html) return;
+    sel.innerHTML = html;
+    sel.dataset.shopOptions = html;
+    sel.value = list.find(x => x.toLowerCase() === cur.toLowerCase()) || cur;
+  }
+  let payDraft = null;
+  function renderPaymentRows() {
+    const box = document.getElementById('shop-payment-rows');
+    if (!box) return;
+    box.innerHTML = payDraft.map((n, i) => `<div class="shop-platform-row"><strong>${esc(n)}</strong><button type="button" class="shop-row-del" data-shop-pay-del="${i}" aria-label="Hapus ${esc(n)}">×</button></div>`).join('') || '<span class="shop-muted">Belum ada metode pembayaran.</span>';
+  }
+  function mountPaymentSettings() {
+    if (document.getElementById('shop-payment-card')) return;
+    const anchor = document.getElementById('shop-platform-card') || document.getElementById('settings-topic-card');
+    if (!anchor) return;
+    const card = document.createElement('div');
+    card.className = 'card settings-master-card';
+    card.id = 'shop-payment-card';
+    card.innerHTML = `<div class="settings-master-head"><div><div class="card-title">Metode Pembayaran</div><div class="page-sub">Pilihan metode pembayaran di Orders, mis. QRIS, Transfer, COD, atau nama dompet digital.</div></div></div>
+      <div id="shop-payment-rows" class="shop-platform-rows"></div>
+      <div class="shop-platform-add"><input class="input" id="shop-payment-input" maxlength="30" placeholder="Nama metode baru"><button type="button" class="btn btn-light" id="shop-payment-add">Tambah</button></div>
+      <div class="shop-platform-actions"><button type="button" class="btn btn-green" id="shop-payment-save">Simpan Metode</button><button type="button" class="btn btn-light" id="shop-payment-reset">Kembalikan Bawaan</button></div>`;
+    anchor.after(card);
+    payDraft = paymentList();
+    renderPaymentRows();
+    const input = card.querySelector('#shop-payment-input');
+    const add = () => {
+      const v = input.value.trim();
+      if (!v) return;
+      if (payDraft.some(x => x.toLowerCase() === v.toLowerCase())) { showToast('Metode itu sudah ada.', 'warning'); return; }
+      payDraft.push(v); input.value = ''; renderPaymentRows();
+    };
+    card.addEventListener('click', async e => {
+      const del = e.target.closest('[data-shop-pay-del]');
+      if (del) { payDraft.splice(Number(del.dataset.shopPayDel), 1); renderPaymentRows(); return; }
+      if (e.target.closest('#shop-payment-add')) { add(); return; }
+      if (e.target.closest('#shop-payment-reset')) { payDraft = DEFAULT_PAYMENTS.slice(); renderPaymentRows(); return; }
+      if (e.target.closest('#shop-payment-save')) {
+        try {
+          if (!payDraft.length) throw new Error('Isi minimal satu metode pembayaran.');
+          const wid = requireWorkspaceId();
+          const labels = { ...brandingLabels(), __payments: payDraft.slice() };
+          const { error } = await db.from('workspace_branding').upsert({ workspace_id: wid, receipt_labels: labels, updated_at: new Date().toISOString() }, { onConflict: 'workspace_id' });
+          if (error) throw error;
+          await loadWorkspaceSaasContext();
+          syncPaymentSelect();
+          showToast('Metode pembayaran disimpan.');
+        } catch (err) { showToast(err.message || 'Gagal menyimpan metode pembayaran.', true); }
       }
     });
     input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); add(); } });
@@ -174,7 +241,7 @@
         </div>
       </div>
       <div class="card shop-card" id="shop-channel-card">
-        ${cardHead('Performa Channel', '<span id="shop-channel-sub"></span>', 'channel')}
+        ${cardHead('Performa Platform', '<span id="shop-channel-sub"></span>', 'channel')}
         <div class="chart-wrap shop-chart"><canvas id="shop-channel-chart"></canvas></div>
         <div class="shop-data" id="shop-channel-data" hidden>
           <div class="table-wrap"><table><thead id="shop-channel-head"></thead><tbody id="shop-channel-table"></tbody></table></div>
@@ -271,11 +338,11 @@
     if (!body) return;
     const withFee = feeEnabled();
     const sub = document.getElementById('shop-channel-sub');
-    if (sub) sub.textContent = withFee ? 'Laba setelah komisi channel' : 'Laba sebelum komisi channel';
-    document.getElementById('shop-channel-head').innerHTML = `<tr><th>Channel</th><th>Order</th><th>Omzet</th>${withFee ? '<th>Komisi</th>' : ''}<th>Laba</th><th>Margin</th><th>Rata-rata/order</th><th>Porsi omzet</th></tr>`;
+    if (sub) sub.textContent = withFee ? 'Laba setelah komisi platform' : 'Laba sebelum komisi platform';
+    document.getElementById('shop-channel-head').innerHTML = `<tr><th>Platform</th><th>Order</th><th>Omzet</th>${withFee ? '<th>Komisi</th>' : ''}<th>Laba</th><th>Margin</th><th>Rata-rata/order</th><th>Porsi omzet</th></tr>`;
     const map = new Map();
     rowsInRange().forEach(t => {
-      const k = t.platform ? (typeof platformKey === 'function' ? platformKey(t.platform) : t.platform) : 'Tanpa channel';
+      const k = t.platform ? (typeof platformKey === 'function' ? platformKey(t.platform) : t.platform) : 'Tanpa platform';
       const r = map.get(k) || { name: k, orders: 0, revenue: 0, fee: 0, profit: 0 };
       r.orders++; r.revenue += num(t.total_price); r.fee += feeOf(t); r.profit += profitOf(t);
       map.set(k, r);
@@ -538,7 +605,7 @@
 
   async function restockReturn(productId) {
     const pend = (await pendingReturns()).get(String(productId));
-    if (!pend || !pend.qty) { renderStockCard(); return; }
+    if (!pend || !pend.qty) { renderStockCard(); renderDashStock(); return; }
     const p = packages.find(x => String(x.id) === String(productId));
     if (!hasStock(p)) return;
     try {
@@ -554,23 +621,20 @@
   }
 
   let stockSeq = 0;
-  async function renderStockCard() {
-    const card = document.getElementById('shop-stock-card');
-    if (!card) return;
+  // Data stok per produk (sisa hari dari penjualan 30 hari); dipakai kartu Performance dan tabel Dashboard.
+  async function stockData() {
     const list = tracked();
-    if (!stockReady() || !list.length) { card.hidden = true; return; }
-    const seq = ++stockSeq;
+    if (!stockReady() || !list.length) return null;
     let rows = [], pend = new Map();
     try { rows = typeof allTransactions === 'function' ? await allTransactions() : []; } catch (_e) { rows = []; }
     pend = await pendingReturns();
-    if (seq !== stockSeq) return;
     const since = new Date(); since.setDate(since.getDate() - 29);
     const sinceISO = typeof localISODate === 'function' ? localISODate(since) : since.toISOString().slice(0, 10);
     const sold = new Map();
     rows.filter(t => !isRollup(t) && String(t.transaction_date || '') >= sinceISO).forEach(t => {
       (Array.isArray(t.order_items) ? t.order_items : []).forEach(x => { const k = String(x?.id ?? ''); sold.set(k, (sold.get(k) || 0) + Math.max(0, num(x?.qty || 1))); });
     });
-    const data = list.map(p => {
+    return list.map(p => {
       const stock = num(p.stock_qty), min = p.stock_min === null || p.stock_min === undefined ? null : num(p.stock_min);
       const s30 = sold.get(String(p.id)) || 0, perDay = s30 / 30, days = perDay > 0 ? stock / perDay : null;
       let status = 'Aman', tone = 'ok';
@@ -579,15 +643,53 @@
       else if (s30 === 0) { status = 'Tidak laku'; tone = 'muted'; }
       return { id: p.id, name: p.name, stock, s30, days, value: Math.max(0, stock) * num(p.cost_price), status, tone, retur: pend.get(String(p.id))?.qty || 0 };
     });
+  }
+  const stockOrder = { bad: 0, warn: 1, ok: 2, muted: 3 };
+  const sortStock = data => [...data].sort((a, b) => (stockOrder[a.tone] - stockOrder[b.tone]) || ((a.days ?? 1e9) - (b.days ?? 1e9)));
+  const restockBtn = d => d.retur ? `<button type="button" class="shop-restock" data-shop-restock="${esc(d.id)}" title="Kembalikan ${d.retur} ke stok">+${d.retur} ke stok</button>` : '';
+
+  async function renderStockCard() {
+    const card = document.getElementById('shop-stock-card');
+    if (!card) return;
+    const seq = ++stockSeq;
+    const data = await stockData();
+    if (seq !== stockSeq) return;
+    if (!data) { card.hidden = true; return; }
     const nLow = data.filter(d => d.tone === 'warn').length, nOut = data.filter(d => d.tone === 'bad').length;
     card.hidden = false;
     document.getElementById('shop-stock-tiles').innerHTML = [tile('Produk Dilacak', data.length), tile('Stok Menipis', nLow), tile('Stok Habis', nOut), tile('Nilai Stok', money(data.reduce((s, d) => s + d.value, 0)))].join('');
-    const order = { bad: 0, warn: 1, ok: 2, muted: 3 };
-    const sorted = [...data].sort((a, b) => (order[a.tone] - order[b.tone]) || ((a.days ?? 1e9) - (b.days ?? 1e9)));
+    const sorted = sortStock(data);
     const maxStock = Math.max(1, ...data.map(d => d.stock));
     const showRetur = data.some(d => d.retur > 0);
     document.getElementById('shop-stock-head').innerHTML = `<tr><th>Produk</th><th>Stok</th><th>Terjual 30 hari</th><th>Sisa hari</th><th>Nilai stok</th>${showRetur ? '<th>Retur</th>' : ''}<th>Status</th></tr>`;
-    document.getElementById('shop-stock-table').innerHTML = sorted.map(d => `<tr class="tone-${d.tone}"><td><strong>${esc(d.name)}</strong></td><td><span class="shop-level"><b>${d.stock.toLocaleString('id-ID')}</b><i><u style="width:${Math.max(d.stock > 0 ? 6 : 0, d.stock / maxStock * 100)}%"></u></i></span></td><td>${d.s30.toLocaleString('id-ID')}</td><td>${d.days === null ? '-' : Math.floor(d.days).toLocaleString('id-ID')}</td><td>${money(d.value)}</td>${showRetur ? `<td>${d.retur ? `<button type="button" class="shop-restock" data-shop-restock="${esc(d.id)}" title="Kembalikan ${d.retur} ke stok">+${d.retur} ke stok</button>` : ''}</td>` : ''}<td><span class="shop-status tone-${d.tone}">${esc(d.status)}</span></td></tr>`).join('');
+    document.getElementById('shop-stock-table').innerHTML = sorted.map(d => `<tr class="tone-${d.tone}"><td><strong>${esc(d.name)}</strong></td><td><span class="shop-level"><b>${d.stock.toLocaleString('id-ID')}</b><i><u style="width:${Math.max(d.stock > 0 ? 6 : 0, d.stock / maxStock * 100)}%"></u></i></span></td><td>${d.s30.toLocaleString('id-ID')}</td><td>${d.days === null ? '-' : Math.floor(d.days).toLocaleString('id-ID')}</td><td>${money(d.value)}</td>${showRetur ? `<td>${restockBtn(d)}</td>` : ''}<td><span class="shop-status tone-${d.tone}">${esc(d.status)}</span></td></tr>`).join('');
+  }
+
+  /* ---------- Dashboard: tabel Stok Produk menggantikan Riwayat Open Store ---------- */
+  let dashSeq = 0;
+  async function renderDashStock() {
+    const shift = document.querySelector('#dashboard > .shift-card');
+    if (!shift) return;
+    let panel = document.getElementById('shop-dash-stock');
+    if (!panel) {
+      panel = document.createElement('div'); panel.id = 'shop-dash-stock'; panel.className = 'shop-dash-stock';
+      panel.innerHTML = '<div class="shop-dash-head"><div class="card-title">Stok Produk</div><span id="shop-dash-count"></span></div><div class="table-wrap"><table><thead id="shop-dash-head"></thead><tbody id="shop-dash-body"></tbody></table></div>';
+      shift.appendChild(panel);
+    }
+    const seq = ++dashSeq;
+    const data = await stockData();
+    if (seq !== dashSeq) return;
+    const head = document.getElementById('shop-dash-head'), body = document.getElementById('shop-dash-body'), count = document.getElementById('shop-dash-count');
+    if (!data) {
+      count.textContent = '';
+      head.innerHTML = '';
+      body.innerHTML = '<tr><td class="empty">Isi stok produk di Settings › Package &amp; Harga supaya stok terpantau di sini.</td></tr>';
+      return;
+    }
+    const showRetur = data.some(d => d.retur > 0), low = data.filter(d => d.tone === 'bad' || d.tone === 'warn').length;
+    count.textContent = low ? `${low} perlu perhatian` : '';
+    head.innerHTML = `<tr><th>Produk</th><th>Stok</th><th class="c-days">Sisa hari</th>${showRetur ? '<th>Retur</th>' : ''}<th>Status</th></tr>`;
+    body.innerHTML = sortStock(data).map(d => `<tr class="tone-${d.tone}"><td><strong>${esc(d.name)}</strong></td><td><b>${d.stock.toLocaleString('id-ID')}</b></td><td class="c-days">${d.days === null ? '-' : Math.floor(d.days).toLocaleString('id-ID')}</td>${showRetur ? `<td>${restockBtn(d)}</td>` : ''}<td><span class="shop-status tone-${d.tone}">${esc(d.status)}</span></td></tr>`).join('');
   }
   document.addEventListener('click', e => { const b = e.target.closest?.('[data-shop-restock]'); if (b) { b.disabled = true; restockReturn(b.dataset.shopRestock).finally(() => { b.disabled = false; }); } });
 
@@ -602,20 +704,23 @@
   function install() {
     installPlatformLogo();
     installDelete();
-    wrap('renderDashboard', renderShopDashboardKpi);
+    wrap('renderDashboard', () => { renderShopDashboardKpi(); renderDashStock(); });
     wrap('renderPerformanceKpis', renderPerformanceExtras);
-    wrap('applyTopicFieldLabel', syncPlatformSelect);
+    wrap('applyTopicFieldLabel', () => { syncPlatformSelect(); syncPaymentSelect(); });
     mountPlatformSettings();
+    mountPaymentSettings();
     syncPlatformSelect();
-    wrap('renderMasterOptions', () => { decorateOrderStock(); watchStockLevels(); if (document.getElementById('shop-analytics')) renderStockCard(); });
+    syncPaymentSelect();
+    wrap('renderMasterOptions', () => { decorateOrderStock(); watchStockLevels(); renderDashStock(); if (document.getElementById('shop-analytics')) renderStockCard(); });
     wrap('renderSettingsMasterData', mountStockSettings);
     mountStockSettings();
     decorateOrderStock();
     renderShopDashboardKpi();
+    renderDashStock();
     if (document.getElementById('product-sales-card')) renderPerformanceExtras();
   }
   install();
-  document.addEventListener('kairo:refreshed', syncPlatformSelect);
+  document.addEventListener('kairo:refreshed', () => { syncPlatformSelect(); syncPaymentSelect(); });
   // Opsi channel dibangun ulang bila form Orders digambar ulang / branding dimuat ulang.
-  new MutationObserver(() => syncPlatformSelect()).observe(document.getElementById('tx-form') || document.body, { childList: true, subtree: true });
+  new MutationObserver(() => { syncPlatformSelect(); syncPaymentSelect(); }).observe(document.getElementById('tx-form') || document.body, { childList: true, subtree: true });
 })();
