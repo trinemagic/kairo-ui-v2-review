@@ -4348,7 +4348,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
      text(BU,pad,126,fit(BU,inner,62,BC,'700'),BC,'#19689f','left','700');text('BOARDING TO A BRIGHTER TOMORROW',pad,156,17,BC,'#254055','left','700')}
    else if(T==='diner'){ctx.strokeStyle='#c7372f';ctx.lineWidth=6;ctx.strokeRect(3,3,W-6,H-6);checker(0,0,W,32,'#c7372f','#f4e5c1',16);
      ctx.save();ctx.fillStyle='#fff';ctx.strokeStyle='#c7372f';ctx.lineWidth=6;ctx.beginPath();ctx.ellipse(W/2,100,236,48,0,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.restore();
-     text(BU,W/2,106,fit(BU,400,46,LO,'400'),LO,'#c7372f','center','400');text('ALWAYS A GOOD CHOICE',W/2,136,13,CP,'#c7372f','center','700')}
+     text(business,W/2,106,fit(business,400,46,LO,'400'),LO,'#c7372f','center','400');text('ALWAYS A GOOD CHOICE',W/2,136,13,CP,'#c7372f','center','700')}
    else if(T==='luxury'){ctx.strokeStyle='#111';ctx.lineWidth=2;ctx.strokeRect(1,1,W-2,H-2);ctx.strokeStyle='#b79a6c';ctx.lineWidth=2;ctx.strokeRect(14,14,W-28,H-28);
      text('❧',W/2,70,48,'Georgia','#a27c4e','center','400');text(BU.split('').join(' '),W/2,120,fit(BU.split('').join(' '),inner,42,CG,'600'),CG,'#111','center','600');text('BEAUTY IN EVERY DETAIL',W/2,150,13,JO,'#111','center','500')}
    // ---- isi struk ----
