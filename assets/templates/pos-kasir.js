@@ -49,7 +49,7 @@
       setText(rights, shown(list.length ? total / list.length : 0));
     }
   }
-  document.addEventListener('click', e => { if (e.target.closest?.('#dashboard .kpi-eye')) setTimeout(() => { renderKpis(); renderPanels(); }, 0); }, true);
+  document.addEventListener('click', e => { if (e.target.closest?.('#dashboard .kpi-eye')) setTimeout(() => { renderKpis(); renderDrawerKpi(); renderPanels(); }, 0); }, true);
 
   /* ---------- Istilah Sesi Kasir (Open/Close Store lama, ID tetap) ---------- */
   function relabelShift() {
@@ -172,7 +172,7 @@
   const ago = iso => { const m = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60000)); return m < 60 ? m + ' mnt' : Math.floor(m / 60) + ' j ' + (m % 60) + ' m'; };
 
   const cart = { items: new Map(), addons: new Map(), type: '', table: '', customer: '', discMode: 'percent', discValue: 0, pay: '', received: 0, billId: null, billCreated: null };
-  let bills = [], billsReady = true, query = '', saving = false;
+  let bills = [], billsReady = true, query = '', saving = false, warnedNoSession = false;
 
   const activeMasters = list => (Array.isArray(list) ? list : []).filter(x => x && x.is_active !== false);
   const stockLeft = p => (p && p.stock_qty !== null && p.stock_qty !== undefined ? num(p.stock_qty) : null);
@@ -258,6 +258,7 @@
     if (!cart.pay) { showToast('Pilih metode pembayaran dulu.', true); return; }
     if (isCash(cart.pay) && cart.received > 0 && cart.received < t.total) { showToast('Uang diterima kurang dari total.', true); return; }
     for (const l of t.items) { const m = (packages || []).find(x => String(x.id) === String(l.id)); const left = stockLeft(m); if (left !== null && l.qty > left) { showToast(`Stok ${l.name} hanya sisa ${left}.`, true); return; } }
+    if (typeof currentShift !== 'undefined' && !currentShift && !warnedNoSession) { warnedNoSession = true; showToast('Kasir belum dibuka: struk tetap tersimpan tapi belum masuk sesi.', 'warning'); }
     saving = true;
     const btn = document.getElementById('pos-pay-btn'); if (btn) { btn.disabled = true; btn.textContent = 'Menyimpan…'; }
     try {
@@ -485,7 +486,182 @@
   document.addEventListener('click', e => { if (e.target.closest?.('[data-tab="input"], [data-mobile-tab="input"], .kairo-mobile-orders-main')) setTimeout(() => { initKasir(true); retitle(); }, 80); }, true);
   window.kairoPos = { reload: () => { renderGrid(); renderCart(); loadBills(); } };
 
-  function refresh() { renderKpis(); relabelShift(); renderPanels(); initKasir(); }
+
+  /* =====================================================================
+     SESI KASIR LENGKAP: modal awal laci saat buka, hitung uang fisik + selisih saat tutup, rekap sesi (cetak), riwayat sesi.
+     Memakai tabel reading_shifts (sesi lama) + kolom opening_cash/cash_out/counted_cash/expected_cash/cash_difference/close_note
+     (SQL .claude/sql/2026-10-pos-session-cash.sql). Tombol #open-shift-btn / #close-shift-btn lama diambil alih (capture).
+     ===================================================================== */
+  const dt = iso => (iso ? new Date(iso).toLocaleString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-');
+  const dur = (a, b) => { const m = Math.max(0, Math.floor((new Date(b || Date.now()) - new Date(a)) / 60000)); return m >= 60 ? Math.floor(m / 60) + 'j ' + (m % 60) + 'm' : m + 'm'; };
+  function sessionSummary(shift) {
+    const rowsOf = (typeof shiftTransactions !== 'undefined' ? shiftTransactions : []).filter(t => shift && String(t.shift_id) === String(shift.id));
+    const by = new Map();
+    rowsOf.forEach(t => { const k = String(t.payment_method || 'Lainnya'); const o = by.get(k) || { name: k, n: 0, total: 0 }; o.n++; o.total += num(t.total_price); by.set(k, o); });
+    const methods = [...by.values()].sort((a, b) => b.total - a.total);
+    const total = rowsOf.reduce((s, t) => s + num(t.total_price), 0);
+    const cash = rowsOf.filter(t => isCash(t.payment_method)).reduce((s, t) => s + num(t.total_price), 0);
+    const opening = num(shift?.opening_cash), out = num(shift?.cash_out);
+    return { count: rowsOf.length, total, cash, methods, opening, out, expected: opening + cash - out };
+  }
+  function drawerNow() {
+    if (typeof currentShift === 'undefined' || !currentShift) return null;
+    const s = sessionSummary(currentShift);
+    return s.opening + s.cash - s.out;
+  }
+  function posModal(html, onMount) {
+    document.getElementById('pos-modal')?.remove();
+    const el = document.createElement('div');
+    el.id = 'pos-modal'; el.className = 'pos-receipt-wrap'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true');
+    el.innerHTML = `<div class="pos-modal-card">${html}</div>`;
+    el.addEventListener('click', e => { if (e.target === el || e.target.closest('[data-m-close]')) el.remove(); });
+    document.body.appendChild(el);
+    onMount?.(el);
+    return el;
+  }
+  const moneyInput = (id, ph) => `<input class="input" id="${id}" inputmode="numeric" placeholder="${ph || 'Rp0'}" autocomplete="off">`;
+  function wireMoney(el, id, onChange) {
+    const i = el.querySelector('#' + id);
+    if (!i) return () => 0;
+    i.addEventListener('input', () => { const v = cleanInt(i.value); i.value = v ? 'Rp' + fmtInt(v) : ''; onChange?.(v); });
+    return () => cleanInt(i.value);
+  }
+
+  function openSessionModal() {
+    if (typeof currentShift !== 'undefined' && currentShift) { showToast('Kasir sudah dibuka.', 'info'); return; }
+    posModal(`<div class="card-title">Buka Kasir</div><p class="pos-sub">Isi uang modal di laci sebelum mulai berjualan.</p>
+      <label class="label" for="pos-open-cash">Modal awal laci</label>${moneyInput('pos-open-cash')}
+      <div class="pos-modal-actions"><button type="button" class="btn btn-light" data-m-close>Batal</button><button type="button" class="btn btn-green" id="pos-open-go">Buka Kasir</button></div>`, el => {
+      const get = wireMoney(el, 'pos-open-cash');
+      el.querySelector('#pos-open-cash').focus();
+      el.querySelector('#pos-open-go').addEventListener('click', async e => {
+        const btn = e.currentTarget; btn.disabled = true;
+        try {
+          const { error } = await db.from('reading_shifts').insert([workspaceInsert({ opened_at: new Date().toISOString(), opening_cash: get() })]);
+          if (error) throw error;
+          el.remove();
+          showToast('Kasir dibuka.');
+          await Promise.all([fetchShiftData(), refreshAll()]);
+          renderShiftDashboard(); refresh();
+        } catch (err) { btn.disabled = false; showToast('Gagal membuka kasir: ' + (err.message || err), true); }
+      });
+    });
+  }
+
+  function closeSessionModal() {
+    if (typeof currentShift === 'undefined' || !currentShift) { showToast('Kasir belum dibuka.', 'info'); return; }
+    const shift = currentShift, sum = sessionSummary(shift);
+    posModal(`<div class="card-title">Tutup Kasir</div><p class="pos-sub">Dibuka ${esc(dt(shift.opened_at))} · ${esc(dur(shift.opened_at))}</p>
+      <div class="pos-recap">
+        <div class="r"><span>Penjualan (${sum.count} struk)</span><b>${money(sum.total)}</b></div>
+        ${sum.methods.map(m => `<div class="r sub"><span>${esc(m.name)} · ${m.n}</span><span>${money(m.total)}</span></div>`).join('')}
+        <div class="r"><span>Modal awal laci</span><b>${money(sum.opening)}</b></div>
+        <div class="r"><span>Tunai masuk</span><b>${money(sum.cash)}</b></div>
+      </div>
+      <label class="label" for="pos-cash-out">Uang keluar dari laci (opsional)</label>${moneyInput('pos-cash-out')}
+      <div class="pos-recap"><div class="r tot"><span>Seharusnya di laci</span><b id="pos-expected">${money(sum.expected)}</b></div></div>
+      <label class="label" for="pos-counted">Uang fisik di laci (hasil hitung)</label>${moneyInput('pos-counted')}
+      <div class="pos-diff" id="pos-diff"><span>Selisih</span><b>-</b></div>
+      <label class="label" for="pos-close-note">Catatan (opsional)</label><input class="input" id="pos-close-note" maxlength="120" placeholder="Mis. kembalian kurang">
+      <div class="pos-modal-actions"><button type="button" class="btn btn-light" data-m-close>Batal</button><button type="button" class="btn btn-green" id="pos-close-go">Tutup Kasir</button></div>`, el => {
+      let out = 0, counted = null;
+      const recalc = () => {
+        const expected = sum.opening + sum.cash - out;
+        el.querySelector('#pos-expected').textContent = money(expected);
+        const d = el.querySelector('#pos-diff'), b = d.querySelector('b');
+        if (counted === null) { b.textContent = '-'; d.className = 'pos-diff'; return; }
+        const diff = counted - expected;
+        b.textContent = diff === 0 ? 'Pas' : (diff > 0 ? '+' : '−') + money(Math.abs(diff));
+        d.className = 'pos-diff ' + (diff === 0 ? 'ok' : diff > 0 ? 'plus' : 'minus');
+      };
+      wireMoney(el, 'pos-cash-out', v => { out = v; recalc(); });
+      wireMoney(el, 'pos-counted', v => { counted = el.querySelector('#pos-counted').value === '' ? null : v; recalc(); });
+      el.querySelector('#pos-counted').focus();
+      el.querySelector('#pos-close-go').addEventListener('click', async e => {
+        if (counted === null && !confirm('Uang fisik belum diisi. Tutup kasir tanpa hitung kas?')) return;
+        const btn = e.currentTarget; btn.disabled = true;
+        const expected = sum.opening + sum.cash - out;
+        const row = { closed_at: new Date().toISOString(), cash_out: out, counted_cash: counted, expected_cash: expected, cash_difference: counted === null ? null : counted - expected, close_note: el.querySelector('#pos-close-note').value.trim() || null };
+        try {
+          const { error } = await db.from('reading_shifts').update(row).eq('workspace_id', requireWorkspaceId()).eq('id', shift.id);
+          if (error) throw error;
+          el.remove();
+          showToast('Kasir ditutup.');
+          await Promise.all([fetchShiftData(), refreshAll()]);
+          renderShiftDashboard(); refresh();
+          showSessionRecap({ ...shift, ...row });
+        } catch (err) { btn.disabled = false; showToast('Gagal menutup kasir: ' + (err.message || err), true); }
+      });
+    });
+  }
+
+  function showSessionRecap(shift) {
+    const sum = sessionSummary(shift), wsName = (typeof activeWorkspaceName !== 'undefined' && activeWorkspaceName) || 'Rekap Sesi';
+    const diff = shift.cash_difference;
+    document.getElementById('pos-recap-view')?.remove();
+    const el = document.createElement('div');
+    el.id = 'pos-recap-view'; el.className = 'pos-receipt-wrap'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true');
+    el.innerHTML = `<div class="pos-receipt-card"><div class="pos-receipt" id="pos-receipt-paper">
+      <div class="r-title">${esc(wsName)}</div><div class="r-meta">REKAP SESI KASIR</div>
+      <div class="r-meta">${esc(dt(shift.opened_at))} → ${esc(shift.closed_at ? dt(shift.closed_at) : 'berjalan')}</div><hr>
+      <div class="r-line"><span>Jumlah struk</span><b>${sum.count}</b></div>
+      ${sum.methods.map(m => `<div class="r-line"><span>${esc(m.name)} (${m.n})</span><b>${money(m.total)}</b></div>`).join('')}
+      <div class="r-line r-total"><span>Total penjualan</span><b>${money(sum.total)}</b></div><hr>
+      <div class="r-line"><span>Modal awal</span><b>${money(sum.opening)}</b></div>
+      <div class="r-line"><span>Tunai masuk</span><b>${money(sum.cash)}</b></div>
+      <div class="r-line"><span>Uang keluar</span><b>${money(sum.out)}</b></div>
+      <div class="r-line"><span>Seharusnya</span><b>${money(shift.expected_cash ?? sum.expected)}</b></div>
+      ${shift.counted_cash !== null && shift.counted_cash !== undefined ? `<div class="r-line"><span>Hitung fisik</span><b>${money(shift.counted_cash)}</b></div><div class="r-line r-total"><span>Selisih</span><b>${diff === 0 ? 'Pas' : (diff > 0 ? '+' : '−') + money(Math.abs(diff))}</b></div>` : ''}
+      ${shift.close_note ? `<div class="r-meta" style="margin-top:6px">${esc(shift.close_note)}</div>` : ''}
+      </div><div class="pos-receipt-actions"><button type="button" class="btn btn-light" data-r="close">Tutup</button><button type="button" class="btn btn-green" data-r="print">Cetak</button></div></div>`;
+    el.addEventListener('click', e => {
+      const a = e.target.closest('[data-r]');
+      if (a?.dataset.r === 'print') { document.body.classList.add('pos-printing'); el.id = 'pos-receipt'; window.print(); setTimeout(() => { document.body.classList.remove('pos-printing'); el.id = 'pos-recap-view'; }, 500); }
+      else if (a?.dataset.r === 'close' || e.target === el) el.remove();
+    });
+    document.body.appendChild(el);
+  }
+
+  function showSessionHistory() {
+    const list = (typeof shifts !== 'undefined' ? shifts : []).filter(x => x.closed_at || x.id);
+    posModal(`<div class="card-title">Riwayat Sesi</div><p class="pos-sub">30 sesi terakhir. Pilih satu untuk melihat rekapnya.</p>
+      <div class="pos-sessions">${list.length ? list.map(x => { const sm = sessionSummary(x), d = x.cash_difference; return `<button type="button" class="pos-session" data-sid="${esc(x.id)}"><b>${esc(dt(x.opened_at))}</b><span>${x.closed_at ? dur(x.opened_at, x.closed_at) : 'berjalan'} · ${sm.count} struk · ${money(sm.total)}</span><small class="${d === null || d === undefined ? '' : d === 0 ? 'ok' : d > 0 ? 'plus' : 'minus'}">${d === null || d === undefined ? (x.closed_at ? 'Kas tidak dihitung' : 'Sesi berjalan') : d === 0 ? 'Kas pas' : 'Selisih ' + (d > 0 ? '+' : '−') + money(Math.abs(d))}</small></button>`; }).join('') : '<div class="pos-empty">Belum ada sesi.</div>'}</div>
+      <div class="pos-modal-actions"><button type="button" class="btn btn-light" data-m-close>Tutup</button></div>`, el => {
+      el.addEventListener('click', e => { const b = e.target.closest('[data-sid]'); if (!b) return; const x = list.find(r => String(r.id) === b.dataset.sid); if (x) { el.remove(); showSessionRecap(x); } });
+    });
+  }
+
+  function mountSessionUi() {
+    const card = document.querySelector('#dashboard > .shift-card .shift-top');
+    if (card && !document.getElementById('pos-shift-history')) {
+      const b = document.createElement('button');
+      b.type = 'button'; b.id = 'pos-shift-history'; b.className = 'btn btn-light pos-shift-history'; b.textContent = 'Riwayat Sesi';
+      card.appendChild(b);
+      b.addEventListener('click', showSessionHistory);
+    }
+  }
+  // Ambil alih tombol Open/Close lama (capture) supaya modal kasir yang jalan, bukan prompt() tanggal.
+  document.addEventListener('click', e => {
+    const open = e.target.closest?.('#open-shift-btn'), close = e.target.closest?.('#close-shift-btn');
+    if (!open && !close) return;
+    e.stopImmediatePropagation(); e.preventDefault();
+    if ((open || close).disabled) return;
+    if (open) openSessionModal(); else closeSessionModal();
+  }, true);
+
+  // Kartu "Saldo Kas" dipakai ulang jadi "Kas Tunai di Laci" (modal awal + tunai masuk sesi berjalan).
+  function renderDrawerKpi() {
+    const el = document.getElementById('kpi-cash');
+    if (!el) return;
+    const card = el.closest('.kpi');
+    setText(card?.querySelector('.kpi-label'), 'Kas Tunai di Laci');
+    card.hidden = false; card.removeAttribute('hidden'); document.body.classList.remove('kairo-no-cash');
+    const v = drawerNow();
+    if (typeof lastKpiValues !== 'undefined') lastKpiValues['kpi-cash'] = v === null ? 0 : v;
+    setText(el, v === null ? '-' : shown(v));
+  }
+
+  function refresh() { renderKpis(); renderDrawerKpi(); relabelShift(); mountSessionUi(); renderPanels(); initKasir(); }
 
   /* ---------- Pasang ---------- */
   function wrap(name, after) {
