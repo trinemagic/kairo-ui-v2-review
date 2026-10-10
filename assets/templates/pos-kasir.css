@@ -1,0 +1,39 @@
+/* KAIRO - Kasir / POS: gaya Dashboard Kasir. Hanya dimuat untuk template pos_kasir. */
+/* Kartu statistik: 5 kartu (Penjualan, Profit, Jumlah Struk, Saldo Kas, Rata-rata per Struk) seperti Online Shop */
+@media (min-width:1241px){
+  html.kairo-v3[data-business-template="pos_kasir"] body #dashboard .kpi-grid{grid-template-columns:repeat(6,minmax(0,1fr))!important}
+  html.kairo-v3[data-business-template="pos_kasir"] body #dashboard .kpi-grid>.kpi{grid-column:span 2}
+  html.kairo-v3[data-business-template="pos_kasir"] body #dashboard .kpi-grid>.kpi:nth-child(n+4){grid-column:span 3}
+  html.kairo-v3[data-business-template="pos_kasir"] body.kairo-no-cash #dashboard .kpi-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+  html.kairo-v3[data-business-template="pos_kasir"] body.kairo-no-cash #dashboard .kpi-grid>.kpi{grid-column:auto}
+}
+@media (max-width:1240px){
+  html.kairo-v3[data-business-template="pos_kasir"] body.kairo-no-cash #dashboard .kpi-grid>.kpi:last-child{grid-column:auto}
+}
+/* Sesi Kasir: kiri kontrol + statistik sesi, kanan grafik Penjualan per Jam (riwayat sesi disembunyikan) */
+#dashboard > .shift-card #shift-history-panel{display:none}
+.pos-hourly{display:flex;flex-direction:column;min-width:0;margin-top:16px}
+.pos-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:8px}
+.pos-head .card-title{font-size:15px;margin:0}
+.pos-sub{font-size:12px;font-weight:700;color:var(--v3-muted,#4e6475)}
+.pos-chart{position:relative;height:220px;min-height:0;flex:1 1 auto}
+@media (min-width:901px){
+  html.kairo-v3 #dashboard > .shift-card .pos-hourly{grid-column:2;grid-row:1 / span 2;align-self:stretch;height:0;min-height:100%;margin-top:0}
+  .pos-chart{height:auto;min-height:0}
+}
+/* Baris bawah: Produk Terlaris | Metode Pembayaran + Tipe Pesanan */
+.pos-dash-row{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:16px;margin-top:var(--v3-section-gap,24px)}
+.pos-dash-row .card{min-width:0}
+.pos-dash-row .card-title{margin-bottom:10px}
+.pos-dash-row .pos-gap{margin-top:18px}
+.pos-dash-row :is(th,td):not(:first-child){text-align:center}
+.pos-split{display:flex;height:12px;border-radius:99px;overflow:hidden;margin:4px 0 10px;background:color-mix(in srgb,var(--v3-primary,#25b9b0) 12%,transparent)}
+.pos-split span{display:block;min-width:2px}
+.pos-lg{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:5px 0;font-size:13px}
+.pos-lg span{display:inline-flex;align-items:center;gap:8px;min-width:0}
+.pos-lg i{width:9px;height:9px;border-radius:50%;flex:0 0 auto}
+.pos-lg b{text-align:right}
+.pos-empty{font-size:13px;color:var(--v3-muted,#4e6475)}
+@media (max-width:900px){
+  .pos-dash-row{grid-template-columns:minmax(0,1fr)}
+}

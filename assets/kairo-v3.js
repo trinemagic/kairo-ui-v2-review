@@ -1041,7 +1041,7 @@ if (window.top !== window.self) {
 (function () {
   'use strict';
   const root = document.documentElement;
-  const isShop = () => root.dataset.businessTemplate === 'online_shop';
+  const isShop = () => ['online_shop', 'pos_kasir'].includes(root.dataset.businessTemplate);
   const topic = () => (typeof window.topicFieldLabel === 'function' ? window.topicFieldLabel() : 'Kategori');
   const setText = (el, t) => { if (el && el.textContent !== t) el.textContent = t; };
   function apply() {
