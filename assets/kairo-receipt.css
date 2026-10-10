@@ -196,6 +196,40 @@
   html:has(#receipt-modal:not([style*="none"])) #receipt-preview-title,
   html:has(#receipt-modal:not([style*="none"])) #receipt-modal .actions{display:none!important}
   html:has(#receipt-modal:not([style*="none"])) #receipt-modal .modal-card{position:static!important;transform:none!important;width:auto!important;max-width:none!important;max-height:none!important;overflow:visible!important;margin:0!important;padding:0!important;border:0!important;box-shadow:none!important;background:none!important}
-  .receipt-preview-surface.receipt-template{width:80mm!important}
+  .receipt-preview-surface.receipt-template{width:var(--kp-paper,80mm)!important}
   .receipt-template .receipt-paper{box-shadow:none!important;border-radius:0!important}
+}
+
+/* ===== Printer Struk: kartu pengaturan + lembar cetak gambar ===== */
+.kp-card{margin-top:16px}
+.kp-modes{display:grid;gap:8px;margin:12px 0}
+.kp-mode{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border:1.5px solid rgba(120,140,160,.35);border-radius:14px;cursor:pointer}
+.kp-mode.on{border-color:var(--v3-primary,#25b9b0);background:color-mix(in srgb,var(--v3-primary,#25b9b0) 9%,transparent)}
+.kp-mode.is-off{opacity:.55;cursor:not-allowed}
+.kp-mode input{margin-top:4px;width:18px;height:18px;accent-color:var(--v3-primary,#25b9b0)}
+.kp-mode b{display:block;font-size:14px}
+.kp-mode small{display:block;font-size:12.5px;line-height:1.4;color:var(--v3-muted,#4e6475)}
+.kp-mode small em{display:block;font-style:normal;font-weight:700;color:#a3384a}
+body.saas-dark .kp-mode small em{color:#ff9aa8}
+.kp-row{display:flex;flex-wrap:wrap;gap:16px;margin:8px 0}
+.kp-field{display:grid;gap:6px}
+.kp-field[hidden]{display:none}
+.kp-copies{width:90px}
+.kp-chips{display:flex;gap:8px}
+.kp-chips button{border:1px solid color-mix(in srgb,var(--v3-primary,#25b9b0) 35%,transparent);background:transparent;color:inherit;font:inherit;font-weight:700;padding:0 18px;min-height:42px;border-radius:99px;cursor:pointer}
+.kp-chips button.on{background:var(--v3-primary,#25b9b0);color:var(--v3-on-primary,#082f35);border-color:transparent}
+.kp-check{display:flex;gap:10px;align-items:flex-start;margin:8px 0;font-size:13.5px;cursor:pointer}
+.kp-check input{margin-top:3px;width:18px;height:18px;accent-color:var(--v3-primary,#25b9b0)}
+.kp-status{margin:12px 0 4px;padding:10px 12px;border-radius:12px;font-size:13px;font-weight:700;background:color-mix(in srgb,var(--v3-primary,#25b9b0) 8%,transparent)}
+.kp-status.is-ok{background:#e3f5ea;color:#16794c}
+body.saas-dark .kp-status.is-ok{background:#143a28;color:#8ee0b0}
+.kp-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.kp-actions [hidden]{display:none}
+.kp-note{margin-top:12px;font-size:12.5px;line-height:1.5;color:var(--v3-muted,#4e6475)}
+#kp-print-sheet{display:none}
+@media print{
+  body.kp-printing>*:not(#kp-print-sheet){display:none!important}
+  body.kp-printing{background:#fff!important;margin:0!important;position:static!important;overflow:visible!important}
+  body.kp-printing #kp-print-sheet{display:block;width:var(--kp-paper,58mm)}
+  body.kp-printing #kp-print-sheet img{display:block;width:100%;height:auto}
 }

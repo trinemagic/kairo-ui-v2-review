@@ -117,7 +117,7 @@
                  : shop ? '<b>Produk &amp; Harga</b>: harga, modal, dan stok (kosongkan stok bila tidak dilacak; batas menipis memunculkan notifikasi di lonceng). <b>Platform Penjualan</b>: daftar platform, dan saklar komisi per platform (perkiraan dari persen yang kamu isi). <b>Metode Pembayaran</b>: daftar yang muncul di Orders.'
                  : '<b>Package, Add-on, Topik</b>: daftar yang muncul di Orders.',
           '<b>Pembagian Omzet</b>: persentase partner dan Kas; perubahan berlaku mulai tanggal yang dipilih.',
-          '<b>Struk</b> (paket Pro): desain, label, dan logo struk.',
+          '<b>Struk</b> (paket Pro): desain, label, dan logo struk. Kartu <b>Printer Struk</b> di bagian yang sama menghubungkan printer termal (USB, serial/Bluetooth klasik, Bluetooth BLE, RawBT, atau printer biasa lewat dialog cetak); tombol <b>Cetak</b> muncul di preview struk.',
           '<b>Tema Workspace</b> (paket Pro): Lavender, Kayu, Awan, atau Mawar.'
         ].filter(Boolean)
       },
@@ -228,7 +228,7 @@
           '<b>Workspace &amp; Branding</b>: nama, warna, logo, <b>Ukuran Teks</b>, dan <b>PIN Login</b>.',
           '<b>Kategori</b>: daftar kategori produk, serta kartu <b>Pengaturan Kasir</b> (Tipe Pesanan, Metode Pembayaran, Service &amp; Pajak). Pajak tidak dihitung sebagai untung.',
           '<b>Pembagian Omzet</b>: persentase partner dan Kas.',
-          '<b>Struk</b>: desain dan label struk. Pilihan <b>Standar</b> cocok untuk printer kasir.',
+          '<b>Struk</b>: desain dan label struk. Pilihan <b>Standar</b> cocok untuk printer kasir. Kartu <b>Printer Struk</b> di sini untuk menghubungkan printer (USB, serial/Bluetooth, BLE, RawBT, atau printer biasa), memilih kertas 58/80 mm, dan cetak otomatis setelah bayar. Pengaturan printer berlaku per perangkat.',
           '<b>Tema Workspace</b> (paket Pro): Lavender, Kayu, Awan, atau Mawar.',
           'Produk, harga, dan stok diatur di menu <b>Produk</b>, bukan di Settings.'
         ]
