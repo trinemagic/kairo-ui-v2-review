@@ -753,6 +753,32 @@ if (window.top !== window.self) {
     }
     setTimeout(mountDashboardHeader, 700);
   }, true);
+  // Form Settings/Promo yang belum punya penanda proses: tombol simpan menampilkan spinner "Menyimpan…" sampai handler
+  // aslinya selesai (ditandai pop-up hasil muncul di #toast), maksimal 15 dtk supaya tidak pernah macet.
+  const SAVE_FORM_IDS = ['workspace-settings-form', 'profit-share-editor-form', 'receipt-wording-form', 'promo-form'];
+  document.addEventListener('submit', event => {
+    const form = event.target;
+    if (!form || !SAVE_FORM_IDS.includes(form.id) || typeof window.kairoBtnLoading !== 'function') return;
+    const button = event.submitter || q('button[type="submit"]', form);
+    if (!button || button.classList.contains('kairo-loading')) return;
+    const original = button.textContent;
+    const host = q('#toast');
+    window.kairoBtnLoading(button, true, undefined, 'Menyimpan…');
+    let done = false;
+    let observer = null;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      observer?.disconnect();
+      clearTimeout(timer);
+      window.kairoBtnLoading(button, false, original);
+    };
+    const timer = setTimeout(finish, 15000);
+    if (host) {
+      observer = new MutationObserver(records => { if (records.some(r => r.addedNodes.length)) finish(); });
+      observer.observe(host, { childList: true });
+    }
+  }, true);
   document.addEventListener('click', event => {
     if (event.target.closest('[data-tab="dashboard"], [data-mobile-tab="dashboard"], #saas-side-home')) {
       setTimeout(mountDashboardHeader, 60);

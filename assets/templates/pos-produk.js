@@ -362,13 +362,14 @@
     return { mode: 'manual', split };
   }
   async function save(btn) {
+    const orig = btn.textContent;
     try {
       const name = draft.name.trim();
       if (!name) throw new Error('Isi nama dulu.');
       if (!(draft.price > 0)) throw new Error('Isi harga jual.');
       if (draft.cost > draft.price) { if (!confirm('Modal lebih besar dari harga jual, produk akan rugi. Tetap simpan?')) return; }
       const net = Math.max(0, draft.price - draft.cost), sp = buildSplit(net);
-      btn.disabled = true;
+      window.kairoBtnLoading(btn, true, undefined, 'Menyimpan…');
       const payload = { name, price: draft.price, cost_price: draft.cost, profit_share_mode: sp.mode, manual_profit_split: sp.split };
       const code = draft.code.trim();
       payload.code = code || null;
@@ -405,21 +406,21 @@
       showToast(`${word} "${name}" disimpan.`);
     } catch (err) {
       const m = String(err.message || '');
-      showToast(/image_url/i.test(m) ? 'Kolom foto belum ada di database.' : (m || 'Gagal menyimpan.'), true);
-      btn.disabled = false;
+      showToast(/image_url/i.test(m) ? 'Kolom foto belum ada di database.' : (window.kairoFriendlyError(m, 'menyimpan produk') || 'Gagal menyimpan.'), true);
+      window.kairoBtnLoading(btn, false, orig);
     }
   }
   async function remove(btn) {
     if (!draft?.id) return;
     if (!confirm(`Hapus "${draft.name}"? Riwayat penjualan lama tetap aman.`)) return;
-    btn.disabled = true;
+    const orig = btn.textContent; window.kairoBtnLoading(btn, true, undefined, 'Menghapus…');
     try {
       const { error } = await db.from(kind === 'addon' ? 'addon_masters' : 'package_masters').update({ is_active: false }).eq('workspace_id', wid()).eq('id', draft.id);
       if (error) throw error;
       await loadMasters();
       closeSheet(); renderGrid(); window.kairoPos?.reload?.();
       showToast('Dihapus.');
-    } catch (err) { showToast(err.message || 'Gagal menghapus.', true); btn.disabled = false; }
+    } catch (err) { showToast(window.kairoFriendlyError(err.message, 'menghapus produk') || 'Gagal menghapus.', true); window.kairoBtnLoading(btn, false, orig); }
   }
 
   /* ---------- Hitung Stok (stock opname): hitungan fisik vs catatan sistem, selisih, catatan, riwayat ---------- */
@@ -488,7 +489,7 @@
         if (p && after !== num(p.stock_qty)) changes.push({ id: p.id, name: p.name, unit: p.unit, before: num(p.stock_qty), after });
       });
       if (!changes.length) return;
-      btn.disabled = true;
+      const orig = btn.textContent; window.kairoBtnLoading(btn, true, undefined, 'Menyimpan…');
       try {
         const res = await Promise.all(changes.map(c => db.from('package_masters').update({ stock_qty: c.after }).eq('workspace_id', wid()).eq('id', c.id)));
         const bad = res.find(r => r.error); if (bad) throw bad.error;
@@ -497,7 +498,7 @@
         try { await refreshAll(); } catch (_e) { /* tampilan lain menyusul */ }
         closeCount(); renderGrid(); renderDashStock(); window.kairoPos?.reload?.();
         showToast(`${changes.length} produk disesuaikan${logReady ? '' : ' (riwayat belum tersedia)'}.`);
-      } catch (err) { showToast(err.message || 'Gagal menyimpan stok.', true); btn.disabled = false; }
+      } catch (err) { showToast(window.kairoFriendlyError(err.message, 'menyimpan stok') || 'Gagal menyimpan stok.', true); window.kairoBtnLoading(btn, false, orig); }
     }
     function closeCount() { ov.remove(); if (!document.getElementById('pp-sheet')) document.documentElement.classList.remove('pp-lock'); }
 

@@ -258,6 +258,19 @@ let realtimeRefreshTimer = null;
 let maskedNominals = localStorage.getItem("trine_magic_masked_nominals") === "1";
 const lastKpiValues = {"kpi-revenue":0,"kpi-cash":0,"kpi-rights":0};
 
+// Koneksi yang terganggu menghasilkan pesan teknis dari browser/Supabase (Safari: "TypeError: Load failed", Chrome: "Failed to fetch").
+// Jangan tampil mentah ke pengguna: ganti jadi "Proses <aksi> gagal, coba lagi." (pesan asli tetap dilaporkan ke Admin).
+const NETWORK_ERROR_RE=/load failed|failed to fetch|networkerror|network request failed|network connection was lost|internet connection appears to be offline|fetch failed|retryablefetch|timed? ?out|timeout/i;
+function isNetworkError(x){return NETWORK_ERROR_RE.test(String(x?.message??x??""));}
+function friendlyError(raw,fallbackAction){
+  const msg=String(raw?.message??raw??"").trim();
+  if(!NETWORK_ERROR_RE.test(msg)) return msg;
+  const m=/^Gagal\s+([^:]{2,60}?)\s*:/i.exec(msg);
+  const action=m?m[1].trim():(fallbackAction||"");
+  return `Proses ${action?action+" ":""}gagal, coba lagi. Pastikan koneksi internet aktif.`;
+}
+window.kairoFriendlyError=friendlyError;
+
 function showAuthError(message){
   const el=document.getElementById("auth-error");
   el.textContent=message;
@@ -271,11 +284,11 @@ function clearAuthError(){
 }
 
 // Tombol yang sedang memproses: spinner + tulisan "Loading" (gaya .kairo-loading di kairo-v3.css), dikunci sampai selesai.
-function setBtnLoading(btn,on,restoreText){
+function setBtnLoading(btn,on,restoreText,label){
   if(!btn) return;
   btn.classList.toggle("kairo-loading",on);
   btn.disabled=on;
-  if(on) btn.textContent="Loading";
+  if(on) btn.textContent=label||"Loading";
   else if(restoreText!==undefined) btn.textContent=restoreText;
 }
 window.kairoBtnLoading=setBtnLoading;
@@ -305,6 +318,11 @@ async function loginWithUsername(username,password){
       showAuthError(lookupError.message||"Terlalu banyak percobaan masuk. Coba lagi 15 menit lagi.");
       return;
     }
+    if(lookupError&&isNetworkError(lookupError)){
+      setAuthLoading(false);
+      showAuthError(friendlyError(lookupError,"masuk"));
+      return;
+    }
     if(lookupError){
       setAuthLoading(false);
       showAuthError("Username belum terdaftar atau sistem login belum disiapkan.");
@@ -327,6 +345,8 @@ async function loginWithUsername(username,password){
       showAuthError("Username atau password salah.");
     }else if(msg.includes("too many requests") || msg.includes("rate limit")){
       showAuthError("Terlalu banyak percobaan login. Tunggu sebentar lalu coba lagi.");
+    }else if(isNetworkError(error)){
+      showAuthError(friendlyError(error,"masuk"));
     }else{
       console.error("Login auth error:",error);
       showAuthError("Login gagal: "+(error?.message||"terjadi masalah pada autentikasi."));
@@ -537,7 +557,7 @@ async function handleAuthSession(session){
       dashboardInitialized=false;
       document.body.classList.remove("authenticated");
       document.body.classList.add("auth-locked");
-      showAuthError(workspaceError.message || "Akun tidak memiliki akses workspace.");
+      showAuthError(isNetworkError(workspaceError)?friendlyError(workspaceError,"masuk"):(workspaceError.message || "Akun tidak memiliki akses workspace."));
       await db.auth.signOut();
       return;
     }
@@ -820,7 +840,7 @@ function showToast(message, error=false){
   item.className=`kairo-toast is-${variant}`;
   item.setAttribute("role",variant==="error"?"alert":"status");
   item.innerHTML=`<svg class="kairo-toast-icon" viewBox="0 0 24 24" aria-hidden="true">${icon}</svg><div class="kairo-toast-copy"><strong>${title}</strong><span></span></div><button type="button" class="kairo-toast-close" aria-label="Tutup notifikasi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 7 10 10M17 7 7 17"/></svg></button>`;
-  item.querySelector(".kairo-toast-copy span").textContent=String(message??"");
+  item.querySelector(".kairo-toast-copy span").textContent=variant==="error"?friendlyError(message):String(message??"");
   item.querySelector(".kairo-toast-close").addEventListener("click",()=>dismissToast(item));
   // Every pop-up closes by itself after 5 s (owner); hovering or focusing a card pauses it.
   const life=5000;
@@ -3007,7 +3027,8 @@ document.getElementById("login-form").addEventListener("submit",async (e)=>{
     showAuthError("Username dan password wajib diisi.");
     return;
   }
-  await loginWithUsername(username,password);
+  try{await loginWithUsername(username,password);}
+  catch(err){console.error("Login error:",err);setAuthLoading(false);showAuthError(isNetworkError(err)?friendlyError(err,"masuk"):"Login gagal, coba lagi.");}
 });
 
 const historyFilterSelect=document.getElementById("history-date-filter");
@@ -3979,10 +4000,10 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
    const btn=q('logo-crop-apply');const shell=q('settings-logo-upload-shell');
    try{
      if(typeof canUseFeature==='function'&&!canUseFeature('custom_branding'))throw new Error('Upload logo tersedia untuk plan PRO.');
-     btn.disabled=true;btn.textContent='Mengupload...';shell?.classList.add('logo-upload-busy');
+     setBtnLoading(btn,true,undefined,'Mengupload…');shell?.classList.add('logo-upload-busy');
      await uploadLogoBlob(await compressLogo(croppedCanvas()));
      closeCrop();showToast('Logo workspace berhasil diupload dan disimpan.');
-   }catch(err){console.error(err);showToast(err.message||'Gagal mengupload logo.',true)}finally{btn.disabled=false;btn.textContent='Gunakan Logo';shell?.classList.remove('logo-upload-busy');syncLogoUploadPermissions()}
+   }catch(err){console.error(err);showToast(err.message||'Gagal mengupload logo.',true)}finally{setBtnLoading(btn,false,'Gunakan Logo');shell?.classList.remove('logo-upload-busy');syncLogoUploadPermissions()}
  }
  // Setup Wizard: logo tanpa crop manual, gambar dimuat utuh (contain) di kotak persegi lalu dikompres.
  window.kairoLogoSetup={
@@ -4210,7 +4231,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
    const quiet=opts?.quiet===true,btn=document.getElementById('receipt-layout-save');const oldText=btn?.textContent;
    try{
      const wid=requireWorkspaceId();
-     if(btn){btn.disabled=true;btn.textContent='Menyimpan…';}
+     setBtnLoading(btn,true,undefined,'Menyimpan…');
      readDesignControls();
      const labelsPayload=syncLegacyLabels();
      labelsPayload.__layout_v2={version:2,items:draft,design:designDraft};
@@ -4238,7 +4259,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
      if(!quiet)showToast(savedLayout?'Layout, wording, dan desain struk tersimpan.':'Struk tersimpan lewat mode kompatibilitas. Layout tetap aktif.');
      return true;
    }catch(err){console.error('saveLayout failed',err);if(quiet)throw err;showToast(err?.message||err?.details||'Gagal menyimpan pengaturan struk.',true);return false;}
-   finally{if(btn){btn.disabled=false;btn.textContent=oldText||'Simpan Pengaturan Struk';}}
+   finally{setBtnLoading(btn,false,oldText||'Simpan Pengaturan Struk');}
  }
  function readDesignControls(){
    const get=id=>document.getElementById(id);designDraft={...designDraft,
@@ -4846,7 +4867,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
  // Setelah daftar: tutup halaman Daftar lalu buka form Masuk dengan username akun baru.
  function backToLogin(username){closeAccountPage();const u=document.getElementById('login-username');if(u&&username)u.value=username;window.kairoOpenLogin?.()}
  function renderSignup(){const c=document.getElementById('kairo-account-content');c.innerHTML=`<h2>Buat akun KAIRO</h2><p class="kairo-account-lead">Pilih kebutuhan usahamu dulu, lalu buat satu akun untuk satu workspace KAIRO.</p><form id="kairo-signup-form"><div class="kairo-step-label">01 — PILIH PAKET</div><div class="kairo-plan-grid" id="kairo-plan-grid">${[['basic','GRATIS','Mulai mencatat dan rasakan pengalaman pertama mengelola usaha dengan KAIRO.'],['pro','PRO','Semua fitur KAIRO untuk pengelolaan usaha yang lebih lengkap dan profesional.'],['custom','CUSTOM','Semua fitur Pro dengan penyesuaian khusus. Aktif sebagai paket Pro.']].map((x,i)=>`<label class="kairo-plan-option ${i===0?'selected':''}"><input type="radio" name="kairo-plan" value="${x[0]}" ${i===0?'checked':''}><div class="kairo-plan-name">${x[1]}</div><div class="kairo-plan-copy">${x[2]}</div><span class="kairo-plan-state">${x[0]==='basic'?'AKTIF SETELAH DAFTAR':'DIPILIH · AKTIVASI SETELAH PEMBAYARAN'}</span></label>`).join('')}</div><div class="kairo-step-label">02 — JENIS USAHA</div><div class="form-group"><select id="kairo-signup-template" class="input" required><option value="digital_subscription">Seller App Premium</option><option value="pos_kasir">Kasir / POS</option><option value="online_shop">Online Shop (Create your own package)</option><option value="service_consultation">Jasa Online (Joki/Tarot Reading/Wording/dll)</option></select></div><div class="kairo-step-label">03 — DATA AKUN & WORKSPACE</div><div class="kairo-account-grid"><div class="form-group"><label class="label">Nama Kamu</label><input id="kairo-signup-name" class="input" required autocomplete="name" placeholder="Nama owner"></div><div class="form-group"><label class="label">Nama Bisnis</label><input id="kairo-signup-business" class="input" required placeholder="Nama dashboard/workspace"></div></div><div class="form-group"><label class="label">Username</label><input id="kairo-signup-username" class="input" required maxlength="32" autocomplete="username" placeholder="username"><div id="kairo-username-hint" class="username-hint">3–32 karakter: huruf kecil, angka, titik, _ atau -</div></div><div class="form-group"><label class="label">Email aktif</label><input id="kairo-signup-email" class="input" type="email" required autocomplete="email" placeholder="nama@email.com"><div class="kairo-inline-note">Email digunakan sebagai identitas dan pemulihan akun. Tidak perlu konfirmasi email untuk mulai menggunakan KAIRO. Email sementara/disposable yang kami kenali akan ditolak.</div></div><div class="kairo-account-grid"><div class="form-group"><label class="label">Password</label><input id="kairo-signup-password" class="input" type="password" required minlength="8" autocomplete="new-password" placeholder="Minimal 8 karakter"></div><div class="form-group"><label class="label">Ulangi Password</label><input id="kairo-signup-confirm" class="input" type="password" required minlength="8" autocomplete="new-password" placeholder="Ulangi password"></div></div><div id="kairo-signup-status" class="kairo-account-status"></div><button class="kairo-account-submit" id="kairo-signup-submit" type="submit">Buat Akun</button></form>`;wireEyes(c);c.querySelectorAll('input[name="kairo-plan"]').forEach(r=>r.onchange=()=>c.querySelectorAll('.kairo-plan-option').forEach(x=>x.classList.toggle('selected',x.querySelector('input').checked)));const u=document.getElementById('kairo-signup-username'),hint=document.getElementById('kairo-username-hint');u.oninput=()=>{u.value=normalizeUsername(u.value);hint.className='username-hint';hint.textContent='3–32 karakter: huruf kecil, angka, titik, _ atau -'};u.onblur=async()=>{const v=normalizeUsername(u.value);if(!/^[a-z0-9._-]{3,32}$/.test(v)){hint.className='username-hint bad';hint.textContent='Format username belum valid.';return}try{const {data,error}=await db.rpc('is_username_available',{p_username:v});if(error)throw error;hint.className='username-hint '+(data?'ok':'bad');hint.textContent=data?'Username tersedia.':'Username sudah dipakai.'}catch(e){hint.textContent='Ketersediaan dicek saat daftar.'}};document.getElementById('kairo-signup-form').onsubmit=submitSignup}
- async function submitSignup(e){e.preventDefault();const s=document.getElementById('kairo-signup-status'),btn=document.getElementById('kairo-signup-submit'),username=normalizeUsername(document.getElementById('kairo-signup-username').value),email=document.getElementById('kairo-signup-email').value.trim().toLowerCase(),password=document.getElementById('kairo-signup-password').value,confirm=document.getElementById('kairo-signup-confirm').value,plan=document.getElementById('kairo-selected-plan')?.value||document.querySelector('input[name="kairo-plan"]:checked')?.value||'basic',period=document.getElementById('kairo-selected-period')?.value==='semiannual'?'semiannual':'monthly';const fail=m=>{s.className='kairo-account-status show bad';s.textContent=m};if(!validEmail(email))return fail('Gunakan email aktif yang valid. Email sementara/disposable tidak dapat dipakai.');if(!/^[a-z0-9._-]{3,32}$/.test(username))return fail('Format username belum valid.');if(password.length<8)return fail('Password minimal 8 karakter.');if(password!==confirm)return fail('Ulangi password harus sama.');btn.disabled=true;btn.textContent='Membuat akun...';try{const {data:available,error:ce}=await db.rpc('is_username_available',{p_username:username});if(ce)throw ce;if(!available)return fail('Username sudah dipakai. Coba username lain.');const sc=signupClient();const {data,error}=await sc.auth.signUp({email,password,options:{data:{username,display_name:document.getElementById('kairo-signup-name').value.trim(),workspace_name:document.getElementById('kairo-signup-business').value.trim(),business_template:(document.querySelector('input[name="kairo-business"]:checked')?.value||document.getElementById('kairo-signup-template')?.value||'digital_subscription'),requested_plan:canonicalPlan(plan),requested_variant:plan==='custom'?'custom':null,requested_period:plan==='pro'?period:null,phone:(document.getElementById('kairo-signup-wa')?.value||'').trim()}}});if(error)throw error;if(!data?.user?.id)throw new Error('Auth user tidak terbentuk. Coba daftar lagi setelah memastikan Email Provider aktif.');if(Array.isArray(data?.user?.identities)&&data.user.identities.length===0)throw new Error('Email tersebut sudah terdaftar. Gunakan email lain atau pulihkan akun lama.');const verify=await sc.auth.signInWithPassword({email,password});if(verify.error)throw new Error('Akun Auth terbentuk tetapi belum bisa login: '+verify.error.message);try{await sc.auth.signOut()}catch(_e){}document.getElementById('kairo-signup-form').reset();const c=document.getElementById('kairo-account-content');c.innerHTML=`<div class="kairo-success"><div class="kairo-success-icon"><svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg></div><h3>Akun berhasil dibuat</h3><p>Akun <strong>${username.replace(/[&<>]/g,'')}</strong> sudah aktif. Email <strong>${email.replace(/[&<>]/g,'')}</strong> tersimpan sebagai identitas dan pemulihan akun. Silakan masuk dengan username dan password yang baru dibuat.</p>${plan!=='basic'?`<button class="kairo-account-submit" id="kairo-success-wa" type="button">Konfirmasi Pembelian via WhatsApp</button>`:''}<button class="kairo-account-submit" id="kairo-success-login" type="button" style="margin-top:8px">Kembali ke Masuk</button></div>`;document.getElementById('kairo-success-login').onclick=()=>backToLogin(username);const wb=document.getElementById('kairo-success-wa');if(wb)wb.onclick=()=>{const no=(window.__KAIRO_BUSINESS_WA||'').replace(/\D/g,'');const periodLabel=period==='semiannual'?'6 bulan · Rp238.000':'1 bulan · Rp43.000';const txt=encodeURIComponent(`Halo KAIRO, saya sudah membuat akun ${username} dan memilih paket ${plan==='custom'?'CUSTOM (aktif sebagai Pro)':plan==='pro'?`PRO (${periodLabel})`:planLabel(plan)}. Saya ingin konfirmasi pembelian dan aktivasi.`);if(no)window.open(`https://wa.me/${no}?text=${txt}`,'_blank','noopener');else alert('Nomor WhatsApp bisnis KAIRO akan dikonfigurasi pada tahap sistemasi konfirmasi pembelian.')}}catch(err){console.error(err);let m=String(err?.message||'Gagal membuat akun.');if(/already/i.test(m))m='Email tersebut sudah terdaftar.';if(/disposable|temporary/i.test(m))m='Email sementara/disposable tidak dapat digunakan.';fail(m)}finally{btn.disabled=false;btn.textContent='Buat Akun'}}
+ async function submitSignup(e){e.preventDefault();const s=document.getElementById('kairo-signup-status'),btn=document.getElementById('kairo-signup-submit'),username=normalizeUsername(document.getElementById('kairo-signup-username').value),email=document.getElementById('kairo-signup-email').value.trim().toLowerCase(),password=document.getElementById('kairo-signup-password').value,confirm=document.getElementById('kairo-signup-confirm').value,plan=document.getElementById('kairo-selected-plan')?.value||document.querySelector('input[name="kairo-plan"]:checked')?.value||'basic',period=document.getElementById('kairo-selected-period')?.value==='semiannual'?'semiannual':'monthly';const fail=m=>{s.className='kairo-account-status show bad';s.textContent=m};if(!validEmail(email))return fail('Gunakan email aktif yang valid. Email sementara/disposable tidak dapat dipakai.');if(!/^[a-z0-9._-]{3,32}$/.test(username))return fail('Format username belum valid.');if(password.length<8)return fail('Password minimal 8 karakter.');if(password!==confirm)return fail('Ulangi password harus sama.');btn.disabled=true;btn.textContent='Membuat akun...';try{const {data:available,error:ce}=await db.rpc('is_username_available',{p_username:username});if(ce)throw ce;if(!available)return fail('Username sudah dipakai. Coba username lain.');const sc=signupClient();const {data,error}=await sc.auth.signUp({email,password,options:{data:{username,display_name:document.getElementById('kairo-signup-name').value.trim(),workspace_name:document.getElementById('kairo-signup-business').value.trim(),business_template:(document.querySelector('input[name="kairo-business"]:checked')?.value||document.getElementById('kairo-signup-template')?.value||'digital_subscription'),requested_plan:canonicalPlan(plan),requested_variant:plan==='custom'?'custom':null,requested_period:plan==='pro'?period:null,phone:(document.getElementById('kairo-signup-wa')?.value||'').trim()}}});if(error)throw error;if(!data?.user?.id)throw new Error('Auth user tidak terbentuk. Coba daftar lagi setelah memastikan Email Provider aktif.');if(Array.isArray(data?.user?.identities)&&data.user.identities.length===0)throw new Error('Email tersebut sudah terdaftar. Gunakan email lain atau pulihkan akun lama.');const verify=await sc.auth.signInWithPassword({email,password});if(verify.error)throw new Error('Akun Auth terbentuk tetapi belum bisa login: '+verify.error.message);try{await sc.auth.signOut()}catch(_e){}document.getElementById('kairo-signup-form').reset();const c=document.getElementById('kairo-account-content');c.innerHTML=`<div class="kairo-success"><div class="kairo-success-icon"><svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg></div><h3>Akun berhasil dibuat</h3><p>Akun <strong>${username.replace(/[&<>]/g,'')}</strong> sudah aktif. Email <strong>${email.replace(/[&<>]/g,'')}</strong> tersimpan sebagai identitas dan pemulihan akun. Silakan masuk dengan username dan password yang baru dibuat.</p>${plan!=='basic'?`<button class="kairo-account-submit" id="kairo-success-wa" type="button">Konfirmasi Pembelian via WhatsApp</button>`:''}<button class="kairo-account-submit" id="kairo-success-login" type="button" style="margin-top:8px">Kembali ke Masuk</button></div>`;document.getElementById('kairo-success-login').onclick=()=>backToLogin(username);const wb=document.getElementById('kairo-success-wa');if(wb)wb.onclick=()=>{const no=(window.__KAIRO_BUSINESS_WA||'').replace(/\D/g,'');const periodLabel=period==='semiannual'?'6 bulan · Rp238.000':'1 bulan · Rp43.000';const txt=encodeURIComponent(`Halo KAIRO, saya sudah membuat akun ${username} dan memilih paket ${plan==='custom'?'CUSTOM (aktif sebagai Pro)':plan==='pro'?`PRO (${periodLabel})`:planLabel(plan)}. Saya ingin konfirmasi pembelian dan aktivasi.`);if(no)window.open(`https://wa.me/${no}?text=${txt}`,'_blank','noopener');else alert('Nomor WhatsApp bisnis KAIRO akan dikonfigurasi pada tahap sistemasi konfirmasi pembelian.')}}catch(err){console.error(err);let m=String(err?.message||'Gagal membuat akun.');if(isNetworkError(m))m=friendlyError(m,'pendaftaran');if(/already/i.test(m))m='Email tersebut sudah terdaftar.';if(/disposable|temporary/i.test(m))m='Email sementara/disposable tidak dapat digunakan.';fail(m)}finally{btn.disabled=false;btn.textContent='Buat Akun'}}
  function renderRecover(){const c=document.getElementById('kairo-account-content');c.innerHTML=`<h2>Pulihkan akun</h2><p class="kairo-account-lead">Masukkan email yang sudah terkonfirmasi. Link pemulihan hanya dikirim ke email tersebut.</p><form id="kairo-recover-form"><div class="form-group"><label class="label">Email akun</label><input id="kairo-recover-email" class="input" type="email" autocomplete="email" required placeholder="nama@email.com"></div><div id="kairo-recover-status" class="kairo-account-status"></div><button id="kairo-recover-submit" class="kairo-account-submit" type="submit">Kirim Link Pemulihan</button></form><div class="kairo-inline-note">Demi privasi, KAIRO tidak akan mengonfirmasi apakah suatu email terdaftar atau tidak pada layar ini.</div>`;document.getElementById('kairo-recover-form').onsubmit=async e=>{e.preventDefault();const email=document.getElementById('kairo-recover-email').value.trim().toLowerCase(),s=document.getElementById('kairo-recover-status'),b=document.getElementById('kairo-recover-submit');if(!validEmail(email)){s.className='kairo-account-status show bad';s.textContent='Masukkan email aktif yang valid.';return}b.disabled=true;try{const {error}=await db.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname+'?recovery=1'});if(error)throw error;s.className='kairo-account-status show ok';s.textContent='Jika email cocok dengan akun KAIRO, link pemulihan sudah dikirim. Cek inbox dan spam.'}catch(err){s.className='kairo-account-status show bad';s.textContent=/rate/i.test(err.message||'')?'Terlalu banyak permintaan. Tunggu sebentar lalu coba lagi.':'Gagal mengirim link pemulihan. Coba lagi.'}finally{b.disabled=false}}}
  function renderRecoveryComplete(){const c=document.getElementById('kairo-account-content');c.innerHTML=`<h2>Buat akses baru</h2><p class="kairo-account-lead">Email sudah terverifikasi melalui link pemulihan. Sekarang lo bisa mengganti username dan password.</p><form id="kairo-recovery-complete-form"><div class="form-group"><label class="label">Username baru</label><input id="kairo-recovery-username" class="input" required maxlength="32" autocomplete="username" placeholder="username baru"></div><div class="kairo-account-grid"><div class="form-group"><label class="label">Password baru</label><input id="kairo-recovery-password" class="input" type="password" required minlength="8" autocomplete="new-password"></div><div class="form-group"><label class="label">Ulangi password</label><input id="kairo-recovery-confirm" class="input" type="password" required minlength="8" autocomplete="new-password"></div></div><div id="kairo-recovery-status" class="kairo-account-status"></div><button id="kairo-recovery-save" class="kairo-account-submit" type="submit">Simpan Username & Password Baru</button></form>`;wireEyes(c);document.getElementById('kairo-recovery-complete-form').onsubmit=async e=>{e.preventDefault();const u=normalizeUsername(document.getElementById('kairo-recovery-username').value),p=document.getElementById('kairo-recovery-password').value,pc=document.getElementById('kairo-recovery-confirm').value,s=document.getElementById('kairo-recovery-status'),b=document.getElementById('kairo-recovery-save'),fail=m=>{s.className='kairo-account-status show bad';s.textContent=m};if(!/^[a-z0-9._-]{3,32}$/.test(u))return fail('Format username belum valid.');if(p.length<8)return fail('Password minimal 8 karakter.');if(p!==pc)return fail('Ulangi password harus sama.');b.disabled=true;try{const {error:ue}=await db.auth.updateUser({password:p});if(ue)throw ue;const {error:re}=await db.rpc('update_my_username',{p_username:u});if(re)throw re;s.className='kairo-account-status show ok';s.textContent='Username dan password berhasil diperbarui. Silakan masuk lagi.';setTimeout(async()=>{try{await db.auth.signOut()}catch(e){}closeAccountPage();location.href=location.pathname},1400)}catch(err){fail(/username/i.test(err.message||'')?'Username sudah dipakai. Pilih username lain.':String(err.message||'Gagal memperbarui akun.'))}finally{b.disabled=false}}}
  function openAccountPage(mode='signup'){buildPage();const page=document.getElementById('kairo-account-page');if(!page)return;page.classList.add('show');page.setAttribute('aria-hidden','false');mode==='recover'?renderRecover():mode==='recovery-complete'?renderRecoveryComplete():renderSignup();window.scrollTo(0,0)}
@@ -5535,15 +5556,15 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
         // Analitik toko (laba per produk, channel, batal/retur) + kartu Profit Dashboard dimuat hanya untuk Online Shop.
         if(!document.getElementById('online-shop-js')){
           const link=document.createElement('link');link.id='online-shop-css';link.rel='stylesheet';link.href='assets/templates/online-shop.css?v=1.7.0';document.head.appendChild(link);
-          const script=document.createElement('script');script.id='online-shop-js';script.src='assets/templates/online-shop.js?v=1.7.0';script.defer=true;document.body.appendChild(script);
+          const script=document.createElement('script');script.id='online-shop-js';script.src='assets/templates/online-shop.js?v=1.7.1';script.defer=true;document.body.appendChild(script);
         }}
       else if(template==='pos_kasir'){root.dataset.businessTemplate='pos_kasir';if(typeof applyTopicFieldLabel==='function')applyTopicFieldLabel();document.dispatchEvent(new CustomEvent('kairo:template-ready'));
         // Dashboard Kasir (tahap 1): dimuat hanya untuk Kasir / POS.
         if(!document.getElementById('pos-kasir-js')){
           const link=document.createElement('link');link.id='pos-kasir-css';link.rel='stylesheet';link.href='assets/templates/pos-kasir.css?v=1.5.2';document.head.appendChild(link);
-          const script=document.createElement('script');script.id='pos-kasir-js';script.src='assets/templates/pos-kasir.js?v=1.5.5';script.defer=true;document.body.appendChild(script);
+          const script=document.createElement('script');script.id='pos-kasir-js';script.src='assets/templates/pos-kasir.js?v=1.5.6';script.defer=true;document.body.appendChild(script);
           const link2=document.createElement('link');link2.id='pos-produk-css';link2.rel='stylesheet';link2.href='assets/templates/pos-produk.css?v=1.4.0';document.head.appendChild(link2);
-          const script2=document.createElement('script');script2.id='pos-produk-js';script2.src='assets/templates/pos-produk.js?v=1.4.1';script2.defer=true;document.body.appendChild(script2);
+          const script2=document.createElement('script');script2.id='pos-produk-js';script2.src='assets/templates/pos-produk.js?v=1.4.2';script2.defer=true;document.body.appendChild(script2);
         }}
       else if(['online_shop','pos_kasir'].includes(root.dataset.businessTemplate)){delete root.dataset.businessTemplate;}
       if(template!=='digital_subscription')return;
@@ -5563,7 +5584,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
       if(!document.getElementById('seller-app-premium-js')){
         const script=document.createElement('script');
         script.id='seller-app-premium-js';
-        script.src='assets/templates/seller-app-premium.js?v=20.10.161';
+        script.src='assets/templates/seller-app-premium.js?v=20.10.162';
         script.defer=true;
         document.body.appendChild(script);
       }

@@ -520,15 +520,15 @@
         const read = sel => { const v = row.querySelector(sel).value.trim(); return v === '' ? null : Math.round(Number(v)); };
         const qty = read('.shop-stock-qty'), min = read('.shop-stock-min');
         if ((qty !== null && !Number.isFinite(qty)) || (min !== null && (!Number.isFinite(min) || min < 0))) { showToast('Isi stok dengan angka.', true); return; }
-        btn.disabled = true;
+        const orig = btn.textContent; window.kairoBtnLoading(btn, true, undefined, 'Menyimpan…');
         try {
           const { error } = await db.from('package_masters').update({ stock_qty: qty, stock_min: min }).eq('workspace_id', requireWorkspaceId()).eq('id', row.dataset.id);
           if (error) throw error;
           lastQty.clear();
           await loadMasters();
           showToast('Stok disimpan.');
-        } catch (err) { showToast(err.message || 'Gagal menyimpan stok.', true); }
-        finally { btn.disabled = false; }
+        } catch (err) { showToast(window.kairoFriendlyError(err.message, 'menyimpan stok') || 'Gagal menyimpan stok.', true); }
+        finally { window.kairoBtnLoading(btn, false, orig); }
       });
     }
     card.hidden = false;
