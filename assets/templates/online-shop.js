@@ -247,11 +247,6 @@
           <div class="table-wrap"><table><thead id="shop-channel-head"></thead><tbody id="shop-channel-table"></tbody></table></div>
         </div>
       </div>
-      <div class="card shop-card" id="shop-stock-card" hidden>
-        ${cardHead('Stok Produk', '', 'stock', false)}
-        <div class="shop-tiles" id="shop-stock-tiles"></div>
-        <div class="table-wrap shop-stock-table-wrap"><table class="shop-stock-table"><thead id="shop-stock-head"></thead><tbody id="shop-stock-table"></tbody></table></div>
-      </div>
       <div class="card shop-card" id="shop-returns-card" hidden>
         ${cardHead('Batal &amp; Retur', '', 'returns')}
         <div class="shop-tiles" id="shop-return-tiles"></div>
@@ -397,7 +392,6 @@
     if (!ensurePerfCards()) return;
     renderProfitCard();
     renderChannelCard();
-    renderStockCard();
     renderReturnsCard();
   }
   // Warna grafik ikut tema/mode gelap: gambar ulang hanya saat tema atau mode gelap berubah.
@@ -409,7 +403,7 @@
     if (now === lastLook) return;
     lastLook = now;
     clearTimeout(lookTimer);
-    lookTimer = setTimeout(() => { if (document.getElementById('shop-analytics')) { renderProfitCard(); renderChannelCard(); renderStockCard(); if (!returnsMissing) renderReturnsCard(); } }, 150);
+    lookTimer = setTimeout(() => { if (document.getElementById('shop-analytics')) { renderProfitCard(); renderChannelCard(); if (!returnsMissing) renderReturnsCard(); } }, 150);
   };
   new MutationObserver(onLook).observe(document.documentElement, { attributes: true, attributeFilter: ['data-ws-theme'] });
   new MutationObserver(onLook).observe(document.body, { attributes: true, attributeFilter: ['class'] });
@@ -562,13 +556,18 @@
     });
   }
   // Kartu produk dengan stok 0 tidak bisa ditambahkan ke order.
+  // Klik kartu produk: stok habis atau sudah mencapai sisa stok = ditolak (tidak bisa melebihi stok).
   document.getElementById('tx-packages')?.addEventListener('click', e => {
     const card = e.target.closest('.pick-card');
     if (!card || !stockReady() || e.target.closest('.pick-minus')) return;
     const p = packages.find(x => String(x.id) === String(card.dataset.id));
-    if (hasStock(p) && p.stock_qty <= 0) { e.stopImmediatePropagation(); e.stopPropagation(); showToast(`Stok ${p.name} habis.`, true); }
+    if (!hasStock(p)) return;
+    const on = document.querySelector(`.package-check[data-id="${card.dataset.id}"]`)?.checked;
+    const q = on ? num(document.querySelector(`.package-qty[data-id="${card.dataset.id}"]`)?.value || 1) : 0;
+    if (p.stock_qty <= 0) { e.stopImmediatePropagation(); e.stopPropagation(); showToast(`Stok ${p.name} habis.`, true); }
+    else if (q + 1 > p.stock_qty) { e.stopImmediatePropagation(); e.stopPropagation(); showToast(`Stok ${p.name} hanya sisa ${p.stock_qty}.`, true); }
   }, true);
-  // Stok 0 = order diblokir. Qty melebihi sisa stok hanya diberi peringatan.
+  // Stok habis atau qty melebihi sisa stok = order diblokir (juga bila qty datang dari Autofill).
   document.addEventListener('submit', e => {
     if (e.target?.id !== 'tx-form' || !stockReady()) return;
     const empty = [], over = [];
@@ -579,12 +578,10 @@
       if (p.stock_qty <= 0) empty.push(p.name);
       else if (q > p.stock_qty) over.push(`${p.name} (sisa ${p.stock_qty}, order ${q})`);
     });
-    if (empty.length) {
+    if (empty.length || over.length) {
       e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
-      showToast('Stok habis: ' + empty.join(', ') + '. Order tidak bisa disimpan.', true);
-      return;
+      showToast((empty.length ? 'Stok habis: ' + empty.join(', ') + '. ' : '') + (over.length ? 'Stok kurang: ' + over.join(', ') + '. ' : '') + 'Order tidak bisa disimpan.', true);
     }
-    if (over.length) showToast('Stok kurang: ' + over.join(', ') + '. Stok akan minus.', 'warning');
   }, true);
 
   // Retur yang belum dikembalikan ke stok: dari order_returns (kind retur, restocked=false).
@@ -605,7 +602,7 @@
 
   async function restockReturn(productId) {
     const pend = (await pendingReturns()).get(String(productId));
-    if (!pend || !pend.qty) { renderStockCard(); renderDashStock(); return; }
+    if (!pend || !pend.qty) { renderDashStock(); return; }
     const p = packages.find(x => String(x.id) === String(productId));
     if (!hasStock(p)) return;
     try {
@@ -620,7 +617,6 @@
     } catch (err) { showToast(err.message || 'Gagal mengembalikan stok.', true); }
   }
 
-  let stockSeq = 0;
   // Data stok per produk (sisa hari dari penjualan 30 hari); dipakai kartu Performance dan tabel Dashboard.
   async function stockData() {
     const list = tracked();
@@ -648,23 +644,6 @@
   const sortStock = data => [...data].sort((a, b) => (stockOrder[a.tone] - stockOrder[b.tone]) || ((a.days ?? 1e9) - (b.days ?? 1e9)));
   const restockBtn = d => d.retur ? `<button type="button" class="shop-restock" data-shop-restock="${esc(d.id)}" title="Kembalikan ${d.retur} ke stok">+${d.retur} ke stok</button>` : '';
 
-  async function renderStockCard() {
-    const card = document.getElementById('shop-stock-card');
-    if (!card) return;
-    const seq = ++stockSeq;
-    const data = await stockData();
-    if (seq !== stockSeq) return;
-    if (!data) { card.hidden = true; return; }
-    const nLow = data.filter(d => d.tone === 'warn').length, nOut = data.filter(d => d.tone === 'bad').length;
-    card.hidden = false;
-    document.getElementById('shop-stock-tiles').innerHTML = [tile('Produk Dilacak', data.length), tile('Stok Menipis', nLow), tile('Stok Habis', nOut), tile('Nilai Stok', money(data.reduce((s, d) => s + d.value, 0)))].join('');
-    const sorted = sortStock(data);
-    const maxStock = Math.max(1, ...data.map(d => d.stock));
-    const showRetur = data.some(d => d.retur > 0);
-    document.getElementById('shop-stock-head').innerHTML = `<tr><th>Produk</th><th>Stok</th><th>Terjual 30 hari</th><th>Sisa hari</th><th>Nilai stok</th>${showRetur ? '<th>Retur</th>' : ''}<th>Status</th></tr>`;
-    document.getElementById('shop-stock-table').innerHTML = sorted.map(d => `<tr class="tone-${d.tone}"><td><strong>${esc(d.name)}</strong></td><td><span class="shop-level"><b>${d.stock.toLocaleString('id-ID')}</b><i><u style="width:${Math.max(d.stock > 0 ? 6 : 0, d.stock / maxStock * 100)}%"></u></i></span></td><td>${d.s30.toLocaleString('id-ID')}</td><td>${d.days === null ? '-' : Math.floor(d.days).toLocaleString('id-ID')}</td><td>${money(d.value)}</td>${showRetur ? `<td>${restockBtn(d)}</td>` : ''}<td><span class="shop-status tone-${d.tone}">${esc(d.status)}</span></td></tr>`).join('');
-  }
-
   /* ---------- Dashboard: tabel Stok Produk menggantikan Riwayat Open Store ---------- */
   let dashSeq = 0;
   async function renderDashStock() {
@@ -683,7 +662,7 @@
     if (!data) {
       count.textContent = '';
       head.innerHTML = '';
-      body.innerHTML = '<tr><td class="empty">Isi stok produk di Settings › Package &amp; Harga supaya stok terpantau di sini.</td></tr>';
+      body.innerHTML = '<tr><td class="empty">Isi stok produk di Settings › Produk &amp; Harga supaya stok terpantau di sini.</td></tr>';
       return;
     }
     const showRetur = data.some(d => d.retur > 0), low = data.filter(d => d.tone === 'bad' || d.tone === 'warn').length;
@@ -711,7 +690,7 @@
     mountPaymentSettings();
     syncPlatformSelect();
     syncPaymentSelect();
-    wrap('renderMasterOptions', () => { decorateOrderStock(); watchStockLevels(); renderDashStock(); if (document.getElementById('shop-analytics')) renderStockCard(); });
+    wrap('renderMasterOptions', () => { decorateOrderStock(); watchStockLevels(); renderDashStock(); });
     wrap('renderSettingsMasterData', mountStockSettings);
     mountStockSettings();
     decorateOrderStock();

@@ -21,12 +21,14 @@
   // tab = halaman yang dibuka tombol "Buka menu"; only = 'seller' | 'base'; pro = fitur paket Pro.
   function sections() {
     const seller = isSeller();
+    const shop = document.documentElement.dataset.businessTemplate === 'online_shop';
     return [
       {
         id: 'start', title: 'Mulai cepat', intro: 'Lima langkah supaya workspace siap dipakai mencatat penjualan.',
         steps: [
           'Buka <b>Settings › Workspace &amp; Branding</b>: isi nama usaha, warna, dan logo. Logo default KAIRO dipakai sampai kamu upload logo sendiri.',
           seller ? 'Buka <b>Settings › Produk</b>: atur harga jual dan modal (HPP) tiap aplikasi, atau tambah produk sendiri.'
+                 : shop ? 'Buka <b>Settings › Produk &amp; Harga</b>: isi produk, harga, modal (HPP), dan <b>stok</b>. Atur juga <b>Platform Penjualan</b> dan <b>Metode Pembayaran</b> di Settings › Kategori.'
                  : 'Buka <b>Settings › Package &amp; Harga</b> (dan Add-on/Topik bila dipakai): isi daftar paket beserta harga dan modal.',
           'Buka <b>Settings › Pembagian Omzet</b>: tentukan pembagian laba ke partner (paket Pro bisa lebih dari satu partner dan memakai Kas).',
           'Catat order pertama di menu <b>Orders</b>, lalu simpan.',
@@ -62,8 +64,9 @@
         id: 'input', tab: 'input', title: 'Orders (catat penjualan)', intro: 'Catat setiap penjualan beserta paket, add-on, dan topik.',
         steps: [
           'Ketik nama customer. Nama yang pernah tercatat muncul sebagai saran.',
-          'Pilih platform, <b>Package</b> (bisa lebih dari satu dan atur jumlahnya), Add-on, dan Topik bila ada.',
-          'Pilih metode pembayaran. Gunakan <b>Penyesuaian Harga</b> bila ada diskon atau harga khusus.',
+          shop ? 'Pilih platform, lalu <b>klik kartu produk</b>: tiap klik menambah 1, tombol <b>−</b> di label jumlah mengurangi. Produk yang stoknya habis atau kurang tidak bisa dipilih.'
+               : 'Pilih platform, lalu <b>klik kartu Package</b> (tiap klik menambah 1, tombol <b>−</b> mengurangi). Pilih juga Add-on dan Topik bila ada.',
+          'Pilih metode pembayaran' + (shop ? ' (daftarnya bisa kamu atur sendiri di Settings)' : '') + '. Gunakan <b>Penyesuaian Harga</b> bila ada diskon atau harga khusus.',
           'Simpan. Struk bisa dilihat dan disimpan sebagai gambar.',
           'Order berstatus <b>On Progress</b> muncul di lonceng setelah 5 menit; centang selesai bila sudah dikerjakan.'
         ],
@@ -91,6 +94,7 @@
         id: 'performance', tab: 'performance', title: 'Performance',
         intro: 'Analisa penjualan sesuai periode yang dipilih.',
         steps: ['Lihat ringkasan omzet, jumlah transaksi, rata-rata per order, dan produk terlaris.', 'Kartu <b>Penjualan per Produk</b> punya pilihan produk dan periode sendiri.', 'Grafik harian, perbandingan bulan, dan peringkat paket tersedia di paket Pro.']
+          .concat(shop ? ['<b>Laba per Produk</b> dan <b>Performa Platform</b> menunjukkan produk dan platform yang paling menguntungkan. Pencet tombol panah untuk melihat tabelnya.', '<b>Batal &amp; Retur</b> mencatat order yang dibatalkan atau diretur beserta alasannya.'] : [])
       },
       {
         id: 'payout', tab: 'payout', title: 'Withdraw',
@@ -106,8 +110,10 @@
         id: 'settings', tab: 'settings', title: 'Settings',
         intro: 'Semua pengaturan workspace.',
         steps: [
-          '<b>Workspace &amp; Branding</b>: nama, warna, logo, dan <b>Ukuran Teks</b> (Kecil sampai Ekstra, berlaku di perangkat ini).',
-          seller ? '<b>Produk</b>: harga jual dan modal tiap plan/durasi, tambah produk sendiri.' : '<b>Package, Add-on, Topik</b>: daftar yang muncul di Orders.',
+          '<b>Workspace &amp; Branding</b>: nama, warna, logo, <b>Ukuran Teks</b> (Kecil sampai Ekstra), dan <b>PIN Login</b>. Ukuran Teks dan PIN berlaku di perangkat ini.',
+          seller ? '<b>Produk</b>: harga jual dan modal tiap plan/durasi, tambah produk sendiri.'
+                 : shop ? '<b>Produk &amp; Harga</b>: harga, modal, dan stok (kosongkan stok bila tidak dilacak; batas menipis memunculkan notifikasi di lonceng). <b>Platform Penjualan</b>: daftar platform, dan saklar komisi per platform (perkiraan dari persen yang kamu isi). <b>Metode Pembayaran</b>: daftar yang muncul di Orders.'
+                 : '<b>Package, Add-on, Topik</b>: daftar yang muncul di Orders.',
           '<b>Pembagian Omzet</b>: persentase partner dan Kas; perubahan berlaku mulai tanggal yang dipilih.',
           '<b>Struk</b> (paket Pro): desain, label, dan logo struk.',
           '<b>Tema Workspace</b> (paket Pro): Lavender, Kayu, Awan, atau Mawar.'
@@ -129,6 +135,7 @@
         steps: [
           'Masuk dengan username atau email. Demi keamanan kamu perlu login setiap membuka dashboard; <b>Ingat saya</b> hanya menyimpan username.',
           'Jangan bagikan password. Tim yang ikut mencatat memakai akun pemilik dengan izinmu.',
+          '<b>PIN Login</b> (Settings › Workspace &amp; Branding): buat PIN 6 angka untuk masuk lebih cepat di perangkat pribadi. Salah 5 kali, PIN dihapus dan kamu masuk lagi dengan password. Password tidak disimpan.',
           'Atur <b>Auto Lock</b> di kanan atas supaya layar terkunci saat ditinggal.',
           'Selalu <b>Keluar</b> setelah memakai perangkat bersama/umum.'
         ]

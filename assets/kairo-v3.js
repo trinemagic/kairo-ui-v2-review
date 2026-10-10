@@ -649,7 +649,7 @@ if (window.top !== window.self) {
 
   // Panduan pemakaian (owner Okt 2026): tombol buku di samping lonceng (desktop) + item "Panduan" di menu More (HP).
   // Isi & gaya ada di assets/kairo-guide.js/.css, baru dimuat saat pertama kali dibuka supaya dashboard tetap ringan.
-  const GUIDE_V = '1.0.2';
+  const GUIDE_V = '1.0.3';
   let guideLoader = null;
   window.kairoOpenGuide = function () {
     if (!guideLoader) {
@@ -1057,6 +1057,12 @@ if (window.top !== window.self) {
     if (pk && pk.classList.contains('label')) setText(pk, 'Produk');
     document.querySelectorAll('#performance .card-title').forEach(el => {
       if (el.textContent.trim() === 'Penjualan Berdasarkan Paket') setText(el, 'Penjualan Berdasarkan Produk');
+    });
+    // Settings: "Package & Harga" -> "Produk & Harga" (menu samping, menu HP, judul kartu).
+    document.querySelectorAll('#settings .card-title, .saas-settings-submenu-btn, .saas-settings-submenu-btn *, .kairo-mobile-settings-link *').forEach(el => {
+      if (el.children.length) return;
+      const t = el.textContent;
+      if (/package & harga/i.test(t)) setText(el, t.replace('Package & Harga', 'Produk & Harga').replace('package & harga', 'produk & harga'));
     });
     const tc = document.getElementById('topic-selection-total')?.closest('.toolbar');
     setText(tc?.querySelector('.page-sub'), 'Jumlah pemilihan ' + topic().toLowerCase() + ' sesuai filter tanggal aktif.');

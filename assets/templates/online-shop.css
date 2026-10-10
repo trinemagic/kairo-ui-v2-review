@@ -72,18 +72,8 @@ body.saas-dark .shop-stock-tag.is-low{color:#ff9fb0}
   .shop-stock-row strong,.shop-stock-head span:first-child{grid-column:1/-1}
   .shop-stock-row button{grid-column:1/-1}
   .shop-stock-head{display:none}
-  #shop-stock-card th:nth-child(3),#shop-stock-card td:nth-child(3),#shop-stock-card th:nth-child(5),#shop-stock-card td:nth-child(5){display:none}
 }
 
-/* Tabel stok */
-.shop-stock-table td,.shop-stock-table th{vertical-align:middle}
-.shop-stock-table tr.tone-bad td:first-child{box-shadow:inset 3px 0 0 #c4455c}
-.shop-stock-table tr.tone-warn td:first-child{box-shadow:inset 3px 0 0 #d99a1e}
-.shop-level{display:flex;align-items:center;gap:10px;min-width:110px}
-.shop-level b{min-width:2.2ch;font-size:15px}
-.shop-level i{flex:1;height:6px;border-radius:99px;background:color-mix(in srgb,var(--v3-primary,#25b9b0) 14%,transparent);overflow:hidden;max-width:90px}
-.shop-level u{display:block;height:100%;border-radius:99px;background:var(--v3-primary,#25b9b0)}
-.tone-bad .shop-level u{background:#c4455c}.tone-warn .shop-level u{background:#d99a1e}
 .shop-status{display:inline-flex;align-items:center;gap:6px;padding:3px 10px 3px 8px;border-radius:999px;font-weight:800;font-size:12px;white-space:nowrap}
 .shop-status::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
 .shop-status.tone-ok{background:#e3f5ea;color:#16794c}

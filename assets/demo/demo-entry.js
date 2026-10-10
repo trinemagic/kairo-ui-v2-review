@@ -4,8 +4,8 @@
   const OPTIONS = [
     ['seller', 'Seller App Premium', 'Jual akun & aplikasi premium, pantau masa aktif langganan.'],
     ['jasa', 'Jasa Online', 'Desain, konsultasi, joki, dan jasa online lainnya.'],
-    ['shop', 'Online Shop', 'Produk fisik: stok, channel marketplace, laba per produk.'],
-    ['digital', 'Digital Product', 'Template, e-book, preset, dan produk digital.']
+    ['shop', 'Online Shop', 'Produk fisik: stok, platform marketplace, laba per produk.'],
+    ['kasir', 'Kasir / POS', 'Kafe, warung, dan usaha dengan transaksi langsung di tempat.']
   ];
   let dialog = null, lastFocus = null;
 

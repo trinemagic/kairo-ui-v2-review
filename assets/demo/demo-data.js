@@ -12,7 +12,7 @@
   const META = {
     jasa: { template: 'service_consultation', label: 'Jasa Online' },
     shop: { template: 'online_shop', label: 'Online Shop' },
-    digital: { template: 'digital_product', label: 'Digital Product' },
+    kasir: { template: 'pos_kasir', label: 'Kasir / POS' },
     seller: { template: 'digital_subscription', label: 'Seller App Premium' }
   };
 
@@ -49,15 +49,15 @@
 
   function service(kind) {
     const T = base(kind);
-    const digital = kind === 'digital';
-    const P = digital
-      ? [{ id: 'p1', code: 'NOTION', name: 'Template Notion Keuangan', price: 49000, cost: 5000 }, { id: 'p2', code: 'EBOOK', name: 'E-book Panduan Freelance', price: 79000, cost: 8000 }, { id: 'p3', code: 'PRESET', name: 'Preset Lightroom (10)', price: 59000, cost: 4000 }, { id: 'p4', code: 'CANVA', name: 'Paket Template Canva', price: 99000, cost: 10000 }]
+    const kasir = kind === 'kasir';
+    const P = kasir
+      ? [{ id: 'p1', code: 'KSU', name: 'Kopi Susu', price: 22000, cost: 8000 }, { id: 'p2', code: 'AMR', name: 'Americano', price: 18000, cost: 5000 }, { id: 'p3', code: 'RTB', name: 'Roti Bakar Cokelat', price: 20000, cost: 8000 }, { id: 'p4', code: 'NGR', name: 'Nasi Goreng Spesial', price: 28000, cost: 12000 }]
       : [{ id: 'p1', code: 'LOGO', name: 'Desain Logo', price: 350000, cost: 90000 }, { id: 'p2', code: 'FEED', name: 'Desain Feed Instagram (9 post)', price: 250000, cost: 60000 }, { id: 'p3', code: 'REELS', name: 'Edit Video Reels', price: 150000, cost: 40000 }, { id: 'p4', code: 'BRAND', name: 'Konsultasi Brand 1 Jam', price: 200000, cost: 20000 }];
-    const A = digital
-      ? [{ id: 'a1', code: 'UPD', name: 'Update Seumur Hidup', price: 25000, cost: 0 }, { id: 'a2', code: 'WA', name: 'Bantuan Setup via WhatsApp', price: 35000, cost: 5000 }]
+    const A = kasir
+      ? [{ id: 'a1', code: 'SHT', name: 'Extra Shot', price: 5000, cost: 2000 }, { id: 'a2', code: 'TPG', name: 'Tambah Topping', price: 4000, cost: 1500 }]
       : [{ id: 'a1', code: 'REV', name: 'Revisi Tambahan', price: 50000, cost: 10000 }, { id: 'a2', code: 'MST', name: 'File Master', price: 75000, cost: 0 }, { id: 'a3', code: 'EXP', name: 'Kilat 24 Jam', price: 100000, cost: 20000 }];
-    const TOP = digital ? ['Produktivitas', 'Desain', 'Edukasi'] : ['Branding', 'Sosial Media', 'Promosi'];
-    const PL = ['Instagram', 'TikTok', 'WhatsApp', 'Instagram', 'X'];
+    const TOP = kasir ? ['Minuman', 'Makanan', 'Snack'] : ['Branding', 'Sosial Media', 'Promosi'];
+    const PL = kasir ? ['Dine In', 'Take Away', 'GrabFood', 'Dine In', 'Take Away'] : ['Instagram', 'TikTok', 'WhatsApp', 'Instagram', 'X'];
     T.package_masters = P.map(p => ({ id: p.id, workspace_id: WS, code: p.code, name: p.name, price: p.price, cost_price: p.cost, is_active: true }));
     T.addon_masters = A.map(a => ({ id: a.id, workspace_id: WS, code: a.code, name: a.name, price: a.price, cost_price: a.cost, is_active: true }));
     T.topic_masters = TOP.map((n, i) => ({ id: 't' + (i + 1), workspace_id: WS, name: n, is_active: true }));
