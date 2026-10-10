@@ -86,8 +86,8 @@ domain = pengguna login ulang & pengaturan browser (Ingat saya, dark mode) mulai
 | `assets/brand/` | Logo resmi KAIRO Workspaces (kit dari owner, Okt 2026) | `kairo-horizontal-color.svg` = landing (header, footer, dialog Masuk; latar terang, min. lebar 120px); `kairo-app-icon.svg` = logo default dashboard (`KAIRO_LOGO`, sidebar, header HP, preview Settings, admin) sampai user upload logo sendiri; `favicon.svg/.ico`; `assets/og/apple-touch-icon.png` dari kit. Wordmark digambar - jangan diketik ulang pakai font. `assets/kairo-mark.svg` (logo lama) sudah dihapus. |
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
-Versi terakhir: `kairo.css?v=20.10.161`, `kairo-receipt.css?v=1.3.0`, `kairo-v3.css?v=3.41.1`,
-`kairo-v3.js?v=3.30.9`, `kairo-app.js?v=20.10.232`, `kairo-pin.js?v=1.0.1`, `kairo-themes.css?v=1.0.0`/`.js?v=1.0.1`; template seller dimuat dari kairo-app.js
+Versi terakhir: `kairo.css?v=20.10.161`, `kairo-receipt.css?v=1.3.0`, `kairo-v3.css?v=3.42.0`,
+`kairo-v3.js?v=3.31.0`, `kairo-app.js?v=20.10.237`, `kairo-pin.js?v=1.0.1`, `kairo-themes.css?v=1.0.0`/`.js?v=1.0.1`; template seller dimuat dari kairo-app.js
 (`seller-app-premium.js?v=20.10.161`, `.css?v=20.10.157`) — naikkan juga bila file template diubah.
 Setup Wizard dimuat dari `loadSetupWizard()` di kairo-app.js (`kairo-setup-wizard.js/.css?v=1.0.4`, satu konstanta `v`).
 Panduan dimuat dari `window.kairoOpenGuide()` di kairo-v3.js (`kairo-guide.js/.css?v=` konstanta `GUIDE_V`='1.1.0'; gambar `assets/guide/*.webp?v=` `SHOT_V` di kairo-guide.js).
@@ -113,7 +113,9 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   untuk fitur Pro. Meta SEO/Open Graph + favicon di `<head>`; gambar preview link
   `assets/og/kairo-og.jpg` (1200×630), URL absolut `https://kairoworkspaces.my.id/` (ganti bila pindah domain lagi).
   Badge kuning kecil di atas judul section (`.kairo-lp-eyebrow`) sudah dihapus semua (owner) — jangan
-  ditambah lagi. `#masuk` = langsung form login. Badge "kini hadir…" sudah dihapus (owner: jangan
+  ditambah lagi. **Menu nav landing (owner Okt 2026):** tautan 14,5px di desktop; di HP (<=900px) TIDAK ada hamburger/dropdown lagi - baris 1 = logo + Masuk/Coba Gratis,
+  baris 2 = Features/Solutions/Pricing/About/Demo selalu terlihat (`.kairo-nav-menu{display:contents}`; <=380px logo & huruf dikecilkan, sisa lebar bisa digeser). Teks pudar landing: token
+  `--kairo-entry-muted` digelapkan (#4b6174, kontras ~6) dan huruf terkecil dinaikkan (chip "Tanpa instalasi" 12,5px, FAQ 13,5-14,5px, footer 12-13px); jangan menurunkan lagi di bawah 12px. `#masuk` = langsung form login. Badge "kini hadir…" sudah dihapus (owner: jangan
   wording khas AI).
   Copy landing ditulis untuk pelanggan: **jangan** ada catatan internal/teknis (Supabase,
   tenant, auth, "belum final"). Pricing Gratis (Rp0) / Pro / Custom dengan daftar fitur; tombol
@@ -238,6 +240,12 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   Batas jujur: PIN 6 angka bisa ditebak offline bila localStorage perangkat dicuri; tidak aktif di demo. Tes: scratchpad `pin.js` + `mockdb.js` (`refreshSession`, `__mockRT`).
 - **Login:** "Ingat saya" menyimpan **username saja** (`kairo_remember_username_v1`);
   `persistSession:false` sengaja (wajib login tiap buka) — jangan diubah tanpa izin.
+  **Langsung ke Masuk (owner Okt 2026):** skrip inline di `<head>` index.html: bila username diingat dan alamat = beranda (``, `#`, `#home`) -> `history.replaceState` ke `#masuk` + atribut
+  `html[data-kairo-masuk]` (CSS menyembunyikan landing sebelum kairo-v3.js jalan, jadi landing tidak sempat tampil di HP lambat). Alamat landing lain (`#pricing`, `#features`...) -> kairo-v3.js `bindLandingPages`
+  membuka dialog Masuk di atasnya (X = tetap di halaman itu). Dikecualikan: `#masuk/#syarat/#privasi`, `#demo*`, `?signup=1`, `?recovery=1`. X di `#masuk` -> `#home`.
+- **Tombol memproses = spinner + "Loading" (owner Okt 2026):** `setBtnLoading(btn,on,restoreText)` di kairo-app.js (juga `window.kairoBtnLoading`) memberi class `.kairo-loading` (spinner CSS di akhir kairo-v3.css, hanya
+  `transform`) + teks "Loading" + disabled. Dipakai: Masuk (`setAuthLoading`, juga "Menyiapkan KAIRO..." di kairo-v3.js), Simpan Transaksi (`#confirm-save`), Simpan Pencairan, Catat Pengeluaran/Pemasukan Kas,
+  Bayar Kasir (`#pos-pay-btn`, `renderCart` ikut menggambar loading saat `saving`). Tombol proses baru: pakai helper yang sama, jangan tulis "Memproses/Menyimpan..." sendiri.
 - **Riwayat Transaksi:** 7 kolom (Tanggal, Start Reading, Nama, Status, Paket=kode,
   Total, Aksi); Detail dialog + menu **Aksi** (Struk, Hapus/Cancel) yang meng-klik
   tombol asli app; mobile = kartu. Kolom lain tetap di DOM (disembunyikan CSS).

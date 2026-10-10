@@ -88,14 +88,6 @@ if (window.top !== window.self) {
     if (typeof window.__kairoOpenAccountPage === 'function') window.__kairoOpenAccountPage('signup');
   }
 
-  function mobileMenu(open) {
-    const nav = q('#kairo-entry-nav');
-    const toggle = q('#kairo-menu-toggle');
-    if (!nav || !toggle) return;
-    nav.classList.toggle('menu-open', open);
-    toggle.setAttribute('aria-expanded', String(open));
-  }
-
   function bindLandingReveal(root) {
     const items = qa('[data-kairo-reveal]', root);
     if (!items.length) return;
@@ -132,9 +124,13 @@ if (window.top !== window.self) {
 
   function bindLandingPages(root) {
     showLandingPage(root);
-    // "Ingat saya": open the login form straight away on the home page. Phones usually reopen the
-    // last address with "#home" (from the landing menu), so that counts as home too.
-    if (rememberedUsername() && ['', '#', '#home'].includes(location.hash)) openLogin();
+    // "Ingat saya": open the login form straight away. The home address is already turned into "#masuk" by the
+    // inline script in index.html; here it also covers phones that reopen the last landing page (#pricing, #features...).
+    const params = new URLSearchParams(location.search);
+    const hash = location.hash.slice(1);
+    const skipRemember = ['masuk', 'syarat', 'privasi'].includes(hash) || hash.startsWith('demo')
+      || params.get('signup') === '1' || params.get('recovery') === '1';
+    if (rememberedUsername() && !skipRemember) openLogin();
     // kairo-app.js wraps the password field (show/hide eye) during boot, which drops focus
     // from a dialog that is already open. Restore it once the wrapper is in place.
     const form = q('#login-form', root);
@@ -163,11 +159,6 @@ if (window.top !== window.self) {
     qa('[data-login-close]', root).forEach(button => button.addEventListener('click', () => closeLogin()));
     q('#kairo-remember-me', root)?.addEventListener('change', event => {
       if (!event.target.checked) setRememberedUsername('');
-    });
-    qa('#kairo-entry-nav a', root).forEach(link => link.addEventListener('click', () => mobileMenu(false)));
-    q('#kairo-menu-toggle', root)?.addEventListener('click', event => {
-      const open = event.currentTarget.getAttribute('aria-expanded') !== 'true';
-      mobileMenu(open);
     });
     bindLandingReveal(root);
     root.addEventListener('keydown', event => {
@@ -743,18 +734,18 @@ if (window.top !== window.self) {
       queuedLoginSubmit = true;
       const button = q('#login-button');
       const error = q('#auth-error');
-      if (button) { button.disabled = true; button.textContent = 'Menyiapkan KAIRO...'; }
+      if (button) { button.disabled = true; button.classList.add('kairo-loading'); button.textContent = 'Loading'; }
       const started = Date.now();
       const waitForApp = setInterval(() => {
         if (window.__KAIRO_APP_READY__) {
           clearInterval(waitForApp);
           queuedLoginSubmit = false;
-          if (button) { button.disabled = false; button.textContent = 'Masuk'; }
+          if (button) { button.disabled = false; button.classList.remove('kairo-loading'); button.textContent = 'Masuk'; }
           event.target.requestSubmit();
         } else if (Date.now() - started > 20000) {
           clearInterval(waitForApp);
           queuedLoginSubmit = false;
-          if (button) { button.disabled = false; button.textContent = 'Masuk'; }
+          if (button) { button.disabled = false; button.classList.remove('kairo-loading'); button.textContent = 'Masuk'; }
           if (error) { error.textContent = 'Aplikasi belum berhasil dimuat. Periksa koneksi lalu refresh halaman.'; error.style.display = 'block'; }
         }
       }, 100);
@@ -767,7 +758,6 @@ if (window.top !== window.self) {
       setTimeout(mountDashboardHeader, 60);
       setTimeout(enhanceDashboardFoundation, 220);
     }
-    if (!event.target.closest('#kairo-entry-nav')) mobileMenu(false);
   }, true);
 })();
 
