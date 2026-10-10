@@ -727,16 +727,16 @@
       seller.querySelector('.seller-add-product-close')?.addEventListener('click',closeSellerProductCreator);
       seller.querySelector('.seller-add-product-cancel')?.addEventListener('click',closeSellerProductCreator);
       seller.querySelector('#seller-add-product-modal')?.addEventListener('click',e=>{if(e.target.id==='seller-add-product-modal')closeSellerProductCreator()});
-      seller.querySelector('#seller-add-product-form')?.addEventListener('submit',async e=>{e.preventDefault();const btn=e.currentTarget.querySelector('.seller-add-product-save');btn.disabled=true;const old=btn.textContent;btn.textContent='Menyimpan...';try{await addCustomSellerProduct(e.currentTarget);showToast('Produk berhasil ditambahkan.');closeSellerProductCreator();installSellerSettings();}catch(err){showToast(err.message||'Gagal menambah produk.',true)}finally{btn.disabled=false;btn.textContent=old}});
+      seller.querySelector('#seller-add-product-form')?.addEventListener('submit',async e=>{e.preventDefault();const btn=e.currentTarget.querySelector('.seller-add-product-save');const old=btn.textContent;window.kairoBtnLoading(btn,true,undefined,'Menyimpan…');try{await addCustomSellerProduct(e.currentTarget);showToast('Produk berhasil ditambahkan.');closeSellerProductCreator();installSellerSettings();}catch(err){showToast(window.kairoFriendlyError(err.message,'menambah produk')||'Gagal menambah produk.',true)}finally{window.kairoBtnLoading(btn,false,old)}});
       seller.addEventListener('click',async e=>{
         const cat=e.target.closest('[data-seller-settings-category]');
         if(cat){settingsCategory=cat.dataset.sellerSettingsCategory;seller.querySelectorAll('[data-seller-settings-category]').forEach(b=>b.classList.toggle('active',b===cat));renderSellerSettingsProducts();return}
         const save=e.target.closest('.seller-setting-save');if(!save)return;
         const row=save.closest('.seller-settings-option'),key=row?.dataset.sellerSettingKey,base=allEffective().find(x=>rowKey(x)===key);if(!base)return;
-        save.disabled=true;const old=save.textContent;save.textContent='Menyimpan...';
+        const old=save.textContent;window.kairoBtnLoading(save,true,undefined,'Menyimpan…');
         try{await saveSellerSetting(base,row.querySelector('.seller-setting-price')?.value,row.querySelector('.seller-setting-cost')?.value);showToast('Harga & modal tersimpan.');renderSellerSettingsProducts();renderSellerDashboardKpis();}
-        catch(err){showToast(err.message||'Gagal menyimpan produk.',true)}
-        finally{save.disabled=false;save.textContent=old}
+        catch(err){showToast(window.kairoFriendlyError(err.message,'menyimpan produk')||'Gagal menyimpan produk.',true)}
+        finally{window.kairoBtnLoading(save,false,old)}
       });
       seller.querySelector('#seller-settings-search').addEventListener('input',e=>{settingsSearch=e.target.value;renderSellerSettingsProducts()});
     }

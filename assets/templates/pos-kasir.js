@@ -216,6 +216,7 @@
     const label = cart.table ? 'Meja ' + cart.table : (cart.customer || 'Bill ' + (bills.length + 1));
     const row = { label, order_type: cart.type || typeList()[0], table_no: cart.table || null, customer_name: cart.customer || null, items: [...cart.items].map(([id, qty]) => ({ id, qty })), addons: [...cart.addons].map(([id, qty]) => ({ id, qty })), discount_mode: cart.discMode, discount_value: num(cart.discValue), updated_at: new Date().toISOString() };
     saving = true;
+    const billBtn = document.getElementById('pos-save-bill'), billOrig = billBtn?.textContent; window.kairoBtnLoading(billBtn, true, undefined, 'Menyimpan…');
     try {
       const wid = requireWorkspaceId();
       const q = cart.billId ? db.from('pos_open_bills').update(row).eq('workspace_id', wid).eq('id', cart.billId) : db.from('pos_open_bills').insert([{ ...row, workspace_id: wid, ...(typeof activeAuthUserId !== 'undefined' && activeAuthUserId ? { created_by: activeAuthUserId } : {}) }]);
@@ -225,7 +226,7 @@
       resetCart(true);
       await loadBills();
     } catch (err) { showToast('Gagal menyimpan bill: ' + (err.message || err), true); }
-    finally { saving = false; }
+    finally { saving = false; if (billBtn?.isConnected) window.kairoBtnLoading(billBtn, false, billOrig); }
   }
   function openBill(id) {
     const b = bills.find(x => String(x.id) === String(id));
@@ -735,7 +736,7 @@
       const get = wireMoney(el, 'pos-open-cash');
       el.querySelector('#pos-open-cash').focus();
       el.querySelector('#pos-open-go').addEventListener('click', async e => {
-        const btn = e.currentTarget; btn.disabled = true;
+        const btn = e.currentTarget; const orig = btn.textContent; window.kairoBtnLoading(btn, true, undefined, 'Membuka…');
         try {
           const { error } = await db.from('reading_shifts').insert([workspaceInsert({ opened_at: new Date().toISOString(), opening_cash: get() })]);
           if (error) throw error;
@@ -743,7 +744,7 @@
           showToast('Kasir dibuka.');
           await Promise.all([fetchShiftData(), refreshAll()]);
           renderShiftDashboard(); refresh();
-        } catch (err) { btn.disabled = false; showToast('Gagal membuka kasir: ' + (err.message || err), true); }
+        } catch (err) { window.kairoBtnLoading(btn, false, orig); showToast('Gagal membuka kasir: ' + (err.message || err), true); }
       });
     });
   }
@@ -779,7 +780,7 @@
       el.querySelector('#pos-counted').focus();
       el.querySelector('#pos-close-go').addEventListener('click', async e => {
         if (counted === null && !confirm('Uang fisik belum diisi. Tutup kasir tanpa hitung kas?')) return;
-        const btn = e.currentTarget; btn.disabled = true;
+        const btn = e.currentTarget; const orig = btn.textContent; window.kairoBtnLoading(btn, true, undefined, 'Menutup…');
         const expected = sum.opening + sum.cash - out;
         const row = { closed_at: new Date().toISOString(), cash_out: out, counted_cash: counted, expected_cash: expected, cash_difference: counted === null ? null : counted - expected, close_note: el.querySelector('#pos-close-note').value.trim() || null };
         try {
@@ -790,7 +791,7 @@
           await Promise.all([fetchShiftData(), refreshAll()]);
           renderShiftDashboard(); refresh();
           showSessionRecap({ ...shift, ...row });
-        } catch (err) { btn.disabled = false; showToast('Gagal menutup kasir: ' + (err.message || err), true); }
+        } catch (err) { window.kairoBtnLoading(btn, false, orig); showToast('Gagal menutup kasir: ' + (err.message || err), true); }
       });
     });
   }

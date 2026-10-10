@@ -87,7 +87,7 @@ domain = pengguna login ulang & pengaturan browser (Ingat saya, dark mode) mulai
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
 Versi terakhir: `kairo.css?v=20.10.161`, `kairo-receipt.css?v=1.3.0`, `kairo-v3.css?v=3.42.0`,
-`kairo-v3.js?v=3.31.0`, `kairo-app.js?v=20.10.237`, `kairo-pin.js?v=1.0.1`, `kairo-themes.css?v=1.0.0`/`.js?v=1.0.1`; template seller dimuat dari kairo-app.js
+`kairo-v3.js?v=3.31.1`, `kairo-app.js?v=20.10.238`, `kairo-pin.js?v=1.0.1`, `kairo-themes.css?v=1.0.0`/`.js?v=1.0.1`; template seller dimuat dari kairo-app.js
 (`seller-app-premium.js?v=20.10.161`, `.css?v=20.10.157`) — naikkan juga bila file template diubah.
 Setup Wizard dimuat dari `loadSetupWizard()` di kairo-app.js (`kairo-setup-wizard.js/.css?v=1.0.4`, satu konstanta `v`).
 Panduan dimuat dari `window.kairoOpenGuide()` di kairo-v3.js (`kairo-guide.js/.css?v=` konstanta `GUIDE_V`='1.1.0'; gambar `assets/guide/*.webp?v=` `SHOT_V` di kairo-guide.js).
@@ -246,6 +246,14 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
 - **Tombol memproses = spinner + "Loading" (owner Okt 2026):** `setBtnLoading(btn,on,restoreText)` di kairo-app.js (juga `window.kairoBtnLoading`) memberi class `.kairo-loading` (spinner CSS di akhir kairo-v3.css, hanya
   `transform`) + teks "Loading" + disabled. Dipakai: Masuk (`setAuthLoading`, juga "Menyiapkan KAIRO..." di kairo-v3.js), Simpan Transaksi (`#confirm-save`), Simpan Pencairan, Catat Pengeluaran/Pemasukan Kas,
   Bayar Kasir (`#pos-pay-btn`, `renderCart` ikut menggambar loading saat `saving`). Tombol proses baru: pakai helper yang sama, jangan tulis "Memproses/Menyimpan..." sendiri.
+  Helper punya parameter ke-4 `label` (bawaan "Loading"; login & simpan penjualan/bayar tetap "Loading", sisanya menyesuaikan: "Menyimpan…", "Mengupload…", "Menghapus…", "Membuka…", "Menutup…"). Tambahan (Okt 2026): logo upload,
+  Simpan Pengaturan Struk, Produk/Hapus/Hitung Stok (pos-produk.js), Buka/Tutup Kasir + Simpan Bill, stok Online Shop, produk Seller. Form Settings tanpa penanda proses (`workspace-settings-form`, `profit-share-editor-form`,
+  `receipt-wording-form`, `promo-form`) ditangani satu listener `submit` di kairo-v3.js (`SAVE_FORM_IDS`): spinner "Menyimpan…" sampai pop-up hasil muncul di `#toast` (maks 15 dtk). Form baru dengan pola sama -> tambahkan id ke daftar itu.
+  Setup Wizard punya spinner sendiri (`.ksw-btn.is-busy`), tidak diubah.
+- **Pesan error koneksi (owner Okt 2026):** supabase-js membungkus kegagalan jaringan jadi pesan mentah "TypeError: Load failed" (Safari) / "Failed to fetch" (Chrome); dulu tampil apa adanya ("Gagal menyimpan: TypeError: Load failed")
+  dan di login malah jadi "Username belum terdaftar...". `friendlyError(raw, aksi)` + `isNetworkError()` (kairo-app.js, `window.kairoFriendlyError`) mengubahnya jadi "Proses <aksi> gagal, coba lagi. Pastikan koneksi internet aktif."
+  (aksi diambil dari awalan "Gagal <aksi>:" atau parameter). Dipasang terpusat di `showToast` (varian error; pesan ASLI tetap dikirim ke laporan error Admin), login (`loginWithUsername`, handler submit tahan throw), daftar akun, dan toast
+  Produk/Stok. Pesan non-jaringan (validasi, duplikat, dll) TIDAK diubah. Batas jujur: bila koneksi putus tepat setelah server menerima data, simpan ulang bisa membuat catatan dobel (belum ada pencegahan duplikat).
 - **Riwayat Transaksi:** 7 kolom (Tanggal, Start Reading, Nama, Status, Paket=kode,
   Total, Aksi); Detail dialog + menu **Aksi** (Struk, Hapus/Cancel) yang meng-klik
   tombol asli app; mobile = kartu. Kolom lain tetap di DOM (disembunyikan CSS).
