@@ -29,6 +29,8 @@
   const lowAt = p => (p.stock_min === null || p.stock_min === undefined ? 5 : num(p.stock_min));
   const stockState = p => (!tracked(p) ? 'none' : num(p.stock_qty) <= 0 ? 'out' : num(p.stock_qty) <= lowAt(p) ? 'low' : 'ok');
   const wid = () => requireWorkspaceId();
+  const initials = n => { const w = String(n || '?').trim().split(/\s+/); return ((w[0] || '?')[0] + (w[1] ? w[1][0] : '')).toUpperCase(); };
+  const hue = n => { let h = 0; for (const c of String(n || '')) h = (h * 31 + c.charCodeAt(0)) % 360; return h; };
 
   /* ---------- Halaman + menu ---------- */
   function ensurePage() {
@@ -95,7 +97,7 @@
     box.innerHTML = rows.map(p => {
       const profit = num(p.price) - num(p.cost_price), st = stockState(p);
       const badge = st === 'none' ? '' : `<span class="pp-badge is-${st}">${st === 'out' ? 'Habis' : st === 'low' ? 'Menipis · ' + p.stock_qty : 'Stok ' + p.stock_qty + (p.unit ? ' ' + p.unit : '')}</span>`;
-      const img = p.image_url ? `<img src="${esc(p.image_url)}" alt="" loading="lazy">` : `<span class="pp-ph">${PLACEHOLDER}</span>`;
+      const img = p.image_url ? `<img src="${esc(p.image_url)}" alt="" loading="lazy">` : `<span class="pp-ph pp-initial" style="--h:${hue(p.name)}">${esc(initials(p.name))}</span>`;
       return `<button type="button" class="pp-card" data-id="${esc(p.id)}"><span class="pp-photo">${img}${badge}</span><b class="pp-name">${esc(p.name)}</b>${p.category || p.unit ? `<small class="pp-sub">${esc([p.category, p.unit].filter(Boolean).join(' · '))}</small>` : ''}<span class="pp-price">${money(p.price)}</span><span class="pp-profit ${profit < 0 ? 'is-neg' : ''}">Untung ${money(profit)}</span></button>`;
     }).join('');
   }

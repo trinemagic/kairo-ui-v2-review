@@ -132,3 +132,6 @@ body.saas-dark .pp-dash-item.is-out{background:#4a1f29;color:#ffb3bf}
 }
 
 .pp-card>.pp-sub{padding:0 12px;font-size:12px;color:var(--v3-muted,#4e6475)}
+
+.pp-ph.pp-initial{background:linear-gradient(135deg,hsl(var(--h) 70% 82%),hsl(var(--h) 65% 70%));color:hsl(var(--h) 55% 26%);font-size:34px;font-weight:800;letter-spacing:.02em}
+body.saas-dark .pp-ph.pp-initial{background:linear-gradient(135deg,hsl(var(--h) 40% 30%),hsl(var(--h) 38% 24%));color:hsl(var(--h) 70% 85%)}
