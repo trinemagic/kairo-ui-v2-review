@@ -172,5 +172,6 @@ body.saas-dark .pos-modal-card{background:#17222e;color:#e6eef7}
 .pos-prod small.is-low{color:#9a5b00;font-weight:800}
 body.saas-dark .pos-prod small.is-low{color:#f2c46b}
 /* Produk & Add-on diatur di menu Produk (bukan lagi di Settings) */
-html[data-business-template="pos_kasir"] .saas-settings-submenu-btn[data-settings-category="packages"],
-html[data-business-template="pos_kasir"] .kairo-mobile-settings-link[data-settings-category="packages"]{display:none!important}
+html[data-business-template="pos_kasir"] .saas-settings-submenu-btn:is([data-settings-category="packages"],[data-settings-category="addons"]),
+html[data-business-template="pos_kasir"] .kairo-mobile-settings-link:is([data-settings-category="packages"],[data-settings-category="addons"]){display:none!important}
+.pos-receipt-note{margin-bottom:16px}

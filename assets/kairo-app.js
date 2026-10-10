@@ -4114,31 +4114,48 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
  }
  /* Struk desain: HANYA kertas (tanpa latar scene) supaya hasil cetak sama dengan di layar. Semua hiasan ada di dalam kertas:
     receiptTop = pita/kepala (nama usaha + hiasan), receiptBottom = penutup. Dipakai HTML preview; makeReceiptCanvas menggambar versi PNG yang sama. */
+ /* Simbol hiasan struk digambar sebagai SVG/Path2D (bukan karakter font) supaya bentuknya sama di semua perangkat, layar, PNG, dan printer. */
+ const RG={
+   star4:[['M12 2l2.6 7.4L22 12l-7.4 2.6L12 22l-2.6-7.4L2 12l7.4-2.6z','f']],
+   star4o:[['M12 2l2.6 7.4L22 12l-7.4 2.6L12 22l-2.6-7.4L2 12l7.4-2.6z','s']],
+   star5:[['M12 2.5l2.8 6.5 7 .6-5.3 4.6 1.6 6.8-6.1-3.6-6.1 3.6 1.6-6.8L2.2 9.6l7-.6z','f']],
+   star5o:[['M12 2.5l2.8 6.5 7 .6-5.3 4.6 1.6 6.8-6.1-3.6-6.1 3.6 1.6-6.8L2.2 9.6l7-.6z','s']],
+   smile:[['M12 2.5a9.5 9.5 0 1 0 0 19 9.5 9.5 0 0 0 0-19z','s'],['M8.6 9.2a1.3 1.3 0 1 0 .01 0z','f'],['M15.4 9.2a1.3 1.3 0 1 0 .01 0z','f'],['M7.6 14c1.2 2.6 7.6 2.6 8.8 0','s']],
+   plane:[['M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z','f']],
+   leaf:[['M4.5 19.5C4.5 10.5 10.5 4 20 4c0 9.5-6.2 15.5-13.5 15.5-.7 0-1.4-.1-2-.2z','f'],['M5 19c3-5.5 6.5-8.6 11-10.6','s2']],
+   heart:[['M12 20.5S3 14.7 3 8.9a4.7 4.7 0 0 1 9-2 4.7 4.7 0 0 1 9 2C21 14.7 12 20.5 12 20.5z','s']],
+   bolt:[['M13.5 2L4 14h6.2l-1.2 8L19 10h-6.4z','f']],
+   plus:[['M10 3h4v7h7v4h-7v7h-4v-7H3v-4h7z','f']]
+ };
+ const rg=(name,size,color)=>`<svg class="rg" viewBox="0 0 24 24" width="${size||12}" height="${size||12}" aria-hidden="true" style="${color?'color:'+color:''}">${(RG[name]||[]).map(([d,m])=>m==='f'?`<path d="${d}" fill="currentColor"/>`:`<path d="${d}" fill="none" stroke="currentColor" stroke-width="${m==='s2'?1.4:1.8}" stroke-linecap="round" stroke-linejoin="round"/>`).join('')}</svg>`;
+ const rgRow=(names,size,color)=>names.map(n=>rg(n,size,color)).join('');
  function receiptTop(template,business,p){
    const b=esc(business||'NAMA USAHA');
    const date=new Date(p.reading_started_at||Date.now());
    const ds=isNaN(date.getTime())?'':date.toLocaleDateString('id-ID',{day:'2-digit',month:'2-digit',year:'numeric'});
    const sub=isSellerReceiptContext()?'DIGITAL ACCESS MADE SIMPLE':'A KINDER TOMORROW';
+   const stars=rgRow(['star4','star5o','star4o','star5','star5o','star4'],14);
+   const smiles=rgRow(['smile','smile','smile','smile'],13);
    if(template==='standard')return `<div class="rp-top"><div class="receipt-template-brand receipt-template-brand-standard">${b}<small>STRUK PENJUALAN</small></div></div>`;
-   if(template==='pastel')return `<div class="rp-top"><div class="rp-stars">✦　☆　✧　★　☆　✦</div><div class="rp-sign-main">${b}</div><div class="rp-sign-for">for</div><div class="rp-sign-sub">${sub}</div></div>`;
+   if(template==='pastel')return `<div class="rp-top"><div class="rp-stars">${stars}</div><div class="rp-sign-main">${b}</div><div class="rp-sign-for">for</div><div class="rp-sign-sub">${sub}</div></div>`;
    if(template==='studio')return `<div class="rp-top"><span class="rp-sticker rp-sticker-a">GOOD<br>THINGS<br>AHEAD</span><span class="rp-sticker rp-sticker-b">DO<br>YOUR<br>BEST</span><div class="rp-studio-name">${b}</div><div class="rp-studio-sub">QUALITY MAKES A DIFFERENCE</div></div>`;
    if(template==='receiptify')return `<div class="rp-top"><div class="rp-checker"></div><div class="rp-recpt-head"><div class="rp-recpt-name">${b}</div><span class="rp-recpt-pill">GOOD PEOPLE, GOOD BUSINESS</span></div></div>`;
-   if(template==='vintage')return `<div class="rp-top"><div class="rp-tape">☺　☺　☺　☺</div><div class="rp-vintage-row"><span class="rp-burst">VINTAGE<br>VIBES<br>ONLY</span><div class="rp-vintage-brand"><span>★</span><b>${b}</b><span>★</span></div></div><div class="rp-vintage-sub">MORE THAN JUST A BUSINESS</div><div class="receipt-date-row"><strong>DATE:</strong><span>${esc(ds)}</span></div></div>`;
+   if(template==='vintage')return `<div class="rp-top"><div class="rp-tape">${smiles}</div><div class="rp-vintage-row"><span class="rp-burst">VINTAGE<br>VIBES<br>ONLY</span><div class="rp-vintage-brand">${rg('star5',15)}<b>${b}</b>${rg('star5',15)}</div></div><div class="rp-vintage-sub">MORE THAN JUST A BUSINESS</div><div class="receipt-date-row"><strong>DATE:</strong><span>${esc(ds)}</span></div></div>`;
    if(template==='newspaper')return `<div class="rp-top"><div class="rp-news-strip"><span>THE DAILY ORDER</span><span>•</span><span>GOOD PEOPLE GOOD STORIES</span></div><div class="rp-news-masthead">The Daily Order</div><div class="rp-news-name">${b}</div><div class="rp-news-sub">SMALL BUSINESS, BIG IMPACT</div></div>`;
-   if(template==='boarding')return `<div class="rp-top"><div class="rp-flight"><span>✈　BUSINESS CLASS</span><em>A SMALL BUSINESS<br>GOES A LONG WAY</em></div><div class="rp-board-name">${b}</div><div class="rp-board-sub">BOARDING TO A BRIGHTER TOMORROW</div></div>`;
+   if(template==='boarding')return `<div class="rp-top"><div class="rp-flight"><span>${rg('plane',15)}　BUSINESS CLASS</span><em>A SMALL BUSINESS<br>GOES A LONG WAY</em></div><div class="rp-board-name">${b}</div><div class="rp-board-sub">BOARDING TO A BRIGHTER TOMORROW</div></div>`;
    if(template==='diner')return `<div class="rp-top"><div class="rp-checker rp-checker-red"></div><div class="rp-diner-oval"><b>${b}</b><small>ALWAYS A GOOD CHOICE</small></div></div>`;
-   if(template==='luxury')return `<div class="rp-top"><div class="rp-lux-mark">❧</div><div class="rp-lux-name">${b}</div><div class="rp-lux-sub">BEAUTY IN EVERY DETAIL</div></div>`;
+   if(template==='luxury')return `<div class="rp-top"><div class="rp-lux-mark">${rg('leaf',20)}</div><div class="rp-lux-name">${b}</div><div class="rp-lux-sub">BEAUTY IN EVERY DETAIL</div></div>`;
    return '';
  }
  function receiptBottom(template){
-   if(template==='pastel')return `<div class="rp-bottom"><div class="rp-stars">✦　☆　✧　★　☆　✦</div></div>`;
-   if(template==='studio')return `<div class="rp-bottom rp-studio-bottom"><span class="rp-qr" aria-hidden="true"></span><span class="rp-plus">✚</span></div>`;
-   if(template==='receiptify')return `<div class="rp-bottom"><div class="rp-doodles"><span>♡</span><span>✦</span><span>⌁</span><span>?!</span><span>☺</span></div><div class="rp-checker"></div></div>`;
-   if(template==='vintage')return `<div class="rp-bottom"><span class="rp-stamp">THANK YOU ☺</span><div class="rp-tape">☺　☺　☺　☺</div></div>`;
-   if(template==='newspaper')return `<div class="rp-bottom"><div class="rp-news-end">— ✦ —</div></div>`;
+   if(template==='pastel')return `<div class="rp-bottom"><div class="rp-stars">${rgRow(['star4','star5o','star4o','star5','star5o','star4'],14)}</div></div>`;
+   if(template==='studio')return `<div class="rp-bottom rp-studio-bottom"><span class="rp-qr" aria-hidden="true"></span><span class="rp-plus">${rg('plus',16)}</span></div>`;
+   if(template==='receiptify')return `<div class="rp-bottom"><div class="rp-doodles"><span>${rg('heart',17)}</span><span>${rg('star4',17)}</span><span>${rg('bolt',17)}</span><span>?!</span><span>${rg('smile',17)}</span></div><div class="rp-checker"></div></div>`;
+   if(template==='vintage')return `<div class="rp-bottom"><span class="rp-stamp">THANK YOU ${rg('smile',12)}</span><div class="rp-tape">${rgRow(['smile','smile','smile','smile'],13)}</div></div>`;
+   if(template==='newspaper')return `<div class="rp-bottom"><div class="rp-news-end"><i></i>${rg('star4',13)}<i></i></div></div>`;
    if(template==='boarding')return `<div class="rp-bottom rp-board-stub"><span>BOARDING PASS · THANK YOU</span></div>`;
-   if(template==='diner')return `<div class="rp-bottom"><div class="rp-mascot">☺</div><div class="rp-checker rp-checker-red"></div></div>`;
-   if(template==='luxury')return `<div class="rp-bottom"><div class="rp-lux-mark">❧</div></div>`;
+   if(template==='diner')return `<div class="rp-bottom"><div class="rp-mascot">${rg('smile',20)}</div><div class="rp-checker rp-checker-red"></div></div>`;
+   if(template==='luxury')return `<div class="rp-bottom"><div class="rp-lux-mark">${rg('leaf',20)}</div></div>`;
    return '';
  }
  function renderReceiptSurface(p,layout,d){
@@ -4317,13 +4334,15 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
    function fit(t,maxW,size,font,weight){let s=size;ctx.save();while(s>14){ctx.font=`${weight} ${s}px ${font}`;if(ctx.measureText(t).width<=maxW)break;s-=2}ctx.restore();return s}
    function checker(x,y,w,h,c1,c2,sq){for(let yy=0;yy<h;yy+=sq)for(let xx=0;xx<w;xx+=sq){rect(x+xx,y+yy,Math.min(sq,w-xx),Math.min(sq,h-yy),((xx/sq+yy/sq)%2===0)?c1:c2)}}
    function barcode(x,y,w,h){ctx.save();ctx.fillStyle='#111';let xx=x,i=0;while(xx<x+w){const bw=[2,4,3,7,2,5,3,2][i++%8];ctx.fillRect(xx,y,bw,h);xx+=bw+[3,2,4,3][i%4]}ctx.restore()}
+   function glyph(name,cx,cy,size,color,sw){ctx.save();ctx.translate(cx-size/2,cy-size/2);ctx.scale(size/24,size/24);ctx.fillStyle=color;ctx.strokeStyle=color;ctx.lineCap='round';ctx.lineJoin='round';(RG[name]||[]).forEach(([d,m])=>{const pth=new Path2D(d);if(m==='f')ctx.fill(pth);else{ctx.lineWidth=m==='s2'?1.4:(sw||1.8);ctx.stroke(pth)}});ctx.restore()}
+   function glyphRow(names,cx,cy,size,gap,color){const w=names.length*size+(names.length-1)*gap;names.forEach((n,i)=>glyph(n,cx-w/2+size/2+i*(size+gap),cy,size,color))}
    function tilted(cx,cy,deg,fn){ctx.save();ctx.translate(cx,cy);ctx.rotate(deg*Math.PI/180);fn();ctx.restore()}
    rect(0,0,W,H,paper);
    const botY=H-botH;
    // ---- kepala + hiasan atas (di dalam kertas) ----
    if(T==='standard'){text(BU,W/2,74,fit(BU,inner,44,SM,'700'),SM,'#111','center','700');text('STRUK PENJUALAN',W/2,104,16,SM,'#111','center','700');line(pad,128,W-pad,128,'#111',3,[12,9])}
    else if(T==='pastel'){const g=ctx.createLinearGradient(0,0,W,topH-20);g.addColorStop(0,'#f7dfe8');g.addColorStop(.55,'#dce7ff');g.addColorStop(1,'#c4dcff');rect(0,0,W,topH-20,g);
-     text('✦  ☆  ✧  ★  ☆  ✦',W/2,48,28,'Arial','#6eb3ec','center','400');
+     glyphRow(['star4','star5o','star4o','star5','star5o','star4'],W/2,40,28,18,'#6eb3ec');
      tilted(W/2,100,-2,()=>{rect(-240,-34,480,68,'#6eb3ec');text(BU,0,12,fit(BU,440,42,FR,'600'),FR,'#fff','center','600')});
      text('for',W/2,162,36,PA,'#ff6f9f','center','400');
      tilted(W/2,196,-1.5,()=>{rect(-230,-24,460,48,'#fff');ctx.strokeStyle='#6eb3ec';ctx.lineWidth=3;ctx.strokeRect(-230,-24,460,48);text(isSellerReceiptContext()?'DIGITAL ACCESS MADE SIMPLE':'A KINDER TOMORROW',0,9,25,FR,'#4b9fe0','center','600')})}
@@ -4333,10 +4352,10 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
      text(BU,W/2,140,fit(BU,inner,46,AB,'400'),AB,'#fff','center','400');text('QUALITY MAKES A DIFFERENCE',W/2,170,14,SM,'#fff','center','700')}
    else if(T==='receiptify'){checker(0,0,W,24,'#ef76a7','#f5eaa5',12);rect(0,24,W,topH-34,'#b9b8ee');
      text(BU,pad,104,fit(BU,inner,50,AB,'400'),AB,'#292c32','left','400');rect(pad,124,430,40,'#ef7da9');text('GOOD PEOPLE, GOOD BUSINESS',pad+215,151,17,SM,'#303039','center','700')}
-   else if(T==='vintage'){rect(0,0,W,40,'#e8dfc4');line(0,40,W,40,'#cdbf93',2);text('☺    ☺    ☺    ☺',W/2,30,20,'Arial','#8a7a50','center','400');
+   else if(T==='vintage'){rect(0,0,W,40,'#e8dfc4');line(0,40,W,40,'#cdbf93',2);glyphRow(['smile','smile','smile','smile'],W/2,21,22,34,'#8a7a50');
      ctx.save();ctx.translate(112,124);ctx.fillStyle='#1628a1';ctx.beginPath();for(let i=0;i<24;i++){const a=i*Math.PI/12,r=i%2?44:62;ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r)}ctx.closePath();ctx.fill();ctx.restore();
      ['VINTAGE','VIBES','ONLY'].forEach((t,i)=>text(t,112,114+i*17,15,AB,'#fff','center','400'));
-     text('★',226,138,32,'Georgia','#6e0e1e','center','900');text('★',W-pad+8,138,32,'Georgia','#6e0e1e','center','900');
+     glyph('star5',210,134,30,'#6e0e1e');glyph('star5',W-pad+8,134,30,'#6e0e1e');
      ctx.save();ctx.strokeStyle='#6e0e1e';ctx.lineWidth=6;ctx.beginPath();ctx.ellipse(W/2+60,124,196,40,0,0,Math.PI*2);ctx.stroke();ctx.restore();text(BU,W/2+60,136,fit(BU,330,36,DM,'400'),DM,'#6e0e1e','center','400');
      text('MORE THAN JUST A BUSINESS',W/2,206,14,SE,'#111','center','400');line(pad,224,W-pad,224,'#222',2);text('DATE:',pad,252,17,SE,'#111','left','400');
      const dt=new Date(p.reading_started_at||Date.now());text(isNaN(dt.getTime())?'':dt.toLocaleDateString('id-ID',{day:'2-digit',month:'2-digit',year:'numeric'}),W-pad,252,17,SE,'#111','right','400')}
@@ -4344,13 +4363,13 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
      line(pad,26,W-pad,26,'#111',5);text('THE DAILY ORDER',pad,52,13,LB,'#111','left','700');text('•',W/2,52,14,LB,'#111','center','700');text('GOOD PEOPLE GOOD STORIES',W-pad,52,13,LB,'#111','right','700');line(pad,62,W-pad,62,'#111',1.5);
      text('The Daily Order',W/2,132,62,PF,'#111','center','900');line(pad,148,W-pad,148,'#111',4);line(pad,157,W-pad,157,'#111',1.5);
      text(BU,pad,206,fit(BU,inner,40,PF,'900'),PF,'#111','left','900');text('SMALL BUSINESS, BIG IMPACT',pad,232,13,LB,'#111','left','400')}
-   else if(T==='boarding'){ctx.strokeStyle='#19689f';ctx.lineWidth=3;ctx.strokeRect(1.5,1.5,W-3,H-3);rect(0,0,W,56,'#0d5f9a');text('✈  BUSINESS CLASS',28,40,30,BC,'#fff','left','700');text('A SMALL BUSINESS',W-28,26,15,BC,'#fff','right','700');text('GOES A LONG WAY',W-28,44,15,BC,'#fff','right','700');
+   else if(T==='boarding'){ctx.strokeStyle='#19689f';ctx.lineWidth=3;ctx.strokeRect(1.5,1.5,W-3,H-3);rect(0,0,W,56,'#0d5f9a');glyph('plane',44,30,28,'#fff');text('BUSINESS CLASS',66,40,30,BC,'#fff','left','700');text('A SMALL BUSINESS',W-28,26,15,BC,'#fff','right','700');text('GOES A LONG WAY',W-28,44,15,BC,'#fff','right','700');
      text(BU,pad,126,fit(BU,inner,62,BC,'700'),BC,'#19689f','left','700');text('BOARDING TO A BRIGHTER TOMORROW',pad,156,17,BC,'#254055','left','700')}
    else if(T==='diner'){ctx.strokeStyle='#c7372f';ctx.lineWidth=6;ctx.strokeRect(3,3,W-6,H-6);checker(0,0,W,32,'#c7372f','#f4e5c1',16);
      ctx.save();ctx.fillStyle='#fff';ctx.strokeStyle='#c7372f';ctx.lineWidth=6;ctx.beginPath();ctx.ellipse(W/2,100,236,48,0,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.restore();
      text(business,W/2,106,fit(business,400,46,LO,'400'),LO,'#c7372f','center','400');text('ALWAYS A GOOD CHOICE',W/2,136,13,CP,'#c7372f','center','700')}
    else if(T==='luxury'){ctx.strokeStyle='#111';ctx.lineWidth=2;ctx.strokeRect(1,1,W-2,H-2);ctx.strokeStyle='#b79a6c';ctx.lineWidth=2;ctx.strokeRect(14,14,W-28,H-28);
-     text('❧',W/2,70,48,'Georgia','#a27c4e','center','400');text(BU.split('').join(' '),W/2,120,fit(BU.split('').join(' '),inner,42,CG,'600'),CG,'#111','center','600');text('BEAUTY IN EVERY DETAIL',W/2,150,13,JO,'#111','center','500')}
+     glyph('leaf',W/2,58,44,'#a27c4e');text(BU.split('').join(' '),W/2,120,fit(BU.split('').join(' '),inner,42,CG,'600'),CG,'#111','center','600');text('BEAUTY IN EVERY DETAIL',W/2,150,13,JO,'#111','center','500')}
    // ---- isi struk ----
    let y=topH+20;
    if(descLines.length){descLines.forEach(l=>{text(l,W/2,y,22,canvasFont,tx,'center','600');y+=30});y+=10;line(pad,y,W-pad,y,ac,1.5,[7,7]);y+=36}
@@ -4361,14 +4380,14 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
    y+=30;barcode(W/2-200,y,400,80);y+=104;text('powered by kairo workspaces',W/2,y,15,SM,'#333','center','400');
    // ---- penutup + hiasan bawah (di dalam kertas) ----
    const by=botY;
-   if(T==='pastel'){const g=ctx.createLinearGradient(0,by,W,H);g.addColorStop(0,'#f7dfe8');g.addColorStop(1,'#dce7ff');rect(0,by,W,botH,g);text('✦  ☆  ✧  ★  ☆  ✦',W/2,by+44,26,'Arial','#6eb3ec','center','400')}
-   else if(T==='studio'){rect(pad,by+14,78,78,'#111');checker(pad+7,by+21,64,64,'#fff','#111',8);tilted(W-pad-34,by+54,-4,()=>{rect(-34,-24,68,48,'#f2869f');text('✚',0,10,30,AB,'#fff','center','400')})}
-   else if(T==='receiptify'){const cols=['#ef76a7','#7a6fd6','#ef76a7','#7a6fd6','#ef76a7'];['♡','✦','⌁','?!','☺'].forEach((s,i)=>text(s,W/2-160+i*80,by+34,30,'Arial',cols[i],'center','700'));checker(0,H-24,W,24,'#ef76a7','#f5eaa5',12)}
-   else if(T==='vintage'){tilted(W/2,by+42,-3,()=>{rect(-134,-28,268,56,'#7c1325');ctx.strokeStyle='#fff';ctx.lineWidth=4;ctx.strokeRect(-128,-22,256,44);text('THANK YOU ☺',0,9,24,AB,'#fff','center','400')});rect(0,H-40,W,40,'#e8dfc4');line(0,H-40,W,H-40,'#cdbf93',2);text('☺    ☺    ☺    ☺',W/2,H-12,20,'Arial','#8a7a50','center','400')}
-   else if(T==='newspaper'){text('—  ✦  —',W/2,by+40,26,LB,'#111','center','700')}
+   if(T==='pastel'){const g=ctx.createLinearGradient(0,by,W,H);g.addColorStop(0,'#f7dfe8');g.addColorStop(1,'#dce7ff');rect(0,by,W,botH,g);glyphRow(['star4','star5o','star4o','star5','star5o','star4'],W/2,by+36,28,18,'#6eb3ec')}
+   else if(T==='studio'){rect(pad,by+14,78,78,'#111');checker(pad+7,by+21,64,64,'#fff','#111',8);tilted(W-pad-34,by+54,-4,()=>{rect(-34,-24,68,48,'#f2869f');glyph('plus',0,0,30,'#fff')})}
+   else if(T==='receiptify'){const cols=['#ef76a7','#7a6fd6','#ef76a7','#7a6fd6','#ef76a7'];['heart','star4','bolt','?!','smile'].forEach((g,k)=>{const x=W/2-160+k*80;if(g==='?!')text('?!',x,by+44,30,AB,cols[k],'center','400');else glyph(g,x,by+32,32,cols[k])});checker(0,H-24,W,24,'#ef76a7','#f5eaa5',12)}
+   else if(T==='vintage'){tilted(W/2,by+42,-3,()=>{rect(-134,-28,268,56,'#7c1325');ctx.strokeStyle='#fff';ctx.lineWidth=4;ctx.strokeRect(-128,-22,256,44);text('THANK YOU',-14,9,24,AB,'#fff','center','400');glyph('smile',92,0,26,'#fff')});rect(0,H-40,W,40,'#e8dfc4');line(0,H-40,W,H-40,'#cdbf93',2);glyphRow(['smile','smile','smile','smile'],W/2,H-20,22,34,'#8a7a50')}
+   else if(T==='newspaper'){line(W/2-90,by+32,W/2-22,by+32,'#111',3);line(W/2+22,by+32,W/2+90,by+32,'#111',3);glyph('star4',W/2,by+32,26,'#111')}
    else if(T==='boarding'){line(0,by+8,W,by+8,'#6d91aa',3,[14,10]);rect(2,by+10,W-4,botH-12,'#e3effa');text('BOARDING PASS · THANK YOU',W/2,by+52,22,BC,'#19689f','center','700')}
-   else if(T==='diner'){ctx.save();ctx.fillStyle='#f6d98f';ctx.strokeStyle='#c7372f';ctx.lineWidth=4;ctx.beginPath();ctx.arc(W/2,by+36,26,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.restore();text('☺',W/2,by+46,30,'Arial','#c7372f','center','400');checker(0,H-32,W,32,'#c7372f','#f4e5c1',16)}
-   else if(T==='luxury'){text('❧',W/2,by+54,40,'Georgia','#a27c4e','center','400')}
+   else if(T==='diner'){ctx.save();ctx.fillStyle='#f6d98f';ctx.strokeStyle='#c7372f';ctx.lineWidth=4;ctx.beginPath();ctx.arc(W/2,by+36,26,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.restore();glyph('smile',W/2,by+36,28,'#c7372f',2.4);checker(0,H-32,W,32,'#c7372f','#f4e5c1',16)}
+   else if(T==='luxury'){glyph('leaf',W/2,by+44,40,'#a27c4e')}
    return canvas;
  }
  // Font layout struk (assets/fonts/receipt, dimuat lazy lewat @font-face di kairo-receipt.css): kanvas harus menunggu fontnya siap.
@@ -5521,8 +5540,8 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
       else if(template==='pos_kasir'){root.dataset.businessTemplate='pos_kasir';if(typeof applyTopicFieldLabel==='function')applyTopicFieldLabel();document.dispatchEvent(new CustomEvent('kairo:template-ready'));
         // Dashboard Kasir (tahap 1): dimuat hanya untuk Kasir / POS.
         if(!document.getElementById('pos-kasir-js')){
-          const link=document.createElement('link');link.id='pos-kasir-css';link.rel='stylesheet';link.href='assets/templates/pos-kasir.css?v=1.5.1';document.head.appendChild(link);
-          const script=document.createElement('script');script.id='pos-kasir-js';script.src='assets/templates/pos-kasir.js?v=1.5.2';script.defer=true;document.body.appendChild(script);
+          const link=document.createElement('link');link.id='pos-kasir-css';link.rel='stylesheet';link.href='assets/templates/pos-kasir.css?v=1.5.2';document.head.appendChild(link);
+          const script=document.createElement('script');script.id='pos-kasir-js';script.src='assets/templates/pos-kasir.js?v=1.5.4';script.defer=true;document.body.appendChild(script);
           const link2=document.createElement('link');link2.id='pos-produk-css';link2.rel='stylesheet';link2.href='assets/templates/pos-produk.css?v=1.4.0';document.head.appendChild(link2);
           const script2=document.createElement('script');script2.id='pos-produk-js';script2.src='assets/templates/pos-produk.js?v=1.4.1';script2.defer=true;document.body.appendChild(script2);
         }}
