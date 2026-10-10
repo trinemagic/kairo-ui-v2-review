@@ -87,7 +87,7 @@ domain = pengguna login ulang & pengaturan browser (Ingat saya, dark mode) mulai
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
 Versi terakhir: `kairo.css?v=20.10.160`, `kairo-v3.css?v=3.41.0`,
-`kairo-v3.js?v=3.30.6`, `kairo-app.js?v=20.10.223`, `kairo-pin.js?v=1.0.1`, `kairo-themes.css?v=1.0.0`/`.js?v=1.0.1`; template seller dimuat dari kairo-app.js
+`kairo-v3.js?v=3.30.6`, `kairo-app.js?v=20.10.224`, `kairo-pin.js?v=1.0.1`, `kairo-themes.css?v=1.0.0`/`.js?v=1.0.1`; template seller dimuat dari kairo-app.js
 (`seller-app-premium.js?v=20.10.161`, `.css?v=20.10.157`) — naikkan juga bila file template diubah.
 Setup Wizard dimuat dari `loadSetupWizard()` di kairo-app.js (`kairo-setup-wizard.js/.css?v=1.0.4`, satu konstanta `v`).
 Panduan dimuat dari `window.kairoOpenGuide()` di kairo-v3.js (`kairo-guide.js/.css?v=` konstanta `GUIDE_V`='1.0.3'; gambar `assets/guide/*.webp?v=` `SHOT_V` di kairo-guide.js).
@@ -195,7 +195,7 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
 - **Alamat pendek (owner Okt 2026):** folder `app/`, `masuk/` (-> `/#masuk`, form Masuk langsung) dan `daftar/` (-> `/?signup=1`, form Daftar) berisi
   halaman kecil yang hanya redirect ke `index.html` yang sama. Dokumen app SENGAJA tidak dipindah ke subfolder: banyak path relatif
   (`assets/...` dimuat dinamis dari JS, link `#home`, demo `#demo-...`) akan rusak. Jangan tambah `<base>`.
-- **Template Kasir / POS (owner Okt 2026, dibangun bertahap):** `business_template='pos_kasir'`; `assets/templates/pos-kasir.js/.css` (`?v=1.2.0`, dimuat loader hanya untuk template ini).
+- **Template Kasir / POS (owner Okt 2026, dibangun bertahap):** `business_template='pos_kasir'`; `assets/templates/pos-kasir.js/.css` (`?v=1.3.0`, dimuat loader hanya untuk template ini).
   Keputusan owner: usaha campuran kafe+retail (nomor meja opsional), pajak/service opsional default mati, cetak struk lewat browser, barcode = scanner keyboard di kolom cari, Sesi Kasir terpisah dari Kas/Petty Cash (belum dibahas final).
   **Tahap 1 (Dashboard) sudah:** kartu Penjualan/Profit/Jumlah Struk/Saldo Kas/Rata-rata per Struk (kartu "Omzet Bulan Ini" dipakai ulang), Sesi Kasir = Open/Close Store lama dengan label baru (ID `#open-shift-btn` dst tetap),
   riwayat sesi disembunyikan diganti grafik Penjualan per Jam (`#pos-hourly`, jam ramai = 2 teratas), baris Produk Terlaris + Metode Pembayaran + Tipe Pesanan (`#pos-dash-row`, Tipe Pesanan membaca field `platform`).
@@ -209,7 +209,11 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   uang keluar + uang fisik -> seharusnya (= modal + tunai masuk - keluar) dan **selisih** (hijau pas / kuning lebih / merah kurang), catatan; disimpan `cash_out/counted_cash/expected_cash/cash_difference/close_note`; lalu Rekap Sesi (cetak 58mm).
   "Riwayat Sesi" (tombol di kartu Sesi Kasir) = 30 sesi terakhir -> rekap. Kartu "Saldo Kas" Dashboard Kasir dipakai ulang jadi **Kas Tunai di Laci** (modal awal + tunai masuk sesi berjalan; "-" tanpa sesi; selalu tampil walau Kas mati). Tunai = `payment_method` cocok /tunai|cash/i.
   Kasir belum dibuka saat Bayar = toast peringatan sekali, struk tetap tersimpan tanpa sesi. SQL `.claude/sql/2026-10-pos-session-cash.sql` (**sudah dijalankan Claude via Supabase MCP Okt 2026**, hanya menambah kolom nullable).
-  **Belum:** pajak/service (Settings), Settings untuk Tipe Pesanan/Metode Pembayaran/kategori produk, stok di Dashboard/Settings, Performance, Panduan Kasir, Struk Terbaru (judul tabel riwayat). Tes: `seed-pos.js` + `bootApp(b,{template:'pos',seed:require('./seed-pos.js')})`.
+  **Tahap 4 (Settings Kasir + kategori + pajak, `pos-kasir.js ?v=1.3.0`):** Settings › Kategori (kartu "Kategori" bawaan = daftar kategori `topic_masters`) ditambah kartu **Pengaturan Kasir** (`#pos-settings-card`: Tipe Pesanan `__order_types`, Metode Pembayaran `__payments`,
+  Service & Pajak `__tax` {svc_on,svc_pct,tax_on,tax_pct,tax_name}, tanpa SQL) dan **Kategori Produk** (`#pos-cat-card`: pilih kategori per produk -> kolom `package_masters.category`, SQL `.claude/sql/2026-10-pos-product-category.sql` **sudah dijalankan Claude**).
+  Layar Kasir: tab kategori (hanya kategori yang punya produk) di bawah kolom cari. Service = % dari subtotal setelah diskon; Pajak = % dari (subtotal+service). Dicatat sebagai baris `order_addons` dengan `is_charge:true` (id `pos-service`/`pos-tax`): service HPP 0 (dihitung laba), **pajak HPP = nominal pajak**
+  supaya LABA tidak menghitung pajak (omzet/penjualan tetap total yang dibayar). `addon_id/addon_code/addon_price/addon_qty` hanya dari add-on asli (id 'pos-tax' bukan uuid). Efek samping: baris pajak ikut di daftar add-on laporan dan "Kas Modal".
+  **Belum:** stok di Dashboard/Settings, Performance, Panduan Kasir, Struk Terbaru (judul tabel riwayat). Tes: `seed-pos.js` + `bootApp(b,{template:'pos',seed:require('./seed-pos.js')})`.
 - **Struk "Standar" (owner Okt 2026, semua template usaha):** pilihan pertama di Settings › Struk (`RECEIPT_TEMPLATES` id `standard`): putih polos, huruf monospace, nama usaha di tengah + "STRUK PENJUALAN", garis putus-putus.
   Dirender di 3 tempat: HTML preview/struk (`receiptPaperHeader` + CSS `.receipt-template-standard` di kairo.css), thumbnail picker, dan PNG canvas (`makeReceiptCanvas` punya cabang `standard`; cabang `else` terakhir = luxury, jadi template baru WAJIB punya cabang sendiri).
   Bukan default: workspace tanpa desain tersimpan tetap 'pastel' (agar struk user lama tidak berubah).
