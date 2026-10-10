@@ -343,6 +343,11 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   `is_username_available` untuk anon, bucket `workspace-branding` publik (1 MB, gambar saja), `saas_plan_entitlements` dibaca semua user login,
   fungsi trigger (tidak bisa dipanggil lewat RPC).
   `isTrineMagicWorkspace()` hanya lewat ID (dulu nama "Trine Magic" = Pro selamanya). Audit DB hanya-baca: `.claude/sql/2026-10-security-audit.sql`.
+  **Advisor Supabase (Okt 2026, dijalankan Claude via MCP, `.claude/sql/2026-10-advisor-fixes.sql`):** view `saas_plan_features` -> `security_invoker=true` (ERROR hilang; isinya VALUES tetap, tidak dipakai app);
+  fungsi `kairo_email_domain_allowed` -> `search_path=''`. Tersisa SENGAJA tidak disentuh: INFO "RLS tanpa policy" di tabel `platform_*`/`usernames`/dll (artinya hanya fungsi SECURITY DEFINER yang boleh akses = benar);
+  WARN fungsi SECURITY DEFINER bisa dipanggil anon/authenticated (helper RLS `is_workspace_member`/`workspace_role`/dll WAJIB tetap bisa dieksekusi anon/authenticated karena dipakai policy; fungsi `platform_admin_*` mengecek `is_platform_admin()` sendiri;
+  fungsi trigger tidak bisa dipanggil lewat RPC). **Leaked password protection** = setelan Auth Supabase (Authentication > Password security), butuh paket Supabase Pro, tidak bisa diubah lewat SQL/MCP; owner belum upgrade, jadi dibiarkan.
+  Tabel/kolom Retur & Stok Online Shop (`order_returns`, `package_masters.stock_qty`, trigger stok) sudah ada di DB asli (dicek Okt 2026).
 - **Warna layout:** `kairo-v3.js` memetakan `--brand-primary/--brand-accent` ke token
   v3. Default lama `#696F41/#EA97A9` = "belum diatur" (tetap tampilan KAIRO).
   Reset = `#25B9B0` / `#173A59`.
