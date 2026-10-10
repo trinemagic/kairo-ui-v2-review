@@ -11,6 +11,9 @@ const BASE = swap(require('./seed.js')) + `;T.workspace_branding[0].receipt_labe
 // Seller: hanya transaksi aplikasi premium (seed-seller menumpang di seed.js yang berisi contoh jasa).
 const SELLER = swap(require('./seed-seller.js')) + `;T.transactions=T.transactions.filter(t=>String(t.id).startsWith('stx'));`;
 
+// Kasir / POS: seed kafe (seed-pos.js) + stok & satuan supaya halaman Produk dan kartu Stok berisi.
+const KASIR = swap(require('./seed-pos.js')) + `;T.addon_masters.forEach(a=>{a.name='Extra Shot';a.code='SHOT'});T.package_masters.forEach((p,i)=>{p.stock_qty=[40,3,0,12,null,6][i];p.stock_min=5;p.unit=['gelas','gelas','potong','porsi','gelas','gelas'][i];p.category=i<2||i>=4?'Minuman':'Makanan';});`;
+
 async function toWebp(page, buf, file, width) {
   const data = 'data:image/png;base64,' + buf.toString('base64');
   const webp = await page.evaluate(async ({ data, width }) => {
@@ -25,15 +28,16 @@ async function toWebp(page, buf, file, width) {
 
 (async () => {
   const b = await chromium.launch();
-  for (const [tpl, seed] of [['base', BASE], ['seller', SELLER]]) {
-    const p = await bootApp(b, { seed, plan: 'pro', width: 1440, height: 900, dsf: 1.5, workspaceName: 'Toko Demo', template: tpl === 'seller' ? 'seller' : '' });
+  const ONLY = process.env.ONLY;
+  for (const [tpl, seed] of [['base', BASE], ['seller', SELLER], ['kasir', KASIR]].filter(x => !ONLY || x[0] === ONLY)) {
+    const p = await bootApp(b, { seed, plan: 'pro', width: 1440, height: 900, dsf: 1.5, workspaceName: 'Toko Demo', template: tpl === 'seller' ? 'seller' : tpl === 'kasir' ? 'pos' : '' });
     await p.evaluate(() => { window.kairoDisplayName = 'Toko Demo'; try { hydrateSaasUi(); } catch (e) {} });
     await p.addStyleTag({ content: '*{caret-color:transparent!important;animation:none!important;transition:none!important} #living-origami-bg,.origami-drifter{display:none!important}' });
     // Periode 30 hari supaya kartu & grafik berisi data contoh.
     await p.evaluate(() => document.querySelector('.period-btn[data-period="30days"], [data-period="30days"]')?.click());
     await p.evaluate(() => loadPageData('dashboard', { force: true }));
     await p.waitForTimeout(1200);
-    const tabs = ['dashboard', 'input', 'customers', 'promo', 'performance', 'payout', 'cash', 'settings'].concat(tpl === 'seller' ? ['subscriptions'] : []);
+    const tabs = (tpl === 'kasir' ? ['dashboard', 'input', 'pos-products', 'customers', 'performance', 'payout', 'cash', 'settings'] : ['dashboard', 'input', 'customers', 'promo', 'performance', 'payout', 'cash', 'settings']).concat(tpl === 'seller' ? ['subscriptions'] : []);
     for (const tab of tabs) {
       await p.evaluate(tab => { (tab === 'settings' ? document.getElementById('saas-settings-side-btn') : document.querySelector(`#saas-sidebar .tab[data-tab="${tab}"]`))?.click(); window.scrollTo(0, 0); }, tab);
       await p.waitForTimeout(tab === 'subscriptions' ? 3000 : 1500);
