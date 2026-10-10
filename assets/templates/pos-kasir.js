@@ -851,7 +851,12 @@
     setText(el, v === null ? '-' : shown(v));
   }
 
-  function refresh() { renderKpis(); renderDrawerKpi(); relabelShift(); mountSessionUi(); renderPanels(); initKasir(); }
+  // Judul riwayat transaksi: "Struk Terbaru" (tabelnya sendiri tetap sama).
+  function relabelHistory() {
+    setText(document.querySelector('#transaction-history-card .card-title > span:last-child'), 'Struk Terbaru');
+    setText(document.querySelector('#transaction-history-card .history-card-subtitle'), 'Struk penjualan terbaru. Pakai filter tanggal untuk mengatur yang tampil.');
+  }
+  function refresh() { relabelHistory(); renderKpis(); renderDrawerKpi(); relabelShift(); mountSessionUi(); renderPanels(); initKasir(); }
 
   /* ---------- Pasang ---------- */
   function wrap(name, after) {

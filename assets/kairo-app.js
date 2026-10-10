@@ -399,7 +399,7 @@ let setupWizardLoader=null;
 function loadSetupWizard(){
   if(window.kairoSetupWizard)return Promise.resolve(window.kairoSetupWizard);
   if(!setupWizardLoader)setupWizardLoader=new Promise((resolve,reject)=>{
-    const v='1.0.4',css=document.createElement('link');css.rel='stylesheet';css.href=`assets/kairo-setup-wizard.css?v=${v}`;document.head.appendChild(css);
+    const v='1.0.5',css=document.createElement('link');css.rel='stylesheet';css.href=`assets/kairo-setup-wizard.css?v=${v}`;document.head.appendChild(css);
     const js=document.createElement('script');js.src=`assets/kairo-setup-wizard.js?v=${v}`;js.onload=()=>resolve(window.kairoSetupWizard);js.onerror=()=>{setupWizardLoader=null;reject(new Error('Setup wizard gagal dimuat.'));};document.head.appendChild(js);
   });
   return setupWizardLoader;
@@ -4112,36 +4112,33 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
    if(key==='footer'){const f=currentReceiptFooter();return f?['',f]:[];}
    return [];
  }
- function receiptSceneDecor(template,business){
-   const b=esc(business||'NAMA USAHA');
-   if(template==='pastel')return `<div class="receipt-scene-stars">✦　☆　✧　★　☆　✦</div><div class="receipt-sign-stack"><span class="receipt-sign-main">${b}</span><em>for</em><span class="receipt-sign-sub">${isSellerReceiptContext()?'DIGITAL ACCESS MADE SIMPLE':'A KINDER TOMORROW'}</span></div><div class="receipt-metal-clip"></div>`;
-   if(template==='studio')return `<div class="receipt-locker-lines"></div><div class="receipt-sticker receipt-sticker-a">GOOD<br>THINGS<br>AHEAD</div><div class="receipt-sticker receipt-sticker-b">DO<br>YOUR<br>BEST</div><div class="receipt-pushpin">●</div><div class="receipt-studio-brand">${b}<small>QUALITY MAKES A DIFFERENCE</small></div><div class="receipt-faux-qr" aria-hidden="true"></div>`;
-   if(template==='receiptify')return `<div class="receipt-checker-bg"></div><div class="receipt-hand-corner"></div><div class="receipt-doodle d1">♡</div><div class="receipt-doodle d2">?!</div><div class="receipt-doodle d3">✦</div>`;
-   if(template==='vintage')return `<div class="receipt-vintage-badge">VINTAGE<br>VIBES<br>ONLY</div><div class="receipt-tape">☺　☺　☺　☺</div><div class="receipt-vintage-sticker">THANK<br>YOU ☺</div>`;
-   if(template==='newspaper')return `<div class="receipt-news-collage">THE DAILY ORDER　•　GOOD PEOPLE GOOD STORIES</div>`;
-   if(template==='boarding')return `<div class="receipt-flight-band">✈　BUSINESS CLASS</div><div class="receipt-flight-note">A SMALL BUSINESS<br>GOES A LONG WAY</div>`;
-   if(template==='diner')return `<div class="receipt-diner-check"></div><div class="receipt-diner-mascot">☺</div>`;
-   if(template==='luxury')return `<div class="receipt-luxury-shadow"></div><div class="receipt-luxury-flower">❧</div>`;
-   return '';
- }
- function receiptPaperHeader(template,business,p){
+ /* Struk desain: HANYA kertas (tanpa latar scene) supaya hasil cetak sama dengan di layar. Semua hiasan ada di dalam kertas:
+    receiptTop = pita/kepala (nama usaha + hiasan), receiptBottom = penutup. Dipakai HTML preview; makeReceiptCanvas menggambar versi PNG yang sama. */
+ function receiptTop(template,business,p){
    const b=esc(business||'NAMA USAHA');
    const date=new Date(p.reading_started_at||Date.now());
    const ds=isNaN(date.getTime())?'':date.toLocaleDateString('id-ID',{day:'2-digit',month:'2-digit',year:'numeric'});
-   if(template==='standard')return `<div class="receipt-template-brand receipt-template-brand-standard">${b}<small>STRUK PENJUALAN</small></div>`;
-   if(template==='studio')return `<div class="receipt-template-brand receipt-template-brand-studio">${b}<small>BUSINESS RECEIPT</small></div>`;
-   if(template==='receiptify')return `<div class="receipt-template-brand receipt-template-brand-receiptify">${b}<small>GOOD PEOPLE, GOOD BUSINESS</small></div>`;
-   if(template==='vintage')return `<div class="receipt-template-brand receipt-template-brand-vintage"><span>★</span><b>${b}</b><span>★</span><small>MORE THAN JUST A BUSINESS</small></div><div class="receipt-date-row"><strong>DATE:</strong><span>${esc(ds)}</span></div>`;
-   if(template==='newspaper')return `<div class="receipt-news-masthead">The Daily Order</div><div class="receipt-template-brand receipt-template-brand-newspaper">${b}<small>SMALL BUSINESS, BIG IMPACT</small></div>`;
-   if(template==='boarding')return `<div class="receipt-template-brand receipt-template-brand-boarding">${b}<small>BOARDING TO A BRIGHTER TOMORROW</small></div>`;
-   if(template==='diner')return `<div class="receipt-template-brand receipt-template-brand-diner">${b}<small>ALWAYS A GOOD CHOICE</small></div>`;
-   if(template==='luxury')return `<div class="receipt-luxury-mark">❧</div><div class="receipt-template-brand receipt-template-brand-luxury">${b}<small>BEAUTY IN EVERY DETAIL</small></div>`;
+   const sub=isSellerReceiptContext()?'DIGITAL ACCESS MADE SIMPLE':'A KINDER TOMORROW';
+   if(template==='standard')return `<div class="rp-top"><div class="receipt-template-brand receipt-template-brand-standard">${b}<small>STRUK PENJUALAN</small></div></div>`;
+   if(template==='pastel')return `<div class="rp-top"><div class="rp-stars">✦　☆　✧　★　☆　✦</div><div class="rp-sign-main">${b}</div><div class="rp-sign-for">for</div><div class="rp-sign-sub">${sub}</div></div>`;
+   if(template==='studio')return `<div class="rp-top"><span class="rp-sticker rp-sticker-a">GOOD<br>THINGS<br>AHEAD</span><span class="rp-sticker rp-sticker-b">DO<br>YOUR<br>BEST</span><div class="rp-studio-name">${b}</div><div class="rp-studio-sub">QUALITY MAKES A DIFFERENCE</div></div>`;
+   if(template==='receiptify')return `<div class="rp-top"><div class="rp-checker"></div><div class="rp-recpt-head"><div class="rp-recpt-name">${b}</div><span class="rp-recpt-pill">GOOD PEOPLE, GOOD BUSINESS</span></div></div>`;
+   if(template==='vintage')return `<div class="rp-top"><div class="rp-tape">☺　☺　☺　☺</div><div class="rp-vintage-row"><span class="rp-burst">VINTAGE<br>VIBES<br>ONLY</span><div class="rp-vintage-brand"><span>★</span><b>${b}</b><span>★</span></div></div><div class="rp-vintage-sub">MORE THAN JUST A BUSINESS</div><div class="receipt-date-row"><strong>DATE:</strong><span>${esc(ds)}</span></div></div>`;
+   if(template==='newspaper')return `<div class="rp-top"><div class="rp-news-strip"><span>THE DAILY ORDER</span><span>•</span><span>GOOD PEOPLE GOOD STORIES</span></div><div class="rp-news-masthead">The Daily Order</div><div class="rp-news-name">${b}</div><div class="rp-news-sub">SMALL BUSINESS, BIG IMPACT</div></div>`;
+   if(template==='boarding')return `<div class="rp-top"><div class="rp-flight"><span>✈　BUSINESS CLASS</span><em>A SMALL BUSINESS<br>GOES A LONG WAY</em></div><div class="rp-board-name">${b}</div><div class="rp-board-sub">BOARDING TO A BRIGHTER TOMORROW</div></div>`;
+   if(template==='diner')return `<div class="rp-top"><div class="rp-checker rp-checker-red"></div><div class="rp-diner-oval"><b>${b}</b><small>ALWAYS A GOOD CHOICE</small></div></div>`;
+   if(template==='luxury')return `<div class="rp-top"><div class="rp-lux-mark">❧</div><div class="rp-lux-name">${b}</div><div class="rp-lux-sub">BEAUTY IN EVERY DETAIL</div></div>`;
    return '';
  }
- function receiptExtra(template){
-   if(template==='receiptify')return `<div class="receipt-doodle-layer"><span>♡</span><span>✦</span><span>⌁</span><span>?!</span><span>☺</span></div>`;
-   if(template==='studio')return `<div class="receipt-paper-tape">✚</div>`;
-   if(template==='vintage')return `<div class="receipt-vintage-smiles">☺　☺　☺　☺</div>`;
+ function receiptBottom(template){
+   if(template==='pastel')return `<div class="rp-bottom"><div class="rp-stars">✦　☆　✧　★　☆　✦</div></div>`;
+   if(template==='studio')return `<div class="rp-bottom rp-studio-bottom"><span class="rp-qr" aria-hidden="true"></span><span class="rp-plus">✚</span></div>`;
+   if(template==='receiptify')return `<div class="rp-bottom"><div class="rp-doodles"><span>♡</span><span>✦</span><span>⌁</span><span>?!</span><span>☺</span></div><div class="rp-checker"></div></div>`;
+   if(template==='vintage')return `<div class="rp-bottom"><span class="rp-stamp">THANK YOU ☺</span><div class="rp-tape">☺　☺　☺　☺</div></div>`;
+   if(template==='newspaper')return `<div class="rp-bottom"><div class="rp-news-end">— ✦ —</div></div>`;
+   if(template==='boarding')return `<div class="rp-bottom rp-board-stub"><span>BOARDING PASS · THANK YOU</span></div>`;
+   if(template==='diner')return `<div class="rp-bottom"><div class="rp-mascot">☺</div><div class="rp-checker rp-checker-red"></div></div>`;
+   if(template==='luxury')return `<div class="rp-bottom"><div class="rp-lux-mark">❧</div></div>`;
    return '';
  }
  function renderReceiptSurface(p,layout,d){
@@ -4151,7 +4148,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
    const body=(layout||currentLayout()).map(x=>itemHtml(x,p)).join('');
    const business=activeWorkspaceName||'NAMA USAHA';
    const desc=description?`<div class="receipt-template-description" style="text-align:${descriptionAlign}">${esc(description)}</div>`:'';
-   return `<div class="receipt-preview-surface receipt-template receipt-template-${template}" data-receipt-template="${template}" style="position:relative;--receipt-bg:${bg};--receipt-text:${tx};--receipt-accent:${ac};--receipt-font-family:${esc(fontCss)};color:${tx};font-family:${esc(fontCss)}"><div class="receipt-scene receipt-scene-${template}">${receiptSceneDecor(template,business)}<div class="receipt-paper">${wmText}${wmImg}${receiptExtra(template)}<div class="receipt-customer-ready" style="position:relative;z-index:2">${receiptPaperHeader(template,business,p)}${desc}${body}<div class="receipt-barcode" aria-hidden="true"></div><div class="receipt-powered">powered by kairo workspaces</div></div></div></div></div>`;
+   return `<div class="receipt-preview-surface receipt-template receipt-template-${template}" data-receipt-template="${template}" style="position:relative;--receipt-bg:${bg};--receipt-text:${tx};--receipt-accent:${ac};--receipt-font-family:${esc(fontCss)};color:${tx};font-family:${esc(fontCss)}"><div class="receipt-paper">${wmText}${wmImg}${receiptTop(template,business,p)}<div class="receipt-customer-ready" style="position:relative;z-index:2">${desc}${body}<div class="receipt-barcode" aria-hidden="true"></div><div class="receipt-powered">powered by kairo workspaces</div></div>${receiptBottom(template)}</div></div>`;
  }
  function buildHtml(p){const d=(layoutDirty?{...currentDesign(),...designDraft}:currentDesign());return renderReceiptSurface(p,currentLayout(),d);}
  function buildText(p){const out=[];const d=currentDesign();if(d.description)out.push(d.description,'');currentLayout().forEach(x=>out.push(...itemText(x,p)));return out.join('\n').replace(/\n{3,}/g,'\n\n').trim();}
@@ -4298,62 +4295,79 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
  function wrapCanvasText(ctx,text,maxWidth){const words=String(text||'').split(/\s+/),lines=[];let line='';for(const w of words){const test=line?line+' '+w:w;if(ctx.measureText(test).width>maxWidth&&line){lines.push(line);line=w}else line=test}if(line)lines.push(line);return lines.length?lines:[''];}
  function drawCanvasDescriptionLine(ctx,line,y,align,isLast,pad,inner,W){if(align==='justify'&&!isLast){const words=String(line).trim().split(/\s+/);if(words.length>1){const wordsWidth=words.reduce((sum,w)=>sum+ctx.measureText(w).width,0),gap=(inner-wordsWidth)/(words.length-1);let x=pad;ctx.textAlign='left';for(const w of words){ctx.fillText(w,x,y);x+=ctx.measureText(w).width+gap}return}}ctx.textAlign=align==='center'?'center':align==='right'?'right':'left';ctx.fillText(line,align==='center'?W/2:align==='right'?W-pad:pad,y);}
  function makeReceiptCanvas(p){
+   /* PNG struk: hanya kertas (tanpa latar), desain sama dengan HTML (receiptTop/receiptBottom + kairo-receipt.css). */
    readDesignControls();
-   const d={...defaultDesign(),...(designDraft||currentDesign())},template=normalizeTemplate(d.template),canvasFont=receiptFontCss(d.fontFamily||'Arial');
-   const W=1080,raw=(()=>{const out=[];currentLayout().forEach(x=>out.push(...itemText(x,p)));return out.join('\n').replace(/\n{3,}/g,'\n\n').trim()})().split('\n'),canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');
-   const paperW=template==='boarding'?800:690,paperX=(W-paperW)/2,pad=54,inner=paperW-pad*2;
-   ctx.font=`25px ${canvasFont}`;const measured=[];raw.forEach(line=>{if(!line.trim()){measured.push('');return}wrapCanvasText(ctx,line,inner).forEach(x=>measured.push(x))});
-   const contentH=Math.max(720,measured.length*38+360),H=Math.max(1200,contentH+260);canvas.width=W;canvas.height=H;
-   const bg=safeHex(d.background,'#FFFFFF'),tx=safeHex(d.text,'#2D3748'),ac=safeHex(d.accent,'#EA97A9'),business=String(activeWorkspaceName||'NAMA USAHA');
+   const d={...defaultDesign(),...(designDraft||currentDesign())},T=normalizeTemplate(d.template),canvasFont=receiptFontCss(d.fontFamily||'Arial');
+   const W=720,pad=48,inner=W-pad*2,raw=(()=>{const out=[];currentLayout().filter(x=>x.key!=='title').forEach(x=>out.push(...itemText(x,p)));return out.join('\n').replace(/\n{3,}/g,'\n\n').trim()})().split('\n'),canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');
+   const mono=T==='luxury'||T==='standard'||T==='receiptify'||T==='diner'||T==='studio'||T==='boarding'||T==='pastel'||T==='vintage';
+   const bodyFont=T==='luxury'||T==='newspaper'?'Georgia':mono&&T!=='boarding'&&T!=='studio'&&T!=='pastel'?'Courier New':canvasFont;
+   ctx.font=`23px ${bodyFont}`;const measured=[];raw.forEach(l=>{if(!l.trim()){measured.push('');return}wrapCanvasText(ctx,l,inner).forEach(x=>measured.push(x))});
+   const topH={standard:150,pastel:250,studio:205,receiptify:205,vintage:270,newspaper:260,boarding:180,diner:175,luxury:175}[T]||150;
+   const botH={standard:24,pastel:70,studio:120,receiptify:110,vintage:150,newspaper:70,boarding:84,diner:120,luxury:84}[T]||24;
+   const bodyH=measured.reduce((h,l)=>h+(!l?15:/^total\s*:/i.test(l)?54:35),0);
+   const descLines=d.description?(ctx.font=`600 22px ${canvasFont}`,wrapCanvasText(ctx,d.description,inner)):[];
+   const descH=descLines.length?descLines.length*30+46:0;
+   const H=topH+20+descH+bodyH+30+80+40+botH;canvas.width=W;canvas.height=H;
+   const bg=safeHex(d.background,'#FFFFFF'),tx=safeHex(d.text,'#2D3748'),ac=safeHex(d.accent,'#EA97A9'),business=String(activeWorkspaceName||'NAMA USAHA'),BU=business.toUpperCase();
+   const paper={standard:bg,pastel:bg,studio:bg,receiptify:'#fffdf4',vintage:'#f9f7f1',newspaper:'#fbf8f1',boarding:'#eff7ff',diner:'#fff4d8',luxury:'#fdfbf6'}[T]||bg;
    function rect(x,y,w,h,fill){ctx.fillStyle=fill;ctx.fillRect(x,y,w,h)}
    function line(x1,y1,x2,y2,color='#222',width=1,dash=[]){ctx.save();ctx.strokeStyle=color;ctx.lineWidth=width;ctx.setLineDash(dash);ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.restore()}
-   function text(t,x,y,size=24,font=canvasFont,color=tx,align='left',weight='400'){ctx.save();ctx.fillStyle=color;ctx.font=`${weight} ${size}px ${font}`;ctx.textAlign=align;ctx.fillText(String(t),x,y);ctx.restore()}
+   function text(t,x,y,size=24,font=canvasFont,color=tx,align='left',weight='400',style=''){ctx.save();ctx.fillStyle=color;ctx.font=`${style} ${weight} ${size}px ${font}`.trim();ctx.textAlign=align;ctx.fillText(String(t),x,y);ctx.restore()}
+   function fit(t,maxW,size,font,weight){let s=size;ctx.save();while(s>14){ctx.font=`${weight} ${s}px ${font}`;if(ctx.measureText(t).width<=maxW)break;s-=2}ctx.restore();return s}
+   function checker(x,y,w,h,c1,c2,sq){for(let yy=0;yy<h;yy+=sq)for(let xx=0;xx<w;xx+=sq){rect(x+xx,y+yy,Math.min(sq,w-xx),Math.min(sq,h-yy),((xx/sq+yy/sq)%2===0)?c1:c2)}}
    function barcode(x,y,w,h){ctx.save();ctx.fillStyle='#111';let xx=x,i=0;while(xx<x+w){const bw=[2,4,3,7,2,5,3,2][i++%8];ctx.fillRect(xx,y,bw,h);xx+=bw+[3,2,4,3][i%4]}ctx.restore()}
-   // Scene backgrounds + reference-specific hero elements.
-   if(template==='pastel'){
-     const g=ctx.createLinearGradient(0,0,W,H);g.addColorStop(0,'#f7dfe8');g.addColorStop(.5,'#dce7ff');g.addColorStop(1,'#abd3ff');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
-     ctx.fillStyle='rgba(255,255,255,.66)';ctx.font='32px Arial';for(let yy=220;yy<H;yy+=130)for(let xx=40+(yy%260);xx<W;xx+=190)ctx.fillText('☆',xx,yy);
-     rect(280,55,520,74,'#6eb3ec');text(business.toUpperCase(),540,108,47,'Arial','#fff','center','900');
-     text('for',540,145,39,'Georgia','#ff8cae','center','400');rect(250,140,580,62,'#fff');text(isSellerReceiptContext()?'DIGITAL ACCESS MADE SIMPLE':'A KINDER TOMORROW',540,184,37,'Arial','#72b7eb','center','900');
-     const mg=ctx.createLinearGradient(0,0,0,45);mg.addColorStop(0,'#c8cbd0');mg.addColorStop(.55,'#858a92');mg.addColorStop(1,'#c3c6cb');ctx.fillStyle=mg;ctx.fillRect(325,205,430,45);
-   }else if(template==='studio'){
-     rect(0,0,W,H,'#087eb9');ctx.strokeStyle='rgba(0,0,0,.18)';ctx.lineWidth=3;for(let x=170;x<W;x+=250){line(x,0,x,H,'rgba(0,0,0,.18)',3)}for(let y=55;y<H;y+=85){line(0,y,W,y,'rgba(255,255,255,.08)',2)}
-     rect(65,45,130,95,'#203d9d');text('GOOD',130,77,24,'Arial','#fff','center','900');text('THINGS',130,104,24,'Arial','#fff','center','900');text('AHEAD',130,131,24,'Arial','#fff','center','900');
-     rect(850,50,130,90,'#ff85af');text('DO YOUR',915,88,25,'Arial','#182d5a','center','900');text('BEST',915,119,25,'Arial','#182d5a','center','900');
-   }else if(template==='receiptify'){
-     rect(0,0,W,H,'#f5eaa5');const sq=120;for(let y=0;y<H;y+=sq)for(let x=0;x<W;x+=sq)if(((x+y)/sq)%2===0)rect(x,y,sq,sq,'#ef76a7');
-   }else if(template==='vintage'){
-     rect(0,0,W,H,'#f4f1e8');for(let i=0;i<900;i++){ctx.fillStyle='rgba(80,60,35,.035)';ctx.fillRect((i*97)%W,(i*53)%H,2,2)}
-     ctx.save();ctx.translate(170,125);ctx.fillStyle='#1628a1';ctx.beginPath();for(let i=0;i<24;i++){const a=i*Math.PI/12,r=i%2?78:105;ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r)}ctx.closePath();ctx.fill();ctx.restore();text('VINTAGE',170,108,24,'Arial','#fff','center','900');text('VIBES',170,139,24,'Arial','#fff','center','900');text('ONLY',170,170,24,'Arial','#fff','center','900');
-   }else if(template==='newspaper'){
-     rect(0,0,W,H,'#d9d3c9');for(let x=20;x<W;x+=150){line(x,0,x,H,'rgba(0,0,0,.07)',1)}text('THE DAILY ORDER',540,70,42,'Georgia','#111','center','900');line(70,92,1010,92,'#111',4);line(70,104,1010,104,'#111',1);
-   }else if(template==='boarding'){
-     rect(0,0,W,H,'#0d5f9a');text('✈  BUSINESS CLASS',70,72,32,'Arial','#fff','left','800');text('A SMALL BUSINESS GOES A LONG WAY',1010,70,16,'Arial','#fff','right','700');
-   }else if(template==='diner'){
-     rect(0,0,W,H,'#f4e5c1');const sq=54;for(let y=0;y<H;y+=sq)for(let x=0;x<W;x+=sq)if(((x+y)/sq)%2===0)rect(x,y,sq,sq,'#c7372f');
-   }else if(template==='standard'){
-     rect(0,0,W,H,'#ececec');
-   }else{
-     const g=ctx.createLinearGradient(0,0,W,H);g.addColorStop(0,'#d7d0c7');g.addColorStop(.25,'#f4efe7');g.addColorStop(.78,'#f4efe7');g.addColorStop(1,'#d9d1c5');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);text('❧',930,H-110,72,'Georgia','#8d7454','center','400');
-   }
-   // paper
-   let paperY=template==='pastel'?265:template==='studio'?180:150;ctx.save();ctx.shadowColor='rgba(0,0,0,.22)';ctx.shadowBlur=28;ctx.shadowOffsetY=14;rect(paperX,paperY,paperW,H-paperY-100,template==='vintage'?'#f9f7f1':template==='diner'?'#fff4d8':template==='luxury'?'#fdfbf6':template==='receiptify'?'#f8f7f3':template==='newspaper'?'#f5f0e7':template==='boarding'?'#eff7ff':template==='standard'?'#ffffff':bg);ctx.restore();
-   if(template==='receiptify')rect(paperX,paperY,paperW,155,'#b9b8ee');
-   if(template==='boarding'){line(paperX+paperW*.76,paperY,paperX+paperW*.76,H-100,'#6d91aa',3,[12,10])}
-   if(template==='diner'){ctx.strokeStyle='#c7372f';ctx.lineWidth=4;ctx.strokeRect(paperX+16,paperY+16,paperW-32,H-paperY-132)}
-   let y=paperY+70;
-   if(template==='standard'){text(business.toUpperCase(),W/2,y,36,'Courier New','#111','center','900');y+=30;text('STRUK PENJUALAN',W/2,y,14,'Courier New','#111','center','700');y+=26;line(paperX+pad,y,paperX+paperW-pad,y,'#111',2,[10,8]);y+=40}
-   else if(template==='studio'){text(business.toUpperCase(),W/2,y,45,'Arial','#168dca','center','900');y+=38;text('QUALITY MAKES A DIFFERENCE',W/2,y,14,'Courier New','#111','center','700');y+=45}
-   else if(template==='receiptify'){text(business.toUpperCase(),paperX+pad,y,44,'Arial','#292c32','left','900');y+=36;rect(paperX+pad,y-24,360,32,'#ef7da9');text('GOOD PEOPLE, GOOD BUSINESS',paperX+pad+180,y,16,'Arial','#303039','center','800');y+=55}
-   else if(template==='vintage'){text('★',paperX+120,y,35,'Georgia','#6e0e1e','center','900');text(business.toUpperCase(),W/2,y,36,'Georgia','#6e0e1e','center','900');text('★',paperX+paperW-120,y,35,'Georgia','#6e0e1e','center','900');y+=28;text('MORE THAN JUST A BUSINESS',W/2,y,12,'Arial','#6e0e1e','center','700');y+=40;line(paperX+pad,y,paperX+paperW-pad,y,'#222',2);y+=30}
-   else if(template==='newspaper'){text('The Daily Order',W/2,y,42,'Georgia','#111','center','900');y+=18;line(paperX+pad,y,paperX+paperW-pad,y,'#111',4);y+=45;text(business.toUpperCase(),paperX+pad,y,34,'Arial','#111','left','900');y+=25;text('SMALL BUSINESS, BIG IMPACT',paperX+pad,y,13,'Courier New','#111','left','700');y+=45}
-   else if(template==='boarding'){text(business.toUpperCase(),paperX+pad,y,37,'Arial','#19689f','left','900');y+=27;text('BOARDING TO A BRIGHTER TOMORROW',paperX+pad,y,12,'Arial','#254055','left','700');y+=45}
-   else if(template==='diner'){text(business.toUpperCase(),W/2,y,38,'Arial','#c7372f','center','900');y+=27;text('ALWAYS A GOOD CHOICE',W/2,y,13,'Courier New','#c7372f','center','700');y+=45}
-   else if(template==='luxury'){text('❧',W/2,y,38,'Georgia','#a27c4e','center','400');y+=40;text(business.toUpperCase(),W/2,y,34,'Georgia','#111','center','400');y+=28;text('BEAUTY IN EVERY DETAIL',W/2,y,12,'Courier New','#111','center','600');y+=50}
-   if(d.description){ctx.fillStyle=tx;ctx.font=`600 22px ${canvasFont}`;const descLines=wrapCanvasText(ctx,d.description,inner);descLines.forEach((l,i)=>{text(l,W/2,y,22,canvasFont,tx,'center','600');y+=30});y+=18;line(paperX+pad,y,paperX+paperW-pad,y,ac,1,[7,7]);y+=28}
-   const bodyColor=template==='vintage'||template==='receiptify'||template==='newspaper'||template==='diner'||template==='luxury'||template==='standard'?'#171717':tx;
-   ctx.fillStyle=bodyColor;for(const l of measured){if(!l){y+=15;continue}const isTotal=/total\s*:/i.test(l);text(l,paperX+pad,y,isTotal?27:23,template==='luxury'||template==='standard'?'Courier New':canvasFont,bodyColor,'left',isTotal?'800':'400');y+=isTotal?44:35}
-   y+=30;barcode(W/2-210,y,420,80);y+=105;text('powered by kairo workspaces',W/2,y,16,'Courier New','#333','center','400');
+   function tilted(cx,cy,deg,fn){ctx.save();ctx.translate(cx,cy);ctx.rotate(deg*Math.PI/180);fn();ctx.restore()}
+   rect(0,0,W,H,paper);
+   const botY=H-botH;
+   // ---- kepala + hiasan atas (di dalam kertas) ----
+   if(T==='standard'){text(BU,W/2,74,fit(BU,inner,44,'Courier New','900'),'Courier New','#111','center','900');text('STRUK PENJUALAN',W/2,104,16,'Courier New','#111','center','700');line(pad,128,W-pad,128,'#111',3,[12,9])}
+   else if(T==='pastel'){const g=ctx.createLinearGradient(0,0,W,topH-20);g.addColorStop(0,'#f7dfe8');g.addColorStop(.55,'#dce7ff');g.addColorStop(1,'#c4dcff');rect(0,0,W,topH-20,g);
+     text('✦  ☆  ✧  ★  ☆  ✦',W/2,48,28,'Arial','#6eb3ec','center','400');
+     tilted(W/2,100,-2,()=>{rect(-240,-34,480,68,'#6eb3ec');text(BU,0,12,fit(BU,440,40,'Arial','900'),'Arial','#fff','center','900')});
+     text('for',W/2,160,34,'Georgia','#ff6f9f','center','400','italic');
+     tilted(W/2,196,-1.5,()=>{rect(-230,-24,460,48,'#fff');ctx.strokeStyle='#6eb3ec';ctx.lineWidth=3;ctx.strokeRect(-230,-24,460,48);text(isSellerReceiptContext()?'DIGITAL ACCESS MADE SIMPLE':'A KINDER TOMORROW',0,9,24,'Arial','#4b9fe0','center','900')})}
+   else if(T==='studio'){rect(0,0,W,topH-15,'#087eb9');
+     tilted(88,62,-5,()=>{rect(-58,-42,116,84,'#203d9d');ctx.strokeStyle='#fff';ctx.lineWidth=4;ctx.strokeRect(-58,-42,116,84);['GOOD','THINGS','AHEAD'].forEach((t,i)=>text(t,0,-14+i*22,18,'Arial','#fff','center','900'))});
+     tilted(W-88,62,4,()=>{rect(-58,-42,116,84,'#ff85af');ctx.strokeStyle='#fff';ctx.lineWidth=4;ctx.strokeRect(-58,-42,116,84);['DO','YOUR','BEST'].forEach((t,i)=>text(t,0,-14+i*22,18,'Arial','#182d5a','center','900'))});
+     text(BU,W/2,140,fit(BU,inner,46,'Arial','900'),'Arial','#fff','center','900');text('QUALITY MAKES A DIFFERENCE',W/2,170,14,'Courier New','#fff','center','700')}
+   else if(T==='receiptify'){checker(0,0,W,24,'#ef76a7','#f5eaa5',12);rect(0,24,W,topH-34,'#b9b8ee');
+     text(BU,pad,104,fit(BU,inner,50,'Arial Black,Arial','900'),'Arial Black,Arial','#292c32','left','900');rect(pad,124,430,40,'#ef7da9');text('GOOD PEOPLE, GOOD BUSINESS',pad+215,151,18,'Arial','#303039','center','800')}
+   else if(T==='vintage'){rect(0,0,W,40,'#e8dfc4');line(0,40,W,40,'#cdbf93',2);text('☺    ☺    ☺    ☺',W/2,30,20,'Arial','#8a7a50','center','400');
+     ctx.save();ctx.translate(112,124);ctx.fillStyle='#1628a1';ctx.beginPath();for(let i=0;i<24;i++){const a=i*Math.PI/12,r=i%2?44:62;ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r)}ctx.closePath();ctx.fill();ctx.restore();
+     ['VINTAGE','VIBES','ONLY'].forEach((t,i)=>text(t,112,114+i*17,15,'Arial','#fff','center','900'));
+     text('★',226,138,32,'Georgia','#6e0e1e','center','900');text('★',W-pad+8,138,32,'Georgia','#6e0e1e','center','900');
+     ctx.save();ctx.strokeStyle='#6e0e1e';ctx.lineWidth=6;ctx.beginPath();ctx.ellipse(W/2+60,124,196,40,0,0,Math.PI*2);ctx.stroke();ctx.restore();text(BU,W/2+60,136,fit(BU,330,34,'Georgia','900'),'Georgia','#6e0e1e','center','900');
+     text('MORE THAN JUST A BUSINESS',W/2,206,13,'Arial','#111','center','700');line(pad,224,W-pad,224,'#222',2);text('DATE:',pad,252,16,'Courier New','#111','left','700');
+     const dt=new Date(p.reading_started_at||Date.now());text(isNaN(dt.getTime())?'':dt.toLocaleDateString('id-ID',{day:'2-digit',month:'2-digit',year:'numeric'}),W-pad,252,16,'Courier New','#111','right','700')}
+   else if(T==='newspaper'){ctx.strokeStyle='#111';ctx.lineWidth=5;ctx.strokeRect(2.5,2.5,W-5,H-5);
+     line(pad,26,W-pad,26,'#111',5);text('THE DAILY ORDER',pad,52,13,'Arial','#111','left','800');text('•',W/2,52,14,'Arial','#111','center','800');text('GOOD PEOPLE GOOD STORIES',W-pad,52,13,'Arial','#111','right','800');line(pad,62,W-pad,62,'#111',1.5);
+     text('The Daily Order',W/2,132,60,'Georgia','#111','center','900');line(pad,148,W-pad,148,'#111',4);line(pad,157,W-pad,157,'#111',1.5);
+     text(BU,pad,206,fit(BU,inner,40,'Arial','900'),'Arial','#111','left','900');text('SMALL BUSINESS, BIG IMPACT',pad,232,13,'Arial','#111','left','700')}
+   else if(T==='boarding'){ctx.strokeStyle='#19689f';ctx.lineWidth=3;ctx.strokeRect(1.5,1.5,W-3,H-3);rect(0,0,W,56,'#0d5f9a');text('✈  BUSINESS CLASS',28,38,24,'Arial','#fff','left','800');text('A SMALL BUSINESS',W-28,26,12,'Arial','#fff','right','700');text('GOES A LONG WAY',W-28,42,12,'Arial','#fff','right','700');
+     text(BU,pad,122,fit(BU,inner,48,'Arial Black,Arial','900'),'Arial Black,Arial','#19689f','left','900');text('BOARDING TO A BRIGHTER TOMORROW',pad,152,13,'Arial','#254055','left','700')}
+   else if(T==='diner'){ctx.strokeStyle='#c7372f';ctx.lineWidth=6;ctx.strokeRect(3,3,W-6,H-6);checker(0,0,W,32,'#c7372f','#f4e5c1',16);
+     ctx.save();ctx.fillStyle='#fff';ctx.strokeStyle='#c7372f';ctx.lineWidth=6;ctx.beginPath();ctx.ellipse(W/2,100,236,48,0,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.restore();
+     text(BU,W/2,108,fit(BU,400,40,'Arial Black,Arial','900'),'Arial Black,Arial','#c7372f','center','900');text('ALWAYS A GOOD CHOICE',W/2,134,13,'Courier New','#c7372f','center','700')}
+   else if(T==='luxury'){ctx.strokeStyle='#111';ctx.lineWidth=2;ctx.strokeRect(1,1,W-2,H-2);ctx.strokeStyle='#b79a6c';ctx.lineWidth=2;ctx.strokeRect(14,14,W-28,H-28);
+     text('❧',W/2,70,48,'Georgia','#a27c4e','center','400');text(BU.split('').join(' '),W/2,118,fit(BU.split('').join(' '),inner,36,'Georgia','400'),'Georgia','#111','center','400');text('BEAUTY IN EVERY DETAIL',W/2,148,13,'Courier New','#111','center','600')}
+   // ---- isi struk ----
+   let y=topH+20;
+   if(descLines.length){descLines.forEach(l=>{text(l,W/2,y,22,canvasFont,tx,'center','600');y+=30});y+=10;line(pad,y,W-pad,y,ac,1.5,[7,7]);y+=36}
+   const bodyColor=T==='pastel'||T==='studio'||T==='boarding'?tx:'#171717';
+   for(const l of measured){if(!l){y+=15;continue}const isTotal=/^total\s*:/i.test(l);
+     if(isTotal){y+=10;const col=T==='diner'?'#fff':T==='boarding'?'#19689f':bodyColor;if(T==='diner')rect(pad-12,y-30,inner+24,44,'#c7372f');else{line(pad,y-30,W-pad,y-30,T==='boarding'?'#19689f':'#222',T==='newspaper'?4:2,T==='newspaper'||T==='studio'||T==='boarding'||T==='luxury'?[]:[10,7])}text(l,pad,y,27,bodyFont,col,'left','800');y+=44}
+     else{text(l,pad,y,23,bodyFont,bodyColor,'left','400');y+=35}}
+   y+=30;barcode(W/2-200,y,400,80);y+=104;text('powered by kairo workspaces',W/2,y,15,'Courier New','#333','center','400');
+   // ---- penutup + hiasan bawah (di dalam kertas) ----
+   const by=botY;
+   if(T==='pastel'){const g=ctx.createLinearGradient(0,by,W,H);g.addColorStop(0,'#f7dfe8');g.addColorStop(1,'#dce7ff');rect(0,by,W,botH,g);text('✦  ☆  ✧  ★  ☆  ✦',W/2,by+44,26,'Arial','#6eb3ec','center','400')}
+   else if(T==='studio'){rect(pad,by+14,78,78,'#111');checker(pad+7,by+21,64,64,'#fff','#111',8);tilted(W-pad-34,by+54,-4,()=>{rect(-34,-24,68,48,'#f2869f');text('✚',0,10,30,'Arial','#fff','center','900')})}
+   else if(T==='receiptify'){const cols=['#ef76a7','#7a6fd6','#ef76a7','#7a6fd6','#ef76a7'];['♡','✦','⌁','?!','☺'].forEach((s,i)=>text(s,W/2-160+i*80,by+34,30,'Arial',cols[i],'center','700'));checker(0,H-24,W,24,'#ef76a7','#f5eaa5',12)}
+   else if(T==='vintage'){tilted(W/2,by+42,-3,()=>{rect(-134,-28,268,56,'#7c1325');ctx.strokeStyle='#fff';ctx.lineWidth=4;ctx.strokeRect(-128,-22,256,44);text('THANK YOU ☺',0,9,24,'Arial','#fff','center','900')});rect(0,H-40,W,40,'#e8dfc4');line(0,H-40,W,H-40,'#cdbf93',2);text('☺    ☺    ☺    ☺',W/2,H-12,20,'Arial','#8a7a50','center','400')}
+   else if(T==='newspaper'){text('—  ✦  —',W/2,by+40,26,'Georgia','#111','center','700')}
+   else if(T==='boarding'){line(0,by+8,W,by+8,'#6d91aa',3,[14,10]);rect(2,by+10,W-4,botH-12,'#e3effa');text('BOARDING PASS · THANK YOU',W/2,by+52,17,'Arial','#19689f','center','800')}
+   else if(T==='diner'){ctx.save();ctx.fillStyle='#f6d98f';ctx.strokeStyle='#c7372f';ctx.lineWidth=4;ctx.beginPath();ctx.arc(W/2,by+36,26,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.restore();text('☺',W/2,by+46,30,'Arial','#c7372f','center','400');checker(0,H-32,W,32,'#c7372f','#f4e5c1',16)}
+   else if(T==='luxury'){text('❧',W/2,by+54,40,'Georgia','#a27c4e','center','400')}
    return canvas;
  }
  async function receiptImageBlob(){const p=window.__trineLastReceiptPayload;if(!p)throw new Error('Belum ada struk untuk dibuat foto.');const canvas=makeReceiptCanvas(p);return await new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error('Gagal membuat PNG.')),'image/png',1));}
@@ -5503,7 +5517,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
         // Dashboard Kasir (tahap 1): dimuat hanya untuk Kasir / POS.
         if(!document.getElementById('pos-kasir-js')){
           const link=document.createElement('link');link.id='pos-kasir-css';link.rel='stylesheet';link.href='assets/templates/pos-kasir.css?v=1.5.0';document.head.appendChild(link);
-          const script=document.createElement('script');script.id='pos-kasir-js';script.src='assets/templates/pos-kasir.js?v=1.5.0';script.defer=true;document.body.appendChild(script);
+          const script=document.createElement('script');script.id='pos-kasir-js';script.src='assets/templates/pos-kasir.js?v=1.5.1';script.defer=true;document.body.appendChild(script);
           const link2=document.createElement('link');link2.id='pos-produk-css';link2.rel='stylesheet';link2.href='assets/templates/pos-produk.css?v=1.3.0';document.head.appendChild(link2);
           const script2=document.createElement('script');script2.id='pos-produk-js';script2.src='assets/templates/pos-produk.js?v=1.3.0';script2.defer=true;document.body.appendChild(script2);
         }}
