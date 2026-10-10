@@ -450,12 +450,14 @@ const TEMPLATES=[
    features:['Orders: Package + Add-on + Topik','Start Reading + status On Progress / Done','Notifikasi order On Progress ≥ 5 menit','Open / Close Store (sesi kerja)','Bagi hasil partner & Withdraw','Struk yang bisa diatur'],
    files:['assets/kairo-app.js (tampilan dasar KAIRO)'],
    note:'Tampilan dasar KAIRO (asal mula dari dashboard Trine Magic). Akun lama yang tidak tercatat templatenya juga tampil seperti ini.'},
-  {key:'online_shop',name:'Online Shop',desc:'Kreasikan produkmu sendiri pada dashboard.',kind:'custom',preview:'jasa-online',
+  {key:'online_shop',name:'Online Shop',desc:'Kreasikan produkmu sendiri pada dashboard.',kind:'custom',preview:'online-shop',
    features:['Istilah toko: Waktu Order, Produk, Kategori','Kartu Profit di Dashboard (opsional dipotong komisi channel)','Laba per Produk, Performa Channel, Stok Produk, Batal & Retur','Channel Penjualan bisa diatur (Shopee, Tokopedia, dll) + komisi per channel','Stok produk: stok 0 memblokir order, stok menipis masuk lonceng'],
    files:['assets/templates/online-shop.js','assets/templates/online-shop.css'],
    note:'Memakai kerangka tampilan dasar KAIRO dengan istilah dan analitik toko.'},
-  {key:'pos_kasir',name:'Kasir / POS',desc:'Catat penjualan langsung di toko, kafe, atau warung.',kind:'none',preview:'jasa-online',features:[],files:[],
-   note:'Belum ada tampilan khusus (isinya menyusul). Sementara user melihat tampilan Jasa Online.'}
+  {key:'pos_kasir',name:'Kasir / POS',desc:'Catat penjualan langsung di toko, kafe, atau warung.',kind:'custom',preview:'kasir',
+   features:['Layar Kasir: pilih produk, tambahan cepat, diskon, service & pajak, bayar tunai/QRIS/debit, struk','Open Bill (tahan pesanan, bayar nanti) + nomor meja','Sesi Kasir: modal awal laci, hitung uang fisik, selisih, rekap sesi','Menu Produk: foto (kamera), harga, modal, stok, satuan, kategori, pembagian untung per produk','Hitung Stok (stock opname) + riwayat, stok menipis di lonceng','Performance Kasir: jam ramai, kategori, metode bayar, laba per produk','Cetak struk ke printer (USB, Bluetooth, serial, RawBT, atau printer biasa)'],
+   files:['assets/templates/pos-kasir.js/.css','assets/templates/pos-produk.js/.css','assets/kairo-printer.js'],
+   note:'Memakai kerangka tampilan dasar KAIRO dengan layar Kasir, menu Produk, dan Sesi Kasir.'}
 ];
 const TPL_KIND={custom:['Tampilan khusus','b-ok'],base:['Tampilan dasar','b-info'],none:['Belum ada tampilan khusus','b-warn']};
 function templateUsage(){

@@ -9,7 +9,7 @@ async function toWebp(page,buf,name,width){
   fs.writeFileSync(`${OUT}/${name}.webp`,Buffer.from(webp.split(',')[1],'base64'));console.log(name,fs.statSync(`${OUT}/${name}.webp`).size);
 }
 (async()=>{const b=await chromium.launch();
-for(const [tpl,seed,name] of [['','./seed.js','jasa-online'],['seller','./seed-seller.js','seller-app-premium']]){
+for(const [tpl,seed,name] of [['','./seed.js','jasa-online'],['seller','./seed-seller.js','seller-app-premium'],['shop','./seed-shop.js','online-shop'],['pos','./seed-pos.js','kasir']]){
   for(const [w,h,mobile,suffix,outW] of [[1440,900,false,'desktop',960],[390,844,true,'mobile',390]]){
     const p=await bootApp(b,{seed:require(seed),plan:'pro',width:w,height:h,mobile,template:tpl,workspaceName:'Toko Demo',dsf:mobile?2:1});
     await p.evaluate(async()=>{try{hydrateSaasUi()}catch(e){}openAppPage('dashboard');await loadPageData('dashboard',{force:true})});

@@ -866,7 +866,38 @@
     setText(document.querySelector('#transaction-history-card .card-title > span:last-child'), 'Struk Terbaru');
     setText(document.querySelector('#transaction-history-card .history-card-subtitle'), 'Struk penjualan terbaru. Pakai filter tanggal untuk mengatur yang tampil.');
   }
-  function refresh() { relabelHistory(); renderKpis(); renderDrawerKpi(); relabelShift(); mountSessionUi(); renderPanels(); initKasir(); }
+  // Istilah Kasir di halaman lain (Orders/paket/topik -> struk/produk/kategori). Hanya teks; idempoten supaya aman dipanggil berulang.
+  const TERMS = [[/^Waktu Order$/, 'Waktu'], [/^Rata-rata per order$/, 'Rata-rata per struk'], [/^Total Order$/, 'Total Transaksi'], [/^Terakhir Order$/, 'Transaksi Terakhir'], [/^(\d+)x order$/, '$1x transaksi'],
+    [/^Kelola pilihan yang tersedia di menu Orders\..*$/, 'Kelola daftar kategori produk yang muncul di menu Kasir dan Produk. Nama kategori bisa disesuaikan.']];
+  function relabelTerms() {
+    trimAccess();
+    const roots = ['dashboard', 'performance', 'customers', 'promo', 'settings'].map(id => document.getElementById(id)).filter(Boolean);
+    roots.forEach(r => {
+      const w = document.createTreeWalker(r, NodeFilter.SHOW_TEXT); let n;
+      while ((n = w.nextNode())) {
+        const raw = n.nodeValue, t = raw.trim(); if (!t) continue;
+        let out = t;
+        for (const [re, to] of TERMS) if (re.test(out) && !(r.id === 'settings' && /Waktu/.test(re.source))) { out = out.replace(re, to); break; }
+        if (r.id === 'promo') out = out.replace(/package/gi, m => (m[0] === 'P' ? 'Produk' : 'produk')).replace(/topik/gi, m => (m[0] === 'T' ? 'Kategori' : 'kategori')).replace(/keyword/gi, 'kata kunci');
+        if (out !== t) n.nodeValue = raw.replace(t, out);
+      }
+    });
+  }
+  // Daftar fitur paket (Settings › Workspace): Autofill Orders dan Open/Close Store tidak ada di Kasir.
+  function trimAccess() {
+    document.querySelectorAll('#settings-access-list .settings-access-item, #settings-access-list > *').forEach(li => { if (/autofill|open\s*\/?\s*(close\s*)?store/i.test(li.textContent) && li.style.display !== 'none') li.style.display = 'none'; });
+  }
+  let termTimer = 0;
+  const scheduleTerms = () => { clearTimeout(termTimer); termTimer = setTimeout(relabelTerms, 80); };
+  new MutationObserver(scheduleTerms).observe(document.querySelector('main.container') || document.body, { childList: true, subtree: true });
+  // Settings › Struk: struk di layar Kasir selalu polos 58 mm; layout desain dipakai untuk struk dari Struk Terbaru.
+  function mountReceiptNote() {
+    const panel = document.querySelector('#settings [data-settings-panel="receipt"]');
+    if (!panel || document.getElementById('pos-receipt-note')) return;
+    panel.insertAdjacentHTML('afterbegin', '<div class="card pos-receipt-note" id="pos-receipt-note"><div class="card-title">Struk di layar Kasir</div><div class="page-sub">Setelah bayar di layar Kasir, struk tampil polos untuk printer kasir 58/80 mm (atur printer di kartu Printer Struk di bawah). Layout dan wording di bawah dipakai untuk struk yang dibuka dari Struk Terbaru (Aksi › Struk) dan dibagikan sebagai gambar.</div></div>');
+  }
+  new MutationObserver(mountReceiptNote).observe(document.getElementById('settings') || document.body, { childList: true, subtree: true });
+  function refresh() { relabelTerms(); mountReceiptNote(); relabelHistory(); renderKpis(); renderDrawerKpi(); relabelShift(); mountSessionUi(); renderPanels(); initKasir(); }
 
   /* ---------- Pasang ---------- */
   function wrap(name, after) {
