@@ -91,7 +91,7 @@ Versi terakhir: `kairo.css?v=20.10.159`, `kairo-v3.css?v=3.41.0`,
 (`seller-app-premium.js?v=20.10.161`, `.css?v=20.10.157`) — naikkan juga bila file template diubah.
 Setup Wizard dimuat dari `loadSetupWizard()` di kairo-app.js (`kairo-setup-wizard.js/.css?v=1.0.4`, satu konstanta `v`).
 Panduan dimuat dari `window.kairoOpenGuide()` di kairo-v3.js (`kairo-guide.js/.css?v=` konstanta `GUIDE_V`='1.0.3'; gambar `assets/guide/*.webp?v=` `SHOT_V` di kairo-guide.js).
-Admin: `admin.js?v=1.12.1`, `admin.css?v=1.8.2`. Library CDN dikunci versi + SRI: supabase-js 2.117.2 (index.html & admin), Chart.js 4.4.4 `dist/chart.umd.js`
+Admin: `admin.js?v=1.12.2`, `admin.css?v=1.8.2`. Library CDN dikunci versi + SRI: supabase-js 2.117.2 (index.html & admin), Chart.js 4.4.4 `dist/chart.umd.js`
 (`ensureChartLibrary`, admin), xlsx-js-style 1.2.0. **Ganti versi = hitung ulang SRI** (`npm pack` lalu `openssl dgst -sha384 -binary f | openssl base64 -A`).
 
 **Halaman app** = `main.container > section.section` dengan id:
@@ -444,7 +444,7 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
 - **Admin › Template (owner Okt 2026):** daftar template usaha dari form daftar (`TEMPLATES` di admin.js — **perbarui
   bila ada template baru**): Seller App Premium (`digital_subscription`, tampilan khusus), Jasa Online
   (`service_consultation`, tampilan dasar), Online Shop (istilah toko, lihat poin berikut) & **Kasir / POS** (`pos_kasir`, menggantikan Digital Product Okt 2026; belum ada tampilan khusus → user melihat
-  tampilan Jasa Online, isinya menyusul). `digital_product` tetap ada di admin sebagai "Digital Product (lama)" (`legacy:true`) untuk akun lama; tidak ditawarkan di form daftar/Demo (`#demo-kasir`). Tabel Workspaces punya kolom **Template** (`templateLabel()`, dari `wsActivity.business_template`; 'Belum tercatat' = akun lama, tampil seperti Jasa Online). Jumlah workspace/Pro/aktif per template dari `business_template` di
+  tampilan Jasa Online, isinya menyusul). Digital Product dihapus total (belum ada user yang memakainya, owner Okt 2026); Demo = `#demo-kasir`. Tabel Workspaces punya kolom **Template** (`templateLabel()`, dari `wsActivity.business_template`; 'Belum tercatat' = akun lama, tampil seperti Jasa Online). Jumlah workspace/Pro/aktif per template dari `business_template` di
   `platform_admin_workspace_activity` (SQL `.claude/sql/2026-10-admin-templates.sql`, **sudah dijalankan owner Okt 2026**). Preview dashboard
   `admin/previews/*.webp` dibuat ulang dengan `.claude/testing/shoot-templates.js`. Cache admin: lihat di atas.
 - **Laporan error user** (kairo-app.js, di atas `showToast`): `reportClientError()` mengirim pesan error script

@@ -455,9 +455,7 @@ const TEMPLATES=[
    files:['assets/templates/online-shop.js','assets/templates/online-shop.css'],
    note:'Memakai kerangka tampilan dasar KAIRO dengan istilah dan analitik toko.'},
   {key:'pos_kasir',name:'Kasir / POS',desc:'Catat penjualan langsung di toko, kafe, atau warung.',kind:'none',preview:'jasa-online',features:[],files:[],
-   note:'Belum ada tampilan khusus (isinya menyusul). Sementara user melihat tampilan Jasa Online.'},
-  {key:'digital_product',legacy:true,name:'Digital Product (lama)',desc:'Pilihan lama, sudah diganti Kasir / POS di form daftar.',kind:'none',preview:'jasa-online',features:[],files:[],
-   note:'Tidak ditawarkan lagi. Akun lama yang memilihnya tetap melihat tampilan Jasa Online.'}
+   note:'Belum ada tampilan khusus (isinya menyusul). Sementara user melihat tampilan Jasa Online.'}
 ];
 const TPL_KIND={custom:['Tampilan khusus','b-ok'],base:['Tampilan dasar','b-info'],none:['Belum ada tampilan khusus','b-warn']};
 function templateUsage(){
@@ -470,7 +468,7 @@ function renderTemplates(){
   const hasData=wsActivity.length>0&&wsActivity.some(a=>'business_template' in a);
   $('tplNeedSql').classList.toggle('hidden',hasData);
   const use=hasData?templateUsage():null;
-  const live=TEMPLATES.filter(t=>!t.legacy);
+  const live=TEMPLATES;
   setText('tplTotal',live.length);setText('tplCustom',live.filter(t=>t.kind==='custom').length);setText('tplBase',live.filter(t=>t.kind==='base').length);setText('tplNone',live.filter(t=>t.kind==='none').length);
   setText('navTemplates',live.length);
   const stat=list=>list?{n:list.length,pro:list.filter(x=>planKey(x.w.plan)==='pro').length,active:list.filter(x=>Number(x.a.tx_30d)>0).length}:{n:'—',pro:'—',active:'—'};
@@ -480,11 +478,11 @@ function renderTemplates(){
     const ranked=TEMPLATES.map(t=>[t,use[t.key].length]).sort((a,b)=>b[1]-a[1]);
     if(ranked[0][1])notes.push(['ok',`Paling banyak dipakai: <b>${esc(ranked[0][0].name)}</b> (${ranked[0][1]} workspace).`]);
     const noneUsers=TEMPLATES.filter(t=>t.kind==='none').reduce((a,t)=>a+use[t.key].length,0);
-    if(noneUsers)notes.push(['warn',`<b>${noneUsers} workspace</b> memilih template yang belum punya tampilan khusus (Kasir / POS dan Digital Product lama) — mereka melihat tampilan Jasa Online.`]);
+    if(noneUsers)notes.push(['warn',`<b>${noneUsers} workspace</b> memilih template yang belum punya tampilan khusus (Kasir / POS) — mereka melihat tampilan Jasa Online.`]);
     if(use.__none.length)notes.push(['warn',`${use.__none.length} workspace tidak tercatat templatenya (akun lama / dibuat manual) — tampil sebagai Jasa Online.`]);
     TEMPLATES.forEach(t=>{const l=use[t.key];if(l.length&&!l.some(x=>Number(x.a.tx_30d)>0))notes.push(['warn',`Semua workspace <b>${esc(t.name)}</b> tidak mencatat transaksi 30 hari terakhir.`]);});
   }
-  notes.push(['warn',`${TEMPLATES.filter(t=>t.kind==='none'&&!t.legacy).length} dari ${TEMPLATES.filter(t=>!t.legacy).length} template di form daftar belum punya tampilan khusus.`]);
+  notes.push(['warn',`${TEMPLATES.filter(t=>t.kind==='none').length} dari ${TEMPLATES.length} template di form daftar belum punya tampilan khusus.`]);
   $('tplNotes').innerHTML=notes.map(([k,t])=>`<li class="${k}"><svg><use href="#i-${k==='ok'?'check':'alert'}"/></svg><span>${t}</span></li>`).join('');
   $('tplGrid').innerHTML=TEMPLATES.map((t,i)=>{
     const st=stat(use&&use[t.key]),list=use?use[t.key]:[],fb=t.kind==='none';
@@ -747,7 +745,7 @@ function openAccount(){
   ['aName','aBusiness','aUser','aEmail','aPhone'].forEach(id=>$(id).value='');
   $('aPass').value=randomPassword();$('aPlan').value='basic';
   const d=new Date();d.setMonth(d.getMonth()+1);$('aUntil').value=d.toISOString().slice(0,10);
-  $('aTemplate').innerHTML=TEMPLATES.filter(t=>t.key!=='digital_product').map(t=>`<option value="${esc(t.key)}">${esc(t.name)}</option>`).join('');
+  $('aTemplate').innerHTML=TEMPLATES.map(t=>`<option value="${esc(t.key)}">${esc(t.name)}</option>`).join('');
   $('accForm').classList.remove('hidden');$('accDone').classList.add('hidden');$('aError').textContent='';syncAccountPlan();
   openModal('accountModal');
 }
