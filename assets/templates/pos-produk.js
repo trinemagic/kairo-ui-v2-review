@@ -16,6 +16,7 @@
   const ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 7.5 12 3l8.5 4.5v9L12 21l-8.5-4.5z"/><path d="m3.5 7.5 8.5 4.5 8.5-4.5M12 12v9"/></svg>';
   const PLACEHOLDER = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="14" rx="2.5"/><circle cx="9" cy="10.5" r="1.6"/><path d="m4 17 5-4.5 3.5 3L15 13l5 4.5"/></svg>';
 
+  const UNITS = ['pcs', 'porsi', 'potong', 'gelas', 'bungkus', 'box'];
   let kind = 'package';          // package | addon
   let filter = 'all';            // all | low | out
   let query = '';
@@ -93,9 +94,9 @@
     }
     box.innerHTML = rows.map(p => {
       const profit = num(p.price) - num(p.cost_price), st = stockState(p);
-      const badge = st === 'none' ? '' : `<span class="pp-badge is-${st}">${st === 'out' ? 'Habis' : st === 'low' ? 'Menipis · ' + p.stock_qty : 'Stok ' + p.stock_qty}</span>`;
+      const badge = st === 'none' ? '' : `<span class="pp-badge is-${st}">${st === 'out' ? 'Habis' : st === 'low' ? 'Menipis · ' + p.stock_qty : 'Stok ' + p.stock_qty + (p.unit ? ' ' + p.unit : '')}</span>`;
       const img = p.image_url ? `<img src="${esc(p.image_url)}" alt="" loading="lazy">` : `<span class="pp-ph">${PLACEHOLDER}</span>`;
-      return `<button type="button" class="pp-card" data-id="${esc(p.id)}"><span class="pp-photo">${img}${badge}</span><b class="pp-name">${esc(p.name)}</b><span class="pp-price">${money(p.price)}</span><span class="pp-profit ${profit < 0 ? 'is-neg' : ''}">Untung ${money(profit)}</span></button>`;
+      return `<button type="button" class="pp-card" data-id="${esc(p.id)}"><span class="pp-photo">${img}${badge}</span><b class="pp-name">${esc(p.name)}</b>${p.category || p.unit ? `<small class="pp-sub">${esc([p.category, p.unit].filter(Boolean).join(' · '))}</small>` : ''}<span class="pp-price">${money(p.price)}</span><span class="pp-profit ${profit < 0 ? 'is-neg' : ''}">Untung ${money(profit)}</span></button>`;
     }).join('');
   }
   function onPageClick(e) {
@@ -128,7 +129,7 @@
     const isNew = !item;
     photoBlob = null;
     draft = {
-      id: item?.id || null, name: item?.name || '', code: item?.code || '', category: item?.category || '',
+      id: item?.id || null, name: item?.name || '', code: item?.code || '', category: item?.category || '', unit: item?.unit || (kind === 'package' ? 'pcs' : ''),
       price: num(item?.price), cost: num(item?.cost_price), image: item?.image_url || '',
       track: tracked(item), qty: tracked(item) ? num(item.stock_qty) : 0, min: item?.stock_min === null || item?.stock_min === undefined ? 5 : num(item.stock_min),
       ...initialSplit(item), isNew
@@ -153,6 +154,7 @@
           <input class="input pp-big" id="pp-name" maxlength="60" placeholder="${kind === 'addon' ? 'Mis. Extra Shot' : 'Mis. Kopi Susu'}" autocomplete="off">
           ${kind === 'package' ? `<div class="pp-label">Kategori <small>(boleh dikosongkan)</small></div><div class="pp-cats" id="pp-cats">${['', ...cats].map(c => `<button type="button" data-cat="${esc(c)}">${c ? esc(c) : 'Tanpa kategori'}</button>`).join('')}</div>
           <div class="pp-newcat"><input class="input" id="pp-newcat" maxlength="30" placeholder="Kategori baru…"><button type="button" class="btn btn-light" id="pp-newcat-add">Tambah</button></div>` : ''}
+          ${kind === 'package' ? `<div class="pp-label">Satuan</div><div class="pp-cats pp-units" id="pp-units">${UNITS.map(u => `<button type="button" data-unit="${u}">${u}</button>`).join('')}</div>` : ''}
           <details class="pp-more"><summary>Kode / barcode (opsional)</summary><input class="input" id="pp-code" maxlength="40" placeholder="Kosong = dibuat otomatis. Scanner barcode: arahkan lalu scan di sini"></details></section>
         <section class="pp-step"><h4><i>3</i>Harga &amp; modal</h4>
           <div class="pp-two"><div><div class="pp-label">Harga jual</div><input class="input pp-big pp-money" id="pp-price" inputmode="numeric" placeholder="Rp0"></div>
@@ -174,7 +176,7 @@
     $('pp-name').value = draft.name; if ($('pp-code')) { $('pp-code').value = draft.code; if (draft.code) ov.querySelector('.pp-more').open = true; }
     $('pp-price').value = fmtIn(draft.price); $('pp-cost').value = fmtIn(draft.cost);
     if ($('pp-track')) { $('pp-track').checked = draft.track; $('pp-qty').value = draft.qty; $('pp-min').value = draft.min; }
-    paintPhoto(); paintCats(); paintProfit(); paintSplit(); paintStock();
+    paintPhoto(); paintCats(); paintUnits(); paintProfit(); paintSplit(); paintStock();
     ov.addEventListener('click', onSheetClick);
     ov.addEventListener('input', onSheetInput);
     ov.addEventListener('change', onSheetChange);
@@ -197,6 +199,9 @@
   }
   function paintCats() {
     document.querySelectorAll('#pp-cats button').forEach(b => b.classList.toggle('on', b.dataset.cat === (draft.category || '')));
+  }
+  function paintUnits() {
+    document.querySelectorAll('#pp-units button').forEach(b => b.classList.toggle('on', b.dataset.unit === draft.unit));
   }
   function paintProfit() {
     const box = S('pp-profit-box'); if (!box) return;
@@ -260,6 +265,7 @@
     if (t.dataset.act === 'close') { closeSheet(); return; }
     if (t.dataset.act === 'save') { save(t); return; }
     if (t.dataset.act === 'delete') { remove(t); return; }
+    if (t.dataset.unit !== undefined) { draft.unit = t.dataset.unit; paintUnits(); return; }
     if (t.dataset.cat !== undefined) { draft.category = t.dataset.cat; paintCats(); return; }
     if (t.id === 'pp-cam-btn') { takePhoto(); return; }
     if (t.id === 'pp-photo-del') { draft.image = ''; photoBlob = null; paintPhoto(); return; }
@@ -359,8 +365,10 @@
       const payload = { name, price: draft.price, cost_price: draft.cost, profit_share_mode: sp.mode, manual_profit_split: sp.split };
       const code = draft.code.trim();
       payload.code = code || null;
+      if (code && list().some(x => x.is_active !== false && String(x.id) !== String(draft.id) && String(x.code || '').toLowerCase() === code.toLowerCase())) throw new Error('Kode/barcode itu sudah dipakai produk lain.');
       if (kind === 'package') {
         payload.category = draft.category || null;
+        payload.unit = draft.unit || null;
         payload.stock_qty = draft.track ? Math.max(0, Math.round(draft.qty)) : null;
         payload.stock_min = draft.track ? Math.max(0, Math.round(draft.min)) : null;
       }

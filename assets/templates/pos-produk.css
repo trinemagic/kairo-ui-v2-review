@@ -130,3 +130,5 @@ body.saas-dark .pp-dash-item.is-out{background:#4a1f29;color:#ffb3bf}
   #pos-products .pp-add{width:100%}
   .pp-seg{width:100%}.pp-seg button{flex:1}
 }
+
+.pp-card>.pp-sub{padding:0 12px;font-size:12px;color:var(--v3-muted,#4e6475)}
