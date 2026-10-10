@@ -87,7 +87,7 @@ domain = pengguna login ulang & pengaturan browser (Ingat saya, dark mode) mulai
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
 Versi terakhir: `kairo.css?v=20.10.159`, `kairo-v3.css?v=3.41.0`,
-`kairo-v3.js?v=3.30.5`, `kairo-app.js?v=20.10.217`, `kairo-pin.js?v=1.0.1`, `kairo-themes.css?v=1.0.0`/`.js?v=1.0.1`; template seller dimuat dari kairo-app.js
+`kairo-v3.js?v=3.30.6`, `kairo-app.js?v=20.10.218`, `kairo-pin.js?v=1.0.1`, `kairo-themes.css?v=1.0.0`/`.js?v=1.0.1`; template seller dimuat dari kairo-app.js
 (`seller-app-premium.js?v=20.10.161`, `.css?v=20.10.157`) — naikkan juga bila file template diubah.
 Setup Wizard dimuat dari `loadSetupWizard()` di kairo-app.js (`kairo-setup-wizard.js/.css?v=1.0.4`, satu konstanta `v`).
 Panduan dimuat dari `window.kairoOpenGuide()` di kairo-v3.js (`kairo-guide.js/.css?v=` konstanta `GUIDE_V`='1.0.3'; gambar `assets/guide/*.webp?v=` `SHOT_V` di kairo-guide.js).
@@ -195,6 +195,12 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
 - **Alamat pendek (owner Okt 2026):** folder `app/`, `masuk/` (-> `/#masuk`, form Masuk langsung) dan `daftar/` (-> `/?signup=1`, form Daftar) berisi
   halaman kecil yang hanya redirect ke `index.html` yang sama. Dokumen app SENGAJA tidak dipindah ke subfolder: banyak path relatif
   (`assets/...` dimuat dinamis dari JS, link `#home`, demo `#demo-...`) akan rusak. Jangan tambah `<base>`.
+- **Template Kasir / POS (owner Okt 2026, dibangun bertahap):** `business_template='pos_kasir'`; `assets/templates/pos-kasir.js/.css` (`?v=1.0.0`, dimuat loader hanya untuk template ini).
+  Keputusan owner: usaha campuran kafe+retail (nomor meja opsional), pajak/service opsional default mati, cetak struk lewat browser, barcode = scanner keyboard di kolom cari, Sesi Kasir terpisah dari Kas/Petty Cash (belum dibahas final).
+  **Tahap 1 (Dashboard) sudah:** kartu Penjualan/Profit/Jumlah Struk/Saldo Kas/Rata-rata per Struk (kartu "Omzet Bulan Ini" dipakai ulang), Sesi Kasir = Open/Close Store lama dengan label baru (ID `#open-shift-btn` dst tetap),
+  riwayat sesi disembunyikan diganti grafik Penjualan per Jam (`#pos-hourly`, jam ramai = 2 teratas), baris Produk Terlaris + Metode Pembayaran + Tipe Pesanan (`#pos-dash-row`, Tipe Pesanan membaca field `platform`).
+  `isShopWorkspace()` dan lapisan istilah toko di kairo-v3.js berlaku juga untuk pos_kasir. **Belum:** layar Kasir (pengganti Orders: keranjang, uang diterima/kembalian, pajak, nomor struk), Sesi Kasir lengkap (modal awal + selisih, perlu SQL),
+  stok di Dashboard/Settings, Performance, Panduan. Tes: `seed-pos.js` + `bootApp(b,{template:'pos',seed:require('./seed-pos.js')})`.
 - **Login PIN (owner Okt 2026, tanpa Face ID):** `assets/kairo-pin.js` (`?v=1.0.0`, dimuat setelah kairo-app.js; memakai `db` global). Settings › Workspace & Branding
   › kartu "PIN Login" (`#kairo-pin-settings`): PIN 6 angka dibuat 2x. Refresh token sesi dienkripsi AES-GCM (kunci PBKDF2-SHA256 600k iterasi dari PIN, AAD = user id)
   di `localStorage` `kairo_pin_v1`; password TIDAK disimpan; kunci turunan hanya di memori, token diperbarui tiap `TOKEN_REFRESHED`. Dialog Masuk menampilkan keypad bila PIN ada
