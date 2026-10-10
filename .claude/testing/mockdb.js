@@ -29,7 +29,11 @@ window.supabase = { createClient: () => {
           const rejectCol = (D.rejectColumn || {})[table];
           if (rejectCol && (Array.isArray(st.payload) ? st.payload : [st.payload]).some(r => rejectCol in r)) return Promise.resolve({ data: null, error: { message: `Could not find the '${rejectCol}' column of '${table}' in the schema cache` } }).then(res, rej);
           const list = (Array.isArray(st.payload) ? st.payload : [st.payload]).map(r => ({ id: 'id' + Math.random().toString(36).slice(2, 8), created_at: new Date().toISOString(), ...r }));
+          // Seperti PRIMARY KEY di Postgres: id yang sudah ada ditolak (23505).
+          if (list.some(r => rows.some(x => String(x.id) === String(r.id)))) return Promise.resolve({ data: null, error: { code: '23505', message: `duplicate key value violates unique constraint "${table}_pkey"` } }).then(res, rej);
           rows.push(...list); out = list;
+          // __db.loseResponse[tabel] = 'pesan': baris MASUK tetapi jawabannya hilang (koneksi putus), satu kali.
+          if ((D.loseResponse || {})[table]) { const m = D.loseResponse[table]; delete D.loseResponse[table]; return Promise.resolve({ data: null, error: { message: m } }).then(res, rej); }
         } else if (st.op === 'update') { out = rows.filter(r => match(r, st.filters)); out.forEach(r => Object.assign(r, st.payload)); }
         else if (st.op === 'delete') { out = rows.filter(r => match(r, st.filters)); D.tables[table] = rows.filter(r => !match(r, st.filters)); }
         else if (st.op === 'upsert') { const p = Array.isArray(st.payload) ? st.payload : [st.payload], keys = st.conflict ? String(st.conflict).split(',').map(k => k.trim()) : null; out = p.map(r => { const hit = keys && rows.find(x => keys.every(k => String(x[k]) === String(r[k]))); if (hit) return Object.assign(hit, r); rows.push(r); return r; }); }

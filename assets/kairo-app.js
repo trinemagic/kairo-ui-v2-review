@@ -249,6 +249,32 @@ function workspaceInsert(row){
     ...(activeAuthUserId ? {created_by:activeAuthUserId} : {})
   };
 }
+/* Cek duplikat simpan penjualan (owner Okt 2026): tiap upaya simpan punya id (uuid) buatan aplikasi. Bila simpan gagal / koneksi putus
+   lalu diulang dengan isi yang sama, id yang sama dipakai lagi; jika penjualan pertama ternyata sudah masuk, database menolak id kembar
+   (23505, PRIMARY KEY) dan itu dianggap "sudah tersimpan", bukan dicatat dobel. Catatan upaya ada di sessionStorage (selamat dari refresh,
+   hilang saat tab ditutup) dan dihapus begitu simpan berhasil, jadi penjualan baru yang isinya kebetulan sama tetap dicatat normal. */
+const txGuard=(()=>{
+  const KEY="kairo_tx_attempt_v1",TTL=30*60*1000;
+  const uuid=()=>window.crypto?.randomUUID?window.crypto.randomUUID():"10000000-1000-4000-8000-100000000000".replace(/[018]/g,c=>(c^window.crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16));
+  const hash=s=>{let h=5381;for(let i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))|0;return String(h>>>0);};
+  // Isi penjualan saja (tanpa jam/nomor struk): dua upaya dengan isi sama = penjualan yang sama.
+  const signature=p=>hash(JSON.stringify([activeWorkspaceId,p.transaction_date,p.customer_name,p.platform,p.payment_method,p.total_price,p.price_adjustment_amount,p.tip_amount,p.notes,p.order_items,p.order_topics,p.order_addons]));
+  const read=()=>{try{return JSON.parse(sessionStorage.getItem(KEY)||"null");}catch(_e){return null;}};
+  return {
+    // Kembalikan catatan upaya {id, receipt_no?}; isi sama dengan upaya yang belum selesai -> id yang sama.
+    begin(p,extra){
+      const sig=signature(p),old=read();
+      const rec=old&&old.sig===sig&&Date.now()-old.t<TTL?old:{sig,id:uuid(),t:Date.now()};
+      if(rec.receipt_no==null&&extra?.receipt_no!=null)rec.receipt_no=extra.receipt_no;
+      try{sessionStorage.setItem(KEY,JSON.stringify(rec));}catch(_e){}
+      return rec;
+    },
+    done(){try{sessionStorage.removeItem(KEY);}catch(_e){}},
+    isDuplicate(err){return String(err?.code)==="23505"&&/duplicate key|_pkey/i.test(String(err?.message||""));}
+  };
+})();
+window.kairoTxGuard=txGuard;
+
 let dashboardInitialized = false;
 let authBusy = false;
 let refreshInFlight = null;
@@ -2555,8 +2581,11 @@ document.getElementById("confirm-save").addEventListener("click",async()=>{
     const ensuredCustomerId=await ensureCustomerForPendingTransaction();
     pendingTransactionPayload.customer_id=ensuredCustomerId;
     if(ensuredCustomerId && (pendingTransactionPayload.social_name||pendingTransactionPayload.whatsapp)){const {error:cu}=await db.from("customers").update({social_name:pendingTransactionPayload.social_name||null,whatsapp:pendingTransactionPayload.whatsapp||null}).eq("workspace_id",requireWorkspaceId()).eq("id",ensuredCustomerId);if(cu)throw cu;}
-    const {error}=await db.from("transactions").insert([workspaceInsert(pendingTransactionPayload)]);
-    if(error) throw error;
+    const attempt=txGuard.begin(pendingTransactionPayload);
+    const {error}=await db.from("transactions").insert([workspaceInsert({...pendingTransactionPayload,id:attempt.id})]);
+    const alreadySaved=Boolean(error)&&txGuard.isDuplicate(error);
+    if(error&&!alreadySaved) throw error;
+    txGuard.done();
 
     const savedName=pendingTransactionPayload.customer_name;
     closeReceiptPreview();
@@ -2565,7 +2594,7 @@ document.getElementById("confirm-save").addEventListener("click",async()=>{
     selectedCustomerId=null;
     const hiddenCustomerId=document.getElementById("tx-customer-id");
     if(hiddenCustomerId) hiddenCustomerId.value="";
-    showToast(`Penjualan ${savedName} berhasil disimpan.`);
+    showToast(alreadySaved?`Penjualan ${savedName} sudah tersimpan sebelumnya, tidak dicatat dobel.`:`Penjualan ${savedName} berhasil disimpan.`);
     await Promise.all([refreshAll(),loadCustomerDirectory()]);
   }catch(err){ showToast("Gagal menyimpan: "+err.message,true); }
   finally{setBtnLoading(btn,false,"✓ Simpan Transaksi");}
@@ -5562,7 +5591,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
         // Dashboard Kasir (tahap 1): dimuat hanya untuk Kasir / POS.
         if(!document.getElementById('pos-kasir-js')){
           const link=document.createElement('link');link.id='pos-kasir-css';link.rel='stylesheet';link.href='assets/templates/pos-kasir.css?v=1.5.2';document.head.appendChild(link);
-          const script=document.createElement('script');script.id='pos-kasir-js';script.src='assets/templates/pos-kasir.js?v=1.5.6';script.defer=true;document.body.appendChild(script);
+          const script=document.createElement('script');script.id='pos-kasir-js';script.src='assets/templates/pos-kasir.js?v=1.5.7';script.defer=true;document.body.appendChild(script);
           const link2=document.createElement('link');link2.id='pos-produk-css';link2.rel='stylesheet';link2.href='assets/templates/pos-produk.css?v=1.4.0';document.head.appendChild(link2);
           const script2=document.createElement('script');script2.id='pos-produk-js';script2.src='assets/templates/pos-produk.js?v=1.4.2';script2.defer=true;document.body.appendChild(script2);
         }}
