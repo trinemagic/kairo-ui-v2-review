@@ -4148,7 +4148,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
    const body=(layout||currentLayout()).map(x=>itemHtml(x,p)).join('');
    const business=activeWorkspaceName||'NAMA USAHA';
    const desc=description?`<div class="receipt-template-description" style="text-align:${descriptionAlign}">${esc(description)}</div>`:'';
-   return `<div class="receipt-preview-surface receipt-template receipt-template-${template}" data-receipt-template="${template}" style="position:relative;--receipt-bg:${bg};--receipt-text:${tx};--receipt-accent:${ac};--receipt-font-family:${esc(fontCss)};color:${tx};font-family:${esc(fontCss)}"><div class="receipt-paper">${wmText}${wmImg}${receiptTop(template,business,p)}<div class="receipt-customer-ready" style="position:relative;z-index:2">${desc}${body}<div class="receipt-barcode" aria-hidden="true"></div><div class="receipt-powered">powered by kairo workspaces</div></div>${receiptBottom(template)}</div></div>`;
+   return `<div class="receipt-preview-surface receipt-template receipt-template-${template}" data-receipt-template="${template}"${(d.fontFamily&&d.fontFamily!=='Arial')?' data-custom-font="1"':''} style="position:relative;--receipt-bg:${bg};--receipt-text:${tx};--receipt-accent:${ac};--receipt-font-family:${esc(fontCss)};color:${tx};font-family:${esc(fontCss)}"><div class="receipt-paper">${wmText}${wmImg}${receiptTop(template,business,p)}<div class="receipt-customer-ready" style="position:relative;z-index:2">${desc}${body}<div class="receipt-barcode" aria-hidden="true"></div><div class="receipt-powered">powered by kairo workspaces</div></div>${receiptBottom(template)}</div></div>`;
  }
  function buildHtml(p){const d=(layoutDirty?{...currentDesign(),...designDraft}:currentDesign());return renderReceiptSurface(p,currentLayout(),d);}
  function buildText(p){const out=[];const d=currentDesign();if(d.description)out.push(d.description,'');currentLayout().forEach(x=>out.push(...itemText(x,p)));return out.join('\n').replace(/\n{3,}/g,'\n\n').trim();}
@@ -4299,8 +4299,9 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
    readDesignControls();
    const d={...defaultDesign(),...(designDraft||currentDesign())},T=normalizeTemplate(d.template),canvasFont=receiptFontCss(d.fontFamily||'Arial');
    const W=720,pad=48,inner=W-pad*2,raw=(()=>{const out=[];currentLayout().filter(x=>x.key!=='title').forEach(x=>out.push(...itemText(x,p)));return out.join('\n').replace(/\n{3,}/g,'\n\n').trim()})().split('\n'),canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');
-   const mono=T==='luxury'||T==='standard'||T==='receiptify'||T==='diner'||T==='studio'||T==='boarding'||T==='pastel'||T==='vintage';
-   const bodyFont=T==='luxury'||T==='newspaper'?'Georgia':mono&&T!=='boarding'&&T!=='studio'&&T!=='pastel'?'Courier New':canvasFont;
+   const SM='"Space Mono"',CP='"Courier Prime"',FR='Fredoka',AB='"Archivo Black"',DM='"DM Serif Display"',SE='"Special Elite"',PA='Pacifico',PF='"Playfair Display"',LB='"Libre Baskerville"',BC='"Barlow Condensed"',LO='Lobster',CG='"Cormorant Garamond"',JO='Jost';
+   const CF={standard:SM,pastel:SM,studio:SM,receiptify:CP,vintage:SE,newspaper:LB,boarding:SM,diner:CP,luxury:JO};
+   const bodyFont=(d.fontFamily&&d.fontFamily!=='Arial')?canvasFont:(CF[T]||canvasFont);
    ctx.font=`23px ${bodyFont}`;const measured=[];raw.forEach(l=>{if(!l.trim()){measured.push('');return}wrapCanvasText(ctx,l,inner).forEach(x=>measured.push(x))});
    const topH={standard:150,pastel:250,studio:205,receiptify:205,vintage:270,newspaper:260,boarding:180,diner:175,luxury:175}[T]||150;
    const botH={standard:24,pastel:70,studio:120,receiptify:110,vintage:150,newspaper:70,boarding:84,diner:120,luxury:84}[T]||24;
@@ -4320,36 +4321,36 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
    rect(0,0,W,H,paper);
    const botY=H-botH;
    // ---- kepala + hiasan atas (di dalam kertas) ----
-   if(T==='standard'){text(BU,W/2,74,fit(BU,inner,44,'Courier New','900'),'Courier New','#111','center','900');text('STRUK PENJUALAN',W/2,104,16,'Courier New','#111','center','700');line(pad,128,W-pad,128,'#111',3,[12,9])}
+   if(T==='standard'){text(BU,W/2,74,fit(BU,inner,44,SM,'700'),SM,'#111','center','700');text('STRUK PENJUALAN',W/2,104,16,SM,'#111','center','700');line(pad,128,W-pad,128,'#111',3,[12,9])}
    else if(T==='pastel'){const g=ctx.createLinearGradient(0,0,W,topH-20);g.addColorStop(0,'#f7dfe8');g.addColorStop(.55,'#dce7ff');g.addColorStop(1,'#c4dcff');rect(0,0,W,topH-20,g);
      text('✦  ☆  ✧  ★  ☆  ✦',W/2,48,28,'Arial','#6eb3ec','center','400');
-     tilted(W/2,100,-2,()=>{rect(-240,-34,480,68,'#6eb3ec');text(BU,0,12,fit(BU,440,40,'Arial','900'),'Arial','#fff','center','900')});
-     text('for',W/2,160,34,'Georgia','#ff6f9f','center','400','italic');
-     tilted(W/2,196,-1.5,()=>{rect(-230,-24,460,48,'#fff');ctx.strokeStyle='#6eb3ec';ctx.lineWidth=3;ctx.strokeRect(-230,-24,460,48);text(isSellerReceiptContext()?'DIGITAL ACCESS MADE SIMPLE':'A KINDER TOMORROW',0,9,24,'Arial','#4b9fe0','center','900')})}
+     tilted(W/2,100,-2,()=>{rect(-240,-34,480,68,'#6eb3ec');text(BU,0,12,fit(BU,440,42,FR,'600'),FR,'#fff','center','600')});
+     text('for',W/2,162,36,PA,'#ff6f9f','center','400');
+     tilted(W/2,196,-1.5,()=>{rect(-230,-24,460,48,'#fff');ctx.strokeStyle='#6eb3ec';ctx.lineWidth=3;ctx.strokeRect(-230,-24,460,48);text(isSellerReceiptContext()?'DIGITAL ACCESS MADE SIMPLE':'A KINDER TOMORROW',0,9,25,FR,'#4b9fe0','center','600')})}
    else if(T==='studio'){rect(0,0,W,topH-15,'#087eb9');
-     tilted(88,62,-5,()=>{rect(-58,-42,116,84,'#203d9d');ctx.strokeStyle='#fff';ctx.lineWidth=4;ctx.strokeRect(-58,-42,116,84);['GOOD','THINGS','AHEAD'].forEach((t,i)=>text(t,0,-14+i*22,18,'Arial','#fff','center','900'))});
-     tilted(W-88,62,4,()=>{rect(-58,-42,116,84,'#ff85af');ctx.strokeStyle='#fff';ctx.lineWidth=4;ctx.strokeRect(-58,-42,116,84);['DO','YOUR','BEST'].forEach((t,i)=>text(t,0,-14+i*22,18,'Arial','#182d5a','center','900'))});
-     text(BU,W/2,140,fit(BU,inner,46,'Arial','900'),'Arial','#fff','center','900');text('QUALITY MAKES A DIFFERENCE',W/2,170,14,'Courier New','#fff','center','700')}
+     tilted(88,62,-5,()=>{rect(-58,-42,116,84,'#203d9d');ctx.strokeStyle='#fff';ctx.lineWidth=4;ctx.strokeRect(-58,-42,116,84);['GOOD','THINGS','AHEAD'].forEach((t,i)=>text(t,0,-14+i*22,18,AB,'#fff','center','400'))});
+     tilted(W-88,62,4,()=>{rect(-58,-42,116,84,'#ff85af');ctx.strokeStyle='#fff';ctx.lineWidth=4;ctx.strokeRect(-58,-42,116,84);['DO','YOUR','BEST'].forEach((t,i)=>text(t,0,-14+i*22,18,AB,'#182d5a','center','400'))});
+     text(BU,W/2,140,fit(BU,inner,46,AB,'400'),AB,'#fff','center','400');text('QUALITY MAKES A DIFFERENCE',W/2,170,14,SM,'#fff','center','700')}
    else if(T==='receiptify'){checker(0,0,W,24,'#ef76a7','#f5eaa5',12);rect(0,24,W,topH-34,'#b9b8ee');
-     text(BU,pad,104,fit(BU,inner,50,'Arial Black,Arial','900'),'Arial Black,Arial','#292c32','left','900');rect(pad,124,430,40,'#ef7da9');text('GOOD PEOPLE, GOOD BUSINESS',pad+215,151,18,'Arial','#303039','center','800')}
+     text(BU,pad,104,fit(BU,inner,50,AB,'400'),AB,'#292c32','left','400');rect(pad,124,430,40,'#ef7da9');text('GOOD PEOPLE, GOOD BUSINESS',pad+215,151,17,SM,'#303039','center','700')}
    else if(T==='vintage'){rect(0,0,W,40,'#e8dfc4');line(0,40,W,40,'#cdbf93',2);text('☺    ☺    ☺    ☺',W/2,30,20,'Arial','#8a7a50','center','400');
      ctx.save();ctx.translate(112,124);ctx.fillStyle='#1628a1';ctx.beginPath();for(let i=0;i<24;i++){const a=i*Math.PI/12,r=i%2?44:62;ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r)}ctx.closePath();ctx.fill();ctx.restore();
-     ['VINTAGE','VIBES','ONLY'].forEach((t,i)=>text(t,112,114+i*17,15,'Arial','#fff','center','900'));
+     ['VINTAGE','VIBES','ONLY'].forEach((t,i)=>text(t,112,114+i*17,15,AB,'#fff','center','400'));
      text('★',226,138,32,'Georgia','#6e0e1e','center','900');text('★',W-pad+8,138,32,'Georgia','#6e0e1e','center','900');
-     ctx.save();ctx.strokeStyle='#6e0e1e';ctx.lineWidth=6;ctx.beginPath();ctx.ellipse(W/2+60,124,196,40,0,0,Math.PI*2);ctx.stroke();ctx.restore();text(BU,W/2+60,136,fit(BU,330,34,'Georgia','900'),'Georgia','#6e0e1e','center','900');
-     text('MORE THAN JUST A BUSINESS',W/2,206,13,'Arial','#111','center','700');line(pad,224,W-pad,224,'#222',2);text('DATE:',pad,252,16,'Courier New','#111','left','700');
-     const dt=new Date(p.reading_started_at||Date.now());text(isNaN(dt.getTime())?'':dt.toLocaleDateString('id-ID',{day:'2-digit',month:'2-digit',year:'numeric'}),W-pad,252,16,'Courier New','#111','right','700')}
+     ctx.save();ctx.strokeStyle='#6e0e1e';ctx.lineWidth=6;ctx.beginPath();ctx.ellipse(W/2+60,124,196,40,0,0,Math.PI*2);ctx.stroke();ctx.restore();text(BU,W/2+60,136,fit(BU,330,36,DM,'400'),DM,'#6e0e1e','center','400');
+     text('MORE THAN JUST A BUSINESS',W/2,206,14,SE,'#111','center','400');line(pad,224,W-pad,224,'#222',2);text('DATE:',pad,252,17,SE,'#111','left','400');
+     const dt=new Date(p.reading_started_at||Date.now());text(isNaN(dt.getTime())?'':dt.toLocaleDateString('id-ID',{day:'2-digit',month:'2-digit',year:'numeric'}),W-pad,252,17,SE,'#111','right','400')}
    else if(T==='newspaper'){ctx.strokeStyle='#111';ctx.lineWidth=5;ctx.strokeRect(2.5,2.5,W-5,H-5);
-     line(pad,26,W-pad,26,'#111',5);text('THE DAILY ORDER',pad,52,13,'Arial','#111','left','800');text('•',W/2,52,14,'Arial','#111','center','800');text('GOOD PEOPLE GOOD STORIES',W-pad,52,13,'Arial','#111','right','800');line(pad,62,W-pad,62,'#111',1.5);
-     text('The Daily Order',W/2,132,60,'Georgia','#111','center','900');line(pad,148,W-pad,148,'#111',4);line(pad,157,W-pad,157,'#111',1.5);
-     text(BU,pad,206,fit(BU,inner,40,'Arial','900'),'Arial','#111','left','900');text('SMALL BUSINESS, BIG IMPACT',pad,232,13,'Arial','#111','left','700')}
-   else if(T==='boarding'){ctx.strokeStyle='#19689f';ctx.lineWidth=3;ctx.strokeRect(1.5,1.5,W-3,H-3);rect(0,0,W,56,'#0d5f9a');text('✈  BUSINESS CLASS',28,38,24,'Arial','#fff','left','800');text('A SMALL BUSINESS',W-28,26,12,'Arial','#fff','right','700');text('GOES A LONG WAY',W-28,42,12,'Arial','#fff','right','700');
-     text(BU,pad,122,fit(BU,inner,48,'Arial Black,Arial','900'),'Arial Black,Arial','#19689f','left','900');text('BOARDING TO A BRIGHTER TOMORROW',pad,152,13,'Arial','#254055','left','700')}
+     line(pad,26,W-pad,26,'#111',5);text('THE DAILY ORDER',pad,52,13,LB,'#111','left','700');text('•',W/2,52,14,LB,'#111','center','700');text('GOOD PEOPLE GOOD STORIES',W-pad,52,13,LB,'#111','right','700');line(pad,62,W-pad,62,'#111',1.5);
+     text('The Daily Order',W/2,132,62,PF,'#111','center','900');line(pad,148,W-pad,148,'#111',4);line(pad,157,W-pad,157,'#111',1.5);
+     text(BU,pad,206,fit(BU,inner,40,PF,'900'),PF,'#111','left','900');text('SMALL BUSINESS, BIG IMPACT',pad,232,13,LB,'#111','left','400')}
+   else if(T==='boarding'){ctx.strokeStyle='#19689f';ctx.lineWidth=3;ctx.strokeRect(1.5,1.5,W-3,H-3);rect(0,0,W,56,'#0d5f9a');text('✈  BUSINESS CLASS',28,40,30,BC,'#fff','left','700');text('A SMALL BUSINESS',W-28,26,15,BC,'#fff','right','700');text('GOES A LONG WAY',W-28,44,15,BC,'#fff','right','700');
+     text(BU,pad,126,fit(BU,inner,62,BC,'700'),BC,'#19689f','left','700');text('BOARDING TO A BRIGHTER TOMORROW',pad,156,17,BC,'#254055','left','700')}
    else if(T==='diner'){ctx.strokeStyle='#c7372f';ctx.lineWidth=6;ctx.strokeRect(3,3,W-6,H-6);checker(0,0,W,32,'#c7372f','#f4e5c1',16);
      ctx.save();ctx.fillStyle='#fff';ctx.strokeStyle='#c7372f';ctx.lineWidth=6;ctx.beginPath();ctx.ellipse(W/2,100,236,48,0,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.restore();
-     text(BU,W/2,108,fit(BU,400,40,'Arial Black,Arial','900'),'Arial Black,Arial','#c7372f','center','900');text('ALWAYS A GOOD CHOICE',W/2,134,13,'Courier New','#c7372f','center','700')}
+     text(BU,W/2,106,fit(BU,400,46,LO,'400'),LO,'#c7372f','center','400');text('ALWAYS A GOOD CHOICE',W/2,136,13,CP,'#c7372f','center','700')}
    else if(T==='luxury'){ctx.strokeStyle='#111';ctx.lineWidth=2;ctx.strokeRect(1,1,W-2,H-2);ctx.strokeStyle='#b79a6c';ctx.lineWidth=2;ctx.strokeRect(14,14,W-28,H-28);
-     text('❧',W/2,70,48,'Georgia','#a27c4e','center','400');text(BU.split('').join(' '),W/2,118,fit(BU.split('').join(' '),inner,36,'Georgia','400'),'Georgia','#111','center','400');text('BEAUTY IN EVERY DETAIL',W/2,148,13,'Courier New','#111','center','600')}
+     text('❧',W/2,70,48,'Georgia','#a27c4e','center','400');text(BU.split('').join(' '),W/2,120,fit(BU.split('').join(' '),inner,42,CG,'600'),CG,'#111','center','600');text('BEAUTY IN EVERY DETAIL',W/2,150,13,JO,'#111','center','500')}
    // ---- isi struk ----
    let y=topH+20;
    if(descLines.length){descLines.forEach(l=>{text(l,W/2,y,22,canvasFont,tx,'center','600');y+=30});y+=10;line(pad,y,W-pad,y,ac,1.5,[7,7]);y+=36}
@@ -4357,20 +4358,23 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
    for(const l of measured){if(!l){y+=15;continue}const isTotal=/^total\s*:/i.test(l);
      if(isTotal){y+=10;const col=T==='diner'?'#fff':T==='boarding'?'#19689f':bodyColor;if(T==='diner')rect(pad-12,y-30,inner+24,44,'#c7372f');else{line(pad,y-30,W-pad,y-30,T==='boarding'?'#19689f':'#222',T==='newspaper'?4:2,T==='newspaper'||T==='studio'||T==='boarding'||T==='luxury'?[]:[10,7])}text(l,pad,y,27,bodyFont,col,'left','800');y+=44}
      else{text(l,pad,y,23,bodyFont,bodyColor,'left','400');y+=35}}
-   y+=30;barcode(W/2-200,y,400,80);y+=104;text('powered by kairo workspaces',W/2,y,15,'Courier New','#333','center','400');
+   y+=30;barcode(W/2-200,y,400,80);y+=104;text('powered by kairo workspaces',W/2,y,15,SM,'#333','center','400');
    // ---- penutup + hiasan bawah (di dalam kertas) ----
    const by=botY;
    if(T==='pastel'){const g=ctx.createLinearGradient(0,by,W,H);g.addColorStop(0,'#f7dfe8');g.addColorStop(1,'#dce7ff');rect(0,by,W,botH,g);text('✦  ☆  ✧  ★  ☆  ✦',W/2,by+44,26,'Arial','#6eb3ec','center','400')}
-   else if(T==='studio'){rect(pad,by+14,78,78,'#111');checker(pad+7,by+21,64,64,'#fff','#111',8);tilted(W-pad-34,by+54,-4,()=>{rect(-34,-24,68,48,'#f2869f');text('✚',0,10,30,'Arial','#fff','center','900')})}
+   else if(T==='studio'){rect(pad,by+14,78,78,'#111');checker(pad+7,by+21,64,64,'#fff','#111',8);tilted(W-pad-34,by+54,-4,()=>{rect(-34,-24,68,48,'#f2869f');text('✚',0,10,30,AB,'#fff','center','400')})}
    else if(T==='receiptify'){const cols=['#ef76a7','#7a6fd6','#ef76a7','#7a6fd6','#ef76a7'];['♡','✦','⌁','?!','☺'].forEach((s,i)=>text(s,W/2-160+i*80,by+34,30,'Arial',cols[i],'center','700'));checker(0,H-24,W,24,'#ef76a7','#f5eaa5',12)}
-   else if(T==='vintage'){tilted(W/2,by+42,-3,()=>{rect(-134,-28,268,56,'#7c1325');ctx.strokeStyle='#fff';ctx.lineWidth=4;ctx.strokeRect(-128,-22,256,44);text('THANK YOU ☺',0,9,24,'Arial','#fff','center','900')});rect(0,H-40,W,40,'#e8dfc4');line(0,H-40,W,H-40,'#cdbf93',2);text('☺    ☺    ☺    ☺',W/2,H-12,20,'Arial','#8a7a50','center','400')}
-   else if(T==='newspaper'){text('—  ✦  —',W/2,by+40,26,'Georgia','#111','center','700')}
-   else if(T==='boarding'){line(0,by+8,W,by+8,'#6d91aa',3,[14,10]);rect(2,by+10,W-4,botH-12,'#e3effa');text('BOARDING PASS · THANK YOU',W/2,by+52,17,'Arial','#19689f','center','800')}
+   else if(T==='vintage'){tilted(W/2,by+42,-3,()=>{rect(-134,-28,268,56,'#7c1325');ctx.strokeStyle='#fff';ctx.lineWidth=4;ctx.strokeRect(-128,-22,256,44);text('THANK YOU ☺',0,9,24,AB,'#fff','center','400')});rect(0,H-40,W,40,'#e8dfc4');line(0,H-40,W,H-40,'#cdbf93',2);text('☺    ☺    ☺    ☺',W/2,H-12,20,'Arial','#8a7a50','center','400')}
+   else if(T==='newspaper'){text('—  ✦  —',W/2,by+40,26,LB,'#111','center','700')}
+   else if(T==='boarding'){line(0,by+8,W,by+8,'#6d91aa',3,[14,10]);rect(2,by+10,W-4,botH-12,'#e3effa');text('BOARDING PASS · THANK YOU',W/2,by+52,22,BC,'#19689f','center','700')}
    else if(T==='diner'){ctx.save();ctx.fillStyle='#f6d98f';ctx.strokeStyle='#c7372f';ctx.lineWidth=4;ctx.beginPath();ctx.arc(W/2,by+36,26,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.restore();text('☺',W/2,by+46,30,'Arial','#c7372f','center','400');checker(0,H-32,W,32,'#c7372f','#f4e5c1',16)}
    else if(T==='luxury'){text('❧',W/2,by+54,40,'Georgia','#a27c4e','center','400')}
    return canvas;
  }
- async function receiptImageBlob(){const p=window.__trineLastReceiptPayload;if(!p)throw new Error('Belum ada struk untuk dibuat foto.');const canvas=makeReceiptCanvas(p);return await new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error('Gagal membuat PNG.')),'image/png',1));}
+ // Font layout struk (assets/fonts/receipt, dimuat lazy lewat @font-face di kairo-receipt.css): kanvas harus menunggu fontnya siap.
+ const RECEIPT_FONTS={standard:['400 20px "Space Mono"','700 20px "Space Mono"'],pastel:['600 20px Fredoka','400 20px Pacifico','400 20px "Space Mono"','700 20px "Space Mono"'],studio:['400 20px "Archivo Black"','400 20px "Space Mono"','700 20px "Space Mono"'],receiptify:['400 20px "Archivo Black"','400 20px "Courier Prime"','700 20px "Courier Prime"','700 20px "Space Mono"'],vintage:['400 20px "Special Elite"','400 20px "DM Serif Display"','400 20px "Archivo Black"'],newspaper:['900 20px "Playfair Display"','400 20px "Libre Baskerville"','700 20px "Libre Baskerville"'],boarding:['700 20px "Barlow Condensed"','400 20px "Space Mono"'],diner:['400 20px Lobster','400 20px "Courier Prime"','700 20px "Courier Prime"'],luxury:['600 20px "Cormorant Garamond"','400 20px Jost','500 20px Jost']};
+ async function loadReceiptFonts(){try{readDesignControls();const t=normalizeTemplate({...defaultDesign(),...(designDraft||currentDesign())}.template);if(document.fonts&&document.fonts.load)await Promise.all((RECEIPT_FONTS[t]||[]).map(f=>document.fonts.load(f,'Aa 123').catch(()=>null)));}catch(e){}}
+ async function receiptImageBlob(){const p=window.__trineLastReceiptPayload;if(!p)throw new Error('Belum ada struk untuk dibuat foto.');await loadReceiptFonts();const canvas=makeReceiptCanvas(p);return await new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error('Gagal membuat PNG.')),'image/png',1));}
  async function saveReceiptImage(){try{const blob=await receiptImageBlob(),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`struk-${String(window.__trineLastReceiptPayload?.customer_name||'customer').replace(/[^a-z0-9_-]+/gi,'-').toLowerCase()}-${new Date().toISOString().slice(0,10)}.png`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);showToast('Foto struk PNG berhasil disimpan.')}catch(err){showToast(err.message||'Gagal membuat foto struk.',true)}}
  async function shareReceiptImage(){try{const blob=await receiptImageBlob(),file=new File([blob],'struk.png',{type:'image/png'});if(navigator.share&&(!navigator.canShare||navigator.canShare({files:[file]}))){await navigator.share({files:[file],title:'Struk '+(activeWorkspaceName||'')});showToast('Foto struk siap dibagikan.')}else{await saveReceiptImage();showToast('Browser ini belum mendukung share file langsung. PNG sudah disimpan.')}}catch(err){if(err?.name!=='AbortError')showToast(err.message||'Gagal membagikan foto struk.',true)}}
  function installImageButtons(){const copy=document.getElementById('copy-receipt');if(!copy||document.getElementById('save-receipt-image'))return;const save=document.createElement('button');save.type='button';save.id='save-receipt-image';save.className='btn btn-light receipt-image-btn';save.innerHTML='<svg viewBox="0 0 24 24"><path d="M12 3v12m0 0 4-4m-4 4-4-4"/><path d="M5 19h14"/></svg><span>Simpan PNG</span>';save.addEventListener('click',saveReceiptImage);copy.insertAdjacentElement('afterend',save);const share=document.createElement('button');share.type='button';share.id='share-receipt-image';share.className='btn btn-light receipt-image-btn';share.innerHTML='<svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="2"/><circle cx="6" cy="12" r="2"/><circle cx="18" cy="19" r="2"/><path d="m8 11 8-5m-8 7 8 5"/></svg><span>Bagikan Foto</span>';share.addEventListener('click',shareReceiptImage);save.insertAdjacentElement('afterend',share)}
