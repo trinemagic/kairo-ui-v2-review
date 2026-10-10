@@ -301,6 +301,13 @@
   }
 
   /* ---------- Struk (cetak lewat browser) ---------- */
+  // Cetak: lewat modul printer (kairo-printer.js: printer biasa, USB, serial, Bluetooth, RawBT). Cadangan: cetak browser 58 mm.
+  function printPaper(wrap) {
+    const paper = wrap.querySelector('#pos-receipt-paper');
+    if (window.kairoPrinter) { window.kairoPrinter.printDom(paper); return; }
+    const old = wrap.id; document.body.classList.add('pos-printing'); wrap.id = 'pos-receipt'; window.print();
+    setTimeout(() => { document.body.classList.remove('pos-printing'); wrap.id = old; }, 500);
+  }
   function showReceipt(p) {
     document.getElementById('pos-receipt')?.remove();
     const wsName = (typeof activeWorkspaceName !== 'undefined' && activeWorkspaceName) || 'Struk';
@@ -324,10 +331,13 @@
       <div class="pos-receipt-actions"><button type="button" class="btn btn-light" data-r="close">Tutup</button><button type="button" class="btn btn-green" data-r="print">Cetak</button></div></div>`;
     el.addEventListener('click', e => {
       const a = e.target.closest('[data-r]');
-      if (a?.dataset.r === 'print') { document.body.classList.add('pos-printing'); window.print(); setTimeout(() => document.body.classList.remove('pos-printing'), 500); }
+      if (a?.dataset.r === 'print') printPaper(el);
       else if (a?.dataset.r === 'close' || e.target === el) el.remove();
     });
     document.body.appendChild(el);
+    // Cetak otomatis (opsional, Settings › Struk › Printer Struk): hanya untuk printer yang sudah terhubung, tanpa dialog.
+    const kp = window.kairoPrinter;
+    if (kp && kp.config.auto && ['usb', 'serial', 'ble'].includes(kp.config.mode)) kp.printDom(el.querySelector('#pos-receipt-paper'), { silent: true });
   }
 
   /* ---------- Tampilan ---------- */
@@ -806,7 +816,7 @@
       </div><div class="pos-receipt-actions"><button type="button" class="btn btn-light" data-r="close">Tutup</button><button type="button" class="btn btn-green" data-r="print">Cetak</button></div></div>`;
     el.addEventListener('click', e => {
       const a = e.target.closest('[data-r]');
-      if (a?.dataset.r === 'print') { document.body.classList.add('pos-printing'); el.id = 'pos-receipt'; window.print(); setTimeout(() => { document.body.classList.remove('pos-printing'); el.id = 'pos-recap-view'; }, 500); }
+      if (a?.dataset.r === 'print') printPaper(el);
       else if (a?.dataset.r === 'close' || e.target === el) el.remove();
     });
     document.body.appendChild(el);
@@ -851,7 +861,12 @@
     setText(el, v === null ? '-' : shown(v));
   }
 
-  function refresh() { renderKpis(); renderDrawerKpi(); relabelShift(); mountSessionUi(); renderPanels(); initKasir(); }
+  // Judul riwayat transaksi: "Struk Terbaru" (tabelnya sendiri tetap sama).
+  function relabelHistory() {
+    setText(document.querySelector('#transaction-history-card .card-title > span:last-child'), 'Struk Terbaru');
+    setText(document.querySelector('#transaction-history-card .history-card-subtitle'), 'Struk penjualan terbaru. Pakai filter tanggal untuk mengatur yang tampil.');
+  }
+  function refresh() { relabelHistory(); renderKpis(); renderDrawerKpi(); relabelShift(); mountSessionUi(); renderPanels(); initKasir(); }
 
   /* ---------- Pasang ---------- */
   function wrap(name, after) {

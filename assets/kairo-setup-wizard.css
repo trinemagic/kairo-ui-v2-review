@@ -197,7 +197,8 @@ body.saas-dark #kairo-setup .ksw-scrim { background: rgba(0, 0, 0, .6); }
 #kairo-setup .ksw-ck[aria-checked=true] i { background: var(--k-p); border-color: var(--k-p); color: var(--k-on); }
 #kairo-setup .ksw-designs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
 #kairo-setup .ksw-ds { display: grid; gap: 5px; padding: 6px; border: 1.5px solid var(--k-line); border-radius: 12px; background: var(--k-surf); font-size: 11px; font-weight: 700; color: var(--k-ink); text-align: center; }
-#kairo-setup .ksw-ds .receipt-template-thumb { height: 46px; padding: 6px; }
+#kairo-setup .ksw-ds .receipt-template-thumb { height: 46px; padding: 20px 8px 0; }
+#kairo-setup .ksw-ds .receipt-template-thumb:before { height: 14px; }
 #kairo-setup .ksw-ds .receipt-template-thumb b { display: none; }
 #kairo-setup .ksw-ds[aria-checked=true] { border-color: var(--k-p); box-shadow: 0 0 0 3px var(--k-ring); }
 #kairo-setup .ksw-rc .ksw-fld { margin-top: 14px; }

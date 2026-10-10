@@ -109,7 +109,7 @@ body.saas-dark .pos-receipt-card{background:#17222e;color:#e6eef7}
 @media print{
   body.pos-printing > *:not(#pos-receipt){display:none!important}
   body.pos-printing #pos-receipt{position:static;display:block;background:none;padding:0}
-  body.pos-printing .pos-receipt-card{box-shadow:none;max-height:none;padding:0;width:58mm;color:#000;background:#fff}
+  body.pos-printing .pos-receipt-card{box-shadow:none;max-height:none;padding:0;width:var(--kp-paper,58mm);color:#000;background:#fff}
   body.pos-printing .pos-receipt-actions{display:none}
 }
 

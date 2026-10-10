@@ -135,7 +135,7 @@ td{padding:10px;border-bottom:1px solid var(--line)}
   .chart-wrap{height:240px}
 }
 
-.master-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:8px;margin-top:6px}.master-item{display:flex;align-items:center;gap:8px;padding:10px;border:1px solid #ddd;border-radius:var(--radius-md);background:var(--white)}.master-item .master-main{flex:1}.master-item small{display:block;color:var(--muted);margin-top:2px}.qty-input{width:76px}.modal{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box}.modal-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.45)}.modal-card{position:relative;z-index:1;max-width:560px;width:100%;max-height:85vh;overflow:auto;margin:0;background:var(--white);border-radius:var(--radius-lg);padding:20px;box-shadow:var(--shadow-modal)}.receipt-line{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px dashed #ddd}.receipt-total{font-size:18px;font-weight:800;margin-top:10px}
+.master-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:8px;margin-top:6px}.master-item{display:flex;align-items:center;gap:8px;padding:10px;border:1px solid #ddd;border-radius:var(--radius-md);background:var(--white)}.master-item .master-main{flex:1}.master-item small{display:block;color:var(--muted);margin-top:2px}.qty-input{width:76px}.modal{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box}.modal-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.45)}.modal-card{position:relative;z-index:1;max-width:560px;width:100%;max-height:85vh;overflow:auto;margin:0;background:var(--white);border-radius:var(--radius-lg);padding:20px;box-shadow:var(--shadow-modal)}
 @media(max-width:600px){.kpi-grid[style*="repeat(3"]{grid-template-columns:1fr!important}}
 
 /* V15.1: logout confirmation interaction fix */
@@ -909,15 +909,7 @@ body.authenticated{
 
 
 /* v20.10.12 — selected receipt font applies to ALL receipt text, not only watermark */
-.receipt-preview-surface,
-.receipt-preview-surface .receipt-customer-ready,
-.receipt-preview-surface .receipt-customer-ready *,
-#receipt-content .receipt-preview-surface,
-#receipt-content .receipt-preview-surface *,
-#receipt-settings-preview .receipt-preview-surface,
-#receipt-settings-preview .receipt-preview-surface *{
-  font-family:var(--receipt-font-family, Arial, sans-serif)!important;
-}
+
 /* Keep icons/UI controls unaffected */
 #receipt-settings-preview .receipt-icon-btn,
 #receipt-settings-preview .receipt-icon-btn *{font-family:Plus Jakarta Sans,Arial,sans-serif!important;}
@@ -1574,8 +1566,8 @@ body.saas-dark #app-shell .shift-delete-btn{background:rgba(255,94,94,.11)!impor
 .saas-mobile-nav-btn>span:first-child{display:flex;align-items:center;justify-content:center;min-height:22px}
 .receipt-copy-btn{display:inline-flex!important;align-items:center;gap:7px}.receipt-copy-icon{width:17px;height:17px;display:inline-flex}
 .receipt-copy-icon svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.receipt-customer-ready{margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
-.receipt-heading{font-weight:850;font-size:17px;margin-bottom:10px;color:var(--ink)}
+
+
 .receipt-settings-card .form-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .receipt-settings-card .form-group{margin:0}.receipt-settings-card .full{grid-column:1/-1}
 .receipt-settings-preview{margin-top:14px;padding:14px;border:1px dashed color-mix(in srgb,var(--brand-accent) 35%,var(--line));border-radius:14px;background:color-mix(in srgb,var(--brand-accent) 5%,var(--white))}
@@ -1622,7 +1614,7 @@ body.saas-dark #app-shell .shift-delete-btn{background:rgba(255,94,94,.11)!impor
 .receipt-design-card{margin-top:14px;padding:14px;border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.66)}
 .receipt-design-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:10px}.receipt-design-grid .form-group{margin:0}
 .receipt-image-btn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}.receipt-image-btn{display:inline-flex!important;align-items:center;gap:7px}
-.receipt-customer-ready{position:relative;z-index:1}.receipt-preview-surface{position:relative;overflow:hidden;border-radius:16px;padding:16px}.receipt-preview-watermark{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;font-weight:900;letter-spacing:.08em;transform:rotate(-28deg);white-space:nowrap;z-index:0}
+
 @media(max-width:760px){.receipt-design-grid{grid-template-columns:1fr 1fr}.receipt-image-btn span{display:none}}
 .receipt-color-wrap{display:flex;align-items:center;gap:8px}.receipt-color-wrap input[type=color]{width:100%;height:42px;padding:3px;border-radius:12px;cursor:pointer;background:var(--receipt-swatch,#fff)}.receipt-color-wrap input[type=color]::-webkit-color-swatch-wrapper{padding:0}.receipt-color-wrap input[type=color]::-webkit-color-swatch{border:none;border-radius:8px}.receipt-color-hex{font-size:11px;color:var(--muted);font-weight:750;min-width:64px;text-align:right}.receipt-design-grid select.input{cursor:pointer}.receipt-watermark-upload{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.receipt-watermark-file{position:absolute;opacity:0;pointer-events:none;width:1px;height:1px}.receipt-watermark-preview{width:68px;height:68px;border-radius:14px;border:1px solid var(--line);background:#fff;display:grid;place-items:center;overflow:hidden}.receipt-watermark-preview img{width:100%;height:100%;object-fit:contain}.receipt-design-actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:12px}.receipt-description-textarea{min-height:88px;resize:vertical}.receipt-preview-live{margin-top:14px;padding:14px;border:1px dashed color-mix(in srgb,var(--brand-accent) 35%,var(--line));border-radius:14px;background:rgba(255,255,255,.74)}
 .receipt-font-picker{position:relative}.receipt-font-trigger{width:100%;min-height:44px;border:1px solid var(--line);background:#fff;border-radius:12px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer;color:var(--ink);font-size:14px}.receipt-font-trigger:hover{border-color:color-mix(in srgb,var(--brand-accent) 42%,var(--line))}.receipt-font-trigger svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;flex:0 0 auto}.receipt-font-menu{position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:10020;background:#fff;border:1px solid var(--line);border-radius:14px;padding:7px;box-shadow:0 18px 50px rgba(45,55,72,.16);max-height:320px;overflow:auto;display:none}.receipt-font-menu.show{display:block}.receipt-font-option{width:100%;border:0;background:transparent;border-radius:10px;padding:10px 11px;text-align:left;cursor:pointer;color:var(--ink);font-size:16px;display:flex;align-items:center;justify-content:space-between;gap:10px}.receipt-font-option:hover,.receipt-font-option.active{background:color-mix(in srgb,var(--brand-accent) 9%,#fff)}.receipt-font-option small{font-family:Plus Jakarta Sans,Arial,sans-serif!important;color:var(--muted);font-size:10px}.receipt-font-sample{display:block;margin-top:2px;font-size:12px;color:var(--muted);font-family:inherit}.receipt-font-hidden{position:absolute!important;opacity:0!important;pointer-events:none!important;width:1px!important;height:1px!important}
@@ -2213,167 +2205,167 @@ body.kairo-basic-plan #performance #kairo-basic-daily-sales-v83{display:block!im
 #settings .receipt-template-option:hover{transform:translateY(-1px);border-color:color-mix(in srgb,var(--brand-primary) 35%,var(--line))}
 #settings .receipt-template-option.active{border-color:var(--brand-primary);box-shadow:0 0 0 2px color-mix(in srgb,var(--brand-primary) 13%,transparent)}
 #settings .receipt-template-option strong{display:block;font-size:10px;margin-top:7px}.receipt-template-option small{display:block;font-size:8px;line-height:1.3;color:var(--muted);margin-top:3px}
-.receipt-template-thumb{height:74px;border-radius:8px;display:block;position:relative;overflow:hidden;padding:8px;box-sizing:border-box;background:#fff;border:1px solid rgba(0,0,0,.08)}
-.receipt-template-thumb i{display:block;height:3px;border-radius:9px;background:currentColor;opacity:.35;margin:5px 0}.receipt-template-thumb i:nth-child(2){width:70%}.receipt-template-thumb i:nth-child(3){width:85%}.receipt-template-thumb b{position:absolute;left:8px;top:7px;font-size:7px;letter-spacing:.08em}
-.receipt-template-thumb-standard{background:#fff;color:#111;font-family:'Courier New',monospace}.receipt-template-thumb-pastel{background:linear-gradient(155deg,#fff8fb,#fff0ce);color:#df8e9e}.receipt-template-thumb-studio{background:linear-gradient(160deg,#ecf7ff,#f6fbff);color:#3d7bb3}.receipt-template-thumb-receiptify{background:#faf8ee;color:#111;font-family:'Courier New',monospace}.receipt-template-thumb-vintage{background:#f2e5cb;color:#6d5137;font-family:Georgia,serif}.receipt-template-thumb-newspaper{background:#fff;color:#111;font-family:Georgia,serif}.receipt-template-thumb-boarding{background:linear-gradient(90deg,#eff7ff 0 67%,#ffefe0 67%);color:#245b8d}.receipt-template-thumb-diner{background:#fff6ef;color:#d95045}.receipt-template-thumb-luxury{background:#fff;color:#111;font-family:Didot,Georgia,serif}
+
+
+
 .receipt-preview-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.receipt-preview-toolbar>div>div{font-size:11px;color:var(--muted);margin-top:2px}
-.receipt-preview-surface.receipt-template{width:min(100%,390px);box-sizing:border-box;margin:0 auto;overflow:hidden;isolation:isolate;box-shadow:0 15px 38px rgba(25,33,45,.12);border:1px solid color-mix(in srgb,var(--receipt-accent) 32%,#ddd);font-family:var(--receipt-font-family)!important;color:var(--receipt-text)!important;background:var(--receipt-bg)!important}
-.receipt-template .receipt-customer-ready{padding:28px 26px 20px;font-family:var(--receipt-font-family)!important}.receipt-template .receipt-customer-ready>*{position:relative}.receipt-template .receipt-heading{font-size:27px;font-weight:900;line-height:1.02;letter-spacing:-.035em;margin-bottom:17px;overflow-wrap:anywhere}.receipt-template .receipt-field{font-size:11px;line-height:1.55}.receipt-template .receipt-field-package,.receipt-template .receipt-field-topic,.receipt-template .receipt-field-addon{margin-top:13px}.receipt-template .receipt-section-label{display:block;font-size:9px;text-transform:uppercase;letter-spacing:.12em;margin-bottom:3px}.receipt-template .receipt-line{font-size:10px;padding:6px 0;border-bottom:1px dashed color-mix(in srgb,var(--receipt-text) 18%,transparent)}.receipt-template .receipt-total{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:13px;padding:11px 0 4px;font-size:17px;font-weight:900;border-top:2px solid var(--receipt-text)}.receipt-template .saas-receipt-footer{margin-top:15px!important;padding-top:10px!important;border-top:1px dashed color-mix(in srgb,var(--receipt-text) 24%,transparent)!important;text-align:center!important;font-size:9px!important;color:color-mix(in srgb,var(--receipt-text) 68%,transparent)!important}.receipt-template-description{font-size:10px;line-height:1.5;margin:0 0 15px;padding:0 0 12px;border-bottom:1px dashed color-mix(in srgb,var(--receipt-accent) 50%,transparent)}.receipt-powered{text-align:center;margin-top:14px;padding-top:9px;border-top:1px dashed color-mix(in srgb,var(--receipt-text) 20%,transparent);font-family:'Courier New',monospace!important;font-size:7px;letter-spacing:.035em;text-transform:lowercase;opacity:.66}
+
+
 /* 01 Pastel Commission */
-.receipt-template-pastel{border-radius:4px;background:linear-gradient(160deg,color-mix(in srgb,var(--receipt-bg) 86%,#fff2f6),color-mix(in srgb,var(--receipt-bg) 84%,#fff1c9))!important}.receipt-template-pastel:before,.receipt-template-pastel:after{content:'';position:absolute;z-index:0;border-radius:999px;opacity:.35}.receipt-template-pastel:before{width:120px;height:120px;right:-42px;top:-38px;background:var(--receipt-accent)}.receipt-template-pastel:after{width:90px;height:90px;left:-35px;bottom:65px;background:#f7cc64}.receipt-template-pastel .receipt-heading{font-family:'Marker Felt','Comic Sans MS',cursive!important;font-size:32px;max-width:85%;transform:rotate(-2deg);text-shadow:2px 2px 0 color-mix(in srgb,var(--receipt-accent) 24%,transparent)}.receipt-template-pastel .receipt-section-label{color:var(--receipt-accent)}.receipt-template-pastel .receipt-total{border:0;background:color-mix(in srgb,var(--receipt-accent) 13%,#fff);border-radius:9px;padding:10px 12px}
+
 /* 02 Studio List */
-.receipt-template-studio{border-radius:2px;background:linear-gradient(180deg,color-mix(in srgb,var(--receipt-accent) 11%,#fff) 0 88px,var(--receipt-bg) 88px)!important}.receipt-template-studio .receipt-heading{font-family:'Avenir Next',Arial,sans-serif!important;text-transform:uppercase;font-size:25px;letter-spacing:.08em;border:2px solid var(--receipt-text);display:inline-block;padding:7px 9px;margin-bottom:24px}.receipt-template-studio .receipt-field-customer,.receipt-template-studio .receipt-field-start,.receipt-template-studio .receipt-field-payment,.receipt-template-studio .receipt-field-platform{display:grid;grid-template-columns:95px 1fr;border-bottom:1px dotted color-mix(in srgb,var(--receipt-text) 35%,transparent);padding:4px 0}.receipt-template-studio .receipt-total{background:var(--receipt-text);color:var(--receipt-bg);padding:10px 12px;border:0}
+
 /* 03 Receiptify */
-.receipt-template-receiptify{border-radius:0;font-family:'Courier New',monospace!important;background:#fffdf4!important;border-color:#ddd6c3}.receipt-template-receiptify .receipt-customer-ready,.receipt-template-receiptify .receipt-customer-ready *{font-family:'Courier New',monospace!important}.receipt-template-receiptify .receipt-heading{text-align:center;text-transform:uppercase;font-size:21px;letter-spacing:.04em;border-bottom:2px dashed #222;padding-bottom:12px}.receipt-template-receiptify .receipt-field{font-size:10px}.receipt-template-receiptify .receipt-section-label{text-transform:uppercase}.receipt-template-receiptify .receipt-total{border-top:2px dashed #222;border-bottom:2px dashed #222;padding:9px 0}.receipt-template-receiptify .receipt-powered:before{content:'||||| || ||||| | ||||';display:block;font-size:16px;letter-spacing:-2px;margin-bottom:5px;color:#111;opacity:.8}
+
 /* 04 Vintage Story */
-.receipt-template-vintage{border-radius:2px;background:linear-gradient(rgba(129,91,49,.035),rgba(129,91,49,.035)),#f4e8d1!important;color:#59442f!important;border-color:#c9ad84;font-family:Georgia,serif!important}.receipt-template-vintage .receipt-customer-ready,.receipt-template-vintage .receipt-customer-ready *{font-family:Georgia,serif!important}.receipt-template-vintage .receipt-heading{text-align:center;font-size:24px;font-weight:700;font-style:italic;border-bottom:1px solid #8e7558;padding-bottom:12px}.receipt-template-vintage .receipt-section-label{font-size:8px;color:#82694d}.receipt-template-vintage .receipt-total{border-top:1px solid #6e563c}.receipt-template-vintage .receipt-powered{font-family:'Courier New',monospace!important}
+
 /* 05 Newspaper Editorial */
-.receipt-template-newspaper{border-radius:0;background:#fff!important;color:#111!important;border:2px solid #111;font-family:Georgia,'Times New Roman',serif!important}.receipt-template-newspaper .receipt-customer-ready,.receipt-template-newspaper .receipt-customer-ready *{font-family:Georgia,'Times New Roman',serif!important}.receipt-template-newspaper .receipt-heading{text-transform:uppercase;text-align:center;font-size:29px;letter-spacing:-.04em;border-top:5px solid #111;border-bottom:2px solid #111;padding:9px 0}.receipt-template-newspaper .receipt-template-description{text-align:center!important;font-style:italic;border-bottom:1px solid #111}.receipt-template-newspaper .receipt-section-label{font-size:8px;border-bottom:1px solid #111}.receipt-template-newspaper .receipt-total{border-top:3px double #111;border-bottom:3px double #111;padding:8px 0}
+
 /* 06 Boarding Pass */
-.receipt-template-boarding{border-radius:14px;background:linear-gradient(90deg,var(--receipt-bg) 0 72%,color-mix(in srgb,var(--receipt-accent) 14%,#fff) 72%)!important;border:1px solid color-mix(in srgb,var(--receipt-accent) 48%,#bbb)}.receipt-template-boarding:after{content:'';position:absolute;top:0;bottom:0;right:28%;border-left:2px dashed color-mix(in srgb,var(--receipt-accent) 42%,transparent);z-index:0}.receipt-template-boarding .receipt-customer-ready{padding-right:34%}.receipt-template-boarding .receipt-heading{text-transform:uppercase;font-size:22px;letter-spacing:.11em}.receipt-template-boarding .receipt-field-status{position:absolute;right:14px;top:62px;width:78px;text-align:center;font-size:9px;transform:rotate(90deg);transform-origin:center}.receipt-template-boarding .receipt-total{border:0;color:var(--receipt-accent)}
+
 /* 07 Retro Diner */
-.receipt-template-diner{border-radius:6px;background:linear-gradient(135deg,#fffaf3,var(--receipt-bg))!important;border:2px solid var(--receipt-accent);box-shadow:7px 7px 0 color-mix(in srgb,var(--receipt-accent) 22%,#ffe0d4)}.receipt-template-diner .receipt-heading{text-transform:uppercase;text-align:center;font-family:'Trebuchet MS',Arial,sans-serif!important;font-size:27px;letter-spacing:.02em;color:var(--receipt-accent);border-bottom:3px double var(--receipt-accent);padding-bottom:10px}.receipt-template-diner .receipt-section-label{color:var(--receipt-accent)}.receipt-template-diner .receipt-total{border:2px solid var(--receipt-accent);padding:9px 10px;border-radius:7px;color:var(--receipt-accent)}
+
 /* 08 Minimal Luxury */
-.receipt-template-luxury{border-radius:0;background:#fff!important;color:#111!important;border:1px solid #111;font-family:Didot,Georgia,serif!important}.receipt-template-luxury .receipt-customer-ready,.receipt-template-luxury .receipt-customer-ready *{font-family:Didot,Georgia,serif!important}.receipt-template-luxury .receipt-heading{text-transform:uppercase;text-align:center;font-size:23px;font-weight:500;letter-spacing:.22em;margin:7px 0 25px}.receipt-template-luxury .receipt-field{font-size:10px}.receipt-template-luxury .receipt-section-label{letter-spacing:.18em;font-weight:500}.receipt-template-luxury .receipt-line{border-bottom:1px solid #ddd}.receipt-template-luxury .receipt-total{font-size:16px;border-top:1px solid #111}.receipt-template-luxury .receipt-powered{font-family:'Courier New',monospace!important;letter-spacing:.08em}
+
 body.saas-dark #settings .receipt-template-section{background:#252b32;border-color:#424b56}body.saas-dark #settings .receipt-template-option{background:#20252b;border-color:#424b56;color:#eef3f8}body.saas-dark #settings .receipt-template-option small{color:#aeb9c6}
-@media(max-width:900px){#settings .receipt-template-grid{grid-template-columns:repeat(2,minmax(125px,1fr))}}@media(max-width:520px){#settings .receipt-template-grid{grid-template-columns:1fr 1fr}.receipt-preview-surface.receipt-template{width:100%}}
+@media(max-width:900px){#settings .receipt-template-grid{grid-template-columns:repeat(2,minmax(125px,1fr))}}@media(max-width:520px){#settings .receipt-template-grid{grid-template-columns:1fr 1fr}}
 
 /* =========================================================
    KAIRO v20.10.101 — HIGH-FIDELITY RECEIPT LAYOUT OVERRIDES
    Receipt-only visual layer. No auth/login selectors touched.
    ========================================================= */
-.receipt-preview-surface.receipt-template{width:min(100%,430px)!important;max-width:430px!important;background:transparent!important;border:0!important;box-shadow:none!important;overflow:visible!important;margin:0 auto!important;font-family:var(--receipt-font-family)!important;color:var(--receipt-text)!important}
-.receipt-template .receipt-scene{position:relative;min-height:620px;padding:82px 28px 42px;overflow:hidden;border-radius:10px;box-shadow:0 18px 42px rgba(34,42,52,.16);isolation:isolate}
-.receipt-template .receipt-paper{position:relative;width:min(100%,310px);margin:0 auto;background:var(--receipt-bg);color:var(--receipt-text);box-shadow:0 12px 26px rgba(20,28,38,.22);z-index:3;overflow:visible}
-.receipt-template .receipt-paper:after{content:"";position:absolute;left:0;right:0;bottom:-9px;height:10px;background:linear-gradient(135deg,transparent 7px,var(--receipt-bg) 0) 0 0/14px 10px repeat-x}
-.receipt-template .receipt-customer-ready{padding:34px 24px 24px!important;font-family:var(--receipt-font-family)!important}
-.receipt-template .receipt-customer-ready>*{position:relative;z-index:2}
-.receipt-template .receipt-heading{font-size:15px!important;line-height:1.05!important;letter-spacing:.04em!important;margin:8px 0 14px!important;overflow-wrap:anywhere;text-transform:uppercase}
-.receipt-template .receipt-field{font-size:10px!important;line-height:1.48!important}
-.receipt-template .receipt-field strong:not(.receipt-section-label){font-weight:800}
-.receipt-template .receipt-section-label{display:block;font-size:8px!important;letter-spacing:.11em;text-transform:uppercase;margin:11px 0 4px!important}
-.receipt-template .receipt-line{display:flex;justify-content:space-between;gap:10px;font-size:9.5px!important;padding:4px 0!important;border-bottom:1px dotted color-mix(in srgb,var(--receipt-text) 30%,transparent)!important}
-.receipt-template .receipt-total{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:12px!important;padding:9px 0 5px!important;font-size:16px!important;font-weight:900!important}
-.receipt-template .saas-receipt-footer{margin-top:15px!important;padding-top:10px!important;text-align:center!important;font-size:9px!important;line-height:1.35!important}
-.receipt-template-description{font-size:9.5px!important;line-height:1.45!important;margin:0 0 14px!important;padding:0 0 10px!important}
-.receipt-template .receipt-barcode{width:62%;height:46px;margin:18px auto 5px;background:repeating-linear-gradient(90deg,#111 0 2px,transparent 2px 4px,#111 4px 5px,transparent 5px 8px,#111 8px 12px,transparent 12px 14px);opacity:.92}
-.receipt-template .receipt-powered{text-align:center;margin-top:4px!important;padding:0!important;border:0!important;font-family:'Courier New',monospace!important;font-size:6.6px!important;letter-spacing:.02em!important;text-transform:lowercase!important;opacity:.72!important}
-.receipt-template .receipt-watermark-image{position:absolute;left:50%;top:52%;max-height:68%;object-fit:contain;transform:translate(-50%,-50%) rotate(-24deg);pointer-events:none;z-index:0}
-.receipt-template .receipt-preview-watermark{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-24deg);font-weight:900;white-space:nowrap;pointer-events:none;z-index:0}
-.receipt-template-brand{position:relative;text-align:center;font-weight:900;line-height:1.05;margin-bottom:16px;text-transform:uppercase}
-.receipt-template-brand small{display:block;margin-top:5px;font-size:6.5px;font-weight:600;letter-spacing:.14em}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /* 01 — Pastel Commission: layered signs + metallic clip + starry backdrop */
-.receipt-scene-pastel{background:linear-gradient(155deg,#f7dfe8 0%,#dce7ff 45%,#abd3ff 100%)}
-.receipt-scene-pastel:before{content:"✦　☆　✧　★　☆　✦\A ☆　✦　☆　✧　★　☆";white-space:pre;position:absolute;inset:160px 8px auto;color:rgba(255,255,255,.67);font-size:22px;line-height:3.2;transform:rotate(-8deg);z-index:0}
-.receipt-scene-stars{position:absolute;inset:12px 10px auto;text-align:center;color:rgba(255,255,255,.68);font-size:15px;letter-spacing:12px;z-index:0}
-.receipt-sign-stack{position:absolute;top:28px;left:50%;transform:translateX(-50%);width:300px;height:118px;z-index:5;text-align:center;filter:drop-shadow(0 7px 6px rgba(0,0,0,.13))}
-.receipt-sign-stack span{position:absolute;left:50%;transform:translateX(-50%) rotate(-2deg);display:block;width:max-content;max-width:280px;padding:5px 14px;background:#6eb3ec;color:white;font-family:'Arial Black',Impact,sans-serif;font-size:25px;line-height:1;text-transform:uppercase;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.receipt-sign-stack .receipt-sign-main{top:0}
-.receipt-sign-stack .receipt-sign-sub{top:56px;background:#fff;color:#72b7eb;transform:translateX(-50%) rotate(-4deg);font-size:19px;box-shadow:0 3px 9px rgba(0,0,0,.1)}
-.receipt-sign-stack em{position:absolute;top:34px;left:50%;transform:translateX(-50%) rotate(-7deg);font-family:'Snell Roundhand','Brush Script MT',cursive;font-size:22px;color:#ff8cae;z-index:2}
-.receipt-metal-clip{position:absolute;top:124px;left:50%;transform:translateX(-50%);width:235px;height:29px;border-radius:3px;background:linear-gradient(#bfc1c5,#858a92 52%,#bfc3c7);box-shadow:0 3px 4px rgba(0,0,0,.28);z-index:2}
-.receipt-template-pastel .receipt-paper{margin-top:58px;transform:rotate(-.8deg)}
-.receipt-template-pastel .receipt-customer-ready{padding-top:24px!important;font-family:'Courier New',monospace!important}
-.receipt-template-pastel .receipt-heading{display:none}
-.receipt-template-pastel .receipt-field,.receipt-template-pastel .receipt-line,.receipt-template-pastel .receipt-section-label,.receipt-template-pastel .receipt-total{font-family:'Courier New',monospace!important}
-.receipt-template-pastel .receipt-field-customer,.receipt-template-pastel .receipt-field-start,.receipt-template-pastel .receipt-field-status,.receipt-template-pastel .receipt-field-platform,.receipt-template-pastel .receipt-field-payment{display:flex;justify-content:space-between;border-bottom:1px dotted rgba(30,30,30,.25);padding:3px 0}
-.receipt-template-pastel .receipt-total{border-top:1px dashed #333!important;border-bottom:1px dashed #333!important;background:transparent!important;border-radius:0!important}
-.receipt-template-pastel .saas-receipt-footer{font-family:'Snell Roundhand','Brush Script MT',cursive!important;font-size:13px!important;border:0!important;color:#3e4d74!important}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /* 02 — Studio List: locker, push pin, QR, torn white note */
-.receipt-scene-studio{background:#007fbe;background-image:repeating-linear-gradient(0deg,rgba(255,255,255,.12) 0 2px,transparent 2px 22px),linear-gradient(90deg,transparent 0 16%,rgba(0,0,0,.13) 16% 17%,transparent 17% 49%,rgba(0,0,0,.13) 49% 50%,transparent 50% 82%,rgba(0,0,0,.13) 82% 83%,transparent 83%);padding-top:95px}
-.receipt-locker-lines{position:absolute;inset:0;background:linear-gradient(180deg,transparent 0 22%,rgba(255,255,255,.1) 22% 22.5%,transparent 22.5% 76%,rgba(0,0,0,.12) 76% 77%,transparent 77%);z-index:0}
-.receipt-sticker{position:absolute;z-index:4;font:bold 9px/1.05 Arial,sans-serif;text-align:center;padding:6px 7px;border-radius:2px;box-shadow:0 3px 5px rgba(0,0,0,.18);transform:rotate(-7deg)}
-.receipt-sticker-a{left:9px;top:18px;background:#203d9d;color:#fff;border:2px solid #fff}.receipt-sticker-b{right:12px;top:24px;background:#ff85af;color:#182d5a;transform:rotate(7deg)}
-.receipt-pushpin{position:absolute;left:50%;top:50px;transform:translateX(-50%);width:28px;height:28px;border-radius:50%;background:#db2430;color:transparent;box-shadow:0 4px 7px rgba(0,0,0,.28);z-index:6}
-.receipt-pushpin:after{content:"";position:absolute;left:12px;top:20px;width:4px;height:28px;background:#8d1e22;transform:rotate(18deg);transform-origin:top}
-.receipt-studio-brand{position:absolute;top:104px;left:50%;transform:translateX(-50%);z-index:5;width:250px;text-align:center;color:#168dca;font:900 25px/1 'Arial Black',Arial,sans-serif;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.receipt-studio-brand small{display:block;font:700 6px/1.2 'Courier New',monospace;letter-spacing:.18em;color:#111;margin-top:6px}
-.receipt-faux-qr{position:absolute;right:34px;top:90px;width:48px;height:48px;background:conic-gradient(from 90deg,#111 0 25%,#fff 0 50%,#111 0 75%,#fff 0) 0 0/8px 8px;border:4px solid #fff;box-shadow:0 2px 4px rgba(0,0,0,.2);z-index:4;opacity:.22}
-.receipt-template-studio .receipt-paper{transform:rotate(.35deg)}
-.receipt-template-studio .receipt-customer-ready{padding-top:66px!important;font-family:'Courier New',monospace!important}
-.receipt-template-studio .receipt-template-brand-studio{display:none}
-.receipt-template-studio .receipt-heading{display:none}
-.receipt-template-studio .receipt-field,.receipt-template-studio .receipt-line,.receipt-template-studio .receipt-total{font-family:'Courier New',monospace!important}
-.receipt-template-studio .receipt-field-customer,.receipt-template-studio .receipt-field-start,.receipt-template-studio .receipt-field-status,.receipt-template-studio .receipt-field-platform,.receipt-template-studio .receipt-field-payment{display:grid;grid-template-columns:110px 1fr;border-bottom:1px dotted #aaa;padding:3px 0}
-.receipt-template-studio .receipt-field-customer strong,.receipt-template-studio .receipt-field-start strong,.receipt-template-studio .receipt-field-status strong,.receipt-template-studio .receipt-field-platform strong,.receipt-template-studio .receipt-field-payment strong{text-transform:uppercase}
-.receipt-template-studio .receipt-total{border-top:2px solid #222!important;background:transparent!important;color:#111!important}
-.receipt-paper-tape{position:absolute;right:-12px;bottom:45px;background:#f2869f;color:#fff;font:bold 18px/1 Arial;padding:9px 10px;transform:rotate(12deg);z-index:4}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /* 03 — Receiptify: tilted thermal slip, checker wall, doodles */
-.receipt-scene-receiptify{background-color:#f5eaa5;background-image:linear-gradient(45deg,#ef76a7 25%,transparent 25%),linear-gradient(-45deg,#ef76a7 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#ef76a7 75%),linear-gradient(-45deg,transparent 75%,#ef76a7 75%);background-size:66px 66px;background-position:0 0,0 33px,33px -33px,-33px 0;padding:65px 36px 55px}
-.receipt-template-receiptify .receipt-paper{transform:rotate(-4deg);background:#f8f7f3!important;color:#202020!important;box-shadow:0 17px 28px rgba(0,0,0,.24)}
-.receipt-template-receiptify .receipt-paper:before{content:"";position:absolute;left:0;right:0;top:0;height:82px;background:#b9b8ee;z-index:0}
-.receipt-template-receiptify .receipt-customer-ready,.receipt-template-receiptify .receipt-customer-ready *{font-family:'Courier New',monospace!important}
-.receipt-template-receiptify .receipt-template-brand-receiptify{font-family:'Arial Black',Impact,sans-serif!important;font-size:25px;text-align:left;transform:rotate(-1deg);margin:0 0 34px;color:#2a2c32}
-.receipt-template-receiptify .receipt-template-brand-receiptify small{display:inline-block;background:#ef7da9;color:#303039;border-radius:999px;padding:4px 9px;margin-left:7px;letter-spacing:.05em;font-size:7px}
-.receipt-template-receiptify .receipt-heading{display:none}
-.receipt-template-receiptify .receipt-field{font-size:9px!important}
-.receipt-template-receiptify .receipt-field-customer,.receipt-template-receiptify .receipt-field-start,.receipt-template-receiptify .receipt-field-status,.receipt-template-receiptify .receipt-field-platform,.receipt-template-receiptify .receipt-field-payment{border-bottom:1px dashed #333;padding:3px 0}
-.receipt-template-receiptify .receipt-line{border-bottom:1px dotted #444!important}
-.receipt-template-receiptify .receipt-total{border-top:1px dashed #222!important;border-bottom:1px dashed #222!important}
-.receipt-template-receiptify .saas-receipt-footer{border:0!important;font-family:'Marker Felt','Comic Sans MS',cursive!important;font-size:13px!important;color:#4d4d62!important;transform:rotate(-2deg)}
-.receipt-doodle-layer{position:absolute;inset:105px 10px 20px;pointer-events:none;z-index:4}.receipt-doodle-layer span{position:absolute;font:900 24px/1 'Comic Sans MS',cursive;color:#ef5f9a}.receipt-doodle-layer span:nth-child(1){left:-3px;top:38%}.receipt-doodle-layer span:nth-child(2){right:2px;bottom:18%;color:#6d77e8}.receipt-doodle-layer span:nth-child(3){left:8px;bottom:9%;color:#ffbd2e}.receipt-doodle-layer span:nth-child(4){right:4px;top:52%;color:#ec3f7d}.receipt-doodle-layer span:nth-child(5){right:15px;top:31%;color:#ffac2e}
-.receipt-hand-corner{position:absolute;right:-42px;top:-35px;width:145px;height:110px;border-radius:70% 0 60% 55%;background:linear-gradient(145deg,#f4d4c2,#f0c7b3);transform:rotate(22deg);box-shadow:inset 0 -4px 12px rgba(145,90,60,.08);z-index:1;opacity:.8}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /* 04 — Vintage Story: cream paper, tape, star badge, oval logo */
-.receipt-scene-vintage{background:#f4f1e8;background-image:radial-gradient(rgba(76,58,34,.05) .7px,transparent .7px);background-size:5px 5px;padding:78px 38px 54px}
-.receipt-template-vintage .receipt-paper{background:#f9f7f1!important;color:#171717!important;transform:rotate(1.4deg);box-shadow:0 8px 19px rgba(76,62,43,.16)}
-.receipt-template-vintage .receipt-customer-ready,.receipt-template-vintage .receipt-customer-ready *{font-family:'Courier New',monospace!important}
-.receipt-template-vintage .receipt-template-brand-vintage{font-family:'Cooper Black','Arial Black',serif!important;color:#6e0e1e;margin:24px auto 23px;display:grid;grid-template-columns:24px 1fr 24px;align-items:center;gap:3px}
-.receipt-template-vintage .receipt-template-brand-vintage b{border:3px solid #6e0e1e;border-radius:50%;padding:8px 5px;line-height:.9;font-size:16px}
-.receipt-template-vintage .receipt-template-brand-vintage small{grid-column:2;font-family:Arial,sans-serif!important;font-size:5.5px;letter-spacing:.06em}
-.receipt-template-vintage .receipt-heading{display:none}
-.receipt-template-vintage .receipt-date-row{display:flex;justify-content:space-between;border-top:1px solid #222;padding-top:11px;margin-bottom:5px;font-size:9px}
-.receipt-template-vintage .receipt-field,.receipt-template-vintage .receipt-line{font-family:'Courier New',monospace!important}
-.receipt-template-vintage .receipt-section-label{color:#111!important}
-.receipt-template-vintage .receipt-total{border-top:1px dashed #111!important}
-.receipt-template-vintage .saas-receipt-footer{font-family:'Snell Roundhand','Brush Script MT',cursive!important;font-size:13px!important;border:0!important;color:#111!important}
-.receipt-vintage-badge{position:absolute;left:12px;top:16px;width:86px;height:86px;display:grid;place-items:center;text-align:center;background:#1628a1;color:#fff;font:900 13px/1 'Arial Black',sans-serif;clip-path:polygon(50% 0,61% 15%,78% 7%,81% 25%,100% 27%,89% 43%,100% 56%,82% 63%,84% 82%,65% 77%,55% 100%,43% 82%,25% 94%,22% 74%,3% 72%,14% 55%,0 43%,18% 34%,12% 15%,34% 20%);z-index:5}
-.receipt-tape{position:absolute;left:50%;top:50px;transform:translateX(-50%) rotate(4deg);width:160px;background:#d8d2c0;padding:7px 10px;color:#514b43;font:12px/1 'Courier New',monospace;text-align:center;z-index:5;opacity:.9}
-.receipt-vintage-sticker{position:absolute;right:12px;bottom:25px;background:#7c1325;color:#fff;border:3px solid #b99548;border-radius:7px;padding:8px 11px;font:900 14px/1 'Arial Black',sans-serif;transform:rotate(-10deg);z-index:5;box-shadow:0 3px 6px rgba(0,0,0,.14)}
-.receipt-vintage-smiles{position:absolute;top:-18px;left:50%;transform:translateX(-50%);width:155px;background:#e1dbc9;color:#4a463f;text-align:center;padding:5px;font:13px/1 Arial;z-index:1}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /* 05 — Newspaper Editorial */
-.receipt-scene-newspaper{background:#d9d3c9;background-image:repeating-linear-gradient(90deg,rgba(0,0,0,.06) 0 1px,transparent 1px 32px);padding:52px 30px}
-.receipt-news-collage{position:absolute;inset:15px 12px auto;background:#eee7d9;border-top:3px solid #111;border-bottom:1px solid #111;padding:8px;color:#111;font:900 9px/1.1 Georgia,serif;text-transform:uppercase;letter-spacing:.08em;z-index:1}
-.receipt-template-newspaper .receipt-paper{background:#f5f0e7!important;color:#111!important;border:1px solid #222!important;box-shadow:4px 5px 0 rgba(0,0,0,.15)}
-.receipt-template-newspaper .receipt-customer-ready,.receipt-template-newspaper .receipt-customer-ready *{font-family:'Courier New',monospace!important}
-.receipt-news-masthead{font-family:'Times New Roman',serif!important;font-size:24px;text-align:center;font-weight:900;border-bottom:3px double #111;padding-bottom:6px;margin-bottom:7px}
-.receipt-template-brand-newspaper{text-align:left!important;font-family:'Arial Black',sans-serif!important;font-size:17px}.receipt-template-brand-newspaper small{text-align:left;font-family:'Courier New',monospace!important}
-.receipt-template-newspaper .receipt-heading{display:none}.receipt-template-newspaper .receipt-total{border-top:3px double #111!important;border-bottom:3px double #111!important}
+
+
+
+
+
+
+
 
 /* 06 — Boarding Pass */
-.receipt-scene-boarding{background:#0d5f9a;padding:50px 24px;min-height:500px}
-.receipt-flight-band{position:absolute;left:0;right:0;top:18px;color:#fff;font:800 12px/1 Arial,sans-serif;padding:9px 26px;border-top:1px solid rgba(255,255,255,.45);border-bottom:1px solid rgba(255,255,255,.45)}
-.receipt-flight-note{position:absolute;right:16px;top:16px;color:#fff;font:700 6px/1.2 Arial,sans-serif;text-align:right;letter-spacing:.08em}
-.receipt-template-boarding .receipt-paper{width:min(100%,345px);background:linear-gradient(90deg,#eff7ff 0 76%,#e5f0f7 76%)!important;color:#182c3e!important;border-radius:7px;overflow:hidden;box-shadow:0 9px 19px rgba(0,0,0,.23)}
-.receipt-template-boarding .receipt-paper:before{content:"";position:absolute;top:0;bottom:0;right:24%;border-left:2px dashed #6d91aa}
-.receipt-template-boarding .receipt-customer-ready{padding-right:28%!important;font-family:'Courier New',monospace!important}
-.receipt-template-brand-boarding{text-align:left!important;color:#19689f;font-family:'Arial Black',sans-serif!important;font-size:19px}.receipt-template-brand-boarding small{text-align:left;color:#254055}
-.receipt-template-boarding .receipt-heading{display:none}.receipt-template-boarding .receipt-total{border-top:2px solid #1d5f89!important}.receipt-template-boarding .receipt-barcode{margin-left:0;width:70%}
+
+
+
+
+
+
+
+
 
 /* 07 — Retro Diner */
-.receipt-scene-diner{background:#f4e5c1;padding:50px 26px}.receipt-diner-check{position:absolute;inset:0;background:linear-gradient(45deg,#c7372f 25%,transparent 25%) 0 0/26px 26px,linear-gradient(-45deg,#c7372f 25%,transparent 25%) 0 13px/26px 26px,linear-gradient(45deg,transparent 75%,#c7372f 75%) 13px -13px/26px 26px,linear-gradient(-45deg,transparent 75%,#c7372f 75%) -13px 0/26px 26px;opacity:.95;z-index:0}
-.receipt-template-diner .receipt-paper{background:#fff4d8!important;color:#2b241d!important;border:0!important;box-shadow:0 8px 20px rgba(0,0,0,.2)}
-.receipt-template-diner .receipt-paper:before{content:"";position:absolute;inset:7px;border:1px solid #c7372f;pointer-events:none}
-.receipt-template-diner .receipt-customer-ready{padding:37px 28px 25px!important;font-family:'Courier New',monospace!important}
-.receipt-template-brand-diner{font-family:'Cooper Black','Arial Black',sans-serif!important;font-size:18px;color:#c7372f;border:3px solid #c7372f;border-radius:50%;padding:10px 6px;margin:0 auto 18px;max-width:180px}.receipt-template-diner .receipt-heading{display:none}.receipt-template-diner .receipt-total{background:#c7372f!important;color:#fff!important;padding:8px 10px!important;border:0!important}.receipt-diner-mascot{position:absolute;right:13px;bottom:18px;width:48px;height:48px;display:grid;place-items:center;border-radius:50%;background:#f5d58c;color:#c7372f;font:900 24px/1 Arial;z-index:4}
+
+
+
+
+
 
 /* 08 — Minimal Luxury */
-.receipt-scene-luxury{background:linear-gradient(135deg,#d7d0c7 0 23%,#f4efe7 23% 77%,#d9d1c5 77%);padding:54px 34px}.receipt-luxury-shadow{position:absolute;left:-30px;top:120px;width:170px;height:240px;background:rgba(0,0,0,.09);filter:blur(16px);transform:rotate(-18deg)}.receipt-luxury-flower{position:absolute;right:12px;bottom:28px;color:#8d7454;font:38px/1 Georgia,serif;transform:rotate(-18deg)}
-.receipt-template-luxury .receipt-paper{background:#fdfbf6!important;color:#171717!important;box-shadow:0 12px 27px rgba(69,58,46,.17)}
-.receipt-template-luxury .receipt-customer-ready,.receipt-template-luxury .receipt-customer-ready *{font-family:Didot,Georgia,serif!important}.receipt-luxury-mark{text-align:center;color:#a27c4e;font-size:25px;margin-bottom:5px}.receipt-template-brand-luxury{font-weight:400!important;letter-spacing:.12em;font-size:18px}.receipt-template-brand-luxury small{font-family:'Courier New',monospace!important;letter-spacing:.16em}.receipt-template-luxury .receipt-heading{display:none}.receipt-template-luxury .receipt-field,.receipt-template-luxury .receipt-line{font-family:'Courier New',monospace!important}.receipt-template-luxury .receipt-total{border-top:1px solid #111!important}.receipt-template-luxury .saas-receipt-footer{font-style:italic;border:0!important;font-size:11px!important}
+
+
+
 
 /* Thumbnail cues now mirror the real layouts more closely */
-#settings .receipt-template-thumb{position:relative;overflow:hidden!important;box-shadow:inset 0 0 0 1px rgba(0,0,0,.06)}
-#settings .receipt-template-thumb-pastel{background:linear-gradient(145deg,#f6dfe9,#b6d9ff)!important}.receipt-template-thumb-pastel:after{content:"OPEN";position:absolute;left:50%;top:14px;transform:translateX(-50%) rotate(-4deg);padding:3px 6px;background:#6eb3ec;color:#fff;font:900 9px/1 Arial}
-#settings .receipt-template-thumb-studio{background:#087eb9!important;background-image:repeating-linear-gradient(0deg,rgba(255,255,255,.16) 0 1px,transparent 1px 8px)!important}.receipt-template-thumb-studio:after{content:"LIST";position:absolute;left:50%;top:15px;transform:translateX(-50%);padding:7px 12px;background:#fff;color:#168dca;font:900 9px/1 Arial}
-#settings .receipt-template-thumb-receiptify{background-color:#f3e8a4!important;background-image:linear-gradient(45deg,#ef76a7 25%,transparent 25%),linear-gradient(-45deg,#ef76a7 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#ef76a7 75%),linear-gradient(-45deg,transparent 75%,#ef76a7 75%)!important;background-size:18px 18px!important}.receipt-template-thumb-receiptify:after{content:"RECEIPT";position:absolute;left:50%;top:10px;transform:translateX(-50%) rotate(-5deg);width:36px;height:50px;background:#f7f6f0;color:#222;font:700 5px/1 Courier New;padding-top:8px;box-shadow:0 2px 4px rgba(0,0,0,.2)}
-#settings .receipt-template-thumb-vintage{background:#eee9de!important}.receipt-template-thumb-vintage:after{content:"STORY";position:absolute;left:50%;top:13px;transform:translateX(-50%) rotate(2deg);width:39px;height:49px;background:#fbfaf6;color:#6e0e1e;border:1px solid #9b7b61;font:900 6px/45px Georgia;box-shadow:0 2px 4px rgba(0,0,0,.15)}
 
-@media(max-width:520px){.receipt-template .receipt-scene{padding-left:14px;padding-right:14px;min-height:560px}.receipt-sign-stack{width:250px}.receipt-sign-stack span{max-width:235px;font-size:20px}.receipt-sign-stack .receipt-sign-sub{font-size:16px}.receipt-template .receipt-paper{width:min(100%,286px)}}
+
+
+
+
+
+
 
 
 /* KAIRO v20.10.104 — MOBILE UI ONLY. Desktop and auth are intentionally untouched. */
@@ -2606,13 +2598,13 @@ body.saas-dark #settings .receipt-template-section{background:#252b32;border-col
 }
 
 /* Struk "Standar": polos seperti struk kasir (semua template usaha) */
-.receipt-template-standard{border-radius:0;font-family:'Courier New',monospace!important;background:#fff!important;border-color:#d4d4d4}
-.receipt-template-standard .receipt-customer-ready,.receipt-template-standard .receipt-customer-ready *{font-family:'Courier New',monospace!important;color:#111!important}
-.receipt-template-standard .receipt-heading{display:none}
-.receipt-template-standard .receipt-template-brand-standard{text-align:center;font-weight:900;font-size:19px;letter-spacing:.06em;text-transform:uppercase;margin:0 0 12px;padding-bottom:10px;border-bottom:1px dashed #111}
-.receipt-template-standard .receipt-template-brand-standard small{display:block;font-size:9px;font-weight:700;letter-spacing:.14em;margin-top:4px}
-.receipt-template-standard .receipt-field{font-size:10.5px}
-.receipt-template-standard .receipt-section-label{text-transform:uppercase}
-.receipt-template-standard .receipt-line{border-bottom:1px dotted #777!important}
-.receipt-template-standard .receipt-total{border-top:1px dashed #111!important;border-bottom:1px dashed #111!important;padding:8px 0}
-.receipt-template-standard .saas-receipt-footer{border-top:1px dashed #111!important}
+
+
+
+
+
+
+
+
+
+

@@ -26,7 +26,8 @@
   // Profit per baris; minus (modal > harga jual) ditulis merah supaya kerugian kelihatan.
   const profit = (price, cost) => { const v = (Number(price) || 0) - (Number(cost) || 0); return `<span class="ksw-ml">Profit</span><span class="${v < 0 ? 'is-loss' : ''}">${v < 0 ? '−' : ''}${rp(Math.abs(v))}</span>`; };
   const num = v => { const n = Number(String(v ?? '').replace(/[^\d.-]/g, '')); return Number.isFinite(n) ? n : 0; };
-  const shopWs = () => document.documentElement.dataset.businessTemplate === 'online_shop';
+  const posWs = () => document.documentElement.dataset.businessTemplate === 'pos_kasir';
+  const shopWs = () => ['online_shop', 'pos_kasir'].includes(document.documentElement.dataset.businessTemplate);
   const sellerWs = () => document.documentElement.dataset.businessTemplate === 'digital_subscription';
   const toast = (m, t) => { try { showToast(m, t); } catch (_e) {} };
 
@@ -319,14 +320,14 @@
   // 2'. Paket & harga (template lain): tabel Package (package_masters) yang sama dengan Settings.
   STEP.packages = {
     title: () => (shopWs() ? 'Produk & harga' : 'Paket / layanan & harga'),
-    lead: () => 'Tulis paket atau layanan yang kamu jual, lengkap dengan harga jual dan modalnya. Profit tiap order langsung terhitung.',
+    lead: () => (posWs() ? 'Isi dulu produk utama yang kamu jual, lengkap dengan harga jual dan modalnya. Foto, stok, satuan, dan kategori bisa diisi nanti di menu Produk.' : 'Tulis paket atau layanan yang kamu jual, lengkap dengan harga jual dan modalnya. Profit tiap order langsung terhitung.'),
     init() {
       if (D.pk) return;
       D.pk = (typeof packages !== 'undefined' ? packages : []).map(p => ({ id: p.id, name: p.name || '', price: Number(p.price || 0), cost: Number(p.cost_price || 0), o: [p.name || '', Number(p.price || 0), Number(p.cost_price || 0)] }));
       if (!D.pk.length) D.pk.push({ id: null, name: '', price: 0, cost: 0 });
     },
     html() {
-      return `<div class="ksw-ptable is-pk"><div class="ksw-prow is-head" aria-hidden="true"><span>Nama paket</span><span>Harga jual</span><span>Modal</span><span>Profit</span><span></span></div><div data-pk>${D.pk.map((r, i) => pkRow(r, i)).join('')}</div></div><button type="button" class="ksw-add" data-add>${ic('plus')} Tambah paket</button>`;
+      return `<div class="ksw-ptable is-pk"><div class="ksw-prow is-head" aria-hidden="true"><span>${shopWs() ? 'Nama produk' : 'Nama paket'}</span><span>Harga jual</span><span>Modal</span><span>Profit</span><span></span></div><div data-pk>${D.pk.map((r, i) => pkRow(r, i)).join('')}</div></div><button type="button" class="ksw-add" data-add>${ic('plus')} Tambah ${shopWs() ? 'produk' : 'paket'}</button>`;
     },
     mount(el) {
       const host = el.querySelector('[data-pk]');
@@ -345,7 +346,7 @@
       for (const r of D.pk) {
         const name = r.name.trim();
         if (r.id) {
-          if (!name) throw new Error('Nama paket tidak boleh kosong.');
+          if (!name) throw new Error(shopWs() ? 'Nama produk tidak boleh kosong.' : 'Nama paket tidak boleh kosong.');
           if (name === r.o[0] && r.price === r.o[1] && r.cost === r.o[2]) continue;
           const { error } = await writeMasterPayload(m, { name, price: r.price }, d => db.from(m.table).update(d).eq('workspace_id', wid).eq('id', r.id)); if (error) throw error;
           if (r.cost !== r.o[2]) { const { error: ce } = await db.from(m.table).update({ cost_price: r.cost }).eq('workspace_id', wid).eq('id', r.id); if (ce) throw ce; }
@@ -358,7 +359,8 @@
       if (n) { await loadMasters(); try { renderSettingsMasterData(); } catch (_e) {} }
       const total = (typeof packages !== 'undefined' ? packages : []).length;
       D.pk = null;
-      return n ? `${n} paket diperbarui` : (total ? `${total} paket` : null);
+      const noun = shopWs() ? 'produk' : 'paket';
+      return n ? `${n} ${noun} diperbarui` : (total ? `${total} ${noun}` : null);
     }
   };
   function pkRow(r, i) {

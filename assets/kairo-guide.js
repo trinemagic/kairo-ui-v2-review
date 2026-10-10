@@ -117,7 +117,7 @@
                  : shop ? '<b>Produk &amp; Harga</b>: harga, modal, dan stok (kosongkan stok bila tidak dilacak; batas menipis memunculkan notifikasi di lonceng). <b>Platform Penjualan</b>: daftar platform, dan saklar komisi per platform (perkiraan dari persen yang kamu isi). <b>Metode Pembayaran</b>: daftar yang muncul di Orders.'
                  : '<b>Package, Add-on, Topik</b>: daftar yang muncul di Orders.',
           '<b>Pembagian Omzet</b>: persentase partner dan Kas; perubahan berlaku mulai tanggal yang dipilih.',
-          '<b>Struk</b> (paket Pro): desain, label, dan logo struk.',
+          '<b>Struk</b> (paket Pro): desain, label, dan logo struk. Kartu <b>Printer Struk</b> di bagian yang sama menghubungkan printer termal (USB, serial/Bluetooth klasik, Bluetooth BLE, RawBT, atau printer biasa lewat dialog cetak); tombol <b>Cetak</b> muncul di preview struk.',
           '<b>Tema Workspace</b> (paket Pro): Lavender, Kayu, Awan, atau Mawar.'
         ].filter(Boolean)
       },
@@ -196,6 +196,7 @@
           'Isi <b>harga jual</b> dan <b>modal</b>. Kotak hijau menunjukkan untung per produk.',
           'Nyalakan <b>Hitung stok</b> bila produk perlu dihitung. Atur stok dengan tombol − / + atau ketik angkanya, dan tentukan batas <b>ingatkan saya kalau sisa</b>.',
           '<b>Pembagian untung</b>: pilih <b>Ikut aturan umum</b>, atau <b>Atur sendiri untuk produk ini</b> (persen per partner, atau tombol Bagi rata / Semua ke satu partner).',
+          '<b>Hitung Stok</b> (tombol di atas daftar atau di kartu Stok Dashboard): hitung barang fisik, ketik jumlahnya di kolom <b>Fisik</b>, selisih dengan catatan sistem langsung terlihat. Isi catatan bila perlu lalu <b>Simpan</b>. Tab <b>Riwayat</b> menyimpan siapa/kapan stok disesuaikan.',
           'Tab <b>Tambahan</b> dipakai untuk add-on (mis. extra shot). Hapus produk dari lembar ubah; riwayat penjualan lama tetap aman.'
         ],
         tips: ['Stok berkurang otomatis setiap ada penjualan. Produk berstok 0 tidak bisa dijual sampai stoknya diisi.']
@@ -228,7 +229,7 @@
           '<b>Workspace &amp; Branding</b>: nama, warna, logo, <b>Ukuran Teks</b>, dan <b>PIN Login</b>.',
           '<b>Kategori</b>: daftar kategori produk, serta kartu <b>Pengaturan Kasir</b> (Tipe Pesanan, Metode Pembayaran, Service &amp; Pajak). Pajak tidak dihitung sebagai untung.',
           '<b>Pembagian Omzet</b>: persentase partner dan Kas.',
-          '<b>Struk</b>: desain dan label struk. Pilihan <b>Standar</b> cocok untuk printer kasir.',
+          '<b>Struk</b>: desain dan label struk. Pilihan <b>Standar</b> cocok untuk printer kasir. Kartu <b>Printer Struk</b> di sini untuk menghubungkan printer (USB, serial/Bluetooth, BLE, RawBT, atau printer biasa), memilih kertas 58/80 mm, dan cetak otomatis setelah bayar. Pengaturan printer berlaku per perangkat.',
           '<b>Tema Workspace</b> (paket Pro): Lavender, Kayu, Awan, atau Mawar.',
           'Produk, harga, dan stok diatur di menu <b>Produk</b>, bukan di Settings.'
         ]

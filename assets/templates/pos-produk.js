@@ -41,6 +41,7 @@
     s.id = 'pos-products'; s.className = 'section';
     s.innerHTML = `<div class="pp-top">
         <div class="pp-seg" role="tablist"><button type="button" class="on" data-kind="package">Produk</button><button type="button" data-kind="addon">Tambahan</button></div>
+        <button type="button" class="btn btn-light pp-count-btn" id="pp-count-open">Hitung Stok</button>
         <button type="button" class="btn btn-green pp-add" id="pp-add">＋ Tambah <span id="pp-add-word">Produk</span></button>
       </div>
       <div class="pp-tools"><input class="input pp-search" id="pp-search" placeholder="Cari nama atau kode…" autocomplete="off">
@@ -60,6 +61,8 @@
       const after = nav.querySelector('[data-tab="input"]');
       if (after) after.insertAdjacentElement('afterend', b); else nav.appendChild(b);
     }
+    // Urutan menu: tepat setelah Kasir (menu sidebar dibuat belakangan oleh app; tombol Produk bisa terlanjur di posisi pertama).
+    { const t = nav && nav.querySelector('[data-tab="pos-products"]'), inp = nav && nav.querySelector('[data-tab="input"]'); if (t && inp && inp.nextElementSibling !== t) inp.insertAdjacentElement('afterend', t); }
     const grid = document.querySelector('#kairo-mobile-more-sheet .kairo-mobile-more-grid');
     if (grid && !grid.querySelector('[data-mobile-tab="pos-products"]')) {
       const m = document.createElement('button');
@@ -84,6 +87,7 @@
     if (!box) return;
     document.getElementById('pp-add-word').textContent = kind === 'addon' ? 'Tambahan' : 'Produk';
     document.getElementById('pp-chips').hidden = kind === 'addon';
+    document.getElementById('pp-count-open').hidden = kind === 'addon';
     document.querySelectorAll('#pos-products .pp-seg button').forEach(b => b.classList.toggle('on', b.dataset.kind === kind));
     document.querySelectorAll('#pp-chips button').forEach(b => b.classList.toggle('on', b.dataset.f === filter));
     let rows = active();
@@ -105,6 +109,7 @@
     const seg = e.target.closest('.pp-seg button'); if (seg) { kind = seg.dataset.kind; filter = 'all'; renderGrid(); return; }
     const chip = e.target.closest('#pp-chips button'); if (chip) { filter = chip.dataset.f; renderGrid(); return; }
     if (e.target.closest('#pp-add')) { openSheet(null); return; }
+    if (e.target.closest('#pp-count-open')) { openCount(); return; }
     const card = e.target.closest('.pp-card'); if (card) openSheet(list().find(x => String(x.id) === card.dataset.id));
   }
 
@@ -375,6 +380,7 @@
         payload.stock_min = draft.track ? Math.max(0, Math.round(draft.min)) : null;
       }
       const table = kind === 'addon' ? 'addon_masters' : 'package_masters';
+      const before = draft.id && kind === 'package' ? (packages || []).find(x => String(x.id) === String(draft.id)) : null;
       let id = draft.id;
       if (!id) {
         if (!payload.code) payload.code = (kind === 'addon' ? 'AD' : 'P') + Date.now().toString(36).toUpperCase().slice(-5);
@@ -391,6 +397,7 @@
         const { error } = await db.from(table).update(payload).eq('workspace_id', wid()).eq('id', id);
         if (error) throw error;
       }
+      if (before && tracked(before) && payload.stock_qty !== null && payload.stock_qty !== num(before.stock_qty)) await logAdjust([{ id, name, unit: draft.unit, before: num(before.stock_qty), after: payload.stock_qty }], 'Diubah di lembar produk', 'manual');
       await loadMasters();
       try { await refreshAll(); } catch (_e) { /* tampilan lain menyusul */ }
       const word = kind === 'addon' ? 'Tambahan' : 'Produk';
@@ -415,6 +422,106 @@
     } catch (err) { showToast(err.message || 'Gagal menghapus.', true); btn.disabled = false; }
   }
 
+  /* ---------- Hitung Stok (stock opname): hitungan fisik vs catatan sistem, selisih, catatan, riwayat ---------- */
+  let logReady = true;   // false bila tabel stock_adjustments belum ada (hanya riwayat yang hilang, penyesuaian tetap jalan)
+  async function logAdjust(rows, note, source) {
+    if (!logReady || !rows.length) return;
+    try {
+      const { data: { user } = {} } = await db.auth.getUser().catch(() => ({ data: {} }));
+      const { error } = await db.from('stock_adjustments').insert(rows.map(r => ({ workspace_id: wid(), product_id: r.id, product_name: r.name, unit: r.unit || null, before_qty: r.before, after_qty: r.after, diff: r.after - r.before, note: note || null, source, created_by: user?.id || null })));
+      if (error) throw error;
+    } catch (err) { if (/stock_adjustments|42P01|does not exist/i.test(String(err.message || err.code))) logReady = false; else console.warn('stock log', err); }
+  }
+  const fmtDT = iso => { const d = new Date(iso); return isNaN(d) ? '' : d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' }) + ' ' + d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }); };
+  const signed = n => (n > 0 ? '+' : n < 0 ? '−' : '') + Math.abs(n);
+
+  async function openCount() {
+    try { await loadMasters(); } catch (_e) { /* pakai data yang ada */ }
+    document.getElementById('pp-count')?.remove();
+    const ov = document.createElement('div');
+    ov.id = 'pp-count'; ov.className = 'pp-overlay';
+    ov.innerHTML = `<div class="pp-sheet" role="dialog" aria-modal="true" aria-label="Hitung stok">
+      <div class="pp-sheet-head"><b>Hitung Stok</b><button type="button" class="pp-x" data-act="close" aria-label="Tutup">×</button></div>
+      <div class="pp-seg pp-count-tabs"><button type="button" class="on" data-tab="count">Hitung</button><button type="button" data-tab="hist">Riwayat</button></div>
+      <div class="pp-sheet-body" id="pp-count-body"></div>
+      <div class="pp-sheet-foot" id="pp-count-foot"></div></div>`;
+    document.body.appendChild(ov);
+    document.documentElement.classList.add('pp-lock');
+    let tab = 'count';
+    const body = ov.querySelector('#pp-count-body'), foot = ov.querySelector('#pp-count-foot');
+    const prods = () => (packages || []).filter(p => p && p.is_active !== false && tracked(p)).sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'id'));
+    const unitOf = p => (p.unit ? ' ' + esc(p.unit) : '');
+
+    function summary() {
+      let n = 0;
+      ov.querySelectorAll('[data-cnt]').forEach(i => { if (i.value !== '' && Number(i.value) !== Number(i.dataset.sys)) n++; });
+      const btn = foot.querySelector('[data-act="apply"]'); if (btn) { btn.disabled = !n; btn.textContent = n ? `Simpan ${n} perubahan` : 'Simpan'; }
+    }
+    function paintCount() {
+      const list = prods();
+      foot.innerHTML = '<button type="button" class="btn btn-light" data-act="close">Batal</button><button type="button" class="btn btn-green" data-act="apply" disabled>Simpan</button>';
+      if (!list.length) { body.innerHTML = '<div class="pp-empty">Belum ada produk yang stoknya dihitung. Buka menu Produk, pilih produk, lalu nyalakan <b>Hitung stok</b>.</div>'; foot.querySelector('[data-act="apply"]').hidden = true; return; }
+      body.innerHTML = `<p class="pp-note pp-count-intro">Hitung barang yang ada di rak atau gudang, lalu ketik jumlahnya. Baris yang dibiarkan kosong tidak diubah. Selisih dengan catatan sistem langsung terlihat.</p>
+        <input class="input pp-search pp-count-search" id="pp-count-search" placeholder="Cari produk…" autocomplete="off">
+        <div class="pp-count-list" id="pp-count-list">${list.map(p => `<div class="pp-count-row" data-name="${esc(String(p.name || '').toLowerCase())}"><div class="pp-count-name"><b>${esc(p.name)}</b><small>Sistem: ${num(p.stock_qty)}${unitOf(p)}</small></div><input class="input pp-count-in" inputmode="numeric" data-cnt="${esc(p.id)}" data-sys="${num(p.stock_qty)}" placeholder="Fisik" aria-label="Jumlah fisik ${esc(p.name)}"><span class="pp-count-diff" data-diff="${esc(p.id)}"></span></div>`).join('')}</div>
+        <div class="pp-label">Catatan <small>(boleh dikosongkan)</small></div><input class="input" id="pp-count-note" maxlength="120" placeholder="Mis. Hitung akhir bulan, barang rusak, restock supplier">`;
+      summary();
+    }
+    async function paintHist() {
+      foot.innerHTML = '<button type="button" class="btn btn-light" data-act="close">Tutup</button>';
+      body.innerHTML = '<div class="pp-empty">Memuat riwayat…</div>';
+      if (!logReady) { body.innerHTML = '<div class="pp-empty">Riwayat belum tersedia di database ini.</div>'; return; }
+      try {
+        const { data, error } = await db.from('stock_adjustments').select('*').eq('workspace_id', wid()).order('created_at', { ascending: false }).limit(60);
+        if (error) throw error;
+        body.innerHTML = data && data.length ? `<div class="pp-hist">${data.map(r => `<div class="pp-hist-row"><div><b>${esc(r.product_name || '-')}</b><small>${esc(fmtDT(r.created_at))} · ${r.source === 'opname' ? 'Hitung stok' : 'Ubah manual'}${r.note ? ' · ' + esc(r.note) : ''}</small></div><div class="pp-hist-q"><span>${num(r.before_qty)} → ${num(r.after_qty)}${r.unit ? ' ' + esc(r.unit) : ''}</span><em class="${num(r.diff) < 0 ? 'is-neg' : 'is-pos'}">${signed(num(r.diff))}</em></div></div>`).join('')}</div>` : '<div class="pp-empty">Belum ada penyesuaian stok.</div>';
+      } catch (err) {
+        if (/stock_adjustments|42P01|does not exist/i.test(String(err.message || err.code))) { logReady = false; body.innerHTML = '<div class="pp-empty">Riwayat belum tersedia di database ini.</div>'; }
+        else body.innerHTML = '<div class="pp-empty">Riwayat gagal dimuat.</div>';
+      }
+    }
+    async function apply(btn) {
+      const note = (ov.querySelector('#pp-count-note')?.value || '').trim(), changes = [];
+      ov.querySelectorAll('[data-cnt]').forEach(i => {
+        if (i.value === '') return;
+        const after = Math.max(0, Math.round(num(i.value))), p = (packages || []).find(x => String(x.id) === i.dataset.cnt);
+        if (p && after !== num(p.stock_qty)) changes.push({ id: p.id, name: p.name, unit: p.unit, before: num(p.stock_qty), after });
+      });
+      if (!changes.length) return;
+      btn.disabled = true;
+      try {
+        const res = await Promise.all(changes.map(c => db.from('package_masters').update({ stock_qty: c.after }).eq('workspace_id', wid()).eq('id', c.id)));
+        const bad = res.find(r => r.error); if (bad) throw bad.error;
+        await logAdjust(changes, note, 'opname');
+        await loadMasters();
+        try { await refreshAll(); } catch (_e) { /* tampilan lain menyusul */ }
+        closeCount(); renderGrid(); renderDashStock(); window.kairoPos?.reload?.();
+        showToast(`${changes.length} produk disesuaikan${logReady ? '' : ' (riwayat belum tersedia)'}.`);
+      } catch (err) { showToast(err.message || 'Gagal menyimpan stok.', true); btn.disabled = false; }
+    }
+    function closeCount() { ov.remove(); if (!document.getElementById('pp-sheet')) document.documentElement.classList.remove('pp-lock'); }
+
+    ov.addEventListener('click', e => {
+      if (e.target === ov) { closeCount(); return; }
+      const t = e.target.closest('button'); if (!t) return;
+      if (t.dataset.act === 'close') { closeCount(); return; }
+      if (t.dataset.act === 'apply') { apply(t); return; }
+      if (t.dataset.tab) { tab = t.dataset.tab; ov.querySelectorAll('.pp-count-tabs button').forEach(b => b.classList.toggle('on', b === t)); if (tab === 'count') paintCount(); else paintHist(); }
+    });
+    ov.addEventListener('input', e => {
+      const t = e.target;
+      if (t.id === 'pp-count-search') { const q = t.value.trim().toLowerCase(); ov.querySelectorAll('.pp-count-row').forEach(r => { r.hidden = !!q && !r.dataset.name.includes(q); }); return; }
+      if (t.dataset.cnt !== undefined) {
+        t.value = digits(t.value);
+        const d = ov.querySelector(`[data-diff="${CSS.escape(t.dataset.cnt)}"]`), diff = t.value === '' ? null : Number(t.value) - Number(t.dataset.sys);
+        d.textContent = diff === null ? '' : diff === 0 ? 'Pas' : signed(diff);
+        d.className = 'pp-count-diff' + (diff === null ? '' : diff === 0 ? ' is-ok' : diff < 0 ? ' is-neg' : ' is-pos');
+        summary();
+      }
+    });
+    paintCount();
+  }
+
   /* ---------- Stok untuk Dashboard + Lonceng ---------- */
   function problems() {
     return (packages || []).filter(p => p && p.is_active !== false && ['out', 'low'].includes(stockState(p))).sort((a, b) => num(a.stock_qty) - num(b.stock_qty));
@@ -427,9 +534,10 @@
     let card = document.getElementById('pos-dash-stock');
     if (!card) { card = document.createElement('div'); card.id = 'pos-dash-stock'; card.className = 'card pp-dash'; row.insertAdjacentElement('afterend', card); }
     const bad = problems(), n = (packages || []).filter(p => p && p.is_active !== false && tracked(p)).length;
-    card.innerHTML = `<div class="pp-dash-head"><div><div class="card-title">Stok Produk</div><div class="page-sub">${n ? (bad.length ? `${bad.length} produk perlu diisi ulang` : 'Semua stok aman') : 'Belum ada stok yang dihitung'}</div></div><button type="button" class="btn btn-light" id="pp-dash-go">Kelola Produk</button></div>`
+    card.innerHTML = `<div class="pp-dash-head"><div><div class="card-title">Stok Produk</div><div class="page-sub">${n ? (bad.length ? `${bad.length} produk perlu diisi ulang` : 'Semua stok aman') : 'Belum ada stok yang dihitung'}</div></div><div class="pp-dash-btns"><button type="button" class="btn btn-light" id="pp-dash-count">Hitung Stok</button><button type="button" class="btn btn-light" id="pp-dash-go">Kelola Produk</button></div></div>`
       + (bad.length ? `<div class="pp-dash-list">${bad.slice(0, 8).map(p => `<span class="pp-dash-item is-${stockState(p)}"><b>${esc(p.name)}</b><em>${num(p.stock_qty) <= 0 ? 'Habis' : 'Sisa ' + p.stock_qty}</em></span>`).join('')}</div>` : '');
     card.querySelector('#pp-dash-go').onclick = openPage;
+    card.querySelector('#pp-dash-count').onclick = openCount;
   }
 
   function boot() { ensurePage(); ensureNav(); renderGrid(); renderDashStock(); }
@@ -444,6 +552,6 @@
   new MutationObserver(() => ensureNav()).observe(document.getElementById('app-shell') || document.body, { childList: true, subtree: true });
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && document.getElementById('pp-sheet')) closeSheet(); });
   document.addEventListener('kairo:refreshed', () => { renderGrid(); renderDashStock(); });
-  window.kairoPosProduk = { open: openPage, edit: id => { kind = 'package'; openPage(); openSheet((packages || []).find(x => String(x.id) === String(id))); } };
+  window.kairoPosProduk = { open: openPage, count: openCount, edit: id => { kind = 'package'; openPage(); openSheet((packages || []).find(x => String(x.id) === String(id))); } };
   boot();
 })();

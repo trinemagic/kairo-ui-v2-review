@@ -51,14 +51,16 @@
     const T = base(kind);
     const kasir = kind === 'kasir';
     const P = kasir
-      ? [{ id: 'p1', code: 'KSU', name: 'Kopi Susu', price: 22000, cost: 8000 }, { id: 'p2', code: 'AMR', name: 'Americano', price: 18000, cost: 5000 }, { id: 'p3', code: 'RTB', name: 'Roti Bakar Cokelat', price: 20000, cost: 8000 }, { id: 'p4', code: 'NGR', name: 'Nasi Goreng Spesial', price: 28000, cost: 12000 }]
+      ? [{ id: 'p1', code: 'KSU', name: 'Kopi Susu', price: 22000, cost: 8000 }, { id: 'p2', code: 'AMR', name: 'Americano', price: 18000, cost: 5000 }, { id: 'p3', code: 'RTB', name: 'Roti Bakar Cokelat', price: 20000, cost: 8000 }, { id: 'p4', code: 'NGR', name: 'Nasi Goreng Spesial', price: 28000, cost: 12000 }, { id: 'p5', code: 'ETM', name: 'Es Teh Manis', price: 8000, cost: 2000 }, { id: 'p6', code: 'MCL', name: 'Matcha Latte', price: 26000, cost: 11000 }]
       : [{ id: 'p1', code: 'LOGO', name: 'Desain Logo', price: 350000, cost: 90000 }, { id: 'p2', code: 'FEED', name: 'Desain Feed Instagram (9 post)', price: 250000, cost: 60000 }, { id: 'p3', code: 'REELS', name: 'Edit Video Reels', price: 150000, cost: 40000 }, { id: 'p4', code: 'BRAND', name: 'Konsultasi Brand 1 Jam', price: 200000, cost: 20000 }];
     const A = kasir
       ? [{ id: 'a1', code: 'SHT', name: 'Extra Shot', price: 5000, cost: 2000 }, { id: 'a2', code: 'TPG', name: 'Tambah Topping', price: 4000, cost: 1500 }]
       : [{ id: 'a1', code: 'REV', name: 'Revisi Tambahan', price: 50000, cost: 10000 }, { id: 'a2', code: 'MST', name: 'File Master', price: 75000, cost: 0 }, { id: 'a3', code: 'EXP', name: 'Kilat 24 Jam', price: 100000, cost: 20000 }];
     const TOP = kasir ? ['Minuman', 'Makanan', 'Snack'] : ['Branding', 'Sosial Media', 'Promosi'];
     const PL = kasir ? ['Dine In', 'Take Away', 'GrabFood', 'Dine In', 'Take Away'] : ['Instagram', 'TikTok', 'WhatsApp', 'Instagram', 'X'];
-    T.package_masters = P.map(p => ({ id: p.id, workspace_id: WS, code: p.code, name: p.name, price: p.price, cost_price: p.cost, is_active: true }));
+    // Kasir: kategori, satuan, dan stok contoh (1 menipis, 1 habis) supaya menu Produk, kartu Stok, dan Hitung Stok berisi.
+    const KM = { KSU: ['Minuman', 'gelas', 40, 8], AMR: ['Minuman', 'gelas', 3, 8], RTB: ['Makanan', 'porsi', 0, 5], NGR: ['Makanan', 'porsi', 14, 5], ETM: ['Minuman', 'gelas', 60, 10], MCL: ['Minuman', 'gelas', 22, 8] };
+    T.package_masters = P.map(p => ({ id: p.id, workspace_id: WS, code: p.code, name: p.name, price: p.price, cost_price: p.cost, is_active: true, ...(kasir ? { category: KM[p.code][0], unit: KM[p.code][1], stock_qty: KM[p.code][2], stock_min: KM[p.code][3] } : {}) }));
     T.addon_masters = A.map(a => ({ id: a.id, workspace_id: WS, code: a.code, name: a.name, price: a.price, cost_price: a.cost, is_active: true }));
     T.topic_masters = TOP.map((n, i) => ({ id: 't' + (i + 1), workspace_id: WS, name: n, is_active: true }));
     for (let i = 0; i < 64; i++) {
