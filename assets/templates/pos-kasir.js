@@ -269,7 +269,7 @@
     for (const l of t.items) { const m = (packages || []).find(x => String(x.id) === String(l.id)); const left = stockLeft(m); if (left !== null && l.qty > left) { showToast(`Stok ${l.name} hanya sisa ${left}.`, true); return; } }
     if (typeof currentShift !== 'undefined' && !currentShift && !warnedNoSession) { warnedNoSession = true; showToast('Kasir belum dibuka: struk tetap tersimpan tapi belum masuk sesi.', 'warning'); }
     saving = true;
-    const btn = document.getElementById('pos-pay-btn'); if (btn) { btn.disabled = true; btn.textContent = 'Menyimpan…'; }
+    const btn = document.getElementById('pos-pay-btn'); if (btn) { btn.disabled = true; btn.classList.add('kairo-loading'); btn.textContent = 'Loading'; }
     try {
       const type = cart.type || typeList()[0];
       const receiptNo = await nextReceiptNo();
@@ -439,7 +439,7 @@
       <div class="pos-sum"><div><span>Subtotal</span><span>${money(t.subtotal)}</span></div>${t.disc ? `<div><span>Diskon</span><span>−${money(t.disc)}</span></div>` : ''}${t.svc ? `<div><span>Service ${t.cfg.svcPct}%</span><span>${money(t.svc)}</span></div>` : ''}${t.tax ? `<div><span>${esc(t.cfg.taxName)} ${t.cfg.taxPct}%</span><span>${money(t.tax)}</span></div>` : ''}<div class="pos-total"><span>Total</span><span>${money(t.total)}</span></div></div>
       <div class="pos-pays">${pays.map(x => `<button type="button" class="pos-seg${x === cart.pay ? ' on' : ''}" data-pay="${esc(x)}">${esc(x)}</button>`).join('')}</div>
       ${cash ? `<div class="pos-cash"><input class="input" id="pos-recv" inputmode="numeric" placeholder="Uang diterima" value="${cart.received ? 'Rp' + fmtInt(cart.received) : ''}"><div class="pos-quick"><button type="button" data-recv="${t.total}">Uang pas</button>${[20000, 50000, 100000].filter(v => v >= t.total).slice(0, 3).map(v => `<button type="button" data-recv="${v}">${shortMoney(v)}</button>`).join('')}</div><div class="pos-change"><span>Kembalian</span><b>${cart.received >= t.total && t.total > 0 ? money(cart.received - t.total) : '-'}</b></div></div>` : ''}
-      <div class="pos-actions">${billsReady ? `<button type="button" class="btn btn-light" id="pos-save-bill">${cart.billId ? 'Simpan Perubahan' : 'Simpan Bill'}</button>` : ''}<button type="button" class="btn btn-green" id="pos-pay-btn"${saving || !t.items.length ? ' disabled' : ''}>Bayar &amp; Cetak Struk</button></div>
+      <div class="pos-actions">${billsReady ? `<button type="button" class="btn btn-light" id="pos-save-bill">${cart.billId ? 'Simpan Perubahan' : 'Simpan Bill'}</button>` : ''}<button type="button" class="btn btn-green${saving ? ' kairo-loading' : ''}" id="pos-pay-btn"${saving || !t.items.length ? ' disabled' : ''}>${saving ? 'Loading' : 'Bayar &amp; Cetak Struk'}</button></div>
       ${cart.billId ? '<button type="button" class="pos-linkdel" id="pos-del-bill">Hapus bill ini</button>' : ''}`;
     if (keep) document.getElementById(keep)?.focus();
     const bar = document.getElementById('pos-mobilebar');

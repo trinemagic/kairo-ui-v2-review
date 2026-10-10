@@ -270,13 +270,19 @@ function clearAuthError(){
   el.style.display="none";
 }
 
+// Tombol yang sedang memproses: spinner + tulisan "Loading" (gaya .kairo-loading di kairo-v3.css), dikunci sampai selesai.
+function setBtnLoading(btn,on,restoreText){
+  if(!btn) return;
+  btn.classList.toggle("kairo-loading",on);
+  btn.disabled=on;
+  if(on) btn.textContent="Loading";
+  else if(restoreText!==undefined) btn.textContent=restoreText;
+}
+window.kairoBtnLoading=setBtnLoading;
+
 function setAuthLoading(loading){
   authBusy=loading;
-  const btn=document.getElementById("login-button");
-  if(btn){
-    btn.disabled=loading;
-    btn.textContent=loading ? "Memproses..." : "Masuk";
-  }
+  setBtnLoading(document.getElementById("login-button"),loading,"Masuk");
 }
 
 async function loginWithUsername(username,password){
@@ -2524,7 +2530,7 @@ function closeReceiptPreview(){
 }
 document.getElementById("confirm-save").addEventListener("click",async()=>{
   if(!pendingTransactionPayload) return;
-  const btn=document.getElementById("confirm-save"); btn.disabled=true; btn.textContent="Menyimpan...";
+  const btn=document.getElementById("confirm-save"); setBtnLoading(btn,true);
   try{
     const ensuredCustomerId=await ensureCustomerForPendingTransaction();
     pendingTransactionPayload.customer_id=ensuredCustomerId;
@@ -2542,7 +2548,7 @@ document.getElementById("confirm-save").addEventListener("click",async()=>{
     showToast(`Penjualan ${savedName} berhasil disimpan.`);
     await Promise.all([refreshAll(),loadCustomerDirectory()]);
   }catch(err){ showToast("Gagal menyimpan: "+err.message,true); }
-  finally{btn.disabled=false;btn.textContent="✓ Simpan Transaksi";}
+  finally{setBtnLoading(btn,false,"✓ Simpan Transaksi");}
 });
 
 /* =========================
@@ -2575,9 +2581,8 @@ document.getElementById("payout-form").addEventListener("submit",async e=>{
   const form=e.currentTarget;
   const btn=form.querySelector('button[type="submit"]');
   if(btn.disabled) return;
-  btn.disabled=true;
   const originalText=btn.textContent;
-  btn.textContent="Menyimpan...";
+  setBtnLoading(btn,true);
 
   try{
     const s=document.getElementById("payout-partner");
@@ -2634,8 +2639,7 @@ document.getElementById("payout-form").addEventListener("submit",async e=>{
     console.error(err);
     showToast("Gagal menyimpan pencairan: "+err.message,true);
   }finally{
-    btn.disabled=false;
-    btn.textContent=originalText;
+    setBtnLoading(btn,false,originalText);
   }
 });
 
@@ -2657,8 +2661,7 @@ document.getElementById("cash-expense-form").addEventListener("submit",async e=>
   const btn=form.querySelector('button[type="submit"]');
   if(btn.disabled) return;
   const originalText=btn.textContent;
-  btn.disabled=true;
-  btn.textContent="Menyimpan...";
+  setBtnLoading(btn,true);
   try{
     const amount=Number(document.getElementById("cash-expense-amount").value);
     const expenseDate=document.getElementById("cash-expense-date").value;
@@ -2692,8 +2695,7 @@ document.getElementById("cash-expense-form").addEventListener("submit",async e=>
     console.error("[KAIRO][PettyCash]",err);
     showToast("Gagal mencatat pengeluaran kas: "+(err?.message||"Terjadi kesalahan saat menyimpan."),true);
   }finally{
-    btn.disabled=false;
-    btn.textContent=originalText;
+    setBtnLoading(btn,false,originalText);
   }
 });
 
@@ -2702,9 +2704,8 @@ document.getElementById("cash-injection-form").addEventListener("submit",async e
   const form=e.currentTarget;
   const btn=form.querySelector('button[type="submit"]');
   if(btn.disabled) return;
-  btn.disabled=true;
   const originalText=btn.textContent;
-  btn.textContent="Menyimpan...";
+  setBtnLoading(btn,true);
   try{
     const amount=Number(document.getElementById("cash-injection-amount").value);
     const injectionDate=document.getElementById("cash-injection-date").value;
@@ -2721,8 +2722,7 @@ document.getElementById("cash-injection-form").addEventListener("submit",async e
   }catch(err){
     showToast("Gagal mencatat pemasukan kas: "+err.message,true);
   }finally{
-    btn.disabled=false;
-    btn.textContent=originalText;
+    setBtnLoading(btn,false,originalText);
   }
 });
 
@@ -5541,7 +5541,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
         // Dashboard Kasir (tahap 1): dimuat hanya untuk Kasir / POS.
         if(!document.getElementById('pos-kasir-js')){
           const link=document.createElement('link');link.id='pos-kasir-css';link.rel='stylesheet';link.href='assets/templates/pos-kasir.css?v=1.5.2';document.head.appendChild(link);
-          const script=document.createElement('script');script.id='pos-kasir-js';script.src='assets/templates/pos-kasir.js?v=1.5.4';script.defer=true;document.body.appendChild(script);
+          const script=document.createElement('script');script.id='pos-kasir-js';script.src='assets/templates/pos-kasir.js?v=1.5.5';script.defer=true;document.body.appendChild(script);
           const link2=document.createElement('link');link2.id='pos-produk-css';link2.rel='stylesheet';link2.href='assets/templates/pos-produk.css?v=1.4.0';document.head.appendChild(link2);
           const script2=document.createElement('script');script2.id='pos-produk-js';script2.src='assets/templates/pos-produk.js?v=1.4.1';script2.defer=true;document.body.appendChild(script2);
         }}

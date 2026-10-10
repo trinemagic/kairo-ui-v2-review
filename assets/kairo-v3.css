@@ -2186,7 +2186,7 @@ html.kairo-v3 {
   --kairo-off-white: #fbfcf8;
   --kairo-white: #ffffff;
   --kairo-entry-line: #d9e9ed;
-  --kairo-entry-muted: #62798a;
+  --kairo-entry-muted: #4b6174;
   --kairo-entry-shadow: 0 24px 64px rgba(23, 58, 89, .12);
   --kairo-entry-shadow-soft: 0 14px 36px rgba(23, 58, 89, .08);
   --kairo-entry-container: 1180px;
@@ -2253,6 +2253,11 @@ html.kairo-v3 body.auth-locked #app-shell {
 
 html.kairo-v3 .kairo-lp-footer-wrap {
   padding-bottom: 34px;
+}
+
+/* Sebelum kairo-v3.js jalan (data-page belum ada), pengguna "Ingat saya" tidak boleh melihat landing sekejap. */
+html.kairo-v3[data-kairo-masuk] #kairo-entry:not([data-page]) :is(.kairo-landing-main, .kairo-lp-footer-wrap) {
+  display: none !important;
 }
 
 /* #masuk: direct login link for existing customers, no landing content behind the dialog. */
@@ -2409,7 +2414,7 @@ html.kairo-v3 .kairo-nav-links a {
   position: relative;
   padding: 10px 0;
   color: var(--kairo-delft-soft);
-  font-size: 11px;
+  font-size: 14.5px;
   font-weight: 750;
   text-decoration: none;
 }
@@ -2436,6 +2441,10 @@ html.kairo-v3 .kairo-nav-links a:focus-visible::after {
 
 html.kairo-v3 .kairo-nav-actions {
   gap: 10px;
+}
+
+html.kairo-v3 .kairo-nav-actions .kairo-button {
+  font-size: 13.5px;
 }
 
 html.kairo-v3 .kairo-button {
@@ -2485,10 +2494,6 @@ html.kairo-v3 .kairo-button-large {
   padding: 14px 20px;
   border-radius: 15px;
   font-size: 13px;
-}
-
-html.kairo-v3 .kairo-menu-toggle {
-  display: none;
 }
 
 html.kairo-v3 .kairo-lp-hero {
@@ -2563,7 +2568,7 @@ html.kairo-v3 .kairo-lp-trust {
   gap: 14px 20px;
   margin-top: 24px;
   color: var(--kairo-entry-muted);
-  font-size: 9px;
+  font-size: 12.5px;
   font-weight: 700;
 }
 
@@ -3108,7 +3113,7 @@ html.kairo-v3 .kairo-lp-feature-list h3 {
 html.kairo-v3 .kairo-lp-feature-list p {
   margin: 0;
   color: var(--kairo-entry-muted);
-  font-size: 12px;
+  font-size: 13.5px;
   line-height: 1.6;
 }
 
@@ -3613,7 +3618,7 @@ html.kairo-v3 .kairo-lp-faq-grid article > span {
   border-radius: 11px;
   background: var(--kairo-white);
   color: var(--kairo-turquoise-dark);
-  font-size: 9px;
+  font-size: 11.5px;
   font-weight: 900;
   place-items: center;
 }
@@ -3621,14 +3626,14 @@ html.kairo-v3 .kairo-lp-faq-grid article > span {
 html.kairo-v3 .kairo-lp-faq-grid h3 {
   margin: 0;
   color: var(--kairo-delft);
-  font-size: 12px;
+  font-size: 14.5px;
   line-height: 1.45;
 }
 
 html.kairo-v3 .kairo-lp-faq-grid p {
   margin: 4px 0 0;
   color: var(--kairo-entry-muted);
-  font-size: 12px;
+  font-size: 13.5px;
   line-height: 1.62;
 }
 
@@ -3645,20 +3650,20 @@ html.kairo-v3 .kairo-lp-footer {
 html.kairo-v3 .kairo-lp-footer p {
   margin: 0;
   color: var(--kairo-entry-muted);
-  font-size: 11px;
+  font-size: 12.5px;
   text-align: center;
 }
 
 html.kairo-v3 .kairo-lp-footer-mid { display: grid; justify-items: center; gap: 8px; }
 html.kairo-v3 .kairo-lp-footer-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 16px; }
-html.kairo-v3 .kairo-lp-footer-links a { color: var(--kairo-delft); font-size: 11px; font-weight: 700; text-decoration: none; }
+html.kairo-v3 .kairo-lp-footer-links a { color: var(--kairo-delft); font-size: 13px; font-weight: 700; text-decoration: none; }
 html.kairo-v3 .kairo-lp-footer-links a:hover { text-decoration: underline; }
-html.kairo-v3 .kairo-lp-footer-mid small { color: var(--kairo-entry-muted); font-size: 10.5px; }
+html.kairo-v3 .kairo-lp-footer-mid small { color: var(--kairo-entry-muted); font-size: 12px; }
 
 html.kairo-v3 .kairo-lp-footer > a:last-child {
   justify-self: end;
   color: var(--kairo-delft);
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 800;
   text-decoration: none;
 }
@@ -3898,74 +3903,45 @@ html.kairo-v3 .kairo-entry :focus-visible {
     width: min(100% - 40px, var(--kairo-entry-container));
   }
 
+  /* Menu selalu terlihat (tanpa hamburger): baris 1 = logo + Masuk/Coba Gratis, baris 2 = tautan halaman. */
   html.kairo-v3 .kairo-nav-inner {
-    min-height: 70px;
-  }
-
-  html.kairo-v3 .kairo-menu-toggle {
-    display: grid;
-    width: 42px;
-    height: 42px;
-    padding: 10px;
-    border: 1px solid var(--kairo-entry-line);
-    border-radius: 12px;
-    background: var(--kairo-white);
-    color: var(--kairo-delft);
-    cursor: pointer;
-    place-content: center;
-    gap: 4px;
-  }
-
-  html.kairo-v3 .kairo-menu-toggle span {
-    display: block;
-    width: 18px;
-    height: 2px;
-    border-radius: 99px;
-    background: currentColor;
+    min-height: 0;
+    flex-wrap: wrap;
+    gap: 0 12px;
+    padding-top: 8px;
   }
 
   html.kairo-v3 .kairo-nav-menu {
-    position: absolute;
-    top: calc(100% + 8px);
-    right: 20px;
-    left: 20px;
-    display: none;
-    padding: 18px;
-    border: 1px solid var(--kairo-entry-line);
-    border-radius: 17px;
-    background: var(--kairo-white);
-    box-shadow: var(--kairo-entry-shadow);
-    align-items: stretch;
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  html.kairo-v3 #kairo-entry-nav.menu-open .kairo-nav-menu {
-    display: flex;
-  }
-
-  html.kairo-v3 .kairo-nav-links {
-    align-items: stretch;
-    flex-direction: column;
-    gap: 2px;
-  }
-
-  html.kairo-v3 .kairo-nav-links a {
-    padding: 11px 10px;
-    border-radius: 10px;
-  }
-
-  html.kairo-v3 .kairo-nav-links a:hover {
-    background: var(--kairo-sky-050);
-  }
-
-  html.kairo-v3 .kairo-nav-links a::after {
-    display: none;
+    display: contents;
   }
 
   html.kairo-v3 .kairo-nav-actions {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    order: 2;
+    gap: 8px;
+  }
+
+  html.kairo-v3 .kairo-nav-actions .kairo-button {
+    min-height: 40px;
+    padding: 8px 14px;
+  }
+
+  html.kairo-v3 .kairo-nav-links {
+    order: 3;
+    flex: 0 0 100%;
+    justify-content: space-between;
+    gap: 18px;
+    margin-top: 2px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  html.kairo-v3 .kairo-nav-links::-webkit-scrollbar {
+    display: none;
+  }
+
+  html.kairo-v3 .kairo-nav-links a {
+    flex: 0 0 auto;
+    font-size: 14px;
   }
 
   html.kairo-v3 .kairo-lp-about-grid {
@@ -4009,8 +3985,8 @@ html.kairo-v3 .kairo-entry :focus-visible {
     width: min(100% - 32px, var(--kairo-entry-container));
   }
 
-  html.kairo-v3 .kairo-nav-inner {
-    min-height: 66px;
+  html.kairo-v3 .kairo-brand-lockup {
+    height: 40px;
   }
 
   html.kairo-v3 .kairo-lp-hero {
@@ -5061,3 +5037,51 @@ html.kairo-v3 .kairo-pin-btns { display: flex; flex-wrap: wrap; gap: 8px; }
 html.kairo-v3 .kairo-pin-btns [hidden] { display: none; }
 
 html.kairo-v3 #shop-payment-card .shop-platform-row { grid-template-columns: minmax(0, 1fr) 32px; }
+
+/* Layar sangat sempit (<=380px): logo + tombol + menu tetap muat tanpa turun baris. */
+@media (max-width: 380px) {
+  html.kairo-v3 .kairo-brand-lockup {
+    height: 34px;
+  }
+
+  html.kairo-v3 .kairo-nav-actions .kairo-button {
+    padding: 8px 10px;
+    font-size: 12.5px;
+  }
+
+  html.kairo-v3 .kairo-nav-links {
+    gap: 10px;
+  }
+
+  html.kairo-v3 .kairo-nav-links a {
+    font-size: 13px;
+  }
+}
+
+/* Tombol yang sedang memproses (login, simpan penjualan, bayar Kasir, dll): spinner + tulisan "Loading".
+   Hanya transform yang beranimasi (GPU); tidak mengubah tata letak tombol. */
+html.kairo-v3 .kairo-loading::before {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 9px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  content: "";
+  vertical-align: -.15em;
+  animation: kairo-spin .75s linear infinite;
+}
+
+html.kairo-v3 .kairo-loading:disabled {
+  cursor: progress;
+  opacity: .88;
+}
+
+@keyframes kairo-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.kairo-v3 .kairo-loading::before { animation-duration: 1.6s; }
+}
