@@ -391,8 +391,9 @@
     const list = visibleProducts();
     grid.innerHTML = list.length ? list.map(p => {
       const q = cart.items.get(String(p.id)) || 0, left = stockLeft(p);
-      return `<button type="button" class="pos-prod${left !== null && left <= 0 ? ' is-out' : ''}" data-pid="${esc(p.id)}">${q ? `<em>${q}</em>` : ''}<b>${esc(p.name)}</b><span>${money(p.price)}</span>${left !== null ? `<small>${left <= 0 ? 'Habis' : 'Stok ' + left}</small>` : ''}</button>`;
-    }).join('') : `<div class="pos-empty">${(packages || []).length ? 'Produk tidak ditemukan.' : 'Belum ada produk. Isi di Settings › Produk &amp; Harga.'}</div>`;
+      const low = left !== null && left > 0 && left <= (p.stock_min === null || p.stock_min === undefined ? 5 : num(p.stock_min));
+      return `<button type="button" class="pos-prod${left !== null && left <= 0 ? ' is-out' : ''}${p.image_url ? ' has-img' : ''}" data-pid="${esc(p.id)}">${p.image_url ? `<img class="pos-prod-img" src="${esc(p.image_url)}" alt="" loading="lazy">` : ''}${q ? `<em>${q}</em>` : ''}<b>${esc(p.name)}</b><span>${money(p.price)}</span>${left !== null ? `<small class="${low ? 'is-low' : ''}">${left <= 0 ? 'Habis' : low ? 'Menipis · ' + left : 'Stok ' + left}</small>` : ''}</button>`;
+    }).join('') : `<div class="pos-empty">${(packages || []).length ? 'Produk tidak ditemukan.' : 'Belum ada produk. Tambah dulu di menu Produk.'}</div>`;
     renderAddons(); renderCats();
   }
   function renderAddons() {
@@ -502,11 +503,7 @@
         <div class="pos-sub">Pajak tidak dihitung sebagai laba. Penjualan di Dashboard tetap angka yang dibayar pelanggan.</div></div>
       <div class="pos-set-actions"><button type="button" class="btn btn-green" id="pos-set-save">Simpan Pengaturan Kasir</button><button type="button" class="btn btn-light" id="pos-set-reset">Kembalikan Bawaan</button></div>`;
     anchor.after(card);
-    const cat = document.createElement('div');
-    cat.className = 'card settings-master-card'; cat.id = 'pos-cat-card';
-    cat.innerHTML = `<div class="settings-master-head"><div><div class="card-title">Kategori Produk</div><div class="page-sub">Pilih kategori tiap produk supaya muncul sebagai tab di layar Kasir. Daftar kategori diatur di kartu Kategori di atas.</div></div></div><div id="pos-cat-rows" class="pos-set-rows"></div><div class="pos-set-actions"><button type="button" class="btn btn-green" id="pos-cat-save">Simpan Kategori</button></div>`;
-    card.after(cat);
-    renderSettingsLists(); renderCategoryRows();
+    renderSettingsLists();
     card.addEventListener('click', async e => {
       const t = e.target.closest('button'); if (!t) return;
       if (t.dataset.typeDel !== undefined) { typeDraft.splice(Number(t.dataset.typeDel), 1); renderSettingsLists(); return; }
@@ -537,28 +534,6 @@
       if (e.target.id === 'pos-set-tax-on') { taxDraft.taxOn = e.target.checked; document.getElementById('pos-set-tax-fields')?.classList.toggle('is-off', !e.target.checked); }
     });
     ['pos-set-type-in', 'pos-set-pay-in'].forEach(id => document.getElementById(id).addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById(id === 'pos-set-type-in' ? 'pos-set-type-add' : 'pos-set-pay-add').click(); } }));
-    cat.addEventListener('click', async e => {
-      if (!e.target.closest('#pos-cat-save')) return;
-      const btn = e.target.closest('#pos-cat-save'); btn.disabled = true;
-      try {
-        const wid = requireWorkspaceId(), jobs = [];
-        cat.querySelectorAll('select[data-pid]').forEach(sel => {
-          const m = (packages || []).find(x => String(x.id) === sel.dataset.pid), val = sel.value || null;
-          if (m && (m.category || null) !== val) jobs.push(db.from('package_masters').update({ category: val }).eq('workspace_id', wid).eq('id', m.id));
-        });
-        const res = await Promise.all(jobs);
-        const bad = res.find(r => r.error); if (bad) throw bad.error;
-        await loadMasters();
-        showToast(jobs.length ? 'Kategori produk disimpan.' : 'Tidak ada perubahan.');
-      } catch (err) { showToast(/category/i.test(String(err.message)) ? 'Kolom kategori belum ada di database.' : (err.message || 'Gagal menyimpan kategori.'), true); }
-      finally { btn.disabled = false; }
-    });
-  }
-  function renderCategoryRows() {
-    const box = document.getElementById('pos-cat-rows');
-    if (!box) return;
-    const names = categoryNames(), list = activeMasters(packages);
-    box.innerHTML = list.length ? list.map(p => `<div class="pos-set-row pos-cat-row"><strong>${esc(p.name)}</strong><select class="input" data-pid="${esc(p.id)}"><option value="">Tanpa kategori</option>${[...new Set([...names, ...(p.category && !names.includes(p.category) ? [p.category] : [])])].map(n => `<option value="${esc(n)}"${String(p.category || '') === n ? ' selected' : ''}>${esc(n)}</option>`).join('')}</select></div>`).join('') : '<span class="pos-sub">Belum ada produk.</span>';
   }
 
   /* =====================================================================
@@ -888,8 +863,8 @@
   }
   wrap('renderDashboard', refresh);
   wrap('renderPerformanceKpis', () => { try { renderAnalytics(); } catch (e) { console.warn('pos analytics', e); } });
-  wrap('renderMasterOptions', () => { if (document.getElementById('pos-kasir')) { renderGrid(); renderCart(); } mountPosSettings(); renderCategoryRows(); });
-  wrap('renderSettingsMasterData', () => { mountPosSettings(); renderCategoryRows(); });
+  wrap('renderMasterOptions', () => { if (document.getElementById('pos-kasir')) { renderGrid(); renderCart(); } mountPosSettings(); });
+  wrap('renderSettingsMasterData', () => { mountPosSettings(); });
   new MutationObserver(() => { if (!document.getElementById('pos-settings-card')) mountPosSettings(); }).observe(document.getElementById('settings') || document.body, { childList: true, subtree: true });
   refresh();
   // Warna grafik ikut tema / mode gelap.
