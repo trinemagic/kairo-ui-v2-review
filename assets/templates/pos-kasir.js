@@ -561,6 +561,107 @@
     box.innerHTML = list.length ? list.map(p => `<div class="pos-set-row pos-cat-row"><strong>${esc(p.name)}</strong><select class="input" data-pid="${esc(p.id)}"><option value="">Tanpa kategori</option>${[...new Set([...names, ...(p.category && !names.includes(p.category) ? [p.category] : [])])].map(n => `<option value="${esc(n)}"${String(p.category || '') === n ? ' selected' : ''}>${esc(n)}</option>`).join('')}</select></div>`).join('') : '<span class="pos-sub">Belum ada produk.</span>';
   }
 
+  /* =====================================================================
+     PERFORMANCE KASIR: kartu analitik di bawah "Penjualan per Produk" (ikut filter periode utama).
+     Jam Ramai, Kategori Terlaris, Metode Pembayaran, Tipe Pesanan, Laba per Produk, Rekap Sesi. Tiap kartu = grafik + tombol "Tabel".
+     ===================================================================== */
+  const anCharts = {};
+  const CHEV = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
+  const anHead = (title, sub, key, toggle = true) => `<div class="pos-an-head"><div><div class="card-title">${title}</div>${sub ? `<div class="page-sub">${sub}</div>` : ''}</div>${toggle ? `<button type="button" class="pos-toggle" data-an-toggle="${key}" aria-expanded="false" title="Tampilkan tabel data"><span>Tabel</span>${CHEV}</button>` : ''}</div>`;
+  function ensureAnalytics() {
+    if (document.getElementById('pos-analytics')) return true;
+    const anchor = document.getElementById('product-sales-card');
+    if (!anchor) return false;
+    const card = (id, title, sub, head) => `<div class="card pos-an-card" id="pos-an-${id}">${anHead(title, sub, id)}<div class="pos-an-chart"><canvas id="pos-an-${id}-chart"></canvas></div><div class="pos-an-data" id="pos-an-${id}-data" hidden><div class="table-wrap"><table><thead>${head}</thead><tbody id="pos-an-${id}-body"></tbody></table></div></div></div>`;
+    const wrap = document.createElement('div');
+    wrap.id = 'pos-analytics'; wrap.className = 'pos-analytics';
+    wrap.innerHTML =
+      card('hour', 'Jam Ramai', 'Penjualan per jam, dua jam tersibuk ditandai', '<tr><th>Jam</th><th>Struk</th><th>Penjualan</th></tr>') +
+      card('cat', 'Kategori Terlaris', 'Penjualan per kategori produk', '<tr><th>Kategori</th><th>Terjual</th><th>Penjualan</th><th>Laba</th></tr>') +
+      card('pay', 'Metode Pembayaran', 'Porsi penjualan per metode', '<tr><th>Metode</th><th>Struk</th><th>Penjualan</th><th>Porsi</th></tr>') +
+      card('type', 'Tipe Pesanan', 'Dine In, Take Away, dan lainnya', '<tr><th>Tipe</th><th>Struk</th><th>Penjualan</th><th>Rata-rata/struk</th></tr>') +
+      card('profit', 'Laba per Produk', 'Laba kotor = penjualan − HPP', '<tr><th>Produk</th><th>Terjual</th><th>Penjualan</th><th>Laba</th><th>Margin</th></tr>') +
+      `<div class="card pos-an-card" id="pos-an-session">${anHead('Rekap Sesi Kasir', 'Sesi pada periode ini, termasuk selisih kas', 'session', false)}<div class="table-wrap"><table><thead><tr><th>Dibuka</th><th>Durasi</th><th>Struk</th><th>Penjualan</th><th>Tunai</th><th>Selisih kas</th></tr></thead><tbody id="pos-an-session-body"></tbody></table></div></div>`;
+    anchor.insertAdjacentElement('afterend', wrap);
+    wrap.addEventListener('click', e => {
+      const t = e.target.closest('[data-an-toggle]');
+      if (!t) return;
+      const box = document.getElementById(`pos-an-${t.dataset.anToggle}-data`);
+      const open = box.hidden; box.hidden = !open;
+      t.setAttribute('aria-expanded', open ? 'true' : 'false'); t.title = open ? 'Sembunyikan tabel data' : 'Tampilkan tabel data';
+    });
+    return true;
+  }
+  const grp = (list, keyFn) => { const m = new Map(); list.forEach(t => { const k = keyFn(t); const o = m.get(k) || { name: k, n: 0, rev: 0 }; o.n++; o.rev += num(t.total_price); m.set(k, o); }); return [...m.values()].sort((a, b) => b.rev - a.rev); };
+  const pctOf = (a, b) => (b > 0 ? Math.round(a / b * 100) + '%' : '-');
+  async function anChart(id, cfg) {
+    const canvas = document.getElementById(id);
+    if (!canvas) return;
+    try { await ensureChartLibrary(); } catch (_e) { return; }
+    if (typeof Chart === 'undefined') return;
+    if (anCharts[id]) anCharts[id].destroy();
+    anCharts[id] = new Chart(canvas, cfg);
+  }
+  function hBars(id, rows, empty, fmt) {
+    const c = chartBrandColors(), has = rows.length > 0;
+    return anChart(id, {
+      type: 'bar',
+      data: { labels: has ? rows.map(r => r.label) : [empty], datasets: [{ data: has ? rows.map(r => r.value) : [0], backgroundColor: has ? rows.map(r => (r.other ? c.other : c.primary)) : [c.other], borderRadius: 6, maxBarThickness: 26 }] },
+      options: {
+        indexAxis: 'y', responsive: true, maintainAspectRatio: false, layout: { padding: { right: 12 } },
+        plugins: { legend: { display: false }, tooltip: { callbacks: { title: i => i[0]?.label || '', label: x => (has ? (isMasked() ? '••••••' : (fmt ? fmt(rows[x.dataIndex]) : money(x.parsed.x))) : empty) } } },
+        scales: chartAxes(c, { x: { beginAtZero: true, grace: '5%', ticks: { callback: v => (typeof shortRupiah === 'function' ? shortRupiah(v) : v), maxTicksLimit: 5 }, grid: { display: true } }, y: { grid: { display: false } } })
+      }
+    });
+  }
+  const topN = (rows, n) => (rows.length <= n + 1 ? rows : [...rows.slice(0, n), { label: 'Lainnya', other: true, value: rows.slice(n).reduce((s, r) => s + r.value, 0) }]);
+  const empty = cols => `<tr><td colspan="${cols}" class="empty">Belum ada penjualan pada periode ini.</td></tr>`;
+
+  function renderSessions() {
+    const body = document.getElementById('pos-an-session-body');
+    if (!body) return;
+    let rg = null; try { rg = getRange(); } catch (_e) { rg = null; }
+    const sess = (typeof shifts !== 'undefined' ? shifts : []).filter(x => { const d = localISODate(new Date(x.opened_at)); return !rg || ((!rg.from || d >= rg.from) && (!rg.to || d <= rg.to)); });
+    body.innerHTML = sess.length ? sess.map(x => { const sm = sessionSummary(x), d = x.cash_difference; return `<tr><td>${esc(dt(x.opened_at))}</td><td>${x.closed_at ? esc(dur(x.opened_at, x.closed_at)) : 'berjalan'}</td><td>${sm.count}</td><td>${shown(sm.total)}</td><td>${shown(sm.cash)}</td><td><span class="pos-diff-tag ${d == null ? '' : d === 0 ? 'ok' : d > 0 ? 'plus' : 'minus'}">${d == null ? (x.closed_at ? 'Tidak dihitung' : '-') : d === 0 ? 'Pas' : (d > 0 ? '+' : '−') + money(Math.abs(d))}</span></td></tr>`; }).join('') : '<tr><td colspan="6" class="empty">Belum ada sesi pada periode ini.</td></tr>';
+  }
+  function renderAnalytics() {
+    if (!ensureAnalytics()) return;
+    const list = rows(), total = list.reduce((s, t) => s + num(t.total_price), 0);
+    // Jam ramai
+    const byHour = new Array(24).fill(0), cnt = new Array(24).fill(0);
+    list.forEach(t => { const h = hourOf(t); if (h !== null) { byHour[h] += num(t.total_price); cnt[h]++; } });
+    const used = byHour.map((v, h) => (v > 0 ? h : -1)).filter(h => h >= 0);
+    const from = used.length ? Math.max(0, Math.min(...used) - 1) : 8, to = used.length ? Math.min(23, Math.max(...used) + 1) : 19, hours = [];
+    for (let h = from; h <= to; h++) hours.push(h);
+    const vals = hours.map(h => byHour[h]), top2 = [...vals].sort((a, b) => b - a).filter(v => v > 0).slice(0, 2), c = chartBrandColors();
+    document.getElementById('pos-an-hour-body').innerHTML = used.length ? hours.filter(h => byHour[h] > 0).map(h => `<tr><td>${String(h).padStart(2, '0')}.00</td><td>${cnt[h]}</td><td>${shown(byHour[h])}</td></tr>`).join('') : empty(3);
+    anChart('pos-an-hour-chart', { type: 'bar', data: { labels: hours.map(h => String(h).padStart(2, '0')), datasets: [{ data: vals, backgroundColor: vals.map(v => (v > 0 && top2.includes(v) ? c.primary : c.alpha(c.primary, .45))), borderRadius: 6, maxBarThickness: 34 }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { title: i => `Jam ${i[0].label}.00`, label: x => (isMasked() ? '••••••' : money(x.parsed.y)) } } }, scales: chartAxes(c, { x: { grid: { display: false } }, y: { beginAtZero: true, grace: '8%', ticks: { callback: v => (typeof shortRupiah === 'function' ? shortRupiah(v) : v), maxTicksLimit: 5 } } }) } });
+    // Kategori + laba per produk (dari item struk; kategori dari master produk)
+    const catOf = new Map((packages || []).map(p => [String(p.id), String(p.category || '')]));
+    const cat = new Map(), prod = new Map();
+    list.forEach(t => (Array.isArray(t.order_items) ? t.order_items : []).forEach(x => {
+      const qty = Math.max(0, num(x?.qty || 1)), rev = x?.subtotal != null ? num(x.subtotal) : num(x?.unit_price) * qty, cost = x?.cost_subtotal != null ? num(x.cost_subtotal) : num(x?.cost_price) * qty;
+      const k = catOf.get(String(x?.id)) || 'Tanpa kategori', a = cat.get(k) || { name: k, qty: 0, rev: 0, cost: 0 }; a.qty += qty; a.rev += rev; a.cost += cost; cat.set(k, a);
+      const pn = String(x?.name || x?.code || '-'), b = prod.get(pn) || { name: pn, qty: 0, rev: 0, cost: 0 }; b.qty += qty; b.rev += rev; b.cost += cost; prod.set(pn, b);
+    }));
+    const cats = [...cat.values()].sort((a, b) => b.rev - a.rev);
+    document.getElementById('pos-an-cat-body').innerHTML = cats.length ? cats.map(r => `<tr><td><strong>${esc(r.name)}</strong></td><td>${r.qty.toLocaleString('id-ID')}</td><td>${shown(r.rev)}</td><td>${shown(r.rev - r.cost)}</td></tr>`).join('') : empty(4);
+    hBars('pos-an-cat-chart', topN(cats.map(r => ({ label: r.name, value: r.rev, qty: r.qty })), 5), 'Belum ada penjualan', r => `${money(r.value)} · ${(r.qty || 0).toLocaleString('id-ID')} terjual`);
+    const prods = [...prod.values()].map(r => ({ ...r, profit: r.rev - r.cost })).sort((a, b) => b.profit - a.profit);
+    document.getElementById('pos-an-profit-body').innerHTML = prods.length ? prods.map(r => `<tr><td><strong>${esc(r.name)}</strong></td><td>${r.qty.toLocaleString('id-ID')}</td><td>${shown(r.rev)}</td><td><strong>${shown(r.profit)}</strong></td><td>${r.cost > 0 ? pctOf(r.profit, r.rev) : '-'}</td></tr>`).join('') : empty(5);
+    hBars('pos-an-profit-chart', topN(prods.filter(r => r.profit > 0).map(r => ({ label: r.name, value: r.profit, qty: r.qty })), 5), 'Belum ada penjualan', r => `Laba ${money(r.value)} · ${(r.qty || 0).toLocaleString('id-ID')} terjual`);
+    // Metode bayar + tipe pesanan
+    const pay = grp(list, t => String(t.payment_method || 'Lainnya').trim() || 'Lainnya');
+    document.getElementById('pos-an-pay-body').innerHTML = pay.length ? pay.map(r => `<tr><td><strong>${esc(r.name)}</strong></td><td>${r.n}</td><td>${shown(r.rev)}</td><td>${pctOf(r.rev, total)}</td></tr>`).join('') : empty(4);
+    hBars('pos-an-pay-chart', pay.map(r => ({ label: r.name, value: r.rev, n: r.n })), 'Belum ada penjualan', r => `${money(r.value)} · ${r.n} struk · ${pctOf(r.value, total)}`);
+    const type = grp(list, t => String(t.platform || 'Tanpa tipe').trim() || 'Tanpa tipe');
+    document.getElementById('pos-an-type-body').innerHTML = type.length ? type.map(r => `<tr><td><strong>${esc(r.name)}</strong></td><td>${r.n}</td><td>${shown(r.rev)}</td><td>${shown(r.n ? r.rev / r.n : 0)}</td></tr>`).join('') : empty(4);
+    hBars('pos-an-type-chart', type.map(r => ({ label: r.name, value: r.rev, n: r.n })), 'Belum ada penjualan', r => `${money(r.value)} · ${r.n} struk`);
+    renderSessions();
+    if (typeof fetchShiftData === 'function') Promise.resolve(fetchShiftData()).then(renderSessions).catch(() => {});
+  }
+
   // "Orders" -> "Kasir" di menu.
   function relabelMenu() {
     document.querySelectorAll('[data-tab="input"], [data-mobile-tab="input"], .kairo-mobile-orders-main, #app-shell nav button').forEach(b => {
@@ -786,6 +887,7 @@
     window[name] = w;
   }
   wrap('renderDashboard', refresh);
+  wrap('renderPerformanceKpis', () => { try { renderAnalytics(); } catch (e) { console.warn('pos analytics', e); } });
   wrap('renderMasterOptions', () => { if (document.getElementById('pos-kasir')) { renderGrid(); renderCart(); } mountPosSettings(); renderCategoryRows(); });
   wrap('renderSettingsMasterData', () => { mountPosSettings(); renderCategoryRows(); });
   new MutationObserver(() => { if (!document.getElementById('pos-settings-card')) mountPosSettings(); }).observe(document.getElementById('settings') || document.body, { childList: true, subtree: true });
@@ -794,7 +896,7 @@
   let lastLook = '';
   const look = () => (document.documentElement.dataset.wsTheme || '') + '|' + document.body.classList.contains('saas-dark');
   lastLook = look();
-  const onLook = () => { const now = look(); if (now !== lastLook) { lastLook = now; setTimeout(renderPanels, 150); } };
+  const onLook = () => { const now = look(); if (now !== lastLook) { lastLook = now; setTimeout(() => { renderPanels(); if (document.getElementById('pos-analytics')) renderAnalytics(); }, 150); } };
   new MutationObserver(onLook).observe(document.documentElement, { attributes: true, attributeFilter: ['data-ws-theme'] });
   new MutationObserver(onLook).observe(document.body, { attributes: true, attributeFilter: ['class'] });
 })();
