@@ -143,8 +143,12 @@
       <div class="pp-sheet-head"><b>${isNew ? 'Tambah' : 'Ubah'} ${word}</b><button type="button" class="pp-x" data-act="close" aria-label="Tutup">×</button></div>
       <div class="pp-sheet-body">
         <section class="pp-step"><h4><i>1</i>Foto</h4>
-          <label class="pp-photo-pick"><input type="file" id="pp-file" accept="image/*"><span class="pp-photo-box" id="pp-photo-box"></span><span class="pp-photo-hint"><b>Ambil / pilih foto</b><small>Di HP langsung membuka kamera. Boleh dilewati.</small></span></label>
-          <button type="button" class="pp-link" id="pp-photo-del" hidden>Hapus foto</button></section>
+          <div class="pp-photo-row"><div class="pp-photo-box" id="pp-photo-box"></div>
+            <div class="pp-photo-btns"><button type="button" class="pp-pbtn" id="pp-cam-btn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.6"/></svg>Ambil Foto</button>
+              <label class="pp-pbtn is-light"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="14" rx="2.5"/><circle cx="9" cy="10.5" r="1.6"/><path d="m4 17 5-4.5 3.5 3L15 13l5 4.5"/></svg>Dari Galeri<input type="file" id="pp-file" accept="image/*" hidden></label>
+              <input type="file" id="pp-cam" accept="image/*" capture="environment" hidden></div></div>
+          <div class="pp-photo-hint"><small>Boleh dilewati. Foto otomatis dipotong persegi dan dikecilkan. Di komputer, foto juga bisa diseret ke sini.</small></div>
+          <button type="button" class="pp-link is-red" id="pp-photo-del" hidden>Hapus foto</button></section>
         <section class="pp-step"><h4><i>2</i>Nama</h4>
           <input class="input pp-big" id="pp-name" maxlength="60" placeholder="${kind === 'addon' ? 'Mis. Extra Shot' : 'Mis. Kopi Susu'}" autocomplete="off">
           ${kind === 'package' ? `<div class="pp-label">Kategori <small>(boleh dikosongkan)</small></div><div class="pp-cats" id="pp-cats">${['', ...cats].map(c => `<button type="button" data-cat="${esc(c)}">${c ? esc(c) : 'Tanpa kategori'}</button>`).join('')}</div>
@@ -174,6 +178,9 @@
     ov.addEventListener('click', onSheetClick);
     ov.addEventListener('input', onSheetInput);
     ov.addEventListener('change', onSheetChange);
+    ov.addEventListener('dragover', e => { if (e.dataTransfer?.types?.includes('Files')) { e.preventDefault(); ov.classList.add('is-drop'); } });
+    ov.addEventListener('dragleave', e => { if (e.target === ov) ov.classList.remove('is-drop'); });
+    ov.addEventListener('drop', e => { ov.classList.remove('is-drop'); const f = e.dataTransfer?.files?.[0]; if (f && /^image\//.test(f.type)) { e.preventDefault(); handleFile(f); } });
     setTimeout(() => { if (isNew) $('pp-name').focus(); }, 60);
   }
   function closeSheet() {
@@ -235,7 +242,7 @@
   }
   function onSheetChange(e) {
     const t = e.target;
-    if (t.id === 'pp-file') { handleFile(t.files && t.files[0]); t.value = ''; return; }
+    if (t.id === 'pp-file' || t.id === 'pp-cam') { handleFile(t.files && t.files[0]); t.value = ''; return; }
     if (t.id === 'pp-track') { draft.track = t.checked; paintStock(); return; }
     if (t.name === 'pp-mode') {
       draft.custom = t.value === 'custom';
@@ -254,6 +261,7 @@
     if (t.dataset.act === 'save') { save(t); return; }
     if (t.dataset.act === 'delete') { remove(t); return; }
     if (t.dataset.cat !== undefined) { draft.category = t.dataset.cat; paintCats(); return; }
+    if (t.id === 'pp-cam-btn') { takePhoto(); return; }
     if (t.id === 'pp-photo-del') { draft.image = ''; photoBlob = null; paintPhoto(); return; }
     if (t.id === 'pp-newcat-add') { addCategory(); return; }
     if (t.dataset.q) {
@@ -299,6 +307,26 @@
       draft.image = URL.createObjectURL(blob);
       paintPhoto();
     } catch (err) { showToast(err.message || 'Foto gagal diproses.', true); }
+  }
+  // Ambil Foto: di HP membuka kamera belakang; di komputer memakai webcam dengan pratinjau langsung.
+  function takePhoto() {
+    const touch = window.matchMedia && matchMedia('(pointer:coarse)').matches;
+    if (touch || !navigator.mediaDevices?.getUserMedia) { document.getElementById('pp-cam')?.click(); return; }
+    const cam = document.createElement('div');
+    cam.className = 'pp-cam'; cam.innerHTML = '<video autoplay playsinline muted></video><div class="pp-cam-bar"><button type="button" class="btn btn-light" data-cam="x">Batal</button><button type="button" class="btn btn-green" data-cam="snap">Ambil Foto</button></div>';
+    document.getElementById('pp-sheet').appendChild(cam);
+    const video = cam.querySelector('video');
+    let stream = null;
+    const stop = () => { stream?.getTracks().forEach(t => t.stop()); cam.remove(); };
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 1280 } }, audio: false }).then(st => { stream = st; video.srcObject = st; }).catch(() => { cam.remove(); showToast('Kamera tidak bisa dibuka. Pakai "Dari Galeri".', 'warning'); });
+    cam.addEventListener('click', e => {
+      const b = e.target.closest('button'); if (!b) return;
+      if (b.dataset.cam === 'x') { stop(); return; }
+      if (!video.videoWidth) return;
+      const c = document.createElement('canvas'); c.width = video.videoWidth; c.height = video.videoHeight;
+      c.getContext('2d').drawImage(video, 0, 0);
+      c.toBlob(bl => { stop(); if (bl) handleFile(new File([bl], 'foto.jpg', { type: 'image/jpeg' })); }, 'image/jpeg', 0.92);
+    });
   }
   async function uploadPhoto(id) {
     const ext = photoBlob.type === 'image/webp' ? 'webp' : 'jpg';
