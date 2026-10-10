@@ -143,6 +143,8 @@
     const d = q('#kairo-login-dialog');
     if (d && !d.hidden) mountLogin(); else q('#kairo-login-dialog .kairo-login-card')?.classList.remove('pin-off');
   }).observe(document.body, { subtree: true, attributes: true, attributeFilter: ['hidden'] });
+  // Dialog Masuk bisa sudah terbuka sebelum modul ini selesai dimuat ("Ingat saya" membukanya otomatis): pasang keypad sekarang.
+  { const d = q('#kairo-login-dialog'); if (d && !d.hidden) mountLogin(); }
 
   /* ---------- Settings › Workspace & Branding ---------- */
   function openSetup(replacing) {

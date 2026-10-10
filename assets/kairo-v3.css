@@ -5038,6 +5038,100 @@ html.kairo-v3 .kairo-pin-btns [hidden] { display: none; }
 
 html.kairo-v3 #shop-payment-card .shop-platform-row { grid-template-columns: minmax(0, 1fr) 32px; }
 
+/* Masuk layar penuh di HP untuk pengguna "Ingat saya"/PIN (owner Okt 2026): tanpa kartu melayang di atas landing; tombol X di pojok
+   kanan atas kembali ke landing (#home). Isinya (keypad PIN atau form password) diletakkan di tengah dan bisa digulir bila layar pendek. */
+@media (max-width: 700px) {
+  html.kairo-v3[data-kairo-remembered] .kairo-login-dialog {
+    padding: 0;
+    align-items: stretch;
+    background: var(--kairo-white);
+  }
+
+  html.kairo-v3[data-kairo-remembered] .kairo-login-backdrop,
+  html.kairo-v3[data-kairo-remembered] .kairo-login-home {
+    display: none !important;
+  }
+
+  html.kairo-v3[data-kairo-remembered] .kairo-login-card {
+    display: flex;
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    max-height: none;
+    flex-direction: column;
+    padding: calc(env(safe-area-inset-top, 0px) + 28px) 28px calc(env(safe-area-inset-bottom, 0px) + 28px);
+    overflow-y: auto;
+    border: 0;
+    border-radius: 0;
+    background: linear-gradient(180deg, var(--kairo-warm-050) 0, var(--kairo-white) 38%);
+    box-shadow: none;
+    transform: none;
+  }
+
+  /* Pengisi atas/bawah: isi tetap di tengah, tetapi tidak terpotong saat layar pendek. */
+  html.kairo-v3[data-kairo-remembered] .kairo-login-card::before,
+  html.kairo-v3[data-kairo-remembered] .kairo-login-card::after {
+    flex: 1 1 0;
+    content: "";
+  }
+
+  html.kairo-v3[data-kairo-remembered] .kairo-login-close {
+    position: fixed;
+    z-index: 3;
+    top: calc(env(safe-area-inset-top, 0px) + 14px);
+    right: 16px;
+    width: 42px;
+    height: 42px;
+    border-radius: 13px;
+    font-size: 26px;
+  }
+
+  html.kairo-v3[data-kairo-remembered] .kairo-login-brand {
+    margin-bottom: 18px;
+    justify-content: center;
+  }
+
+  /* Keypad PIN punya judul sendiri ("Masukkan PIN"); judul form tidak diulang. */
+  html.kairo-v3[data-kairo-remembered] .kairo-login-card.has-pin .auth-title {
+    display: none;
+  }
+
+  html.kairo-v3[data-kairo-remembered] .kairo-login-brand .kairo-brand-lockup {
+    display: inline-block;
+    height: 52px;
+  }
+
+  html.kairo-v3[data-kairo-remembered] .kairo-login-card .auth-title,
+  html.kairo-v3[data-kairo-remembered] .kairo-login-intro {
+    text-align: center;
+  }
+
+  html.kairo-v3[data-kairo-remembered] .kairo-login-card .auth-title {
+    font-size: 24px !important;
+  }
+
+  /* Keypad PIN lebih besar di layar penuh. */
+  html.kairo-v3[data-kairo-remembered] .kairo-login-card .kairo-pin-keys {
+    grid-template-columns: repeat(3, 76px);
+    gap: 16px;
+  }
+
+  html.kairo-v3[data-kairo-remembered] .kairo-login-card .kairo-pin-keys button {
+    width: 76px;
+    height: 76px;
+    font-size: 26px;
+  }
+
+  html.kairo-v3[data-kairo-remembered] .kairo-login-card .kairo-pin-dots {
+    gap: 20px;
+    margin: 20px 0 8px;
+  }
+
+  html.kairo-v3[data-kairo-remembered] .kairo-login-card .kairo-pin-title {
+    font-size: 20px;
+  }
+}
+
 /* Layar sangat sempit (<=380px): logo + tombol + menu tetap muat tanpa turun baris. */
 @media (max-width: 380px) {
   html.kairo-v3 .kairo-brand-lockup {
