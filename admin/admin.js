@@ -454,8 +454,8 @@ const TEMPLATES=[
    features:['Istilah toko: Waktu Order, Produk, Kategori','Kartu Profit di Dashboard (opsional dipotong komisi channel)','Laba per Produk, Performa Channel, Stok Produk, Batal & Retur','Channel Penjualan bisa diatur (Shopee, Tokopedia, dll) + komisi per channel','Stok produk: stok 0 memblokir order, stok menipis masuk lonceng'],
    files:['assets/templates/online-shop.js','assets/templates/online-shop.css'],
    note:'Memakai kerangka tampilan dasar KAIRO dengan istilah dan analitik toko.'},
-  {key:'digital_product',name:'Digital Product',desc:'Produk digital, file, akses, atau layanan digital.',kind:'none',preview:'jasa-online',features:[],files:[],
-   note:'Belum ada tampilan khusus. User yang memilih ini sekarang melihat tampilan Jasa Online (ada istilah Start Reading & Topik).'}
+  {key:'pos_kasir',name:'Kasir / POS',desc:'Catat penjualan langsung di toko, kafe, atau warung.',kind:'none',preview:'jasa-online',features:[],files:[],
+   note:'Belum ada tampilan khusus (isinya menyusul). Sementara user melihat tampilan Jasa Online.'}
 ];
 const TPL_KIND={custom:['Tampilan khusus','b-ok'],base:['Tampilan dasar','b-info'],none:['Belum ada tampilan khusus','b-warn']};
 function templateUsage(){
@@ -468,8 +468,9 @@ function renderTemplates(){
   const hasData=wsActivity.length>0&&wsActivity.some(a=>'business_template' in a);
   $('tplNeedSql').classList.toggle('hidden',hasData);
   const use=hasData?templateUsage():null;
-  setText('tplTotal',TEMPLATES.length);setText('tplCustom',TEMPLATES.filter(t=>t.kind==='custom').length);setText('tplBase',TEMPLATES.filter(t=>t.kind==='base').length);setText('tplNone',TEMPLATES.filter(t=>t.kind==='none').length);
-  setText('navTemplates',TEMPLATES.length);
+  const live=TEMPLATES;
+  setText('tplTotal',live.length);setText('tplCustom',live.filter(t=>t.kind==='custom').length);setText('tplBase',live.filter(t=>t.kind==='base').length);setText('tplNone',live.filter(t=>t.kind==='none').length);
+  setText('navTemplates',live.length);
   const stat=list=>list?{n:list.length,pro:list.filter(x=>planKey(x.w.plan)==='pro').length,active:list.filter(x=>Number(x.a.tx_30d)>0).length}:{n:'—',pro:'—',active:'—'};
   // catatan analisa
   const notes=[];
@@ -477,7 +478,7 @@ function renderTemplates(){
     const ranked=TEMPLATES.map(t=>[t,use[t.key].length]).sort((a,b)=>b[1]-a[1]);
     if(ranked[0][1])notes.push(['ok',`Paling banyak dipakai: <b>${esc(ranked[0][0].name)}</b> (${ranked[0][1]} workspace).`]);
     const noneUsers=TEMPLATES.filter(t=>t.kind==='none').reduce((a,t)=>a+use[t.key].length,0);
-    if(noneUsers)notes.push(['warn',`<b>${noneUsers} workspace</b> memilih template yang belum punya tampilan khusus (Online Shop / Digital Product) — mereka melihat tampilan Jasa Online.`]);
+    if(noneUsers)notes.push(['warn',`<b>${noneUsers} workspace</b> memilih template yang belum punya tampilan khusus (Kasir / POS) — mereka melihat tampilan Jasa Online.`]);
     if(use.__none.length)notes.push(['warn',`${use.__none.length} workspace tidak tercatat templatenya (akun lama / dibuat manual) — tampil sebagai Jasa Online.`]);
     TEMPLATES.forEach(t=>{const l=use[t.key];if(l.length&&!l.some(x=>Number(x.a.tx_30d)>0))notes.push(['warn',`Semua workspace <b>${esc(t.name)}</b> tidak mencatat transaksi 30 hari terakhir.`]);});
   }

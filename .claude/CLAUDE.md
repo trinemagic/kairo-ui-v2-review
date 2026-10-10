@@ -87,11 +87,11 @@ domain = pengguna login ulang & pengaturan browser (Ingat saya, dark mode) mulai
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
 Versi terakhir: `kairo.css?v=20.10.159`, `kairo-v3.css?v=3.41.0`,
-`kairo-v3.js?v=3.30.4`, `kairo-app.js?v=20.10.216`, `kairo-pin.js?v=1.0.1`, `kairo-themes.css?v=1.0.0`/`.js?v=1.0.1`; template seller dimuat dari kairo-app.js
+`kairo-v3.js?v=3.30.5`, `kairo-app.js?v=20.10.217`, `kairo-pin.js?v=1.0.1`, `kairo-themes.css?v=1.0.0`/`.js?v=1.0.1`; template seller dimuat dari kairo-app.js
 (`seller-app-premium.js?v=20.10.161`, `.css?v=20.10.157`) — naikkan juga bila file template diubah.
 Setup Wizard dimuat dari `loadSetupWizard()` di kairo-app.js (`kairo-setup-wizard.js/.css?v=1.0.4`, satu konstanta `v`).
-Panduan dimuat dari `window.kairoOpenGuide()` di kairo-v3.js (`kairo-guide.js/.css?v=` konstanta `GUIDE_V`='1.0.2'; gambar `assets/guide/*.webp?v=` `SHOT_V` di kairo-guide.js).
-Admin: `admin.js?v=1.12.0`, `admin.css?v=1.8.2`. Library CDN dikunci versi + SRI: supabase-js 2.117.2 (index.html & admin), Chart.js 4.4.4 `dist/chart.umd.js`
+Panduan dimuat dari `window.kairoOpenGuide()` di kairo-v3.js (`kairo-guide.js/.css?v=` konstanta `GUIDE_V`='1.0.3'; gambar `assets/guide/*.webp?v=` `SHOT_V` di kairo-guide.js).
+Admin: `admin.js?v=1.12.2`, `admin.css?v=1.8.2`. Library CDN dikunci versi + SRI: supabase-js 2.117.2 (index.html & admin), Chart.js 4.4.4 `dist/chart.umd.js`
 (`ensureChartLibrary`, admin), xlsx-js-style 1.2.0. **Ganti versi = hitung ulang SRI** (`npm pack` lalu `openssl dgst -sha384 -binary f | openssl base64 -A`).
 
 **Halaman app** = `main.container > section.section` dengan id:
@@ -443,8 +443,8 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   muncul lagi bila sidik jari berubah (error: last_seen; lainnya: since/valid_until/detail).
 - **Admin › Template (owner Okt 2026):** daftar template usaha dari form daftar (`TEMPLATES` di admin.js — **perbarui
   bila ada template baru**): Seller App Premium (`digital_subscription`, tampilan khusus), Jasa Online
-  (`service_consultation`, tampilan dasar), Online Shop (istilah toko, lihat poin berikut) & Digital Product (belum ada tampilan khusus → user melihat
-  tampilan Jasa Online). Tabel Workspaces punya kolom **Template** (`templateLabel()`, dari `wsActivity.business_template`; 'Belum tercatat' = akun lama, tampil seperti Jasa Online). Jumlah workspace/Pro/aktif per template dari `business_template` di
+  (`service_consultation`, tampilan dasar), Online Shop (istilah toko, lihat poin berikut) & **Kasir / POS** (`pos_kasir`, menggantikan Digital Product Okt 2026; belum ada tampilan khusus → user melihat
+  tampilan Jasa Online, isinya menyusul). Digital Product dihapus total (belum ada user yang memakainya, owner Okt 2026); Demo = `#demo-kasir`. Tabel Workspaces punya kolom **Template** (`templateLabel()`, dari `wsActivity.business_template`; 'Belum tercatat' = akun lama, tampil seperti Jasa Online). Jumlah workspace/Pro/aktif per template dari `business_template` di
   `platform_admin_workspace_activity` (SQL `.claude/sql/2026-10-admin-templates.sql`, **sudah dijalankan owner Okt 2026**). Preview dashboard
   `admin/previews/*.webp` dibuat ulang dengan `.claude/testing/shoot-templates.js`. Cache admin: lihat di atas.
 - **Laporan error user** (kairo-app.js, di atas `showToast`): `reportClientError()` mengirim pesan error script
@@ -498,8 +498,10 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   alasan (`deleteCancelledTransaction(..., {skipConfirm:true})`). Channel Penjualan: daftar bisa diatur di Settings › Kategori (`receipt_labels.__platforms`, tanpa SQL),
   bawaan Shopee/Tokopedia/TikTok Shop/Lazada/WhatsApp/Instagram/Toko Offline/Lainnya; mengisi `#tx-platform`. **Stok (owner Okt 2026):** SQL `.claude/sql/2026-10-online-shop-stock.sql` (**belum dijalankan owner**; kolom `package_masters.stock_qty/stock_min` + trigger pada `transactions`: order disimpan = stok berkurang, order dihapus = stok kembali kecuali Retur di `order_returns`, order >90 hari tidak mengembalikan; trigger tahan-gagal). Kolom belum ada = semua bagian stok tersembunyi. UI di online-shop.js: kartu Settings › Package & Harga "Stok Produk" (stok + batas menipis, kosong = tidak dilacak), "Sisa N" di chip produk Orders + toast peringatan bila qty > stok (tidak memblokir), kartu Performance "Stok Produk" (sisa hari stok dari penjualan 30 hari, nilai stok = stok x modal, status Habis/Menipis/Aman/Tidak laku). Stok 0 = order diblokir (toast merah), qty > sisa = peringatan saja; stok menipis (<= batas user) / habis masuk **lonceng** (`window.kairoShopStockNotifications`, dipanggil `collectNotifications()` di kairo-v3.js) + toast saat stok baru melewati batas. Tabel Stok = tabel saja (tanpa grafik), kolom Retur + tombol "+N ke stok" muncul bila ada retur yang belum dikembalikan (`order_returns.restocked=false`, items menyimpan id produk); Retur tidak mengembalikan stok otomatis (trigger melewati retur). **Komisi per channel (owner Okt 2026):** Settings › Channel Penjualan: saklar "Hitung komisi channel" + kolom % per channel (`receipt_labels.__fee_enabled`, `__platform_fees` {nama: persen}, tanpa SQL; default mati). Aktif = `profitOf()` mengurangi `total_price x persen` (cocok nama channel persis atau lewat `platformKey`), dipakai kartu Profit Dashboard dan Performa Channel (kolom Komisi muncul, subjudul "Laba setelah komisi channel"). Laba per Produk tetap laba kotor (tanpa komisi). Komisi = perkiraan dari persen user, bukan angka asli marketplace.
   Tes: `seed-shop.js` + `bootApp(b,{template:'shop',seed:require('./seed-shop.js')})`.
-  **Revisi Okt 2026 (online-shop `?v=1.6.2`):** istilah "Channel" -> **Platform** (Performa Platform, Platform Penjualan, field Orders). Dashboard: Open Store sepenuhnya disembunyikan (tombol Open/Close, statistik sesi, riwayat; CSS saja, markup `#shift-*` tetap karena JS lama mengisinya; order tidak butuh sesi) dan diganti tabel **Stok Produk** (`#shop-dash-stock`, `renderDashStock()`: Produk/Stok/Sisa hari/Retur/Status; HP tanpa kolom Sisa hari);
+  **Revisi Okt 2026 (online-shop `?v=1.7.0`):** istilah "Channel" -> **Platform** (Performa Platform, Platform Penjualan, field Orders). Dashboard: Open Store sepenuhnya disembunyikan (tombol Open/Close, statistik sesi, riwayat; CSS saja, markup `#shift-*` tetap karena JS lama mengisinya; order tidak butuh sesi) dan diganti tabel **Stok Produk** (`#shop-dash-stock`, `renderDashStock()`: Produk/Stok/Sisa hari/Retur/Status; HP tanpa kolom Sisa hari);
   data stok dihitung `stockData()` bersama kartu Performance. Settings: kartu **Metode Pembayaran** (`#shop-payment-card`, `receipt_labels.__payments`, bawaan QRIS/Cash/Transfer/Other, mengisi `#tx-payment`, tanpa SQL).
+  **Okt 2026 (lanjutan):** kartu Stok Produk di Performance DIHAPUS (stok hanya di Dashboard + Settings). Qty order melebihi sisa stok kini DIBLOKIR (klik kartu melewati sisa = toast, submit/Autofill dicek ulang), sama seperti stok 0.
+  Settings "Package & Harga" tampil **"Produk & Harga"** untuk Online Shop (hanya teks, lapisan di kairo-v3.js; kode lama tetap mencari teks asli). Panduan menyesuaikan Online Shop (stok, platform, metode pembayaran, klik kartu) + PIN.
   Dialog Masuk: judul "Masuk ke workspace" 21px + jarak logo 12px (semua tampilan Masuk, bukan hanya PIN).
 
 ## 4. Jebakan yang sudah pernah terjadi
