@@ -196,6 +196,7 @@
           'Isi <b>harga jual</b> dan <b>modal</b>. Kotak hijau menunjukkan untung per produk.',
           'Nyalakan <b>Hitung stok</b> bila produk perlu dihitung. Atur stok dengan tombol − / + atau ketik angkanya, dan tentukan batas <b>ingatkan saya kalau sisa</b>.',
           '<b>Pembagian untung</b>: pilih <b>Ikut aturan umum</b>, atau <b>Atur sendiri untuk produk ini</b> (persen per partner, atau tombol Bagi rata / Semua ke satu partner).',
+          '<b>Hitung Stok</b> (tombol di atas daftar atau di kartu Stok Dashboard): hitung barang fisik, ketik jumlahnya di kolom <b>Fisik</b>, selisih dengan catatan sistem langsung terlihat. Isi catatan bila perlu lalu <b>Simpan</b>. Tab <b>Riwayat</b> menyimpan siapa/kapan stok disesuaikan.',
           'Tab <b>Tambahan</b> dipakai untuk add-on (mis. extra shot). Hapus produk dari lembar ubah; riwayat penjualan lama tetap aman.'
         ],
         tips: ['Stok berkurang otomatis setiap ada penjualan. Produk berstok 0 tidak bisa dijual sampai stoknya diisi.']

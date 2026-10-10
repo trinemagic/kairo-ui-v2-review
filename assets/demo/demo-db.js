@@ -70,12 +70,14 @@
     return b;
   }
 
+  const files = {};
   const client = {
     from: builder,
     rpc: async () => ({ data: null, error: null }),
     channel: () => ({ on() { return this; }, subscribe() { return this; }, unsubscribe() {} }),
     removeChannel() {},
-    storage: { from: () => ({ async upload(path) { return { data: { path }, error: null }; }, async remove() { return { data: [], error: null }; }, getPublicUrl() { return { data: { publicUrl: 'assets/brand/kairo-app-icon.svg' } }; } }) },
+    // Foto yang diunggah di demo hanya hidup di halaman ini (URL blob), tidak dikirim ke mana pun.
+    storage: { from: () => ({ async upload(path, file) { try { files[path] = URL.createObjectURL(file); } catch (_e) { /* tanpa pratinjau */ } return { data: { path }, error: null }; }, async remove() { return { data: [], error: null }; }, getPublicUrl(path) { return { data: { publicUrl: files[path] || 'assets/brand/kairo-app-icon.svg' } }; } }) },
     auth: { getSession: async () => ({ data: { session }, error: null }), onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }), signOut: async () => ({}), getUser: async () => ({ data: { user: session.user } }) }
   };
   // Pustaka asli (CDN) tidak dipakai di mode demo: window.supabase dikunci ke klien contoh ini.
