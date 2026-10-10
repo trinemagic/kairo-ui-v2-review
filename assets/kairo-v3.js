@@ -649,7 +649,7 @@ if (window.top !== window.self) {
 
   // Panduan pemakaian (owner Okt 2026): tombol buku di samping lonceng (desktop) + item "Panduan" di menu More (HP).
   // Isi & gaya ada di assets/kairo-guide.js/.css, baru dimuat saat pertama kali dibuka supaya dashboard tetap ringan.
-  const GUIDE_V = '1.0.3';
+  const GUIDE_V = '1.1.0';
   let guideLoader = null;
   window.kairoOpenGuide = function () {
     if (!guideLoader) {
