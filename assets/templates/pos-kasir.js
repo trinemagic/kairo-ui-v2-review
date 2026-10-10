@@ -172,7 +172,8 @@
   const ago = iso => { const m = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60000)); return m < 60 ? m + ' mnt' : Math.floor(m / 60) + ' j ' + (m % 60) + ' m'; };
 
   const cart = { items: new Map(), addons: new Map(), type: '', table: '', customer: '', discMode: 'percent', discValue: 0, pay: '', received: 0, billId: null, billCreated: null };
-  let bills = [], billsReady = true, query = '', saving = false, warnedNoSession = false;
+  let bills = [], billsReady = true, query = '', saving = false, warnedNoSession = false, catSel = '';
+  const taxCfg = () => { const t = labels().__tax || {}; return { taxOn: t.tax_on === true, taxPct: Math.max(0, Math.min(100, num(t.tax_pct))), taxName: String(t.tax_name || 'Pajak').slice(0, 20), svcOn: t.svc_on === true, svcPct: Math.max(0, Math.min(100, num(t.svc_pct))) }; };
 
   const activeMasters = list => (Array.isArray(list) ? list : []).filter(x => x && x.is_active !== false);
   const stockLeft = p => (p && p.stock_qty !== null && p.stock_qty !== undefined ? num(p.stock_qty) : null);
@@ -186,7 +187,9 @@
     const subtotal = items.reduce((s, x) => s + x.subtotal, 0) + adds.reduce((s, x) => s + x.subtotal, 0);
     const raw = Math.max(0, num(cart.discValue));
     const disc = Math.min(subtotal, cart.discMode === 'percent' ? subtotal * Math.min(raw, 100) / 100 : raw);
-    return { items, adds, subtotal, disc: Math.round(disc), total: Math.max(0, subtotal - Math.round(disc)) };
+    const base = Math.max(0, subtotal - Math.round(disc)), c = taxCfg();
+    const svc = c.svcOn ? Math.round(base * c.svcPct / 100) : 0, tax = c.taxOn ? Math.round((base + svc) * c.taxPct / 100) : 0;
+    return { items, adds, subtotal, disc: Math.round(disc), svc, tax, cfg: c, total: base + svc + tax };
   }
   const cartCount = () => [...cart.items.values()].reduce((s, q) => s + q, 0);
   function resetCart(keepType) {
@@ -244,6 +247,12 @@
     } catch (err) { showToast('Gagal menghapus bill: ' + (err.message || err), true); }
   }
 
+  // Service & pajak dicatat sebagai baris tambahan. Pajak memakai HPP = nominal pajak, jadi LABA tidak menghitung pajak sebagai untung
+  // (uang pajak bukan milik usaha); omzet/penjualan tetap angka yang dibayar pelanggan.
+  const extraLines = t => [
+    ...(t.svc ? [{ id: 'pos-service', code: 'SVC', name: 'Service ' + t.cfg.svcPct + '%', qty: 1, unit_price: t.svc, subtotal: t.svc, cost_price: 0, cost_subtotal: 0, profit_share_mode: 'percentage', manual_profit_split: [], is_charge: true }] : []),
+    ...(t.tax ? [{ id: 'pos-tax', code: 'TAX', name: t.cfg.taxName + ' ' + t.cfg.taxPct + '%', qty: 1, unit_price: t.tax, subtotal: t.tax, cost_price: t.tax, cost_subtotal: t.tax, profit_share_mode: 'percentage', manual_profit_split: [], is_charge: true }] : [])
+  ];
   /* ---------- Bayar ---------- */
   async function nextReceiptNo() {
     try {
@@ -273,7 +282,7 @@
         package_id: t.items[0].id, package_code: t.items.map(x => x.code).join(', '), package_price: t.items.reduce((s, x) => s + x.subtotal, 0), package_qty: t.items.reduce((s, x) => s + x.qty, 0),
         topic_id: null, topic_name: null,
         addon_id: t.adds[0]?.id || null, addon_code: t.adds.map(x => x.code).join(', ') || null, addon_price: t.adds.reduce((s, x) => s + x.subtotal, 0), addon_qty: t.adds.reduce((s, x) => s + x.qty, 0),
-        order_items: t.items, order_topics: [], order_addons: t.adds,
+        order_items: t.items, order_topics: [], order_addons: [...t.adds, ...extraLines(t)],
         price_adjustment_type: t.disc > 0 ? 'discount' : 'none', price_adjustment_mode: cart.discMode, price_adjustment_value: t.disc > 0 ? num(cart.discValue) : 0, price_adjustment_amount: -t.disc,
         tip_amount: 0, total_price: t.total, payment_method: cart.pay, notes: cart.table ? 'Meja ' + cart.table : null,
         ...(receiptNo ? { receipt_no: receiptNo } : {})
@@ -282,7 +291,7 @@
       if (error) throw error;
       const billId = cart.billId, received = cart.received;
       if (billId) { try { await db.from('pos_open_bills').delete().eq('workspace_id', requireWorkspaceId()).eq('id', billId); } catch (_e) { /* bill sisa dibersihkan manual */ } }
-      showReceipt({ ...payload, received, change: isCash(cart.pay) && received >= t.total ? received - t.total : 0, subtotal: t.subtotal, table: cart.table, at: now });
+      showReceipt({ ...payload, received, change: isCash(cart.pay) && received >= t.total ? received - t.total : 0, subtotal: t.subtotal, svc: t.svc, tax: t.tax, svcPct: t.cfg.svcPct, taxPct: t.cfg.taxPct, taxName: t.cfg.taxName, table: cart.table, at: now });
       resetCart(true);
       showToast('Pembayaran tersimpan.');
       await Promise.all([refreshAll(), loadBills()]);
@@ -295,7 +304,7 @@
   function showReceipt(p) {
     document.getElementById('pos-receipt')?.remove();
     const wsName = (typeof activeWorkspaceName !== 'undefined' && activeWorkspaceName) || 'Struk';
-    const lines = [...p.order_items, ...p.order_addons].map(x => `<div class="r-line"><span>${esc(x.name)} × ${x.qty}</span><b>${money(x.subtotal)}</b></div>`).join('');
+    const lines = [...p.order_items, ...p.order_addons.filter(x => !x.is_charge)].map(x => `<div class="r-line"><span>${esc(x.name)} × ${x.qty}</span><b>${money(x.subtotal)}</b></div>`).join('');
     const d = p.at;
     const el = document.createElement('div');
     el.id = 'pos-receipt'; el.className = 'pos-receipt-wrap'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true');
@@ -306,6 +315,8 @@
       ${lines}<hr>
       <div class="r-line"><span>Subtotal</span><b>${money(p.subtotal)}</b></div>
       ${p.price_adjustment_amount ? `<div class="r-line"><span>Diskon</span><b>−${money(-p.price_adjustment_amount)}</b></div>` : ''}
+      ${p.svc ? `<div class="r-line"><span>Service ${p.svcPct}%</span><b>${money(p.svc)}</b></div>` : ''}
+      ${p.tax ? `<div class="r-line"><span>${esc(p.taxName)} ${p.taxPct}%</span><b>${money(p.tax)}</b></div>` : ''}
       <div class="r-line r-total"><span>Total</span><b>${money(p.total_price)}</b></div>
       <div class="r-line"><span>${esc(p.payment_method)}</span><b>${p.received ? money(p.received) : money(p.total_price)}</b></div>
       ${p.change ? `<div class="r-line"><span>Kembalian</span><b>${money(p.change)}</b></div>` : ''}
@@ -329,7 +340,7 @@
     root.innerHTML = `
       <div class="card pos-bills-card" id="pos-bills-card" hidden><div class="pos-head"><div class="card-title">Bill Terbuka</div><span class="pos-sub" id="pos-bills-sub"></span></div><div class="pos-bills" id="pos-bills"></div></div>
       <div class="pos-main">
-        <div class="card pos-products"><div class="pos-search"><input class="input" id="pos-search" type="search" placeholder="Cari produk atau scan barcode…" autocomplete="off" inputmode="search"></div><div class="pos-grid" id="pos-grid"></div><div class="pos-addons" id="pos-addons"></div></div>
+        <div class="card pos-products"><div class="pos-search"><input class="input" id="pos-search" type="search" placeholder="Cari produk atau scan barcode…" autocomplete="off" inputmode="search"></div><div class="pos-cats" id="pos-cats" hidden></div><div class="pos-grid" id="pos-grid"></div><div class="pos-addons" id="pos-addons"></div></div>
         <div class="card pos-cart" id="pos-cart"></div>
       </div>
       <button type="button" class="pos-mobilebar" id="pos-mobilebar" hidden></button>`;
@@ -344,6 +355,7 @@
       const m = activeMasters(packages).find(x => String(x.code || '').toLowerCase() === code) || (visibleProducts().length === 1 ? visibleProducts()[0] : null);
       if (m) { addItem(m.id); search.value = ''; query = ''; renderGrid(); } else showToast('Produk tidak ditemukan.', 'warning');
     });
+    root.querySelector('#pos-cats').addEventListener('click', e => { const c = e.target.closest('[data-cat]'); if (c) { catSel = c.dataset.cat; renderCats(); renderGrid(); } });
     root.querySelector('#pos-grid').addEventListener('click', e => { const c = e.target.closest('[data-pid]'); if (c) addItem(c.dataset.pid); });
     root.querySelector('#pos-addons').addEventListener('click', e => { const c = e.target.closest('[data-aid]'); if (c) { const id = c.dataset.aid; cart.addons.set(id, (cart.addons.get(id) || 0) + 1); renderCart(); renderAddons(); } });
     root.querySelector('#pos-bills').addEventListener('click', e => { const c = e.target.closest('[data-bill]'); if (c) openBill(c.dataset.bill); });
@@ -354,7 +366,16 @@
     cartEl.addEventListener('change', onCartInput);
     return true;
   }
-  const visibleProducts = () => activeMasters(packages).filter(p => !query || String(p.name || '').toLowerCase().includes(query) || String(p.code || '').toLowerCase().includes(query));
+  const visibleProducts = () => activeMasters(packages).filter(p => (!catSel || String(p.category || '') === catSel) && (!query || String(p.name || '').toLowerCase().includes(query) || String(p.code || '').toLowerCase().includes(query)));
+  const categoryNames = () => (Array.isArray(topics) ? topics : []).map(t => String(t.name || '').trim()).filter(Boolean);
+  function renderCats() {
+    const box = document.getElementById('pos-cats');
+    if (!box) return;
+    const names = categoryNames().filter(n => activeMasters(packages).some(p => String(p.category || '') === n));
+    if (catSel && !names.includes(catSel)) catSel = '';
+    box.hidden = !names.length;
+    box.innerHTML = names.length ? ['', ...names].map(n => `<button type="button" class="pos-cat${n === catSel ? ' on' : ''}" data-cat="${esc(n)}">${n ? esc(n) : 'Semua'}</button>`).join('') : '';
+  }
   function addItem(id) {
     const m = (packages || []).find(x => String(x.id) === String(id));
     if (!m) return;
@@ -372,7 +393,7 @@
       const q = cart.items.get(String(p.id)) || 0, left = stockLeft(p);
       return `<button type="button" class="pos-prod${left !== null && left <= 0 ? ' is-out' : ''}" data-pid="${esc(p.id)}">${q ? `<em>${q}</em>` : ''}<b>${esc(p.name)}</b><span>${money(p.price)}</span>${left !== null ? `<small>${left <= 0 ? 'Habis' : 'Stok ' + left}</small>` : ''}</button>`;
     }).join('') : `<div class="pos-empty">${(packages || []).length ? 'Produk tidak ditemukan.' : 'Belum ada produk. Isi di Settings › Produk &amp; Harga.'}</div>`;
-    renderAddons();
+    renderAddons(); renderCats();
   }
   function renderAddons() {
     const box = document.getElementById('pos-addons');
@@ -404,7 +425,7 @@
       <div class="pos-fields"><input class="input" id="pos-table" placeholder="No. meja (opsional)" value="${esc(cart.table)}" maxlength="12" ${dine ? '' : 'hidden'}><input class="input" id="pos-cust" placeholder="Nama pelanggan (opsional)" value="${esc(cart.customer)}" maxlength="40"></div>
       <div class="pos-lines">${t.items.length ? t.items.map(l => `<div class="pos-line"><div><b>${esc(l.name)}</b><small>${money(l.unit_price)}</small></div><div class="pos-qty"><button type="button" data-dec="${esc(l.id)}" aria-label="Kurangi">−</button><span>${l.qty}</span><button type="button" data-inc="${esc(l.id)}" aria-label="Tambah">+</button></div><b>${money(l.subtotal)}</b></div>`).join('') + t.adds.map(l => `<div class="pos-line is-add"><div><b>${esc(l.name)}</b><small>Tambahan</small></div><div class="pos-qty"><button type="button" data-adec="${esc(l.id)}" aria-label="Kurangi">−</button><span>${l.qty}</span><button type="button" data-ainc="${esc(l.id)}" aria-label="Tambah">+</button></div><b>${money(l.subtotal)}</b></div>`).join('') : '<div class="pos-empty">Klik produk untuk menambah ke struk.</div>'}</div>
       <div class="pos-disc"><span>Diskon</span><select id="pos-disc-mode" class="input"><option value="percent"${cart.discMode === 'percent' ? ' selected' : ''}>%</option><option value="fixed"${cart.discMode === 'fixed' ? ' selected' : ''}>Rp</option></select><input class="input" id="pos-disc" inputmode="numeric" placeholder="0" value="${cart.discValue ? esc(cart.discValue) : ''}"></div>
-      <div class="pos-sum"><div><span>Subtotal</span><span>${money(t.subtotal)}</span></div>${t.disc ? `<div><span>Diskon</span><span>−${money(t.disc)}</span></div>` : ''}<div class="pos-total"><span>Total</span><span>${money(t.total)}</span></div></div>
+      <div class="pos-sum"><div><span>Subtotal</span><span>${money(t.subtotal)}</span></div>${t.disc ? `<div><span>Diskon</span><span>−${money(t.disc)}</span></div>` : ''}${t.svc ? `<div><span>Service ${t.cfg.svcPct}%</span><span>${money(t.svc)}</span></div>` : ''}${t.tax ? `<div><span>${esc(t.cfg.taxName)} ${t.cfg.taxPct}%</span><span>${money(t.tax)}</span></div>` : ''}<div class="pos-total"><span>Total</span><span>${money(t.total)}</span></div></div>
       <div class="pos-pays">${pays.map(x => `<button type="button" class="pos-seg${x === cart.pay ? ' on' : ''}" data-pay="${esc(x)}">${esc(x)}</button>`).join('')}</div>
       ${cash ? `<div class="pos-cash"><input class="input" id="pos-recv" inputmode="numeric" placeholder="Uang diterima" value="${cart.received ? 'Rp' + fmtInt(cart.received) : ''}"><div class="pos-quick"><button type="button" data-recv="${t.total}">Uang pas</button>${[20000, 50000, 100000].filter(v => v >= t.total).slice(0, 3).map(v => `<button type="button" data-recv="${v}">${shortMoney(v)}</button>`).join('')}</div><div class="pos-change"><span>Kembalian</span><b>${cart.received >= t.total && t.total > 0 ? money(cart.received - t.total) : '-'}</b></div></div>` : ''}
       <div class="pos-actions">${billsReady ? `<button type="button" class="btn btn-light" id="pos-save-bill">${cart.billId ? 'Simpan Perubahan' : 'Simpan Bill'}</button>` : ''}<button type="button" class="btn btn-green" id="pos-pay-btn"${saving || !t.items.length ? ' disabled' : ''}>Bayar &amp; Cetak Struk</button></div>
@@ -442,10 +463,102 @@
     const t = totals(), el = document.getElementById('pos-cart');
     if (!el) return;
     const sum = el.querySelector('.pos-sum');
-    if (sum) sum.innerHTML = `<div><span>Subtotal</span><span>${money(t.subtotal)}</span></div>${t.disc ? `<div><span>Diskon</span><span>−${money(t.disc)}</span></div>` : ''}<div class="pos-total"><span>Total</span><span>${money(t.total)}</span></div>`;
+    if (sum) sum.innerHTML = `<div><span>Subtotal</span><span>${money(t.subtotal)}</span></div>${t.disc ? `<div><span>Diskon</span><span>−${money(t.disc)}</span></div>` : ''}${t.svc ? `<div><span>Service ${t.cfg.svcPct}%</span><span>${money(t.svc)}</span></div>` : ''}${t.tax ? `<div><span>${esc(t.cfg.taxName)} ${t.cfg.taxPct}%</span><span>${money(t.tax)}</span></div>` : ''}<div class="pos-total"><span>Total</span><span>${money(t.total)}</span></div>`;
     const ch = el.querySelector('.pos-change b');
     if (ch) ch.textContent = cart.received >= t.total && t.total > 0 ? money(cart.received - t.total) : '-';
     const bar = document.getElementById('pos-mobilebar'); if (bar) bar.textContent = `Lihat Struk · ${cartCount()} item · ${money(t.total)}`;
+  }
+
+  /* =====================================================================
+     SETTINGS KASIR (Settings › Kategori): Tipe Pesanan, Metode Pembayaran, Pajak & Service, dan penempatan produk ke kategori.
+     Daftar kategori = kartu "Kategori" bawaan (topic_masters); kolom package_masters.category menyimpan nama kategorinya
+     (SQL .claude/sql/2026-10-pos-product-category.sql). Pengaturan lain di workspace_branding.receipt_labels (__order_types, __payments, __tax).
+     ===================================================================== */
+  let typeDraft = null, payDraft = null, taxDraft = null;
+  const rowsHtml = (arr, attr) => arr.map((n, i) => `<div class="pos-set-row"><strong>${esc(n)}</strong><button type="button" class="pos-set-del" ${attr}="${i}" aria-label="Hapus ${esc(n)}">×</button></div>`).join('') || '<span class="pos-sub">Belum ada.</span>';
+  function renderSettingsLists() {
+    const a = document.getElementById('pos-set-types'), b = document.getElementById('pos-set-pays');
+    if (a) a.innerHTML = rowsHtml(typeDraft, 'data-type-del');
+    if (b) b.innerHTML = rowsHtml(payDraft, 'data-pay-del');
+    const t = taxDraft;
+    const set = (id, v) => { const e = document.getElementById(id); if (e && e !== document.activeElement) { if (e.type === 'checkbox') e.checked = v; else e.value = v; } };
+    set('pos-set-svc-on', t.svcOn); set('pos-set-svc-pct', t.svcPct || ''); set('pos-set-tax-on', t.taxOn); set('pos-set-tax-pct', t.taxPct || ''); set('pos-set-tax-name', t.taxName);
+    document.getElementById('pos-set-tax-fields')?.classList.toggle('is-off', !t.taxOn);
+    document.getElementById('pos-set-svc-fields')?.classList.toggle('is-off', !t.svcOn);
+  }
+  function mountPosSettings() {
+    if (document.getElementById('pos-settings-card')) return;
+    const anchor = document.getElementById('settings-topic-card');
+    if (!anchor) return;
+    typeDraft = typeList(); payDraft = payList(); taxDraft = taxCfg();
+    const card = document.createElement('div');
+    card.className = 'card settings-master-card'; card.id = 'pos-settings-card';
+    card.innerHTML = `<div class="settings-master-head"><div><div class="card-title">Pengaturan Kasir</div><div class="page-sub">Pilihan yang muncul di layar Kasir.</div></div></div>
+      <div class="pos-set-block"><div class="pos-set-title">Tipe Pesanan</div><div id="pos-set-types" class="pos-set-rows"></div><div class="pos-set-add"><input class="input" id="pos-set-type-in" maxlength="24" placeholder="Mis. Dine In, Take Away, GrabFood"><button type="button" class="btn btn-light" id="pos-set-type-add">Tambah</button></div></div>
+      <div class="pos-set-block"><div class="pos-set-title">Metode Pembayaran</div><div id="pos-set-pays" class="pos-set-rows"></div><div class="pos-set-add"><input class="input" id="pos-set-pay-in" maxlength="24" placeholder="Mis. Tunai, QRIS, Debit, GoPay"><button type="button" class="btn btn-light" id="pos-set-pay-add">Tambah</button></div><div class="pos-sub">Metode bernama "Tunai" atau "Cash" otomatis memunculkan uang diterima dan kembalian.</div></div>
+      <div class="pos-set-block"><div class="pos-set-title">Service &amp; Pajak <span class="pos-sub">(opsional, dihitung dari subtotal setelah diskon)</span></div>
+        <div class="pos-set-line"><label class="kairo-switch"><input type="checkbox" id="pos-set-svc-on"><span aria-hidden="true"></span><b class="sr-only">Service charge</b></label><strong>Service charge</strong><span class="pos-set-fields" id="pos-set-svc-fields"><input class="input" id="pos-set-svc-pct" inputmode="decimal" placeholder="5"><em>%</em></span></div>
+        <div class="pos-set-line"><label class="kairo-switch"><input type="checkbox" id="pos-set-tax-on"><span aria-hidden="true"></span><b class="sr-only">Pajak</b></label><strong>Pajak</strong><span class="pos-set-fields" id="pos-set-tax-fields"><input class="input" id="pos-set-tax-name" maxlength="20" placeholder="PB1"><input class="input" id="pos-set-tax-pct" inputmode="decimal" placeholder="10"><em>%</em></span></div>
+        <div class="pos-sub">Pajak tidak dihitung sebagai laba. Penjualan di Dashboard tetap angka yang dibayar pelanggan.</div></div>
+      <div class="pos-set-actions"><button type="button" class="btn btn-green" id="pos-set-save">Simpan Pengaturan Kasir</button><button type="button" class="btn btn-light" id="pos-set-reset">Kembalikan Bawaan</button></div>`;
+    anchor.after(card);
+    const cat = document.createElement('div');
+    cat.className = 'card settings-master-card'; cat.id = 'pos-cat-card';
+    cat.innerHTML = `<div class="settings-master-head"><div><div class="card-title">Kategori Produk</div><div class="page-sub">Pilih kategori tiap produk supaya muncul sebagai tab di layar Kasir. Daftar kategori diatur di kartu Kategori di atas.</div></div></div><div id="pos-cat-rows" class="pos-set-rows"></div><div class="pos-set-actions"><button type="button" class="btn btn-green" id="pos-cat-save">Simpan Kategori</button></div>`;
+    card.after(cat);
+    renderSettingsLists(); renderCategoryRows();
+    card.addEventListener('click', async e => {
+      const t = e.target.closest('button'); if (!t) return;
+      if (t.dataset.typeDel !== undefined) { typeDraft.splice(Number(t.dataset.typeDel), 1); renderSettingsLists(); return; }
+      if (t.dataset.payDel !== undefined) { payDraft.splice(Number(t.dataset.payDel), 1); renderSettingsLists(); return; }
+      const addTo = (arr, inputId) => { const i = document.getElementById(inputId), v = i.value.trim(); if (!v) return; if (arr.some(x => x.toLowerCase() === v.toLowerCase())) { showToast('Sudah ada.', 'warning'); return; } arr.push(v); i.value = ''; renderSettingsLists(); };
+      if (t.id === 'pos-set-type-add') { addTo(typeDraft, 'pos-set-type-in'); return; }
+      if (t.id === 'pos-set-pay-add') { addTo(payDraft, 'pos-set-pay-in'); return; }
+      if (t.id === 'pos-set-reset') { typeDraft = DEFAULT_TYPES.slice(); payDraft = DEFAULT_PAY.slice(); taxDraft = { taxOn: false, taxPct: 0, taxName: 'PB1', svcOn: false, svcPct: 0 }; renderSettingsLists(); return; }
+      if (t.id === 'pos-set-save') {
+        try {
+          if (!typeDraft.length || !payDraft.length) throw new Error('Isi minimal satu tipe pesanan dan satu metode pembayaran.');
+          const pct = id => { const v = Number(String(document.getElementById(id).value || '0').replace(',', '.')); if (!Number.isFinite(v) || v < 0 || v > 100) throw new Error('Persen harus 0–100.'); return v; };
+          const tax = { svc_on: document.getElementById('pos-set-svc-on').checked, svc_pct: pct('pos-set-svc-pct'), tax_on: document.getElementById('pos-set-tax-on').checked, tax_pct: pct('pos-set-tax-pct'), tax_name: document.getElementById('pos-set-tax-name').value.trim() || 'Pajak' };
+          if ((tax.svc_on && !tax.svc_pct) || (tax.tax_on && !tax.tax_pct)) throw new Error('Isi persen service/pajak yang diaktifkan.');
+          const wid = requireWorkspaceId();
+          const next = { ...labels(), __order_types: typeDraft.slice(), __payments: payDraft.slice(), __tax: tax };
+          const { error } = await db.from('workspace_branding').upsert({ workspace_id: wid, receipt_labels: next, updated_at: new Date().toISOString() }, { onConflict: 'workspace_id' });
+          if (error) throw error;
+          await loadWorkspaceSaasContext();
+          typeDraft = typeList(); payDraft = payList(); taxDraft = taxCfg(); renderSettingsLists();
+          renderCart();
+          showToast('Pengaturan kasir disimpan.');
+        } catch (err) { showToast(err.message || 'Gagal menyimpan pengaturan.', true); }
+      }
+    });
+    card.addEventListener('change', e => {
+      if (e.target.id === 'pos-set-svc-on') { taxDraft.svcOn = e.target.checked; document.getElementById('pos-set-svc-fields')?.classList.toggle('is-off', !e.target.checked); }
+      if (e.target.id === 'pos-set-tax-on') { taxDraft.taxOn = e.target.checked; document.getElementById('pos-set-tax-fields')?.classList.toggle('is-off', !e.target.checked); }
+    });
+    ['pos-set-type-in', 'pos-set-pay-in'].forEach(id => document.getElementById(id).addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById(id === 'pos-set-type-in' ? 'pos-set-type-add' : 'pos-set-pay-add').click(); } }));
+    cat.addEventListener('click', async e => {
+      if (!e.target.closest('#pos-cat-save')) return;
+      const btn = e.target.closest('#pos-cat-save'); btn.disabled = true;
+      try {
+        const wid = requireWorkspaceId(), jobs = [];
+        cat.querySelectorAll('select[data-pid]').forEach(sel => {
+          const m = (packages || []).find(x => String(x.id) === sel.dataset.pid), val = sel.value || null;
+          if (m && (m.category || null) !== val) jobs.push(db.from('package_masters').update({ category: val }).eq('workspace_id', wid).eq('id', m.id));
+        });
+        const res = await Promise.all(jobs);
+        const bad = res.find(r => r.error); if (bad) throw bad.error;
+        await loadMasters();
+        showToast(jobs.length ? 'Kategori produk disimpan.' : 'Tidak ada perubahan.');
+      } catch (err) { showToast(/category/i.test(String(err.message)) ? 'Kolom kategori belum ada di database.' : (err.message || 'Gagal menyimpan kategori.'), true); }
+      finally { btn.disabled = false; }
+    });
+  }
+  function renderCategoryRows() {
+    const box = document.getElementById('pos-cat-rows');
+    if (!box) return;
+    const names = categoryNames(), list = activeMasters(packages);
+    box.innerHTML = list.length ? list.map(p => `<div class="pos-set-row pos-cat-row"><strong>${esc(p.name)}</strong><select class="input" data-pid="${esc(p.id)}"><option value="">Tanpa kategori</option>${[...new Set([...names, ...(p.category && !names.includes(p.category) ? [p.category] : [])])].map(n => `<option value="${esc(n)}"${String(p.category || '') === n ? ' selected' : ''}>${esc(n)}</option>`).join('')}</select></div>`).join('') : '<span class="pos-sub">Belum ada produk.</span>';
   }
 
   // "Orders" -> "Kasir" di menu.
@@ -474,6 +587,7 @@
   function syncBar() { const bar = document.getElementById('pos-mobilebar'); if (bar) bar.hidden = !cartCount() || cartVisible; }
   let kasirReady = false;
   function initKasir(force) {
+    mountPosSettings();
     if (!mountKasir()) return;
     relabelMenu();
     if (kasirReady && !force) return;
@@ -672,7 +786,9 @@
     window[name] = w;
   }
   wrap('renderDashboard', refresh);
-  wrap('renderMasterOptions', () => { if (document.getElementById('pos-kasir')) { renderGrid(); renderCart(); } });
+  wrap('renderMasterOptions', () => { if (document.getElementById('pos-kasir')) { renderGrid(); renderCart(); } mountPosSettings(); renderCategoryRows(); });
+  wrap('renderSettingsMasterData', () => { mountPosSettings(); renderCategoryRows(); });
+  new MutationObserver(() => { if (!document.getElementById('pos-settings-card')) mountPosSettings(); }).observe(document.getElementById('settings') || document.body, { childList: true, subtree: true });
   refresh();
   // Warna grafik ikut tema / mode gelap.
   let lastLook = '';
