@@ -148,3 +148,21 @@ body.saas-dark .pos-modal-card{background:#17222e;color:#e6eef7}
 .pos-set-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
 .pos-cat-row select{width:min(220px,55%)}
 @media (max-width:640px){.pos-set-line{grid-template-columns:auto minmax(0,1fr)}.pos-set-fields{grid-column:1/-1}}
+
+/* ===== Performance Kasir ===== */
+.pos-analytics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-bottom:18px;min-width:0}
+.pos-an-card{min-width:0}
+#pos-an-hour,#pos-an-session{grid-column:1/-1}
+.pos-an-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px}
+.pos-an-head .card-title{margin:0}
+.pos-toggle{display:inline-flex;align-items:center;gap:6px;flex:0 0 auto;padding:6px 10px 6px 12px;border-radius:999px;border:1px solid color-mix(in srgb,var(--v3-primary,#25b9b0) 30%,transparent);background:transparent;color:inherit;font:inherit;font-size:12.5px;font-weight:700;cursor:pointer}
+.pos-toggle:hover{background:color-mix(in srgb,var(--v3-primary,#25b9b0) 10%,transparent)}
+.pos-toggle svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;transition:transform .2s}
+.pos-toggle[aria-expanded="true"] svg{transform:rotate(180deg)}
+.pos-an-chart{position:relative;height:240px}
+#pos-an-hour .pos-an-chart{height:260px}
+.pos-an-data{margin-top:14px}.pos-an-data[hidden]{display:none}
+.pos-an-card .table-wrap{overflow-x:auto}
+.pos-diff-tag{display:inline-block;padding:2px 9px;border-radius:99px;font-size:12px;font-weight:800;background:color-mix(in srgb,var(--v3-primary,#25b9b0) 10%,transparent)}
+.pos-diff-tag.ok{background:#e3f5ea;color:#16794c}.pos-diff-tag.plus{background:#fff1d1;color:#8a5a00}.pos-diff-tag.minus{background:#fde6ea;color:#a3384a}
+@media (max-width:900px){.pos-analytics{grid-template-columns:minmax(0,1fr)}}
