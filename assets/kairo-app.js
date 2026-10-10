@@ -4015,7 +4015,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
  function receiptDefaultLabels(){return {...DEFAULT_LABELS,...(isSellerReceiptContext()?SELLER_RECEIPT_LABELS:{}),...(isShopWorkspace()?{package:'Produk',topic:topicFieldLabel()}:{})}}
  const svg={pencil:'<svg viewBox="0 0 24 24"><path d="M4 20h4l11-11a2.8 2.8 0 0 0-4-4L4 16v4Z"/><path d="m13.5 6.5 4 4"/></svg>',up:'<svg viewBox="0 0 24 24"><path d="m6 15 6-6 6 6"/></svg>',down:'<svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>',trash:'<svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3m-8 0 1 13h8l1-13M10 11v5m4-5v5"/></svg>',plusPencil:'<svg viewBox="0 0 24 24"><path d="M4 20h4l9.5-9.5a2.8 2.8 0 0 0-4-4L4 16v4Z"/><path d="m12 8 4 4M19 3v6M16 6h6"/></svg>'};
  const builtinNames={title:'Judul Struk',customer:'Customer',get start(){return startLabel();},status:'Status',shift:'Shift',platform:'Platform',payment:'Pembayaran',package:'Package',topic:'Topic',addon:'Add-on',subtotal:'Subtotal',adjustment:'Penyesuaian Harga',tip:'Tip',total:'Total',footer:'Footer'};
- const RECEIPT_TEMPLATES=[['pastel','Pastel Commission','Playful, pastel, layered headline'],['studio','Studio List','Clean editorial / pricelist'],['receiptify','Receiptify','Thermal typewriter + doodle'],['vintage','Vintage Story','Warm paper + classic serif'],['newspaper','Newspaper Editorial','Bold monochrome editorial'],['boarding','Boarding Pass','Ticket / travel inspired'],['diner','Retro Diner','Playful retro counter receipt'],['luxury','Minimal Luxury','Minimal fashion / premium']];
+ const RECEIPT_TEMPLATES=[['standard','Standar','Struk kasir polos: nama usaha di tengah, garis putus-putus'],['pastel','Pastel Commission','Playful, pastel, layered headline'],['studio','Studio List','Clean editorial / pricelist'],['receiptify','Receiptify','Thermal typewriter + doodle'],['vintage','Vintage Story','Warm paper + classic serif'],['newspaper','Newspaper Editorial','Bold monochrome editorial'],['boarding','Boarding Pass','Ticket / travel inspired'],['diner','Retro Diner','Playful retro counter receipt'],['luxury','Minimal Luxury','Minimal fashion / premium']];
  function normalizeTemplate(v){const id=String(v||'pastel').toLowerCase();return RECEIPT_TEMPLATES.some(x=>x[0]===id)?id:'pastel';}
  function labels(){return {...receiptDefaultLabels(),...(activeWorkspaceBranding?.receipt_labels||{})};}
  function receiptStore(){const l=activeWorkspaceBranding?.receipt_labels||{};return activeWorkspaceBranding?.receipt_layout||l.__layout_v2||null;}
@@ -4128,6 +4128,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
    const b=esc(business||'NAMA USAHA');
    const date=new Date(p.reading_started_at||Date.now());
    const ds=isNaN(date.getTime())?'':date.toLocaleDateString('id-ID',{day:'2-digit',month:'2-digit',year:'numeric'});
+   if(template==='standard')return `<div class="receipt-template-brand receipt-template-brand-standard">${b}<small>STRUK PENJUALAN</small></div>`;
    if(template==='studio')return `<div class="receipt-template-brand receipt-template-brand-studio">${b}<small>BUSINESS RECEIPT</small></div>`;
    if(template==='receiptify')return `<div class="receipt-template-brand receipt-template-brand-receiptify">${b}<small>GOOD PEOPLE, GOOD BUSINESS</small></div>`;
    if(template==='vintage')return `<div class="receipt-template-brand receipt-template-brand-vintage"><span>★</span><b>${b}</b><span>★</span><small>MORE THAN JUST A BUSINESS</small></div><div class="receipt-date-row"><strong>DATE:</strong><span>${esc(ds)}</span></div>`;
@@ -4330,16 +4331,19 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
      rect(0,0,W,H,'#0d5f9a');text('✈  BUSINESS CLASS',70,72,32,'Arial','#fff','left','800');text('A SMALL BUSINESS GOES A LONG WAY',1010,70,16,'Arial','#fff','right','700');
    }else if(template==='diner'){
      rect(0,0,W,H,'#f4e5c1');const sq=54;for(let y=0;y<H;y+=sq)for(let x=0;x<W;x+=sq)if(((x+y)/sq)%2===0)rect(x,y,sq,sq,'#c7372f');
+   }else if(template==='standard'){
+     rect(0,0,W,H,'#ececec');
    }else{
      const g=ctx.createLinearGradient(0,0,W,H);g.addColorStop(0,'#d7d0c7');g.addColorStop(.25,'#f4efe7');g.addColorStop(.78,'#f4efe7');g.addColorStop(1,'#d9d1c5');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);text('❧',930,H-110,72,'Georgia','#8d7454','center','400');
    }
    // paper
-   let paperY=template==='pastel'?265:template==='studio'?180:150;ctx.save();ctx.shadowColor='rgba(0,0,0,.22)';ctx.shadowBlur=28;ctx.shadowOffsetY=14;rect(paperX,paperY,paperW,H-paperY-100,template==='vintage'?'#f9f7f1':template==='diner'?'#fff4d8':template==='luxury'?'#fdfbf6':template==='receiptify'?'#f8f7f3':template==='newspaper'?'#f5f0e7':template==='boarding'?'#eff7ff':bg);ctx.restore();
+   let paperY=template==='pastel'?265:template==='studio'?180:150;ctx.save();ctx.shadowColor='rgba(0,0,0,.22)';ctx.shadowBlur=28;ctx.shadowOffsetY=14;rect(paperX,paperY,paperW,H-paperY-100,template==='vintage'?'#f9f7f1':template==='diner'?'#fff4d8':template==='luxury'?'#fdfbf6':template==='receiptify'?'#f8f7f3':template==='newspaper'?'#f5f0e7':template==='boarding'?'#eff7ff':template==='standard'?'#ffffff':bg);ctx.restore();
    if(template==='receiptify')rect(paperX,paperY,paperW,155,'#b9b8ee');
    if(template==='boarding'){line(paperX+paperW*.76,paperY,paperX+paperW*.76,H-100,'#6d91aa',3,[12,10])}
    if(template==='diner'){ctx.strokeStyle='#c7372f';ctx.lineWidth=4;ctx.strokeRect(paperX+16,paperY+16,paperW-32,H-paperY-132)}
    let y=paperY+70;
-   if(template==='studio'){text(business.toUpperCase(),W/2,y,45,'Arial','#168dca','center','900');y+=38;text('QUALITY MAKES A DIFFERENCE',W/2,y,14,'Courier New','#111','center','700');y+=45}
+   if(template==='standard'){text(business.toUpperCase(),W/2,y,36,'Courier New','#111','center','900');y+=30;text('STRUK PENJUALAN',W/2,y,14,'Courier New','#111','center','700');y+=26;line(paperX+pad,y,paperX+paperW-pad,y,'#111',2,[10,8]);y+=40}
+   else if(template==='studio'){text(business.toUpperCase(),W/2,y,45,'Arial','#168dca','center','900');y+=38;text('QUALITY MAKES A DIFFERENCE',W/2,y,14,'Courier New','#111','center','700');y+=45}
    else if(template==='receiptify'){text(business.toUpperCase(),paperX+pad,y,44,'Arial','#292c32','left','900');y+=36;rect(paperX+pad,y-24,360,32,'#ef7da9');text('GOOD PEOPLE, GOOD BUSINESS',paperX+pad+180,y,16,'Arial','#303039','center','800');y+=55}
    else if(template==='vintage'){text('★',paperX+120,y,35,'Georgia','#6e0e1e','center','900');text(business.toUpperCase(),W/2,y,36,'Georgia','#6e0e1e','center','900');text('★',paperX+paperW-120,y,35,'Georgia','#6e0e1e','center','900');y+=28;text('MORE THAN JUST A BUSINESS',W/2,y,12,'Arial','#6e0e1e','center','700');y+=40;line(paperX+pad,y,paperX+paperW-pad,y,'#222',2);y+=30}
    else if(template==='newspaper'){text('The Daily Order',W/2,y,42,'Georgia','#111','center','900');y+=18;line(paperX+pad,y,paperX+paperW-pad,y,'#111',4);y+=45;text(business.toUpperCase(),paperX+pad,y,34,'Arial','#111','left','900');y+=25;text('SMALL BUSINESS, BIG IMPACT',paperX+pad,y,13,'Courier New','#111','left','700');y+=45}
@@ -4347,8 +4351,8 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
    else if(template==='diner'){text(business.toUpperCase(),W/2,y,38,'Arial','#c7372f','center','900');y+=27;text('ALWAYS A GOOD CHOICE',W/2,y,13,'Courier New','#c7372f','center','700');y+=45}
    else if(template==='luxury'){text('❧',W/2,y,38,'Georgia','#a27c4e','center','400');y+=40;text(business.toUpperCase(),W/2,y,34,'Georgia','#111','center','400');y+=28;text('BEAUTY IN EVERY DETAIL',W/2,y,12,'Courier New','#111','center','600');y+=50}
    if(d.description){ctx.fillStyle=tx;ctx.font=`600 22px ${canvasFont}`;const descLines=wrapCanvasText(ctx,d.description,inner);descLines.forEach((l,i)=>{text(l,W/2,y,22,canvasFont,tx,'center','600');y+=30});y+=18;line(paperX+pad,y,paperX+paperW-pad,y,ac,1,[7,7]);y+=28}
-   const bodyColor=template==='vintage'||template==='receiptify'||template==='newspaper'||template==='diner'||template==='luxury'?'#171717':tx;
-   ctx.fillStyle=bodyColor;for(const l of measured){if(!l){y+=15;continue}const isTotal=/total\s*:/i.test(l);text(l,paperX+pad,y,isTotal?27:23,template==='luxury'?'Courier New':canvasFont,bodyColor,'left',isTotal?'800':'400');y+=isTotal?44:35}
+   const bodyColor=template==='vintage'||template==='receiptify'||template==='newspaper'||template==='diner'||template==='luxury'||template==='standard'?'#171717':tx;
+   ctx.fillStyle=bodyColor;for(const l of measured){if(!l){y+=15;continue}const isTotal=/total\s*:/i.test(l);text(l,paperX+pad,y,isTotal?27:23,template==='luxury'||template==='standard'?'Courier New':canvasFont,bodyColor,'left',isTotal?'800':'400');y+=isTotal?44:35}
    y+=30;barcode(W/2-210,y,420,80);y+=105;text('powered by kairo workspaces',W/2,y,16,'Courier New','#333','center','400');
    return canvas;
  }
@@ -5498,8 +5502,8 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
       else if(template==='pos_kasir'){root.dataset.businessTemplate='pos_kasir';if(typeof applyTopicFieldLabel==='function')applyTopicFieldLabel();document.dispatchEvent(new CustomEvent('kairo:template-ready'));
         // Dashboard Kasir (tahap 1): dimuat hanya untuk Kasir / POS.
         if(!document.getElementById('pos-kasir-js')){
-          const link=document.createElement('link');link.id='pos-kasir-css';link.rel='stylesheet';link.href='assets/templates/pos-kasir.css?v=1.1.0';document.head.appendChild(link);
-          const script=document.createElement('script');script.id='pos-kasir-js';script.src='assets/templates/pos-kasir.js?v=1.1.2';script.defer=true;document.body.appendChild(script);
+          const link=document.createElement('link');link.id='pos-kasir-css';link.rel='stylesheet';link.href='assets/templates/pos-kasir.css?v=1.2.0';document.head.appendChild(link);
+          const script=document.createElement('script');script.id='pos-kasir-js';script.src='assets/templates/pos-kasir.js?v=1.2.0';script.defer=true;document.body.appendChild(script);
         }}
       else if(['online_shop','pos_kasir'].includes(root.dataset.businessTemplate)){delete root.dataset.businessTemplate;}
       if(template!=='digital_subscription')return;

@@ -112,3 +112,19 @@ body.saas-dark .pos-receipt-card{background:#17222e;color:#e6eef7}
   body.pos-printing .pos-receipt-card{box-shadow:none;max-height:none;padding:0;width:58mm;color:#000;background:#fff}
   body.pos-printing .pos-receipt-actions{display:none}
 }
+
+/* ===== Sesi Kasir lengkap ===== */
+.pos-modal-card{width:min(400px,100%);max-height:92vh;overflow:auto;background:var(--card,#fff);color:var(--text,#14304a);border-radius:18px;padding:22px;display:flex;flex-direction:column;gap:8px}
+body.saas-dark .pos-modal-card{background:#17222e;color:#e6eef7}
+.pos-modal-card .card-title{margin:0}.pos-modal-card .pos-sub{margin:0 0 6px;font-weight:600}
+.pos-modal-card .label{margin-top:6px}
+.pos-modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
+.pos-recap{display:flex;flex-direction:column;gap:5px;padding:10px 12px;border-radius:12px;background:color-mix(in srgb,var(--v3-primary,#25b9b0) 8%,transparent);font-size:13px;margin:6px 0}
+.pos-recap .r{display:flex;justify-content:space-between;gap:10px}.pos-recap .r.sub{padding-left:12px;opacity:.8;font-size:12.5px}.pos-recap .r.tot{font-size:15px}
+.pos-diff{display:flex;justify-content:space-between;padding:10px 12px;border-radius:12px;font-weight:800;margin-top:4px;background:color-mix(in srgb,var(--v3-primary,#25b9b0) 8%,transparent)}
+.pos-diff.ok{background:#e3f5ea;color:#16794c}.pos-diff.plus{background:#fff1d1;color:#8a5a00}.pos-diff.minus{background:#fde6ea;color:#a3384a}
+.pos-sessions{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+.pos-session{display:flex;flex-direction:column;gap:2px;text-align:left;padding:10px 12px;border:1px solid color-mix(in srgb,var(--v3-primary,#25b9b0) 25%,transparent);border-radius:12px;background:transparent;color:inherit;font:inherit;cursor:pointer}
+.pos-session span{font-size:12.5px;color:var(--v3-muted,#4e6475)}.pos-session small{font-weight:800;font-size:12px}
+.pos-session small.ok{color:#16794c}.pos-session small.plus{color:#8a5a00}.pos-session small.minus{color:#a3384a}
+.pos-shift-history{width:100%;margin-top:8px}

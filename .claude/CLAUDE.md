@@ -86,8 +86,8 @@ domain = pengguna login ulang & pengaturan browser (Ingat saya, dark mode) mulai
 | `assets/brand/` | Logo resmi KAIRO Workspaces (kit dari owner, Okt 2026) | `kairo-horizontal-color.svg` = landing (header, footer, dialog Masuk; latar terang, min. lebar 120px); `kairo-app-icon.svg` = logo default dashboard (`KAIRO_LOGO`, sidebar, header HP, preview Settings, admin) sampai user upload logo sendiri; `favicon.svg/.ico`; `assets/og/apple-touch-icon.png` dari kit. Wordmark digambar - jangan diketik ulang pakai font. `assets/kairo-mark.svg` (logo lama) sudah dihapus. |
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
-Versi terakhir: `kairo.css?v=20.10.159`, `kairo-v3.css?v=3.41.0`,
-`kairo-v3.js?v=3.30.6`, `kairo-app.js?v=20.10.221`, `kairo-pin.js?v=1.0.1`, `kairo-themes.css?v=1.0.0`/`.js?v=1.0.1`; template seller dimuat dari kairo-app.js
+Versi terakhir: `kairo.css?v=20.10.160`, `kairo-v3.css?v=3.41.0`,
+`kairo-v3.js?v=3.30.6`, `kairo-app.js?v=20.10.223`, `kairo-pin.js?v=1.0.1`, `kairo-themes.css?v=1.0.0`/`.js?v=1.0.1`; template seller dimuat dari kairo-app.js
 (`seller-app-premium.js?v=20.10.161`, `.css?v=20.10.157`) — naikkan juga bila file template diubah.
 Setup Wizard dimuat dari `loadSetupWizard()` di kairo-app.js (`kairo-setup-wizard.js/.css?v=1.0.4`, satu konstanta `v`).
 Panduan dimuat dari `window.kairoOpenGuide()` di kairo-v3.js (`kairo-guide.js/.css?v=` konstanta `GUIDE_V`='1.0.3'; gambar `assets/guide/*.webp?v=` `SHOT_V` di kairo-guide.js).
@@ -195,7 +195,7 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
 - **Alamat pendek (owner Okt 2026):** folder `app/`, `masuk/` (-> `/#masuk`, form Masuk langsung) dan `daftar/` (-> `/?signup=1`, form Daftar) berisi
   halaman kecil yang hanya redirect ke `index.html` yang sama. Dokumen app SENGAJA tidak dipindah ke subfolder: banyak path relatif
   (`assets/...` dimuat dinamis dari JS, link `#home`, demo `#demo-...`) akan rusak. Jangan tambah `<base>`.
-- **Template Kasir / POS (owner Okt 2026, dibangun bertahap):** `business_template='pos_kasir'`; `assets/templates/pos-kasir.js/.css` (`?v=1.0.0`, dimuat loader hanya untuk template ini).
+- **Template Kasir / POS (owner Okt 2026, dibangun bertahap):** `business_template='pos_kasir'`; `assets/templates/pos-kasir.js/.css` (`?v=1.2.0`, dimuat loader hanya untuk template ini).
   Keputusan owner: usaha campuran kafe+retail (nomor meja opsional), pajak/service opsional default mati, cetak struk lewat browser, barcode = scanner keyboard di kolom cari, Sesi Kasir terpisah dari Kas/Petty Cash (belum dibahas final).
   **Tahap 1 (Dashboard) sudah:** kartu Penjualan/Profit/Jumlah Struk/Saldo Kas/Rata-rata per Struk (kartu "Omzet Bulan Ini" dipakai ulang), Sesi Kasir = Open/Close Store lama dengan label baru (ID `#open-shift-btn` dst tetap),
   riwayat sesi disembunyikan diganti grafik Penjualan per Jam (`#pos-hourly`, jam ramai = 2 teratas), baris Produk Terlaris + Metode Pembayaran + Tipe Pesanan (`#pos-dash-row`, Tipe Pesanan membaca field `platform`).
@@ -205,7 +205,14 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   (`__payments`, bawaan Tunai/QRIS/Debit/Lainnya), Tunai: uang diterima + kembalian + tombol cepat. Bayar -> insert `transactions` (struktur sama dengan Orders lama: `order_items/order_addons` + snapshot HPP; `reading_status:'done'`, `shift_id` sesi aktif, `receipt_no` = max+1) lalu struk (dialog, Cetak = `window.print()`, CSS `@media print` lebar 58mm).
   **Open Bill** = tabel `pos_open_bills` (SQL `.claude/sql/2026-10-pos-open-bill.sql`, **sudah dijalankan Claude via Supabase MCP Okt 2026**; RLS anggota workspace; kolom `transactions.receipt_no` + index). Simpan Bill / buka lagi / tambah item / bayar (bill otomatis terhapus) / Hapus bill. Tanpa tabel -> tombol Simpan Bill disembunyikan.
   Catatan MCP: `apply_migration`/`execute_sql` multi-statement DDL sempat timeout 60 dtk; jalankan DDL satu statement per panggilan (policy satu per satu) dan `set lock_timeout='8s'` untuk ALTER tabel besar.
-  **Belum:** pajak/service (Settings), Settings untuk Tipe Pesanan/Metode Pembayaran/kategori produk, Sesi Kasir lengkap (modal awal + selisih), stok di Dashboard/Settings, Performance, Panduan, Struk Terbaru (judul tabel riwayat). Tes: `seed-pos.js` + `bootApp(b,{template:'pos',seed:require('./seed-pos.js')})`.
+  **Tahap 3 (Sesi Kasir lengkap, `pos-kasir.js ?v=1.2.0`):** tombol `#open-shift-btn`/`#close-shift-btn` diambil alih (capture) -> modal. **Buka Kasir** = modal awal laci (`reading_shifts.opening_cash`). **Tutup Kasir** = rekap (struk, per metode, tunai masuk) +
+  uang keluar + uang fisik -> seharusnya (= modal + tunai masuk - keluar) dan **selisih** (hijau pas / kuning lebih / merah kurang), catatan; disimpan `cash_out/counted_cash/expected_cash/cash_difference/close_note`; lalu Rekap Sesi (cetak 58mm).
+  "Riwayat Sesi" (tombol di kartu Sesi Kasir) = 30 sesi terakhir -> rekap. Kartu "Saldo Kas" Dashboard Kasir dipakai ulang jadi **Kas Tunai di Laci** (modal awal + tunai masuk sesi berjalan; "-" tanpa sesi; selalu tampil walau Kas mati). Tunai = `payment_method` cocok /tunai|cash/i.
+  Kasir belum dibuka saat Bayar = toast peringatan sekali, struk tetap tersimpan tanpa sesi. SQL `.claude/sql/2026-10-pos-session-cash.sql` (**sudah dijalankan Claude via Supabase MCP Okt 2026**, hanya menambah kolom nullable).
+  **Belum:** pajak/service (Settings), Settings untuk Tipe Pesanan/Metode Pembayaran/kategori produk, stok di Dashboard/Settings, Performance, Panduan Kasir, Struk Terbaru (judul tabel riwayat). Tes: `seed-pos.js` + `bootApp(b,{template:'pos',seed:require('./seed-pos.js')})`.
+- **Struk "Standar" (owner Okt 2026, semua template usaha):** pilihan pertama di Settings › Struk (`RECEIPT_TEMPLATES` id `standard`): putih polos, huruf monospace, nama usaha di tengah + "STRUK PENJUALAN", garis putus-putus.
+  Dirender di 3 tempat: HTML preview/struk (`receiptPaperHeader` + CSS `.receipt-template-standard` di kairo.css), thumbnail picker, dan PNG canvas (`makeReceiptCanvas` punya cabang `standard`; cabang `else` terakhir = luxury, jadi template baru WAJIB punya cabang sendiri).
+  Bukan default: workspace tanpa desain tersimpan tetap 'pastel' (agar struk user lama tidak berubah).
 - **Login PIN (owner Okt 2026, tanpa Face ID):** `assets/kairo-pin.js` (`?v=1.0.0`, dimuat setelah kairo-app.js; memakai `db` global). Settings › Workspace & Branding
   › kartu "PIN Login" (`#kairo-pin-settings`): PIN 6 angka dibuat 2x. Refresh token sesi dienkripsi AES-GCM (kunci PBKDF2-SHA256 600k iterasi dari PIN, AAD = user id)
   di `localStorage` `kairo_pin_v1`; password TIDAK disimpan; kunci turunan hanya di memori, token diperbarui tiap `TOKEN_REFRESHED`. Dialog Masuk menampilkan keypad bila PIN ada
