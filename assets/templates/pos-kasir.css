@@ -166,3 +166,11 @@ body.saas-dark .pos-modal-card{background:#17222e;color:#e6eef7}
 .pos-diff-tag{display:inline-block;padding:2px 9px;border-radius:99px;font-size:12px;font-weight:800;background:color-mix(in srgb,var(--v3-primary,#25b9b0) 10%,transparent)}
 .pos-diff-tag.ok{background:#e3f5ea;color:#16794c}.pos-diff-tag.plus{background:#fff1d1;color:#8a5a00}.pos-diff-tag.minus{background:#fde6ea;color:#a3384a}
 @media (max-width:900px){.pos-analytics{grid-template-columns:minmax(0,1fr)}}
+/* Foto produk + stok menipis di grid Kasir */
+.pos-prod.has-img{padding-top:0;overflow:hidden}
+.pos-prod-img{width:calc(100% + 24px);margin:0 -12px 6px;height:84px;object-fit:cover;display:block}
+.pos-prod small.is-low{color:#9a5b00;font-weight:800}
+body.saas-dark .pos-prod small.is-low{color:#f2c46b}
+/* Produk & Add-on diatur di menu Produk (bukan lagi di Settings) */
+html[data-business-template="pos_kasir"] .saas-settings-submenu-btn[data-settings-category="packages"],
+html[data-business-template="pos_kasir"] .kairo-mobile-settings-link[data-settings-category="packages"]{display:none!important}

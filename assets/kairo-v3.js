@@ -564,7 +564,7 @@ if (window.top !== window.self) {
     let rows = [];
     try { rows = await allTransactions(); } catch (_) { return notifyItems; }
     const now = Date.now();
-    const stockItems = document.documentElement.dataset.businessTemplate === 'online_shop' && typeof window.kairoShopStockNotifications === 'function' ? window.kairoShopStockNotifications() : [];
+    const stockItems = ['online_shop', 'pos_kasir'].includes(document.documentElement.dataset.businessTemplate) && typeof window.kairoShopStockNotifications === 'function' ? window.kairoShopStockNotifications() : [];
     return stockItems.concat(rows.filter(tx => (tx.reading_status || 'done') !== 'done' && tx.reading_started_at)
       .map(tx => ({ tx, minutes: Math.floor((now - new Date(tx.reading_started_at).getTime()) / 60000) }))
       .filter(({ minutes }) => minutes >= NOTIFY_AFTER_MIN)
@@ -593,7 +593,7 @@ if (window.top !== window.self) {
     const urgent = notifyItems.some(item => item.urgent);
     const unseen = urgent || notifyItems.some(item => !seen.has(notifyStage(item)));
     const seller = document.body.classList.contains('seller-app-premium');
-    const shop = document.documentElement.dataset.businessTemplate === 'online_shop';
+    const shop = ['online_shop', 'pos_kasir'].includes(document.documentElement.dataset.businessTemplate);
     const label = notifyItems.length ? `Notifikasi: ${notifyItems.length} ${seller || shop ? 'pengingat' : 'order belum tuntas'}` : 'Notifikasi';
     qa('#kairo-notif-btn, #kairo-mobile-notif-btn').forEach(btn => {
       const dot = q('.kairo-notif-dot', btn);

@@ -5502,8 +5502,10 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
       else if(template==='pos_kasir'){root.dataset.businessTemplate='pos_kasir';if(typeof applyTopicFieldLabel==='function')applyTopicFieldLabel();document.dispatchEvent(new CustomEvent('kairo:template-ready'));
         // Dashboard Kasir (tahap 1): dimuat hanya untuk Kasir / POS.
         if(!document.getElementById('pos-kasir-js')){
-          const link=document.createElement('link');link.id='pos-kasir-css';link.rel='stylesheet';link.href='assets/templates/pos-kasir.css?v=1.4.0';document.head.appendChild(link);
-          const script=document.createElement('script');script.id='pos-kasir-js';script.src='assets/templates/pos-kasir.js?v=1.4.1';script.defer=true;document.body.appendChild(script);
+          const link=document.createElement('link');link.id='pos-kasir-css';link.rel='stylesheet';link.href='assets/templates/pos-kasir.css?v=1.5.0';document.head.appendChild(link);
+          const script=document.createElement('script');script.id='pos-kasir-js';script.src='assets/templates/pos-kasir.js?v=1.5.0';script.defer=true;document.body.appendChild(script);
+          const link2=document.createElement('link');link2.id='pos-produk-css';link2.rel='stylesheet';link2.href='assets/templates/pos-produk.css?v=1.3.0';document.head.appendChild(link2);
+          const script2=document.createElement('script');script2.id='pos-produk-js';script2.src='assets/templates/pos-produk.js?v=1.3.0';script2.defer=true;document.body.appendChild(script2);
         }}
       else if(['online_shop','pos_kasir'].includes(root.dataset.businessTemplate)){delete root.dataset.businessTemplate;}
       if(template!=='digital_subscription')return;

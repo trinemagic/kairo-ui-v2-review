@@ -632,7 +632,7 @@ html.kairo-v3 .kairo-notif-open {
 /* Page toolbar: the period filter and Export Excel only apply to Dashboard,
    Performance and Withdraw. Orders, Customer Database, Promo, Petty Cash and
    Settings keep just Refresh. Plan-independent, so it applies to every package. */
-html.kairo-v3 #app-shell main.container:has(> section.section.active:is(#input, #customers, #promo, #cash, #settings, #subscriptions)) > .toolbar :is(#period-group, #custom-range, .btn[onclick^="exportExcel"]) {
+html.kairo-v3 #app-shell main.container:has(> section.section.active:is(#input, #customers, #promo, #cash, #settings, #subscriptions, #pos-products)) > .toolbar :is(#period-group, #custom-range, .btn[onclick^="exportExcel"]) {
   display: none !important;
 }
 
@@ -2140,7 +2140,7 @@ html.kairo-v3 body.saas-dark .customer-contact-item strong {
   }
 
   /* Pages where Refresh is alone get a full-width button. */
-  html.kairo-v3 #app-shell main.container:has(> section.section.active:is(#input, #customers, #promo, #cash, #settings, #subscriptions)) > .toolbar .kairo-refresh-btn,
+  html.kairo-v3 #app-shell main.container:has(> section.section.active:is(#input, #customers, #promo, #cash, #settings, #subscriptions, #pos-products)) > .toolbar .kairo-refresh-btn,
   html.kairo-v3 body.kairo-mobile-history #app-shell main.container > .toolbar .kairo-refresh-btn {
     grid-column: 1 / -1;
   }
