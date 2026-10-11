@@ -284,7 +284,10 @@ const txGuard=makeAttemptGuard("kairo_tx_attempt_v1",p=>[activeWorkspaceId,p.tra
 const payoutGuard=makeAttemptGuard("kairo_payout_attempt_v1",p=>[activeWorkspaceId,p.partner_id,p.amount,p.payout_date,p.notes]);
 const expenseGuard=makeAttemptGuard("kairo_expense_attempt_v1",p=>[activeWorkspaceId,p.expense_date,p.amount,p.description]);
 const injectionGuard=makeAttemptGuard("kairo_injection_attempt_v1",p=>[activeWorkspaceId,p.injection_date,p.amount,p.source,p.description]);
+// Simpan Bill (Kasir): isi bill saja (tanpa updated_at). Tabel pos_open_bills tidak punya trigger, jadi tanpa pra-cek.
+const billGuard=makeAttemptGuard("kairo_bill_attempt_v1",p=>[activeWorkspaceId,p.label,p.order_type,p.table_no,p.customer_name,p.items,p.addons,p.discount_mode,p.discount_value]);
 window.kairoTxGuard=txGuard;
+window.kairoBillGuard=billGuard;
 
 let dashboardInitialized = false;
 let authBusy = false;
@@ -299,12 +302,17 @@ const lastKpiValues = {"kpi-revenue":0,"kpi-cash":0,"kpi-rights":0};
 // Jangan tampil mentah ke pengguna: ganti jadi "Proses <aksi> gagal, coba lagi." (pesan asli tetap dilaporkan ke Admin).
 const NETWORK_ERROR_RE=/load failed|failed to fetch|networkerror|network request failed|network connection was lost|internet connection appears to be offline|fetch failed|retryablefetch|timed? ?out|timeout/i;
 function isNetworkError(x){return NETWORK_ERROR_RE.test(String(x?.message??x??""));}
+// Pesan teknis lain dari database yang bukan salah pengguna (sesi habis, izin ditolak) juga dibuat ramah; validasi biasa tidak diubah.
+const SESSION_ERROR_RE=/jwt expired|invalid jwt|jwt.{0,20}(malformed|invalid)|invalid refresh token|refresh token (not found|is not valid)|auth session missing|session (expired|not found)/i;
+const PERMISSION_ERROR_RE=/row-level security|permission denied|new row violates/i;
 function friendlyError(raw,fallbackAction){
   const msg=String(raw?.message??raw??"").trim();
-  if(!NETWORK_ERROR_RE.test(msg)) return msg;
   const m=/^Gagal\s+([^:]{2,60}?)\s*:/i.exec(msg);
   const action=m?m[1].trim():(fallbackAction||"");
-  return `Proses ${action?action+" ":""}gagal, coba lagi. Pastikan koneksi internet aktif.`;
+  if(NETWORK_ERROR_RE.test(msg)) return `Proses ${action?action+" ":""}gagal, coba lagi. Pastikan koneksi internet aktif.`;
+  if(SESSION_ERROR_RE.test(msg)) return `Proses ${action?action+" ":""}gagal karena sesi login sudah berakhir. Keluar lalu masuk lagi, kemudian coba ulang.`;
+  if(PERMISSION_ERROR_RE.test(msg)) return `Proses ${action?action+" ":""}tidak diizinkan untuk akun ini. Coba keluar lalu masuk lagi; kalau masih begini, hubungi admin KAIRO.`;
+  return msg;
 }
 window.kairoFriendlyError=friendlyError;
 
@@ -5654,7 +5662,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
         // Dashboard Kasir (tahap 1): dimuat hanya untuk Kasir / POS.
         if(!document.getElementById('pos-kasir-js')){
           const link=document.createElement('link');link.id='pos-kasir-css';link.rel='stylesheet';link.href='assets/templates/pos-kasir.css?v=1.5.2';document.head.appendChild(link);
-          const script=document.createElement('script');script.id='pos-kasir-js';script.src='assets/templates/pos-kasir.js?v=1.5.8';script.defer=true;document.body.appendChild(script);
+          const script=document.createElement('script');script.id='pos-kasir-js';script.src='assets/templates/pos-kasir.js?v=1.5.9';script.defer=true;document.body.appendChild(script);
           const link2=document.createElement('link');link2.id='pos-produk-css';link2.rel='stylesheet';link2.href='assets/templates/pos-produk.css?v=1.4.0';document.head.appendChild(link2);
           const script2=document.createElement('script');script2.id='pos-produk-js';script2.src='assets/templates/pos-produk.js?v=1.4.2';script2.defer=true;document.body.appendChild(script2);
         }}

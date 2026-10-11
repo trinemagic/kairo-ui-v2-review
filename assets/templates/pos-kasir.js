@@ -219,10 +219,15 @@
     const billBtn = document.getElementById('pos-save-bill'), billOrig = billBtn?.textContent; window.kairoBtnLoading(billBtn, true, undefined, 'Menyimpan…');
     try {
       const wid = requireWorkspaceId();
-      const q = cart.billId ? db.from('pos_open_bills').update(row).eq('workspace_id', wid).eq('id', cart.billId) : db.from('pos_open_bills').insert([{ ...row, workspace_id: wid, ...(typeof activeAuthUserId !== 'undefined' && activeAuthUserId ? { created_by: activeAuthUserId } : {}) }]);
+      // Bill baru memakai id buatan aplikasi (cek duplikat): simpan ulang dengan isi sama setelah koneksi putus tidak membuat bill dobel.
+      const attempt = cart.billId ? null : window.kairoBillGuard?.begin(row);
+      const q = cart.billId ? db.from('pos_open_bills').update(row).eq('workspace_id', wid).eq('id', cart.billId) : db.from('pos_open_bills').insert([{ ...row, ...(attempt ? { id: attempt.id } : {}), workspace_id: wid, ...(typeof activeAuthUserId !== 'undefined' && activeAuthUserId ? { created_by: activeAuthUserId } : {}) }]);
       const { error } = await q;
-      if (error) throw error;
-      showToast(`Bill ${label} disimpan.`);
+      const alreadySaved = Boolean(error && attempt && window.kairoBillGuard.isDuplicate(error));
+      if (error && !alreadySaved) throw error;
+      window.kairoBillGuard?.done();
+      const billName = /^bill\b/i.test(label) ? label : 'Bill ' + label;
+      showToast(alreadySaved ? `${billName} sudah tersimpan sebelumnya, tidak dibuat dobel.` : `${billName} disimpan.`);
       resetCart(true);
       await loadBills();
     } catch (err) { showToast('Gagal menyimpan bill: ' + (err.message || err), true); }
