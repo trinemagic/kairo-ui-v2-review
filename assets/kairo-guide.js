@@ -160,6 +160,7 @@
           'Masuk dengan username atau email. Demi keamanan kamu perlu login setiap membuka dashboard; <b>Ingat saya</b> hanya menyimpan username (password tidak disimpan).',
           'Di HP, bila <b>Ingat saya</b> atau PIN aktif, layar Masuk tampil <b>penuh</b> (keypad PIN bila PIN aktif). Tombol <b>X</b> di pojok kanan atas membawa kamu kembali ke beranda.',
           'Jangan bagikan password. Tim yang ikut mencatat memakai akun pemilik dengan izinmu.',
+          'Saat membuat password baru (daftar atau pulihkan akun), KAIRO memeriksa apakah password itu <b>pernah bocor</b> di internet. Kalau pernah, kamu diminta memakai password lain. Password-mu tidak dikirim ke mana pun; hanya 5 karakter awal dari kode acaknya yang dipakai untuk pengecekan.',
           '<b>PIN Login</b> (Settings › Workspace &amp; Branding): buat PIN 6 angka untuk masuk lebih cepat di perangkat pribadi. Salah 5 kali, PIN dihapus dan kamu masuk lagi dengan password. Password tidak disimpan.',
           'Atur <b>Auto Lock</b> di kanan atas supaya layar terkunci saat ditinggal.',
           'Selalu <b>Keluar</b> setelah memakai perangkat bersama/umum.'
