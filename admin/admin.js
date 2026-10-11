@@ -73,7 +73,7 @@ const PAGES={
   workspaces:['Workspaces','Paket, masa aktif, dan status setiap workspace'],
   sales:['Penjualan','Catat dan pantau pembayaran paket'],
   renewals:['Renewal','Workspace yang masa aktifnya segera habis'],
-  plans:['Harga Paket','Harga bulanan & tahunan per paket'],
+  plans:['Harga Paket','Harga Pro per template (acuan)'],
   templates:['Template','Template usaha yang ada di KAIRO Workspaces + preview dashboard'],
   expenses:['Pengeluaran','Biaya operasional dan laba bersih'],
   analytics:['Analitik','Performa paket dan subscription'],
@@ -165,7 +165,7 @@ async function load(){
   const [o,w,a,b,s,series,prices,ex,an,pp,rq,cr,fu,ps]=calls.map(x=>x.error?null:x.data);
   overview=o||{};all=w||[];activity=a||[];business=b||{};sales=s||[];expenses=ex||[];analytics=an||{};planPerf=pp||[];renewals=rq||[];crm=cr||[];followups=fu||[];platformSettings=ps||{};
   await loadExtras();
-  renderOverview(series||[]);renderWorkspaces();renderSales();renderActivity();renderPrices(prices||[]);fillWorkspaceSelect();renderExpenses();renderAnalytics();renderRenewals();renderCrm();renderFollowups();renderPlatformSettings();fillFollowWorkspace();renderCustom();renderServer();renderTemplates();renderIssues();renderNavCounts();
+  renderOverview(series||[]);renderWorkspaces();renderSales();renderActivity();renderPrices();fillWorkspaceSelect();renderExpenses();renderAnalytics();renderRenewals();renderCrm();renderFollowups();renderPlatformSettings();fillFollowWorkspace();renderCustom();renderServer();renderTemplates();renderIssues();renderNavCounts();
   if(failed.length)toast(`Sebagian data gagal dimuat (${failed.length}). ${failed[0]}`,'warning');
 }
 
@@ -264,13 +264,11 @@ function renderActivity(){
   $('activityMini').innerHTML=activity.length?activity.slice(0,5).map(activityItem).join(''):none;
 }
 
-function renderPrices(p){
-  const rows=p.filter(x=>['basic','pro'].includes(String(x.plan).toLowerCase()));
-  $('priceGrid').innerHTML=rows.length?rows.map(x=>{const pro=planKey(x.plan)==='pro';return `<div class="widget price-card${pro?' pro':''}"><h2>${pro?'Pro':'Gratis'} ${planBadge(x.plan)}</h2><label class="field"><span>Harga bulanan (Rp)</span><input class="pMonth" data-plan="${esc(x.plan)}" type="number" min="0" value="${Number(x.monthly_price||0)}"></label><label class="field"><span>Harga tahunan (Rp)</span><input class="pAnnual" data-plan="${esc(x.plan)}" type="number" min="0" value="${Number(x.annual_price||0)}"></label><button class="btn btn-primary savePrice" data-plan="${esc(x.plan)}">Simpan Harga</button></div>`;}).join(''):'<div class="widget"><p class="empty">Data harga paket belum tersedia.</p></div>';
-  document.querySelectorAll('.savePrice').forEach(b=>b.onclick=async()=>{
-    const p=b.dataset.plan,m=+document.querySelector(`.pMonth[data-plan="${p}"]`).value,a=+document.querySelector(`.pAnnual[data-plan="${p}"]`).value;
-    const {error}=await db.rpc('platform_admin_update_plan_price',{p_plan:p,p_monthly:m,p_annual:a});
-    if(error)return toast(error.message,true);toast('Harga paket disimpan');await load();});
+// Halaman Harga Paket (owner Okt 2026): harga Pro berbeda per template, jadi kartu lama (1 harga per paket, semua Rp0 dan tidak dipakai perhitungan apa pun)
+// diganti daftar acuan baca-saja dari PRO_PRICE. Harga yang tampil ke pelanggan ada di landing (index.html) dan form Daftar (kairo-app.js).
+function renderPrices(){
+  const rows=TEMPLATES.map(t=>{const m=PRO_PRICE[t.key]||0;return `<tr><td><b>${esc(t.name)}</b><br><small>${esc(t.key)}</small></td><td class="num">${money(m)}</td><td class="num"><s>${money(m*6)}</s> <b>${money(m*6-20000)}</b></td></tr>`;}).join('');
+  $('priceGrid').innerHTML=`<div class="widget price-card"><h2>Gratis ${planBadge('basic')}</h2><p class="muted">Rp0. Riwayat 60 hari, tanpa fitur Pro.</p></div><div class="widget price-card pro wide"><h2>Pro ${planBadge('pro')}</h2><p class="muted">Harga per template. Akun baru bisa trial Pro 14 hari, satu kali per akun.</p><div class="table-wrap"><table><thead><tr><th>Template</th><th class="num">1 bulan</th><th class="num">6 bulan</th></tr></thead><tbody>${rows}</tbody></table></div><p class="muted">Daftar ini hanya acuan (dipakai untuk nominal otomatis di Catat Penjualan). Harga yang tampil ke pelanggan ada di landing page.</p></div>`;
 }
 
 function renderExpenses(){
@@ -475,7 +473,9 @@ function renderTemplates(){
   const live=TEMPLATES;
   setText('tplTotal',live.length);setText('tplCustom',live.filter(t=>t.kind==='custom').length);setText('tplBase',live.filter(t=>t.kind==='base').length);setText('tplNone',live.filter(t=>t.kind==='none').length);
   setText('navTemplates',live.length);
-  const stat=list=>list?{n:list.length,pro:list.filter(x=>planKey(x.w.plan)==='pro').length,active:list.filter(x=>Number(x.a.tx_30d)>0).length}:{n:'—',pro:'—',active:'—'};
+  const isTrialWs=x=>String(x.w.subscription_status||'').toLowerCase()==='trialing';
+  // Pro berbayar = Pro yang bukan trial; trial dihitung terpisah (trial yang sudah habis dibaca Gratis oleh dashboard).
+  const stat=list=>list?{n:list.length,pro:list.filter(x=>planKey(x.w.plan)==='pro'&&!isTrialWs(x)).length,trial:list.filter(x=>planKey(x.w.plan)==='pro'&&isTrialWs(x)&&x.w.valid_until&&+new Date(x.w.valid_until)>=Date.now()).length,active:list.filter(x=>Number(x.a.tx_30d)>0).length}:{n:'—',pro:'—',trial:0,active:'—'};
   // catatan analisa
   const notes=[];
   if(use){
@@ -494,11 +494,11 @@ function renderTemplates(){
       <button class="tpl-thumb${fb?' is-fallback':''}" data-tpl="${i}" aria-label="Perbesar preview ${esc(t.name)}"><img src="previews/${t.preview}-desktop.webp" alt="" loading="lazy"><img class="tpl-phone" src="previews/${t.preview}-mobile.webp" alt="" loading="lazy">${fb?'<span class="tpl-flag">Sementara memakai tampilan Jasa Online</span>':''}</button>
       <div class="tpl-title"><h2>${esc(t.name)}</h2><span class="badge ${TPL_KIND[t.kind][1]}">${TPL_KIND[t.kind][0]}</span></div>
       <p class="tpl-desc">${esc(t.desc)} <code>${esc(t.key)}</code></p>
-      <div class="tpl-stats"><div><b>${st.n}</b><span>Workspace</span></div><div><b>${st.pro}</b><span>Paket Pro</span></div><div><b>${st.active}</b><span>Aktif 30 hari</span></div></div>
+      <div class="tpl-stats"><div><b>${st.n}</b><span>Workspace</span></div><div><b>${st.pro}</b><span>Paket Pro${st.trial?` · +${st.trial} trial`:''}</span></div><div><b>${st.active}</b><span>Aktif 30 hari</span></div></div>
       ${t.features.length?`<ul class="tpl-feat">${t.features.map(f=>`<li>${esc(f)}</li>`).join('')}</ul>`:''}
       ${t.note?`<p class="tpl-note">${esc(t.note)}</p>`:''}
       ${t.files.length?`<div class="tpl-files">File: ${t.files.map(f=>`<code>${esc(f)}</code>`).join(', ')}</div>`:''}
-      ${list.length?`<details><summary>Lihat ${list.length} workspace</summary><ul>${list.map(x=>`<li>${esc(x.w.workspace_name)} · ${planKey(x.w.plan)==='pro'?'Pro':'Gratis'}${Number(x.a.tx_30d)?` · ${x.a.tx_30d} transaksi/30 hari`:' · belum ada transaksi 30 hari'}</li>`).join('')}</ul></details>`:''}
+      ${list.length?`<details><summary>Lihat ${list.length} workspace</summary><ul>${list.map(x=>`<li>${esc(x.w.workspace_name)} · ${planKey(x.w.plan)==='pro'?(isTrialWs(x)?'Trial Pro':'Pro'):'Gratis'}${Number(x.a.tx_30d)?` · ${x.a.tx_30d} transaksi/30 hari`:' · belum ada transaksi 30 hari'}</li>`).join('')}</ul></details>`:''}
     </article>`;}).join('');
   $('tplGrid').querySelectorAll('.tpl-thumb').forEach(b=>b.onclick=()=>{const t=TEMPLATES[+b.dataset.tpl];setText('tplModalTitle',t.name);setText('tplModalSub',t.kind==='none'?'Belum ada tampilan khusus — ini tampilan yang dilihat user sekarang (Jasa Online).':'Halaman Dashboard utama (data contoh)');$('tplShotDesk').src=`previews/${t.preview}-desktop.webp`;$('tplShotMob').src=`previews/${t.preview}-mobile.webp`;openModal('tplModal');});
 }
