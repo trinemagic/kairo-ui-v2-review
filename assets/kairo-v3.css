@@ -2853,7 +2853,7 @@ html.kairo-v3 .kairo-lp-card-head > b {
   padding: 4px 6px;
   border-radius: 6px;
   background: var(--kairo-sky-050);
-  color: var(--kairo-turquoise-dark);
+  color: #0f7a75;
   font-size: 6px;
 }
 
@@ -2927,7 +2927,7 @@ html.kairo-v3 .kairo-lp-orders em {
   padding: 4px 5px;
   border-radius: 999px;
   background: var(--kairo-sky-050);
-  color: var(--kairo-turquoise-dark);
+  color: #0f7a75;
   font-size: 5px;
   font-style: normal;
   font-weight: 800;
@@ -3617,7 +3617,7 @@ html.kairo-v3 .kairo-lp-faq-grid article > span {
   border: 1px solid var(--kairo-sky-200);
   border-radius: 11px;
   background: var(--kairo-white);
-  color: var(--kairo-turquoise-dark);
+  color: #0f7a75;
   font-size: 11.5px;
   font-weight: 900;
   place-items: center;
@@ -3857,7 +3857,7 @@ html.kairo-v3 .kairo-login-signup button {
   padding: 0;
   border: 0;
   background: none;
-  color: var(--kairo-turquoise-dark);
+  color: #0f7a75;
   font: inherit;
   font-weight: 800;
   cursor: pointer;
@@ -4368,7 +4368,7 @@ html.kairo-v3 .kairo-lp-price-deal {
 }
 html.kairo-v3 .kairo-lp-price-deal > span { font-size: 11px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: #c6d5de; }
 html.kairo-v3 .kairo-lp-price-deal > div { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
-html.kairo-v3 .kairo-lp-price-deal s { font-size: 13px; color: #9fb6c5; }
+html.kairo-v3 .kairo-lp-price-deal s { font-size: 13px; color: #b4c7d4; }
 html.kairo-v3 .kairo-lp-price-deal b { font-size: 20px; font-weight: 800; letter-spacing: -.02em; color: var(--kairo-white); }
 html.kairo-v3 .kairo-pp-price small { margin-left: 2px; font-size: 13px; font-weight: 700; letter-spacing: 0; opacity: .75; }
 html.kairo-v3 .kairo-pp-deal {
@@ -4376,7 +4376,7 @@ html.kairo-v3 .kairo-pp-deal {
   background: rgba(255, 255, 255, .1); font-size: 12px; font-weight: 700;
 }
 html.kairo-v3 .kairo-pp-deal span { color: #c9dbe6; }
-html.kairo-v3 .kairo-pp-deal s { color: #9fb6c5; }
+html.kairo-v3 .kairo-pp-deal s { color: #b4c7d4; }
 html.kairo-v3 .kairo-pp-deal b { color: var(--kairo-gold); font-weight: 800; }
 
 /* Home: "Kenapa KAIRO" strip (reuses .kairo-lp-feature-list) + Gratis/Pro summary. */
@@ -4404,7 +4404,7 @@ html.kairo-v3 .kairo-lp-plan-lite.is-featured h3,
 html.kairo-v3 .kairo-lp-plan-lite.is-featured > strong { color: var(--kairo-white); }
 html.kairo-v3 .kairo-lp-plan-lite.is-featured > strong > span { color: #c6d5de; }
 html.kairo-v3 .kairo-lp-plan-lite-deal { margin: 10px 0 0; color: #c6d5de; font-size: 13px; font-weight: 700; }
-html.kairo-v3 .kairo-lp-plan-lite-deal s { margin: 0 4px; color: #9fb6c5; font-weight: 600; }
+html.kairo-v3 .kairo-lp-plan-lite-deal s { margin: 0 4px; color: #b4c7d4; font-weight: 600; }
 html.kairo-v3 .kairo-lp-plan-lite-deal b { color: var(--kairo-gold); }
 html.kairo-v3 .kairo-lp-plan-lite .kairo-lp-price-list { margin: 18px 0 22px; }
 html.kairo-v3 .kairo-lp-plan-lite.is-featured .kairo-lp-price-list li { color: #eef5f8; }
@@ -5150,6 +5150,17 @@ html.kairo-v3 #shop-payment-card .shop-platform-row { grid-template-columns: min
   html.kairo-v3 .kairo-nav-links a {
     font-size: 13px;
   }
+}
+
+/* Teks kecil di halaman Daftar: kontras minimal 4,5 (dulu teal #168f8a dan abu #718096 sekitar 3,9-4,4). */
+html.kairo-v3 #kairo-account-page .kairo-account-brand span,
+html.kairo-v3 #kairo-account-page .kairo-inline-note,
+html.kairo-v3 #kairo-account-page .username-hint:not(.ok):not(.bad) {
+  color: var(--kairo-entry-muted);
+}
+
+html.kairo-v3 #kairo-account-page .kairo-step-label {
+  color: #0f7a75;
 }
 
 /* Tombol yang sedang memproses (login, simpan penjualan, bayar Kasir, dll): spinner + tulisan "Loading".

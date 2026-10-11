@@ -132,10 +132,33 @@
         ]
       },
       {
+        id: 'app', title: 'Pasang di layar utama (web app)',
+        intro: 'Buka KAIRO langsung dari ikon di HP, seperti aplikasi.',
+        steps: [
+          '<b>iPhone</b>: buka kairoworkspaces.my.id di <b>Safari</b>, pencet tombol <b>Bagikan</b>, lalu <b>Tambah ke Layar Utama</b>.',
+          '<b>Android</b>: buka di <b>Chrome</b>, pencet menu <b>&#8942;</b> di kanan atas, lalu <b>Instal aplikasi</b> atau <b>Tambahkan ke layar utama</b>.',
+          'Dari ikon, KAIRO terbuka tanpa bilah browser. Sebentar muncul layar logo <b>KAIRO Workspaces</b> selagi halaman masuk disiapkan.',
+          'Dulu sudah menambahkan ikon? <b>Hapus ikon lama, lalu tambahkan lagi</b> supaya terbuka sebagai web app.',
+          'Tetap perlu <b>internet</b> dan login setiap dibuka. Aktifkan <b>PIN Login</b> (Settings › Workspace &amp; Branding) supaya masuk cukup dengan 6 angka.',
+          'Di iPhone, layar putih bawaan bisa tampil sebentar sebelum layar logo. Itu normal.'
+        ]
+      },
+      {
+        id: 'connection', title: 'Kalau koneksi terputus',
+        intro: 'Apa artinya pesan gagal dan apakah aman mengulang.',
+        steps: [
+          'Pesan seperti <b>&ldquo;Proses menyimpan gagal, coba lagi&rdquo;</b> berarti koneksi internet sempat terganggu. Pastikan internet aktif, lalu pencet simpan lagi.',
+          'Tombol bertulisan <b>Loading</b> atau <b>Menyimpan&hellip;</b> sedang bekerja. Tunggu sampai selesai dan jangan dipencet berulang.',
+          'Untuk <b>penjualan</b> (Orders dan Kasir), <b>pencairan</b>, <b>pengeluaran kas</b>, dan <b>pemasukan kas</b>: bila data pertama ternyata sudah masuk, muncul &ldquo;sudah tersimpan sebelumnya&rdquo; dan tidak dicatat dobel.',
+          'Perlindungan ini berlaku selama halaman yang sama belum ditutup. Kalau sudah menutup halaman sebelum mengulang, cek <b>Riwayat</b> dulu supaya tidak mencatat dua kali.'
+        ]
+      },
+      {
         id: 'security', title: 'Keamanan akun',
         intro: 'Kebiasaan kecil supaya data usaha tetap aman.',
         steps: [
-          'Masuk dengan username atau email. Demi keamanan kamu perlu login setiap membuka dashboard; <b>Ingat saya</b> hanya menyimpan username.',
+          'Masuk dengan username atau email. Demi keamanan kamu perlu login setiap membuka dashboard; <b>Ingat saya</b> hanya menyimpan username (password tidak disimpan).',
+          'Di HP, bila <b>Ingat saya</b> atau PIN aktif, layar Masuk tampil <b>penuh</b> (keypad PIN bila PIN aktif). Tombol <b>X</b> di pojok kanan atas membawa kamu kembali ke beranda.',
           'Jangan bagikan password. Tim yang ikut mencatat memakai akun pemilik dengan izinmu.',
           '<b>PIN Login</b> (Settings › Workspace &amp; Branding): buat PIN 6 angka untuk masuk lebih cepat di perangkat pribadi. Salah 5 kali, PIN dihapus dan kamu masuk lagi dengan password. Password tidak disimpan.',
           'Atur <b>Auto Lock</b> di kanan atas supaya layar terkunci saat ditinggal.',
