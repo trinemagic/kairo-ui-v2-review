@@ -87,10 +87,10 @@ domain = pengguna login ulang & pengaturan browser (Ingat saya, dark mode) mulai
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
 Versi terakhir: `kairo.css?v=20.10.161`, `kairo-receipt.css?v=1.3.0`, `kairo-v3.css?v=3.43.2`,
-`kairo-v3.js?v=3.32.2`, `kairo-app.js?v=20.10.242`, `kairo-pin.js?v=1.0.2`, `kairo-themes.css?v=1.0.0`/`.js?v=1.0.1`; template seller dimuat dari kairo-app.js
+`kairo-v3.js?v=3.32.3`, `kairo-app.js?v=20.10.243`, `kairo-pin.js?v=1.0.2`, `kairo-themes.css?v=1.0.0`/`.js?v=1.0.1`; template seller dimuat dari kairo-app.js
 (`seller-app-premium.js?v=20.10.161`, `.css?v=20.10.157`) — naikkan juga bila file template diubah.
 Setup Wizard dimuat dari `loadSetupWizard()` di kairo-app.js (`kairo-setup-wizard.js/.css?v=1.0.4`, satu konstanta `v`).
-Panduan dimuat dari `window.kairoOpenGuide()` di kairo-v3.js (`kairo-guide.js/.css?v=` konstanta `GUIDE_V`='1.2.1'; gambar `assets/guide/*.webp?v=` `SHOT_V` di kairo-guide.js).
+Panduan dimuat dari `window.kairoOpenGuide()` di kairo-v3.js (`kairo-guide.js/.css?v=` konstanta `GUIDE_V`='1.2.2'; gambar `assets/guide/*.webp?v=` `SHOT_V` di kairo-guide.js).
 Admin: `admin.js?v=1.12.3`, `admin.css?v=1.8.2`. Library CDN dikunci versi + SRI: supabase-js 2.117.2 (index.html & admin), Chart.js 4.4.4 `dist/chart.umd.js`
 (`ensureChartLibrary`, admin), xlsx-js-style 1.2.0. **Ganti versi = hitung ulang SRI** (`npm pack` lalu `openssl dgst -sha384 -binary f | openssl base64 -A`).
 
@@ -378,7 +378,8 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   **Advisor Supabase (Okt 2026, dijalankan Claude via MCP, `.claude/sql/2026-10-advisor-fixes.sql`):** view `saas_plan_features` -> `security_invoker=true` (ERROR hilang; isinya VALUES tetap, tidak dipakai app);
   fungsi `kairo_email_domain_allowed` -> `search_path=''`. Tersisa SENGAJA tidak disentuh: INFO "RLS tanpa policy" di tabel `platform_*`/`usernames`/dll (artinya hanya fungsi SECURITY DEFINER yang boleh akses = benar);
   WARN fungsi SECURITY DEFINER bisa dipanggil anon/authenticated (helper RLS `is_workspace_member`/`workspace_role`/dll WAJIB tetap bisa dieksekusi anon/authenticated karena dipakai policy; fungsi `platform_admin_*` mengecek `is_platform_admin()` sendiri;
-  fungsi trigger tidak bisa dipanggil lewat RPC). **Leaked password protection** = setelan Auth Supabase (Authentication > Password security), butuh paket Supabase Pro, tidak bisa diubah lewat SQL/MCP; owner belum upgrade, jadi dibiarkan.
+  fungsi trigger tidak bisa dipanggil lewat RPC). **Leaked password protection** = setelan Auth Supabase, butuh paket Pro (menurut sumber pihak ketiga; docs resmi tidak terjangkau dari sandbox), tidak bisa diubah lewat SQL/MCP; owner belum upgrade -> diganti cek gratis di sisi browser (lihat di bawah). Auth email bawaan Supabase dibatasi 2 email/jam (best-effort, bukan produksi): owner diminta memasang SMTP sendiri (Authentication > SMTP) karena konfirmasi daftar & pemulihan memakai email.
+  **Cek password bocor GRATIS (owner Okt 2026, pengganti Leaked password protection):** `passwordLeakCount(password)` (kairo-app.js, `window.kairoPasswordLeakCount`) memakai k-anonymity HaveIBeenPwned: SHA-1 password, hanya 5 karakter awal dikirim ke `https://api.pwnedpasswords.com/range/<5>` (domain ditambah di `connect-src` CSP index.html), cocokkan sisa hash di balasan `SUFFIX:COUNT`. Dipasang di form Daftar (`submitSignup`) dan Pulihkan Akun (`kairo-recovery-complete-form`) -> pesan 'Password ini sudah pernah bocor di internet (tercatat N kali...)'. **Gagal buka (layanan mati/lambat >4 dtk/non-200) = lolos (fail-open)**, supaya pendaftaran tidak terblokir. Batas jujur: hanya di sisi browser (orang yang menembak API Supabase langsung bisa melewatinya); header `Add-Padding` sengaja tidak dipakai (memicu preflight CORS); BELUM diuji dengan API HIBP asli (sandbox memblokir; dites dengan balasan tiruan berformat sama). Disebut di Kebijakan Privasi (bagian 4) dan Panduan (Keamanan akun). Admin › Buat Akun (password acak) tidak dicek. Syarat password server-side (panjang/karakter) bisa dinaikkan owner di Supabase Auth.
   Tabel/kolom Retur & Stok Online Shop (`order_returns`, `package_masters.stock_qty`, trigger stok) sudah ada di DB asli (dicek Okt 2026).
 - **Warna layout:** `kairo-v3.js` memetakan `--brand-primary/--brand-accent` ke token
   v3. Default lama `#696F41/#EA97A9` = "belum diatur" (tetap tampilan KAIRO).
@@ -653,7 +654,7 @@ cd .claude/testing && node example.js                                # lihat REA
 ## 6. Belum selesai / perlu dicek owner
 
 - Semua perubahan belum diuji di **Safari/iPhone/Android** dan dengan **Supabase/login asli** (termasuk splash, mode standalone, gambar layar awal iOS, Masuk layar penuh, cek duplikat di trigger kas asli).
-- Menunggu owner: tes printer struk fisik, testimoni/medsos/kebijakan refund untuk landing, Promo di layar Kasir (HOLD), bukti error "tidak bisa tambah topik", Leaked password protection (butuh Supabase Pro).
+- Menunggu owner: tes printer struk fisik, testimoni/medsos/kebijakan refund untuk landing, Promo di layar Kasir (HOLD), bukti error "tidak bisa tambah topik", Leaked password protection asli (butuh Supabase Pro; sementara diganti cek gratis di browser) dan pemasangan SMTP sendiri di Supabase Auth.
 - Keputusan terbuka: Simpan Bill belum punya cek duplikat (risiko kecil, bill dobel tinggal dihapus).
 - Penyebab "tidak bisa tambah topik" di DB asli belum terkonfirmasi.
 - Performa (audit Okt 2026): idle di luar Dashboard 0 re-layout; di Dashboard 1×/detik (jam).
