@@ -5190,3 +5190,38 @@ html.kairo-v3 .kairo-loading:disabled {
 @media (prefers-reduced-motion: reduce) {
   html.kairo-v3 .kairo-loading::before { animation-duration: 1.6s; }
 }
+
+/* ---- Harga Pro per template + promo trial 14 hari (owner Okt 2026, PREVIEW) ---- */
+html.kairo-v3 .kairo-lp-trial {
+  display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap;
+  width: fit-content; max-width: 100%; margin: 28px auto 0; padding: 9px 18px; border-radius: 999px;
+  border: 1px solid #ecd9a8; background: #fdf3d6; color: #503b12; font-size: 14px; font-weight: 700; text-align: center;
+}
+html.kairo-v3 .kairo-lp-trial b { padding: 3px 9px; border-radius: 999px; background: var(--kairo-gold); color: #503b12; font-size: 11px; font-weight: 900; letter-spacing: .05em; text-transform: uppercase; }
+html.kairo-v3 .kairo-lp-trial + .kairo-lp-price-grid { margin-top: 36px; }
+html.kairo-v3 .kairo-lp-price-card > strong > em,
+html.kairo-v3 .kairo-lp-plan-lite > strong > em { margin-right: 6px; font-size: 14px; font-style: normal; font-weight: 700; letter-spacing: 0; color: #c6d5de; }
+html.kairo-v3 .kairo-lp-price-deal b { white-space: normal; }
+
+html.kairo-v3 .kairo-lp-tpl { margin-top: 64px; }
+html.kairo-v3 .kairo-lp-tpl-head { max-width: 640px; margin: 0 auto; text-align: center; }
+html.kairo-v3 .kairo-lp-tpl-head h3 { margin: 0; color: var(--kairo-delft); font-size: clamp(22px, 2.6vw, 28px); letter-spacing: -.03em; }
+html.kairo-v3 .kairo-lp-tpl-head p { margin: 10px 0 0; color: var(--kairo-entry-muted); font-size: 14.5px; line-height: 1.65; }
+html.kairo-v3 .kairo-lp-tpl-grid { display: grid; margin-top: 30px; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+html.kairo-v3 .kairo-lp-tpl-card { display: flex; min-width: 0; padding: 22px; border: 1px solid var(--kairo-entry-line); border-radius: 16px; background: var(--kairo-white); flex-direction: column; }
+html.kairo-v3 .kairo-lp-tpl-icon { display: grid; width: 40px; height: 40px; place-items: center; border-radius: 12px; background: #e6f6f4; color: #0f7a75; }
+html.kairo-v3 .kairo-lp-tpl-icon svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+html.kairo-v3 .kairo-lp-tpl-card h4 { margin: 16px 0 0; color: var(--kairo-delft); font-size: 16px; }
+html.kairo-v3 .kairo-lp-tpl-card p { margin: 8px 0 0; color: var(--kairo-entry-muted); font-size: 13.5px; line-height: 1.6; flex: 1; }
+html.kairo-v3 .kairo-lp-tpl-card strong { margin: 18px 0 14px; color: var(--kairo-delft); font-size: 26px; letter-spacing: -.04em; }
+html.kairo-v3 .kairo-lp-tpl-card strong span { margin-left: 2px; color: var(--kairo-entry-muted); font-size: 14px; font-weight: 700; letter-spacing: 0; }
+@media (max-width: 1100px) { html.kairo-v3 .kairo-lp-tpl-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) {
+  html.kairo-v3 .kairo-lp-tpl { margin-top: 48px; }
+  html.kairo-v3 .kairo-lp-tpl-grid { grid-template-columns: minmax(0, 1fr); }
+  html.kairo-v3 .kairo-lp-trial { border-radius: 16px; font-size: 13.5px; }
+}
+html.kairo-v3 .kairo-business-price { display: inline-block; margin-top: 6px; padding: 3px 9px; border-radius: 999px; background: #e6f6f4; color: #0f7a75; font-size: 11.5px; font-style: normal; font-weight: 800; }
+html.kairo-v3 .kairo-pp-period-note { margin: 10px 0 0; color: var(--kairo-entry-muted); font-size: 12.5px; line-height: 1.55; }
+html.kairo-v3 .kairo-pp-deal b { font-weight: 800; }
+html.kairo-v3 .kairo-pp-price small:first-child { margin: 0 4px 0 0; }

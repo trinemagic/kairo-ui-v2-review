@@ -92,6 +92,8 @@ if (window.top !== window.self) {
   async function openSignup(event) {
     // Pricing buttons preselect a plan in the signup table (data-signup-plan="pro" | "custom").
     window.__kairoSignupPlan = event?.currentTarget?.dataset?.signupPlan || 'basic';
+    // Tombol harga per template (data-signup-template) juga memilih Jenis Usaha di form daftar.
+    window.__kairoSignupTemplate = event?.currentTarget?.dataset?.signupTemplate || '';
     closeLogin({ restoreFocus: false });
     try { await window.__kairoEnsureRuntime?.(); } catch (_) { return; }
     const started = Date.now();
