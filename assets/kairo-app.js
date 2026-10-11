@@ -710,9 +710,11 @@ let monthlyRevenueComparison = {
 /* One request per table, per workspace. Page loaders derive their own views
    from this shared cache instead of scanning the same Supabase table repeatedly. */
 const workspaceDataCache={workspaceId:null,rows:new Map(),promises:new Map()};
+// Salinan transaksi untuk sinkron bertahap (lihat allTransactions): wm = updated_at terbaru yang sudah dimiliki.
+const txStore={wid:'',map:new Map(),wm:'',delta:false,fullAt:0};
 function ensureWorkspaceCache(){
   const wid=String(activeWorkspaceId||'');
-  if(workspaceDataCache.workspaceId!==wid){workspaceDataCache.workspaceId=wid;workspaceDataCache.rows.clear();workspaceDataCache.promises.clear();}
+  if(workspaceDataCache.workspaceId!==wid){workspaceDataCache.workspaceId=wid;workspaceDataCache.rows.clear();workspaceDataCache.promises.clear();txStore.wid='';txStore.map=new Map();txStore.wm='';txStore.delta=false;}
 }
 function invalidateWorkspaceData(keys=[]){
   ensureWorkspaceCache();
@@ -726,7 +728,72 @@ async function cachedWorkspaceRows(key,loader){
   const promise=Promise.resolve().then(loader).then(rows=>{const safe=Array.isArray(rows)?rows:[];workspaceDataCache.rows.set(key,safe);workspaceDataCache.promises.delete(key);return safe}).catch(error=>{workspaceDataCache.promises.delete(key);throw error});
   workspaceDataCache.promises.set(key,promise);return promise;
 }
-function allTransactions(){return cachedWorkspaceRows('transactions',()=>fetchAllRows(()=>db.from('transactions').select('*').eq('workspace_id',requireWorkspaceId()).order('transaction_date',{ascending:false}).order('created_at',{ascending:false})))}
+/* Sinkron transaksi bertahap (owner Okt 2026): transaksi = tabel terbesar dan dulu diunduh UTUH tiap data disegarkan (tiap simpan, hapus,
+   refresh, event realtime), sehingga kuota data keluar Supabase habis makin cepat seiring riwayat menumpuk. Sekarang unduhan utuh hanya
+   sekali per sesi (dan tiap 12 jam); sesudahnya hanya baris yang berubah sejak sinkron terakhir (kolom transactions.updated_at, SQL
+   2026-10-tx-delta-sync.sql, diisi trigger) + hitungan baris untuk mendeteksi penghapusan. Hasilnya tetap array lengkap & berurutan seperti
+   dulu, jadi semua pemanggil allTransactions() tidak berubah. Kolom belum ada / data demo / error apa pun = unduh utuh seperti sebelumnya. */
+const TX_FULL_RELOAD_MS=12*3600*1000,TX_OVERLAP_MS=120000;
+const txTime=v=>Date.parse(String(v||'').replace(/(\.\d{3})\d+/,'$1'));
+function txRemember(row){
+  txStore.map.set(String(row.id),{...row});
+  if(row.updated_at&&String(row.updated_at)>txStore.wm)txStore.wm=String(row.updated_at);
+}
+function txRowsOut(){
+  return [...txStore.map.values()].sort((a,b)=>{
+    const da=String(a.transaction_date||''),dbb=String(b.transaction_date||'');
+    if(da!==dbb)return da<dbb?1:-1;
+    const ca=String(a.created_at||''),cb=String(b.created_at||'');
+    return ca===cb?0:(ca<cb?1:-1);
+  }).map(r=>({...r}));
+}
+async function loadTransactionsFull(wid){
+  const rows=await fetchAllRows(()=>db.from('transactions').select('*').eq('workspace_id',wid).order('transaction_date',{ascending:false}).order('created_at',{ascending:false}));
+  txStore.wid=wid;txStore.map=new Map();txStore.wm='';txStore.fullAt=Date.now();
+  let complete=rows.length>0;
+  rows.forEach(r=>{if(!r.updated_at)complete=false;txRemember(r);});
+  txStore.delta=complete&&Number.isFinite(txTime(txStore.wm));
+  return rows;
+}
+async function loadTransactionsDelta(wid){
+  const since=new Date(txTime(txStore.wm)-TX_OVERLAP_MS).toISOString();
+  const [changed,head]=await Promise.all([
+    fetchAllRows(()=>db.from('transactions').select('*').eq('workspace_id',wid).gte('updated_at',since).order('updated_at',{ascending:true}).order('id',{ascending:true})),
+    db.from('transactions').select('id',{count:'exact',head:true}).eq('workspace_id',wid)
+  ]);
+  if(head.error)throw head.error;
+  if(typeof head.count!=='number')throw new Error('hitungan baris tidak tersedia');
+  changed.forEach(txRemember);
+  if(head.count!==txStore.map.size){
+    // Ada baris yang dihapus (atau terlewat): cocokkan daftar id, buang yang sudah tiada, ambil yang belum dimiliki.
+    const ids=await fetchAllRows(()=>db.from('transactions').select('id').eq('workspace_id',wid).order('id',{ascending:true}));
+    const server=new Set(ids.map(r=>String(r.id)));
+    for(const key of [...txStore.map.keys()])if(!server.has(key))txStore.map.delete(key);
+    const missing=[...server].filter(key=>!txStore.map.has(key));
+    for(let i=0;i<missing.length;i+=100){
+      const {data,error}=await db.from('transactions').select('*').eq('workspace_id',wid).in('id',missing.slice(i,i+100));
+      if(error)throw error;
+      (data||[]).forEach(txRemember);
+    }
+    if(txStore.map.size!==server.size)throw new Error('jumlah baris tidak cocok setelah sinkron');
+  }
+  return txRowsOut();
+}
+async function loadTransactionsSynced(){
+  const wid=String(requireWorkspaceId());
+  if(txStore.wid===wid&&txStore.delta&&Date.now()-txStore.fullAt<TX_FULL_RELOAD_MS){
+    try{return await loadTransactionsDelta(wid);}
+    catch(err){console.warn('Sinkron transaksi bertahap gagal, unduh ulang penuh:',err?.message||err);}
+  }
+  return loadTransactionsFull(wid);
+}
+function allTransactions(){return cachedWorkspaceRows('transactions',loadTransactionsSynced)}
+// Transaksi terbaru sampai tanggal tertentu (validasi pencairan / pengeluaran kas): sinkron dulu supaya datanya yang paling baru.
+async function freshTransactionsUpTo(date){
+  invalidateWorkspaceData(['transactions']);
+  const limit=String(date||'');
+  return (await allTransactions()).filter(row=>!limit||String(row.transaction_date||'')<=limit);
+}
 function allPayouts(){return cachedWorkspaceRows('payouts',()=>fetchAllRows(()=>db.from('payouts').select('*').eq('workspace_id',requireWorkspaceId()).order('payout_date',{ascending:false}).order('created_at',{ascending:false})))}
 function allCashExpenses(){return cachedWorkspaceRows('cash_expenses',()=>fetchAllRows(()=>db.from('cash_expenses').select('*').eq('workspace_id',requireWorkspaceId()).order('expense_date',{ascending:false}).order('created_at',{ascending:false})))}
 function allCashInjections(){return cachedWorkspaceRows('cash_injections',()=>fetchAllRows(()=>db.from('cash_injections').select('*').eq('workspace_id',requireWorkspaceId()).order('injection_date',{ascending:false}).order('created_at',{ascending:false})))}
@@ -2371,7 +2438,7 @@ async function openCustomerHistory(customerId,customerName){
   title.textContent=customerName||'Riwayat Customer';sub.textContent='Memuat seluruh riwayat pembelian...';content.innerHTML='<div class="customer-history-empty">Memuat riwayat order...</div>';
   document.body.dataset.customerHistoryOverflow=document.body.style.overflow||'';document.body.style.overflow='hidden';modal.classList.add('show');
   try{
-    const all=await fetchAllRows(()=>db.from('transactions').select('*').eq('workspace_id',requireWorkspaceId()).order('transaction_date',{ascending:false}));
+    invalidateWorkspaceData(['transactions']);const all=await allTransactions();
     const normalized=normalizeCustomerName(customerName);const rows=(all||[]).filter(t=>String(t.customer_id||'')===String(customerId||'')||(!t.customer_id&&normalizeCustomerName(t.customer_name)===normalized));
     const total=rows.reduce((sum,t)=>sum+Number(t.total_price||0),0);const last=rows[0]?.transaction_date||'-';const contact=customerDirectory.find(x=>String(x.id||'')===String(customerId||''))||{};
     sub.textContent=`${rows.length} order tercatat • seluruh periode`;
@@ -2709,11 +2776,10 @@ document.getElementById("payout-form").addEventListener("submit",async e=>{
     let alreadySaved=attempt.retry&&await payoutGuard.exists("payouts",attempt.id);
 
     if(!alreadySaved){
-      const [{data:txData,error:txError},{data:poData,error:poError}]=await Promise.all([
-        db.from("transactions").select("total_price,transaction_date,created_at,order_items,order_addons").eq("workspace_id",requireWorkspaceId()).lte("transaction_date",payoutDate),
+      const [txData,{data:poData,error:poError}]=await Promise.all([
+        freshTransactionsUpTo(payoutDate),
         db.from("payouts").select("amount").eq("workspace_id",requireWorkspaceId()).eq("partner_id",partnerId).lte("payout_date",payoutDate)
       ]);
-      if(txError) throw txError;
       if(poError) throw poError;
 
       const paidToDate=(poData||[]).reduce((sum,p)=>sum+Number(p.amount||0),0);
@@ -2775,7 +2841,7 @@ document.getElementById("cash-expense-form").addEventListener("submit",async e=>
     if(!alreadySaved){
     // Hard stop: pengeluaran kas tidak boleh melebihi kas 5% yang tersedia sampai tanggal pengeluaran.
     const [txData,expenseData,injectionData]=await Promise.all([
-      fetchAllRows(()=>db.from("transactions").select("total_price,transaction_date,created_at,order_items,order_addons").eq("workspace_id",requireWorkspaceId()).lte("transaction_date",expenseDate)),
+      freshTransactionsUpTo(expenseDate),
       fetchAllRows(()=>db.from("cash_expenses").select("amount").eq("workspace_id",requireWorkspaceId()).lte("expense_date",expenseDate)),
       fetchAllRows(()=>db.from("cash_injections").select("amount").eq("workspace_id",requireWorkspaceId()).lte("injection_date",expenseDate))
     ]);
