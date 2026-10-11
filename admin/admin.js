@@ -188,7 +188,7 @@ function renderOverview(series){
   const now=Date.now(),d7=now+7*864e5,ar=all.filter(x=>['active','trialing'].includes(String(x.subscription_status||'').toLowerCase()));
   const exp7=ar.filter(x=>x.valid_until&&+new Date(x.valid_until)>=now&&+new Date(x.valid_until)<=d7).length;
   setText('exp7',exp7);setText('exp7b',exp7);setText('issues',all.filter(isIssue).length);
-  const sum=free+pro;setText('donutTotal',sum);setText('legendFree',free);setText('legendPro',pro);
+  const sum=free+pro;setText('donutTotal',sum);setText('legendFree',free);const trialN=all.filter(x=>planKey(x.plan)==='pro'&&String(x.subscription_status||'').toLowerCase()==='trialing'&&x.valid_until&&+new Date(x.valid_until)>=now).length;setText('legendPro',trialN?`${pro-trialN} (+${trialN} trial)`:pro);
   $('planDonut').style.setProperty('--pro',sum?(pro/sum*100).toFixed(1):0);
   renderGoal();renderTasks();renderChart(series);
 }
@@ -558,7 +558,7 @@ const SEV={high:['Tinggi','b-danger',0],med:['Sedang','b-warn',1],low:['Rendah',
 const DAY=864e5;
 function computeIssues(){
   const out=[],now=Date.now(),today=todayISO(),act=Object.fromEntries(wsActivity.map(a=>[a.workspace_id,a]));
-  const openFollow=new Set(followups.filter(f=>f.status==='open').map(f=>f.workspace_name));
+  const followedWs=new Set(followups.filter(f=>f.status==='open').map(f=>f.workspace_name));
   const customWs=new Set(customReqs.map(r=>r.workspace_id).filter(Boolean));
   const soldWs=new Set(sales.flatMap(x=>[x.workspace_id,x.workspace_name]).filter(Boolean));
   const add=(sev,title,ws,detail,since,action,copy,fp)=>out.push({sev,title,ws,detail,since,action,copy,fp});
@@ -566,8 +566,9 @@ function computeIssues(){
     const ss=String(w.subscription_status||'').toLowerCase(),wst=String(w.workspace_status||'').toLowerCase(),until=w.valid_until?+new Date(w.valid_until):null,pro=planKey(w.plan)==='pro';
     const manage={label:'Kelola',run:()=>openWorkspace(w.workspace_id)};
     if(ss==='past_due')add('high','Pembayaran telat',w,'Subscription berstatus telat bayar',w.valid_until,manage);
+    else if(pro&&until&&until<now&&ss==='trialing')add('med','Trial Pro sudah habis',w,`Habis ${remain(w.valid_until)} — dashboard user sudah otomatis jadi Gratis. Tawarkan perpanjangan Pro.`,w.valid_until,{label:'Follow-up',run:()=>openFollow(w.workspace_id,'Tawarkan perpanjangan Pro setelah trial')});
     else if(pro&&until&&until<now&&['active','trialing'].includes(ss))add('high','Masa aktif Pro sudah habis',w,`Habis ${remain(w.valid_until)} — dashboard user sudah otomatis jadi Gratis. Perpanjang atau ubah paket ke Gratis.`,w.valid_until,manage);
-    else if(pro&&until&&until>=now&&until<=now+7*DAY&&!openFollow.has(w.workspace_name))add('med','Pro hampir habis, belum di-follow-up',w,`Sisa ${remain(w.valid_until)}`,null,{label:'Follow-up',run:()=>openFollow(w.workspace_id,'Ingatkan perpanjangan Pro')},null,w.valid_until);
+    else if(pro&&until&&until>=now&&until<=now+7*DAY&&!followedWs.has(w.workspace_name))add('med',ss==='trialing'?'Trial Pro hampir habis, belum di-follow-up':'Pro hampir habis, belum di-follow-up',w,`Sisa ${remain(w.valid_until)}`,null,{label:'Follow-up',run:()=>openFollow(w.workspace_id,ss==='trialing'?'Tawarkan perpanjangan Pro sebelum trial habis':'Ingatkan perpanjangan Pro')},null,w.valid_until);
     // Dashboard membaca Pro yang lewat masa aktif sebagai Gratis; Pro tanpa tanggal berakhir = Pro selamanya.
     if(pro&&!until&&!/trine magic/i.test(w.workspace_name||''))add('med','Pro tanpa masa aktif',w,'Tanggal berakhir belum diisi, jadi Pro tidak pernah habis',null,{label:'Atur',run:()=>openWorkspace(w.workspace_id)});
     if(wst==='suspended')add('low','Workspace di-suspend',w,'Owner tidak bisa memakai workspace',null,manage);
@@ -578,6 +579,7 @@ function computeIssues(){
       else if(last&&last<now-14*DAY)add(pro?'med':'low','Tidak ada transaksi 14+ hari',w,`Transaksi terakhir ${dateID(a.last_tx_at)}`,a.last_tx_at,{label:'Follow-up',run:()=>openFollow(w.workspace_id,'Cek kenapa berhenti mencatat')});
       const rp=requestedPro(w.workspace_id);
       if(rp&&!soldWs.has(w.workspace_id)&&!soldWs.has(w.workspace_name))add('med','Daftar Pro, pembayaran belum dicatat',w,`Pilih ${PERIOD[rp.requested_period]}${rp.owner_phone?` · WA ${rp.owner_phone}`:''}`,a.workspace_created_at,{label:'Catat',run:()=>openSale(w.workspace_id)});
+      if(a.requested_plan==='pro'&&a.requested_period==='trial'&&!pro)add('med','Minta trial Pro, belum aktif',w,'Memilih trial 14 hari saat daftar, tetapi paket masih Gratis. Aktifkan lewat Kelola (Pro, berakhir 14 hari dari sekarang).',a.workspace_created_at,manage);
       if(a.requested_variant==='custom'&&!customWs.has(w.workspace_id))add('med','Daftar paket Custom, request belum dicatat',w,a.owner_phone?`WA ${a.owner_phone}`:'Hubungi owner untuk detail kebutuhan',a.workspace_created_at,{label:'Catat',run:()=>openCustom(null,{workspace_id:w.workspace_id,customer_name:w.owner_username||'',contact:a.owner_phone||''})});
     }
   });
