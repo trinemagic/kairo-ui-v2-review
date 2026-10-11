@@ -87,10 +87,10 @@ domain = pengguna login ulang & pengaturan browser (Ingat saya, dark mode) mulai
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
 Versi terakhir: `kairo.css?v=20.10.161`, `kairo-receipt.css?v=1.3.0`, `kairo-v3.css?v=3.43.0`,
-`kairo-v3.js?v=3.32.0`, `kairo-app.js?v=20.10.240`, `kairo-pin.js?v=1.0.2`, `kairo-themes.css?v=1.0.0`/`.js?v=1.0.1`; template seller dimuat dari kairo-app.js
+`kairo-v3.js?v=3.32.1`, `kairo-app.js?v=20.10.240`, `kairo-pin.js?v=1.0.2`, `kairo-themes.css?v=1.0.0`/`.js?v=1.0.1`; template seller dimuat dari kairo-app.js
 (`seller-app-premium.js?v=20.10.161`, `.css?v=20.10.157`) — naikkan juga bila file template diubah.
 Setup Wizard dimuat dari `loadSetupWizard()` di kairo-app.js (`kairo-setup-wizard.js/.css?v=1.0.4`, satu konstanta `v`).
-Panduan dimuat dari `window.kairoOpenGuide()` di kairo-v3.js (`kairo-guide.js/.css?v=` konstanta `GUIDE_V`='1.1.0'; gambar `assets/guide/*.webp?v=` `SHOT_V` di kairo-guide.js).
+Panduan dimuat dari `window.kairoOpenGuide()` di kairo-v3.js (`kairo-guide.js/.css?v=` konstanta `GUIDE_V`='1.2.0'; gambar `assets/guide/*.webp?v=` `SHOT_V` di kairo-guide.js).
 Admin: `admin.js?v=1.12.3`, `admin.css?v=1.8.2`. Library CDN dikunci versi + SRI: supabase-js 2.117.2 (index.html & admin), Chart.js 4.4.4 `dist/chart.umd.js`
 (`ensureChartLibrary`, admin), xlsx-js-style 1.2.0. **Ganti versi = hitung ulang SRI** (`npm pack` lalu `openssl dgst -sha384 -binary f | openssl base64 -A`).
 
@@ -354,7 +354,7 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
 - **Panduan (owner Okt 2026):** tombol ikon buku `#kairo-guide-btn` di samping lonceng (desktop, `mountGuideButton()` kairo-v3.js) + item
   "Panduan" `#kairo-guide-more-item` di menu More HP (`buildMore()`). Isi `assets/kairo-guide.js` (teks statis, menyesuaikan template seller/dasar
   & paket; bagian halaman aktif terbuka otomatis; cari; "Buka <menu>" meng-klik tombol sidebar yang sama - Tracker Langganan hanya terisi lewat
-  menunya). Tiap bagian punya contoh tampilan `assets/guide/{base,seller}-{tab}.webp` (data "Toko Demo", dibuat ulang `.claude/testing/shoot-guide.js`,
+  menunya). **Bagian umum (semua template, tanpa gambar):** `app` (Pasang di layar utama / web app), `connection` (Kalau koneksi terputus + cek duplikat), `security` (Ingat saya & PIN, Masuk layar penuh di HP) - perbarui bila perilaku itu berubah (`GUIDE_V` 1.2.0). Tiap bagian punya contoh tampilan `assets/guide/{base,seller}-{tab}.webp` (data "Toko Demo", dibuat ulang `.claude/testing/shoot-guide.js`,
   lazy di dalam `<details>`, pencet = perbesar). Jangan klaim fitur yang belum ada; tandai Pro sesuai `FEATURE_MIN_PLAN`.
 - **Alur penjualan Pro (owner Okt 2026, manual):** daftar di landing (paket + durasi) -> pesan WA konfirmasi -> transfer -> admin › Perlu Perhatian
   "Daftar Pro, pembayaran belum dicatat" -> Catat Penjualan / Simpan Subscription -> Pro aktif sampai tanggal berakhir. Dashboard: kartu
