@@ -4249,7 +4249,7 @@ html.kairo-v3 .kairo-pp-card.is-featured .kairo-pp-foot { border-color: rgba(255
 html.kairo-v3 .kairo-pp-period { margin-top: 14px; padding: 14px 16px; border: 1px solid var(--kairo-entry-line); border-radius: 18px; background: var(--kairo-white); }
 html.kairo-v3 .kairo-pp-period[hidden] { display: none; }
 html.kairo-v3 .kairo-pp-period-title { display: block; margin-bottom: 10px; font-size: 13px; font-weight: 800; color: var(--kairo-delft); }
-html.kairo-v3 .kairo-pp-period-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+html.kairo-v3 .kairo-pp-period-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
 html.kairo-v3 .kairo-pp-period-options button {
   display: grid; gap: 3px; justify-items: start; padding: 12px 14px; text-align: left; font: inherit; cursor: pointer;
   color: var(--kairo-delft); background: var(--kairo-white); border: 1.5px solid var(--kairo-entry-line); border-radius: 14px;
@@ -5203,23 +5203,36 @@ html.kairo-v3 .kairo-lp-price-card > strong > em,
 html.kairo-v3 .kairo-lp-plan-lite > strong > em { margin-right: 6px; font-size: 14px; font-style: normal; font-weight: 700; letter-spacing: 0; color: #c6d5de; }
 html.kairo-v3 .kairo-lp-price-deal b { white-space: normal; }
 
-html.kairo-v3 .kairo-lp-tpl { margin-top: 64px; }
-html.kairo-v3 .kairo-lp-tpl-head { max-width: 640px; margin: 0 auto; text-align: center; }
-html.kairo-v3 .kairo-lp-tpl-head h3 { margin: 0; color: var(--kairo-delft); font-size: clamp(22px, 2.6vw, 28px); letter-spacing: -.03em; }
-html.kairo-v3 .kairo-lp-tpl-head p { margin: 10px 0 0; color: var(--kairo-entry-muted); font-size: 14.5px; line-height: 1.65; }
-html.kairo-v3 .kairo-lp-tpl-grid { display: grid; margin-top: 30px; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
-html.kairo-v3 .kairo-lp-tpl-card { display: flex; min-width: 0; padding: 22px; border: 1px solid var(--kairo-entry-line); border-radius: 16px; background: var(--kairo-white); flex-direction: column; }
-html.kairo-v3 .kairo-lp-tpl-icon { display: grid; width: 40px; height: 40px; place-items: center; border-radius: 12px; background: #e6f6f4; color: #0f7a75; }
-html.kairo-v3 .kairo-lp-tpl-icon svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-html.kairo-v3 .kairo-lp-tpl-card h4 { margin: 16px 0 0; color: var(--kairo-delft); font-size: 16px; }
-html.kairo-v3 .kairo-lp-tpl-card p { margin: 8px 0 0; color: var(--kairo-entry-muted); font-size: 13.5px; line-height: 1.6; flex: 1; }
-html.kairo-v3 .kairo-lp-tpl-card strong { margin: 18px 0 14px; color: var(--kairo-delft); font-size: 26px; letter-spacing: -.04em; }
-html.kairo-v3 .kairo-lp-tpl-card strong span { margin-left: 2px; color: var(--kairo-entry-muted); font-size: 14px; font-weight: 700; letter-spacing: 0; }
-@media (max-width: 1100px) { html.kairo-v3 .kairo-lp-tpl-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+/* Pilihan template di Pricing: dropdown terbuka dulu, menutup setelah memilih */
+html.kairo-v3 .kairo-lp-tplpick { position: relative; max-width: 560px; margin: 30px auto 0; }
+html.kairo-v3 .kairo-lp-tplpick + .kairo-lp-price-grid { margin-top: 28px; }
+html.kairo-v3 .kairo-lp-tplpick-label { display: block; margin-bottom: 8px; color: var(--kairo-delft); font-size: 13px; font-weight: 800; text-align: center; }
+html.kairo-v3 .kairo-lp-tplpick-btn { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 18px; border: 1.5px solid var(--kairo-delft); border-radius: 14px; background: var(--kairo-white); color: var(--kairo-delft); font: inherit; text-align: left; cursor: pointer; }
+html.kairo-v3 .kairo-lp-tplpick-btn:focus-visible { outline: 3px solid color-mix(in srgb, var(--kairo-turquoise) 40%, transparent); outline-offset: 2px; }
+html.kairo-v3 .kairo-lp-tplpick-cur { display: grid; gap: 2px; min-width: 0; }
+html.kairo-v3 .kairo-lp-tplpick-cur strong { font-size: 16px; font-weight: 800; }
+html.kairo-v3 .kairo-lp-tplpick-cur small { color: var(--kairo-entry-muted); font-size: 12.5px; font-weight: 600; }
+html.kairo-v3 .kairo-lp-tplpick-btn svg { flex: none; width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; transition: transform .2s ease; }
+html.kairo-v3 .kairo-lp-tplpick.is-open .kairo-lp-tplpick-btn svg { transform: rotate(180deg); }
+html.kairo-v3 .kairo-lp-tplpick-list { display: none; margin: 8px 0 0; padding: 6px; list-style: none; border: 1px solid var(--kairo-entry-line); border-radius: 16px; background: var(--kairo-white); box-shadow: 0 16px 36px rgba(23, 58, 89, .10); }
+html.kairo-v3 .kairo-lp-tplpick.is-open .kairo-lp-tplpick-list { display: block; }
+html.kairo-v3 .kairo-lp-tplpick-list button { display: flex; width: 100%; align-items: center; gap: 12px; padding: 11px 12px; border: 0; border-radius: 11px; background: transparent; color: var(--kairo-delft); font: inherit; text-align: left; cursor: pointer; }
+html.kairo-v3 .kairo-lp-tplpick-list button:hover { background: #f1f8f8; }
+html.kairo-v3 .kairo-lp-tplpick-list button[aria-selected="true"] { background: #e6f6f4; box-shadow: inset 0 0 0 1.5px var(--kairo-turquoise); }
+html.kairo-v3 .kairo-lp-tplpick-icon { display: grid; flex: none; width: 36px; height: 36px; place-items: center; border-radius: 10px; background: #e6f6f4; color: #0f7a75; }
+html.kairo-v3 .kairo-lp-tplpick-icon svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+html.kairo-v3 .kairo-lp-tplpick-text { display: grid; flex: 1; gap: 2px; min-width: 0; }
+html.kairo-v3 .kairo-lp-tplpick-text strong { font-size: 14.5px; font-weight: 800; }
+html.kairo-v3 .kairo-lp-tplpick-text small { color: var(--kairo-entry-muted); font-size: 12.5px; line-height: 1.4; }
+html.kairo-v3 .kairo-lp-tplpick-price { flex: none; font-size: 15px; font-weight: 800; white-space: nowrap; }
+html.kairo-v3 .kairo-lp-tplpick-price small { margin-left: 2px; color: var(--kairo-entry-muted); font-size: 12px; font-weight: 700; }
+html.kairo-v3 .kairo-lp-price-card > strong > i { font-style: normal; }
+html.kairo-v3 .kairo-lp-price-deal > div .dl { display: flex; align-items: baseline; gap: 8px; font-size: 13px; font-weight: 700; color: #c6d5de; }
+html.kairo-v3 .kairo-lp-price-deal > div .dl b { font-size: 18px; }
+html.kairo-v3 .kairo-lp-price-deal > div { display: grid; gap: 2px; }
 @media (max-width: 560px) {
-  html.kairo-v3 .kairo-lp-tpl { margin-top: 48px; }
-  html.kairo-v3 .kairo-lp-tpl-grid { grid-template-columns: minmax(0, 1fr); }
   html.kairo-v3 .kairo-lp-trial { border-radius: 16px; font-size: 13.5px; }
+  html.kairo-v3 .kairo-lp-tplpick-text small { display: none; }
 }
 html.kairo-v3 .kairo-business-price { display: inline-block; margin-top: 6px; padding: 3px 9px; border-radius: 999px; background: #e6f6f4; color: #0f7a75; font-size: 11.5px; font-style: normal; font-weight: 800; }
 html.kairo-v3 .kairo-pp-period-note { margin: 10px 0 0; color: var(--kairo-entry-muted); font-size: 12.5px; line-height: 1.55; }

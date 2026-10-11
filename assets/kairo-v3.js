@@ -167,6 +167,30 @@ if (window.top !== window.self) {
     }));
   }
 
+  // Pricing: pilih template dulu (dropdown terbuka saat halaman dibuka), kartu Pro menampilkan harga template itu.
+  function bindPricingPicker(root) {
+    const picker = q('#pricing-picker', root);
+    if (!picker) return;
+    const btn = q('.kairo-lp-tplpick-btn', picker);
+    const rupiah = n => 'Rp' + Number(n).toLocaleString('id-ID');
+    const setOpen = open => { picker.classList.toggle('is-open', open); btn.setAttribute('aria-expanded', String(open)); };
+    btn.addEventListener('click', () => setOpen(!picker.classList.contains('is-open')));
+    qa('[role="option"]', picker).forEach(opt => opt.addEventListener('click', () => {
+      qa('[role="option"]', picker).forEach(o => o.setAttribute('aria-selected', String(o === opt)));
+      const m = Number(opt.dataset.m), six = Number(opt.dataset.s);
+      q('[data-tp-name]', picker).textContent = opt.dataset.name;
+      q('[data-tp-sub]', picker).textContent = rupiah(m) + '/bulan · 6 bulan ' + rupiah(six);
+      const card = picker.parentElement;
+      const from = q('[data-pro-from]', card); if (from) from.hidden = true;
+      const amount = q('[data-pro-amount]', card); if (amount) amount.textContent = rupiah(m);
+      const title = q('[data-pro-deal-title]', card); if (title) title.textContent = opt.dataset.name;
+      const body = q('[data-pro-deal-body]', card);
+      if (body) body.innerHTML = '<span class="dl">1 bulan <b>' + rupiah(m) + '</b></span><span class="dl">6 bulan <b>' + rupiah(six) + '</b></span>';
+      const cta = q('[data-pro-cta]', card); if (cta) cta.dataset.signupTemplate = opt.dataset.tpl;
+      setOpen(false);
+    }));
+  }
+
   function bindLanding(root) {
     bindLandingPages(root);
     qa('[data-v3-login]', root).forEach(button => button.addEventListener('click', openLogin));
@@ -175,6 +199,7 @@ if (window.top !== window.self) {
     q('#kairo-remember-me', root)?.addEventListener('change', event => {
       if (!event.target.checked) setRememberedUsername('');
     });
+    bindPricingPicker(root);
     bindLandingReveal(root);
     root.addEventListener('keydown', event => {
       const dialog = q('#kairo-login-dialog');
