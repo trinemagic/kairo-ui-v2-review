@@ -91,7 +91,7 @@ Versi terakhir: `kairo.css?v=20.10.161`, `kairo-receipt.css?v=1.3.0`, `kairo-v3.
 (`seller-app-premium.js?v=20.10.161`, `.css?v=20.10.157`) — naikkan juga bila file template diubah.
 Setup Wizard dimuat dari `loadSetupWizard()` di kairo-app.js (`kairo-setup-wizard.js/.css?v=1.0.4`, satu konstanta `v`).
 Panduan dimuat dari `window.kairoOpenGuide()` di kairo-v3.js (`kairo-guide.js/.css?v=` konstanta `GUIDE_V`='1.2.3'; gambar `assets/guide/*.webp?v=` `SHOT_V` di kairo-guide.js).
-Admin: `admin.js?v=1.12.4`, `admin.css?v=1.8.2`. Library CDN dikunci versi + SRI: supabase-js 2.117.2 (index.html & admin), Chart.js 4.4.4 `dist/chart.umd.js`
+Admin: `admin.js?v=1.12.5`, `admin.css?v=1.8.2`. Library CDN dikunci versi + SRI: supabase-js 2.117.2 (index.html & admin), Chart.js 4.4.4 `dist/chart.umd.js`
 (`ensureChartLibrary`, admin), xlsx-js-style 1.2.0. **Ganti versi = hitung ulang SRI** (`npm pack` lalu `openssl dgst -sha384 -binary f | openssl base64 -A`).
 
 **Halaman app** = `main.container > section.section` dengan id:
@@ -529,6 +529,9 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   bila tidak punya workspace lain (kalau Supabase menolak: pesan "hapus manual di Authentication"). Catatan penjualan admin untuk
   workspace itu ikut terhapus (terlihat di daftar peringatan).
   SQL panjang: kirim sebagai file + link raw GitHub, bukan blok kode di chat (owner: tampilan chat pecah).
+- **Admin x Trial/harga per template (Okt 2026, admin.js 1.12.5):** pendapatan admin (`platform_admin_analytics/business_overview/plan_performance`) dihitung dari `platform_sales` berstatus paid, jadi akun trial TIDAK dihitung sebagai pendapatan. Badge status "Trial" sudah ada (`SUB.trialing`).
+  Ditambah: legenda donat "Pro" menulis `N (+M trial)`; Perlu Perhatian memakai kata-kata trial ("Trial Pro hampir habis, belum di-follow-up" <=7 hari, "Trial Pro sudah habis" = sedang) dan isu baru "Minta trial Pro, belum aktif" (daftar memilih trial tetapi paket masih Gratis -> admin aktifkan manual lewat Kelola).
+  Bug lama ikut diperbaiki: di `computeIssues()` Set `openFollow` menutupi fungsi `openFollow()`, jadi tombol "Follow-up" di Perlu Perhatian error; Set diganti nama `followedWs`. Nominal Catat Penjualan mengikuti template (`PRO_PRICE`). Belum: kartu "Harga paket" admin (`platform_plan_prices`, semua 0) hanya 1 harga per paket, tidak per template; hitungan Pro per template di halaman Template masih ikut menghitung akun trial.
 - **Perlu Perhatian: checkbox "sudah di-fix"** (per browser, `kairo_admin_resolved_v1`): masalah hilang dari daftar & hitungan,
   muncul lagi bila sidik jari berubah (error: last_seen; lainnya: since/valid_until/detail).
 - **Admin › Template (owner Okt 2026):** daftar template usaha dari form daftar (`TEMPLATES` di admin.js — **perbarui
