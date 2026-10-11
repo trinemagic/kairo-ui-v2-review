@@ -5232,11 +5232,6 @@ html.kairo-v3 .kairo-lp-tplpick-price small { margin-left: 2px; color: var(--kai
 html.kairo-v3 .kairo-pp-period-note { margin: 10px 0 0; color: var(--kairo-entry-muted); font-size: 12.5px; line-height: 1.55; }
 html.kairo-v3 .kairo-pp-deal b { font-weight: 800; }
 html.kairo-v3 .kairo-pp-price small:first-child { margin: 0 4px 0 0; }
-html.kairo-v3 .kairo-lp-price-deal.is-main { margin-top: 26px; padding: 14px 16px; }
-html.kairo-v3 .kairo-lp-price-deal.is-main > div { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
-html.kairo-v3 .kairo-lp-price-deal.is-main s { font-size: 16px; }
-html.kairo-v3 .kairo-lp-price-deal.is-main b { font-size: clamp(26px, 2.8vw, 32px); letter-spacing: -.04em; }
-html.kairo-v3 .kairo-lp-plan-lite > strong s { margin: 0 4px 0 2px; font-size: 15px; font-weight: 600; color: #b4c7d4; }
-html.kairo-v3 .kairo-pp-price s { margin: 0 2px; font-size: 14px; font-weight: 600; opacity: .7; }
 html.kairo-v3 .kairo-trial-note { margin: 14px 0 0; padding: 12px 14px; border-radius: 12px; background: #e6f6f4; color: #0b5f5b; font-size: 13.5px; line-height: 1.6; }
 html.kairo-v3 .kairo-trial-note.is-warn { background: #fdf3d6; color: #6b4a0a; }
+html.kairo-v3 .kairo-lp-price-card > strong > i { font-style: normal; }

@@ -181,6 +181,8 @@ if (window.top !== window.self) {
       q('[data-tp-name]', picker).textContent = opt.dataset.name;
       q('[data-tp-sub]', picker).textContent = q('small', opt)?.textContent || '';
       const card = picker.parentElement;
+      const from = q('[data-pro-from]', card); if (from) from.hidden = true;
+      const amount = q('[data-pro-amount]', card); if (amount) amount.textContent = rupiah(Number(opt.dataset.m));
       const title = q('[data-pro-deal-title]', card); if (title) title.textContent = 'Paket 6 bulan · ' + opt.dataset.name;
       const body = q('[data-pro-deal-body]', card);
       if (body) body.innerHTML = '<s aria-label="Harga normal ' + rupiah(normal) + '">' + rupiah(normal) + '</s><b>' + rupiah(six) + '</b>';
