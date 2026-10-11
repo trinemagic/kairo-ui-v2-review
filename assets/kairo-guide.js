@@ -137,7 +137,7 @@
         steps: [
           '<b>iPhone</b>: buka kairoworkspaces.my.id di <b>Safari</b>, pencet tombol <b>Bagikan</b>, lalu <b>Tambah ke Layar Utama</b>.',
           '<b>Android</b>: buka di <b>Chrome</b>, pencet menu <b>&#8942;</b> di kanan atas, lalu <b>Instal aplikasi</b> atau <b>Tambahkan ke layar utama</b>.',
-          'Dari ikon, KAIRO terbuka tanpa bilah browser. Sebentar muncul layar logo <b>KAIRO Workspaces</b> selagi halaman masuk disiapkan.',
+          'Dari ikon, KAIRO terbuka tanpa bilah browser. Sebentar muncul layar logo <b>KAIRO Workspaces</b> selagi halaman masuk disiapkan, lalu kamu langsung sampai di layar <b>Masuk</b>. Tombol <b>X</b> di pojok kanan atas membuka beranda.',
           'Dulu sudah menambahkan ikon? <b>Hapus ikon lama, lalu tambahkan lagi</b> supaya terbuka sebagai web app.',
           'Tetap perlu <b>internet</b> dan login setiap dibuka. Aktifkan <b>PIN Login</b> (Settings › Workspace &amp; Branding) supaya masuk cukup dengan 6 angka.',
           'Di iPhone, layar putih bawaan bisa tampil sebentar sebelum layar logo. Itu normal.'

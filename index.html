@@ -60,11 +60,12 @@
 (function(){var m=/^#demo(?:-(seller|jasa|shop|kasir))?$/.exec(location.hash);if(!m)return;window.__kairoDemoKind=m[1]||'jasa';document.write('<script src="assets/demo/demo-data.js?v=1.0.2"><\/script><script src="assets/demo/demo-db.js?v=1.0.3"><\/script>');})();
 </script>
 <script>
-/* "Ingat saya": pengguna yang username-nya diingat langsung dibawa ke form Masuk (#masuk), tanpa landing sempat tampil dulu. */
+/* Langsung ke form Masuk (#masuk), tanpa landing sempat tampil dulu, untuk: pengguna "Ingat saya" dan siapa pun yang membuka web app
+   dari ikon Home Screen (mode standalone). HP: mereka juga mendapat layar Masuk penuh (lihat kairo-v3.css). */
 (function(){try{var q=location.search,ls=localStorage,rem=ls.getItem('kairo_remember_username_v1');
-  /* HP: pengguna yang username/PIN-nya diingat mendapat layar Masuk penuh (lihat kairo-v3.css). */
-  if(rem||ls.getItem('kairo_pin_v1'))document.documentElement.setAttribute('data-kairo-remembered','1');
-  if(!rem||/[?&](signup|recovery)=1/.test(q))return;if(['','#','#home'].indexOf(location.hash)>-1){history.replaceState(null,'',location.pathname+q+'#masuk');document.documentElement.setAttribute('data-kairo-masuk','1');}}catch(e){}})();
+  var sa=(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)||window.navigator.standalone===true;
+  if(rem||ls.getItem('kairo_pin_v1')||sa)document.documentElement.setAttribute('data-kairo-remembered','1');
+  if(!(rem||sa)||/^#demo/.test(location.hash)||/[?&](signup|recovery)=1/.test(q))return;if(['','#','#home'].indexOf(location.hash)>-1){history.replaceState(null,'',location.pathname+q+'#masuk');document.documentElement.setAttribute('data-kairo-masuk','1');}}catch(e){}})();
 </script>
 <style id="kairo-splash-css">
 #kairo-splash{display:none}
@@ -104,7 +105,7 @@ html.kairo-standalone #kairo-splash.is-leaving{opacity:0;visibility:hidden;point
 </script>
 <script defer src="assets/demo/demo-entry.js?v=1.0.1"></script>
 <!-- Stable auth boot order. Feature-heavy libraries remain lazy inside kairo-app.js. -->
-<script defer src="assets/kairo-v3.js?v=3.32.1"></script>
+<script defer src="assets/kairo-v3.js?v=3.32.2"></script>
 <script defer src="assets/kairo-themes.js?v=1.0.1"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js" integrity="sha384-Rj26LVGvoeRVR6+mwQmFfcR3QOBEwT+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok" crossorigin="anonymous"></script>
 

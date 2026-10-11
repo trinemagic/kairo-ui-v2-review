@@ -30,11 +30,16 @@ if (window.top !== window.self) {
     syncRememberedAttr();
   }
 
-  // data-kairo-remembered = layar Masuk penuh di HP (username diingat atau PIN aktif di perangkat ini).
+  // Web app yang dibuka dari ikon Home Screen (mode standalone).
+  function isStandalone() {
+    try { return Boolean(window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true); } catch (_) { return false; }
+  }
+
+  // data-kairo-remembered = layar Masuk penuh di HP (username diingat, PIN aktif, atau dibuka dari ikon Home Screen).
   function syncRememberedAttr() {
     let pin = false;
     try { pin = Boolean(localStorage.getItem('kairo_pin_v1')); } catch (_) {}
-    document.documentElement.toggleAttribute('data-kairo-remembered', Boolean(rememberedUsername()) || pin);
+    document.documentElement.toggleAttribute('data-kairo-remembered', Boolean(rememberedUsername()) || pin || isStandalone());
   }
 
   // "Ingat saya": stores only the username on this device; password and session are never stored.
@@ -138,7 +143,7 @@ if (window.top !== window.self) {
     const hash = location.hash.slice(1);
     const skipRemember = ['masuk', 'syarat', 'privasi'].includes(hash) || hash.startsWith('demo')
       || params.get('signup') === '1' || params.get('recovery') === '1';
-    if (rememberedUsername() && !skipRemember) openLogin();
+    if ((rememberedUsername() || isStandalone()) && !skipRemember) openLogin();
     // kairo-app.js wraps the password field (show/hide eye) during boot, which drops focus
     // from a dialog that is already open. Restore it once the wrapper is in place.
     const form = q('#login-form', root);
@@ -648,7 +653,7 @@ if (window.top !== window.self) {
 
   // Panduan pemakaian (owner Okt 2026): tombol buku di samping lonceng (desktop) + item "Panduan" di menu More (HP).
   // Isi & gaya ada di assets/kairo-guide.js/.css, baru dimuat saat pertama kali dibuka supaya dashboard tetap ringan.
-  const GUIDE_V = '1.2.0';
+  const GUIDE_V = '1.2.1';
   let guideLoader = null;
   window.kairoOpenGuide = function () {
     if (!guideLoader) {
