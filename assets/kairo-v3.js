@@ -27,6 +27,14 @@ if (window.top !== window.self) {
       if (value) localStorage.setItem(REMEMBER_KEY, value);
       else localStorage.removeItem(REMEMBER_KEY);
     } catch (_) {}
+    syncRememberedAttr();
+  }
+
+  // data-kairo-remembered = layar Masuk penuh di HP (username diingat atau PIN aktif di perangkat ini).
+  function syncRememberedAttr() {
+    let pin = false;
+    try { pin = Boolean(localStorage.getItem('kairo_pin_v1')); } catch (_) {}
+    document.documentElement.toggleAttribute('data-kairo-remembered', Boolean(rememberedUsername()) || pin);
   }
 
   // "Ingat saya": stores only the username on this device; password and session are never stored.

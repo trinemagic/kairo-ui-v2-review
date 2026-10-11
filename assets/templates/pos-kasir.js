@@ -285,16 +285,21 @@
         addon_id: t.adds[0]?.id || null, addon_code: t.adds.map(x => x.code).join(', ') || null, addon_price: t.adds.reduce((s, x) => s + x.subtotal, 0), addon_qty: t.adds.reduce((s, x) => s + x.qty, 0),
         order_items: t.items, order_topics: [], order_addons: [...t.adds, ...extraLines(t)],
         price_adjustment_type: t.disc > 0 ? 'discount' : 'none', price_adjustment_mode: cart.discMode, price_adjustment_value: t.disc > 0 ? num(cart.discValue) : 0, price_adjustment_amount: -t.disc,
-        tip_amount: 0, total_price: t.total, payment_method: cart.pay, notes: cart.table ? 'Meja ' + cart.table : null,
-        ...(receiptNo ? { receipt_no: receiptNo } : {})
+        tip_amount: 0, total_price: t.total, payment_method: cart.pay, notes: cart.table ? 'Meja ' + cart.table : null
       };
+      // Cek duplikat: id + nomor struk upaya ini diingat; kalau simpan diulang (koneksi putus) dan ternyata sudah masuk, tidak dicatat dobel.
+      const attempt = window.kairoTxGuard.begin(payload, { receipt_no: receiptNo || null });
+      payload.id = attempt.id;
+      if (attempt.receipt_no) payload.receipt_no = attempt.receipt_no;
       const { error } = await db.from('transactions').insert([workspaceInsert(payload)]);
-      if (error) throw error;
+      const alreadySaved = Boolean(error) && window.kairoTxGuard.isDuplicate(error);
+      if (error && !alreadySaved) throw error;
+      window.kairoTxGuard.done();
       const billId = cart.billId, received = cart.received;
       if (billId) { try { await db.from('pos_open_bills').delete().eq('workspace_id', requireWorkspaceId()).eq('id', billId); } catch (_e) { /* bill sisa dibersihkan manual */ } }
       showReceipt({ ...payload, received, change: isCash(cart.pay) && received >= t.total ? received - t.total : 0, subtotal: t.subtotal, svc: t.svc, tax: t.tax, svcPct: t.cfg.svcPct, taxPct: t.cfg.taxPct, taxName: t.cfg.taxName, table: cart.table, at: now });
       resetCart(true);
-      showToast('Pembayaran tersimpan.');
+      showToast(alreadySaved ? 'Pembayaran sudah tersimpan sebelumnya, tidak dicatat dobel.' : 'Pembayaran tersimpan.');
       await Promise.all([refreshAll(), loadBills()]);
       renderGrid();
     } catch (err) { showToast('Gagal menyimpan: ' + (err.message || err), true); }
