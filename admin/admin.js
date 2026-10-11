@@ -104,6 +104,8 @@ const PRIO={high:['Tinggi','b-danger'],normal:['Normal','b-info'],low:['Rendah',
 const PRO_PRICE={digital_subscription:30000,service_consultation:53000,online_shop:84000,pos_kasir:98000};
 const PERIOD={monthly:'1 bulan',quarterly:'3 bulan',semiannual:'6 bulan',annual:'1 tahun',custom:'Custom'};
 const CAT={hosting:'Hosting',domain:'Domain',tools:'Tools',marketing:'Marketing',fee:'Biaya admin',operational:'Operasional',other:'Lainnya'};
+// Status subscription; trial yang sudah lewat tanggal berakhir ditulis "Trial habis" (dashboard user sudah membacanya Gratis).
+const subBadge=x=>String(x.subscription_status||'').toLowerCase()==='trialing'&&x.valid_until&&+new Date(x.valid_until)<Date.now()?'<span class="badge b-warn">Trial habis</span>':badge(SUB,x.subscription_status);
 const badge=(map,v)=>{const k=String(v||'').toLowerCase(),m=map[k];return m?`<span class="badge ${m[1]}">${esc(m[0])}</span>`:`<span class="badge b-mute">${esc(v||'—')}</span>`;};
 
 // Pop-up sama dengan dashboard KAIRO: kartu bertumpuk di kanan atas (di bawah topbar), ikon + judul per jenis,
@@ -241,10 +243,11 @@ function renderWorkspaces(){
   const r=all.filter(x=>{
     if(q&&!`${x.workspace_name} ${x.owner_username||''} ${x.slug||''}`.toLowerCase().includes(q))return false;
     if(activeFilter==='basic'||activeFilter==='pro')return planKey(x.plan)===activeFilter;
+    if(activeFilter==='trial')return String(x.subscription_status||'').toLowerCase()==='trialing';
     if(activeFilter==='expiring')return x.valid_until&&+new Date(x.valid_until)>=now&&+new Date(x.valid_until)<=d30;
     if(activeFilter==='issue')return isIssue(x);
     return true;});
-  $('rows').innerHTML=r.map(x=>`<tr class="click" data-id="${esc(x.workspace_id)}" tabindex="0"><td><b>${esc(x.workspace_name)}</b><br><small>${esc(x.slug||'')}</small></td><td>${esc(x.owner_username||'—')}</td><td>${templateLabel(x.workspace_id)}</td><td>${planBadge(x.plan)}${planKey(x.plan)!=='pro'&&requestedPro(x.workspace_id)?`<br><small>Daftar Pro ${esc(PERIOD[requestedPro(x.workspace_id).requested_period])}</small>`:''}</td><td>${badge(SUB,x.subscription_status)}</td><td>${badge(WS,x.workspace_status)}</td><td>${dateID(x.valid_until)}</td><td class="${remainClass(x.valid_until)}">${esc(remain(x.valid_until))}</td></tr>`).join('');
+  $('rows').innerHTML=r.map(x=>`<tr class="click" data-id="${esc(x.workspace_id)}" tabindex="0"><td><b>${esc(x.workspace_name)}</b><br><small>${esc(x.slug||'')}</small></td><td>${esc(x.owner_username||'—')}</td><td>${templateLabel(x.workspace_id)}</td><td>${planBadge(x.plan)}${planKey(x.plan)!=='pro'&&requestedPro(x.workspace_id)?`<br><small>Daftar Pro ${esc(PERIOD[requestedPro(x.workspace_id).requested_period])}</small>`:''}</td><td>${subBadge(x)}</td><td>${badge(WS,x.workspace_status)}</td><td>${dateID(x.valid_until)}</td><td class="${remainClass(x.valid_until)}">${esc(remain(x.valid_until))}</td></tr>`).join('');
   $('empty').classList.toggle('hidden',r.length>0);
   $('rows').querySelectorAll('tr').forEach(tr=>{tr.onclick=()=>openWorkspace(tr.dataset.id);tr.onkeydown=e=>{if(e.key==='Enter')openWorkspace(tr.dataset.id);};});
 }
@@ -292,7 +295,7 @@ function renderAnalytics(){
 }
 
 function renderRenewals(){
-  $('renewRows').innerHTML=renewals.map(x=>{const d=Number(x.days_left);return `<tr><td><b>${esc(x.workspace_name)}</b></td><td>${esc(x.owner_username||'—')}</td><td>${planBadge(x.plan)}</td><td>${badge(SUB,x.subscription_status)}</td><td>${dateID(x.valid_until)}</td><td class="${d<0?'t-danger':d<=7?'t-warn':''}"><b>${d<0?Math.abs(d)+' hari lewat':d+' hari'}</b></td><td class="num"><button class="table-btn renewOpen" data-id="${esc(x.workspace_id)}">Kelola</button></td></tr>`;}).join('');
+  $('renewRows').innerHTML=renewals.map(x=>{const d=Number(x.days_left);return `<tr><td><b>${esc(x.workspace_name)}</b></td><td>${esc(x.owner_username||'—')}</td><td>${planBadge(x.plan)}</td><td>${subBadge(x)}</td><td>${dateID(x.valid_until)}</td><td class="${d<0?'t-danger':d<=7?'t-warn':''}"><b>${d<0?Math.abs(d)+' hari lewat':d+' hari'}</b></td><td class="num"><button class="table-btn renewOpen" data-id="${esc(x.workspace_id)}">Kelola</button></td></tr>`;}).join('');
   $('renewEmpty').classList.toggle('hidden',renewals.length>0);
   document.querySelectorAll('.renewOpen').forEach(b=>b.onclick=()=>openWorkspace(b.dataset.id));
 }
@@ -379,7 +382,8 @@ async function saveSubscription(){
   if(error)return $('mError').textContent=error.message;
   toast('Subscription diperbarui');closeModal('workspaceModal');await load();
 }
-function extend(days){let d=$('mUntil').value?new Date($('mUntil').value+'T12:00:00'):new Date();if(d<new Date())d=new Date();d.setDate(d.getDate()+days);$('mUntil').value=d.toISOString().slice(0,10);}
+// Memperpanjang (tombol +30 hari / +1 tahun) berarti sudah dibayar: status Trial otomatis jadi Aktif supaya dashboard user tidak lagi memakai kata-kata trial.
+function extend(days){if($('mSubStatus').value==='trialing')$('mSubStatus').value='active';let d=$('mUntil').value?new Date($('mUntil').value+'T12:00:00'):new Date();if(d<new Date())d=new Date();d.setDate(d.getDate()+days);$('mUntil').value=d.toISOString().slice(0,10);}
 async function setWsStatus(status){
   const label={active:'Aktif',suspended:'Suspend',archived:'Arsip'}[status]||status;
   if(['suspended','archived'].includes(status)&&!confirm(`Ubah ${selected.workspace_name} menjadi ${label}?`))return;
