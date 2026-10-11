@@ -87,7 +87,7 @@ domain = pengguna login ulang & pengaturan browser (Ingat saya, dark mode) mulai
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
 Versi terakhir: `kairo.css?v=20.10.161`, `kairo-receipt.css?v=1.3.0`, `kairo-v3.css?v=3.43.0`,
-`kairo-v3.js?v=3.32.0`, `kairo-app.js?v=20.10.239`, `kairo-pin.js?v=1.0.2`, `kairo-themes.css?v=1.0.0`/`.js?v=1.0.1`; template seller dimuat dari kairo-app.js
+`kairo-v3.js?v=3.32.0`, `kairo-app.js?v=20.10.240`, `kairo-pin.js?v=1.0.2`, `kairo-themes.css?v=1.0.0`/`.js?v=1.0.1`; template seller dimuat dari kairo-app.js
 (`seller-app-premium.js?v=20.10.161`, `.css?v=20.10.157`) — naikkan juga bila file template diubah.
 Setup Wizard dimuat dari `loadSetupWizard()` di kairo-app.js (`kairo-setup-wizard.js/.css?v=1.0.4`, satu konstanta `v`).
 Panduan dimuat dari `window.kairoOpenGuide()` di kairo-v3.js (`kairo-guide.js/.css?v=` konstanta `GUIDE_V`='1.1.0'; gambar `assets/guide/*.webp?v=` `SHOT_V` di kairo-guide.js).
@@ -257,8 +257,11 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
 - **Cek duplikat simpan penjualan (owner Okt 2026):** `txGuard` (kairo-app.js, `window.kairoTxGuard`): tiap upaya simpan punya `id` uuid buatan aplikasi (kolom `transactions.id` uuid, default `gen_random_uuid()`, PRIMARY KEY; trigger stok
   AFTER INSERT jadi tidak jalan bila ditolak). Upaya diingat di `sessionStorage kairo_tx_attempt_v1` (tanda tangan isi penjualan: tanggal, customer, platform, bayar, total, item/topik/add-on; TTL 30 mnt; dihapus saat berhasil). Simpan diulang dengan
   isi sama -> id sama -> bila yang pertama ternyata sudah masuk, DB menolak 23505 -> dianggap "sudah tersimpan sebelumnya, tidak dicatat dobel" (toast), form di-reset normal. Penjualan baru yang isinya kebetulan sama setelah sukses = id baru (tidak
-  diblokir). Dipakai di `#confirm-save` (Orders + Seller + Online Shop, satu jalur) dan `pay()` Kasir (nomor struk upaya pertama ikut dipakai ulang). Tanpa SQL. Tes: `mockdb.js` menolak id kembar (23505) dan punya `__db.loseResponse[tabel]`
-  (baris masuk tapi jawaban hilang); skrip scratchpad `dup.js`. Batas: cek per perangkat/tab (sessionStorage), bukan lintas perangkat.
+  diblokir). Dipakai di `#confirm-save` (Orders + Seller + Online Shop, satu jalur) dan `pay()` Kasir (nomor struk upaya pertama ikut dipakai ulang). Tanpa SQL.
+  **Pencairan, Pengeluaran Kas, Pemasukan Kas (Okt 2026):** pola sama lewat pabrik `makeAttemptGuard(key, signatureOf)` (`txGuard`, `payoutGuard`, `expenseGuard`, `injectionGuard`; sessionStorage `kairo_payout_attempt_v1`, `kairo_expense_attempt_v1`,
+  `kairo_injection_attempt_v1`). Bedanya: pada upaya ULANG (`rec.retry`) dicek dulu `guard.exists(tabel, id)` SEBELUM validasi sisa hak/saldo, karena data yang sudah masuk mengubah saldo/hak dan trigger `prevent_cash_overdraw` (BEFORE INSERT
+  di `cash_expenses`) menolak sebelum PK dicek -> tanpa pra-cek, ulangan akan salah ditolak "saldo tidak cukup" padahal sudah tersimpan. Tabel `payouts/cash_expenses/cash_injections`: `id uuid default gen_random_uuid()`, PK. Tes: scratchpad `dup2.js`. Tes: `mockdb.js` menolak id kembar (23505) dan punya `__db.loseResponse[tabel]`
+  (baris masuk tapi jawaban hilang); skrip scratchpad `dup.js`. Batas: cek per perangkat/tab (sessionStorage), bukan lintas perangkat. Belum dilindungi: Simpan Bill, tambah partner/master, pengaturan (upsert, aman diulang).
 - **Web app / splash / Masuk layar penuh (owner Okt 2026):** `manifest.webmanifest` + ikon `assets/brand/pwa-192.png/pwa-512.png/pwa-maskable-512.png` (dibuat dari `kairo-app-icon.svg` lewat Chromium) + meta iOS (`apple-mobile-web-app-capable`,
   status bar `default`) -> Add to Home Screen membuka app tanpa bilah browser (sebelumnya TIDAK ada manifest: iPhone hanya membuat pintasan Safari). Layar awal `#kairo-splash` (logo + "KAIRO Workspaces" + spinner, latar #1F305E = `background_color`
   manifest) hanya bila mode standalone (`display-mode: standalone` / `navigator.standalone`), bukan demo: CSS + skrip inline di `<head>` index.html supaya tampil sebelum JS lain; hilang saat `__KAIRO_APP_READY__` && `window.kairoPin` (dialog Masuk

@@ -252,27 +252,38 @@ function workspaceInsert(row){
 /* Cek duplikat simpan penjualan (owner Okt 2026): tiap upaya simpan punya id (uuid) buatan aplikasi. Bila simpan gagal / koneksi putus
    lalu diulang dengan isi yang sama, id yang sama dipakai lagi; jika penjualan pertama ternyata sudah masuk, database menolak id kembar
    (23505, PRIMARY KEY) dan itu dianggap "sudah tersimpan", bukan dicatat dobel. Catatan upaya ada di sessionStorage (selamat dari refresh,
-   hilang saat tab ditutup) dan dihapus begitu simpan berhasil, jadi penjualan baru yang isinya kebetulan sama tetap dicatat normal. */
-const txGuard=(()=>{
-  const KEY="kairo_tx_attempt_v1",TTL=30*60*1000;
+   hilang saat tab ditutup) dan dihapus begitu simpan berhasil, jadi penjualan baru yang isinya kebetulan sama tetap dicatat normal.
+   Pola yang sama dipakai Pencairan, Pengeluaran Kas, dan Pemasukan Kas (payoutGuard/expenseGuard/injectionGuard). */
+const makeAttemptGuard=(KEY,signatureOf)=>{
+  const TTL=30*60*1000;
   const uuid=()=>window.crypto?.randomUUID?window.crypto.randomUUID():"10000000-1000-4000-8000-100000000000".replace(/[018]/g,c=>(c^window.crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16));
-  const hash=s=>{let h=5381;for(let i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))|0;return String(h>>>0);};
-  // Isi penjualan saja (tanpa jam/nomor struk): dua upaya dengan isi sama = penjualan yang sama.
-  const signature=p=>hash(JSON.stringify([activeWorkspaceId,p.transaction_date,p.customer_name,p.platform,p.payment_method,p.total_price,p.price_adjustment_amount,p.tip_amount,p.notes,p.order_items,p.order_topics,p.order_addons]));
+  const hash=x=>{let h=5381;for(let i=0;i<x.length;i++)h=((h<<5)+h+x.charCodeAt(i))|0;return String(h>>>0);};
   const read=()=>{try{return JSON.parse(sessionStorage.getItem(KEY)||"null");}catch(_e){return null;}};
   return {
-    // Kembalikan catatan upaya {id, receipt_no?}; isi sama dengan upaya yang belum selesai -> id yang sama.
+    // Kembalikan catatan upaya {id, receipt_no?, retry}; isi sama dengan upaya yang belum selesai -> id yang sama (retry=true).
     begin(p,extra){
-      const sig=signature(p),old=read();
-      const rec=old&&old.sig===sig&&Date.now()-old.t<TTL?old:{sig,id:uuid(),t:Date.now()};
+      const sig=hash(JSON.stringify(signatureOf(p))),old=read();
+      const reuse=Boolean(old&&old.sig===sig&&Date.now()-old.t<TTL);
+      const rec=reuse?old:{sig,id:uuid(),t:Date.now()};
       if(rec.receipt_no==null&&extra?.receipt_no!=null)rec.receipt_no=extra.receipt_no;
       try{sessionStorage.setItem(KEY,JSON.stringify(rec));}catch(_e){}
-      return rec;
+      return {...rec,retry:reuse};
     },
     done(){try{sessionStorage.removeItem(KEY);}catch(_e){}},
-    isDuplicate(err){return String(err?.code)==="23505"&&/duplicate key|_pkey/i.test(String(err?.message||""));}
+    isDuplicate(err){return String(err?.code)==="23505"&&/duplicate key|_pkey/i.test(String(err?.message||""));},
+    // Untuk upaya ULANG: apakah baris dengan id ini sudah ada di tabel? Dicek sebelum validasi saldo/hak, karena data yang sudah masuk
+    // membuat saldo/sisa hak berubah (dan trigger kas menolak sebelum cek id kembar).
+    async exists(table,id){
+      const {data,error}=await db.from(table).select("id").eq("workspace_id",requireWorkspaceId()).eq("id",id);
+      return !error&&Array.isArray(data)&&data.length>0;
+    }
   };
-})();
+};
+// Isi penjualan saja (tanpa jam/nomor struk): dua upaya dengan isi sama = penjualan yang sama.
+const txGuard=makeAttemptGuard("kairo_tx_attempt_v1",p=>[activeWorkspaceId,p.transaction_date,p.customer_name,p.platform,p.payment_method,p.total_price,p.price_adjustment_amount,p.tip_amount,p.notes,p.order_items,p.order_topics,p.order_addons]);
+const payoutGuard=makeAttemptGuard("kairo_payout_attempt_v1",p=>[activeWorkspaceId,p.partner_id,p.amount,p.payout_date,p.notes]);
+const expenseGuard=makeAttemptGuard("kairo_expense_attempt_v1",p=>[activeWorkspaceId,p.expense_date,p.amount,p.description]);
+const injectionGuard=makeAttemptGuard("kairo_injection_attempt_v1",p=>[activeWorkspaceId,p.injection_date,p.amount,p.source,p.description]);
 window.kairoTxGuard=txGuard;
 
 let dashboardInitialized = false;
@@ -2653,21 +2664,6 @@ document.getElementById("payout-form").addEventListener("submit",async e=>{
     const pct=shareRuleFor(partner,payoutDate);
     if(!partner || pct<=0) throw new Error("Profit sharing partner tidak ditemukan.");
 
-    const [{data:txData,error:txError},{data:poData,error:poError}]=await Promise.all([
-      db.from("transactions").select("total_price,transaction_date,created_at,order_items,order_addons").eq("workspace_id",requireWorkspaceId()).lte("transaction_date",payoutDate),
-      db.from("payouts").select("amount").eq("workspace_id",requireWorkspaceId()).eq("partner_id",partnerId).lte("payout_date",payoutDate)
-    ]);
-    if(txError) throw txError;
-    if(poError) throw poError;
-
-    const paidToDate=(poData||[]).reduce((sum,p)=>sum+Number(p.amount||0),0);
-    const entitled=Math.max(0,entitlementFromTransactions(txData||[],partner,payoutDate));
-    const available=Math.max(0,entitled-paidToDate);
-
-    if(amount>available+0.005){
-      throw new Error(`${partnerName} hanya memiliki sisa hak ${rupiah(available)} sampai ${payoutDate}.`);
-    }
-
     const payload={
       partner_id:partnerId,
       partner_name:partnerName,
@@ -2675,11 +2671,33 @@ document.getElementById("payout-form").addEventListener("submit",async e=>{
       payout_date:payoutDate,
       notes
     };
+    // Cek duplikat: upaya ulang (koneksi putus) yang ternyata sudah masuk tidak divalidasi/dicatat lagi.
+    const attempt=payoutGuard.begin(payload);
+    let alreadySaved=attempt.retry&&await payoutGuard.exists("payouts",attempt.id);
 
-    const {error}=await db.from("payouts").insert([workspaceInsert(payload)]);
-    if(error) throw error;
+    if(!alreadySaved){
+      const [{data:txData,error:txError},{data:poData,error:poError}]=await Promise.all([
+        db.from("transactions").select("total_price,transaction_date,created_at,order_items,order_addons").eq("workspace_id",requireWorkspaceId()).lte("transaction_date",payoutDate),
+        db.from("payouts").select("amount").eq("workspace_id",requireWorkspaceId()).eq("partner_id",partnerId).lte("payout_date",payoutDate)
+      ]);
+      if(txError) throw txError;
+      if(poError) throw poError;
 
-    showToast("💸 Pencairan berhasil disimpan.");
+      const paidToDate=(poData||[]).reduce((sum,p)=>sum+Number(p.amount||0),0);
+      const entitled=Math.max(0,entitlementFromTransactions(txData||[],partner,payoutDate));
+      const available=Math.max(0,entitled-paidToDate);
+
+      if(amount>available+0.005){
+        throw new Error(`${partnerName} hanya memiliki sisa hak ${rupiah(available)} sampai ${payoutDate}.`);
+      }
+
+      const {error}=await db.from("payouts").insert([workspaceInsert({...payload,id:attempt.id})]);
+      alreadySaved=Boolean(error)&&payoutGuard.isDuplicate(error);
+      if(error&&!alreadySaved) throw error;
+    }
+    payoutGuard.done();
+
+    showToast(alreadySaved?"Pencairan sudah tersimpan sebelumnya, tidak dicatat dobel.":"💸 Pencairan berhasil disimpan.");
     form.reset();
     document.getElementById("payout-date").value=todayISO();
   document.getElementById("cash-expense-date").value=todayISO();
@@ -2717,6 +2735,11 @@ document.getElementById("cash-expense-form").addEventListener("submit",async e=>
     const description=document.getElementById("cash-expense-note").value.trim();
     if(!amount || amount<=0) throw new Error("Nominal pengeluaran harus lebih dari Rp0.");
     if(!expenseDate || !description) throw new Error("Tanggal dan keterangan wajib diisi.");
+    // Cek duplikat: upaya ulang (koneksi putus) yang ternyata sudah masuk tidak divalidasi/dicatat lagi
+    // (saldo sudah berkurang oleh catatan pertama, dan trigger kas menolak sebelum cek id kembar).
+    const attempt=expenseGuard.begin({expense_date:expenseDate,amount,description});
+    let alreadySaved=attempt.retry&&await expenseGuard.exists("cash_expenses",attempt.id);
+    if(!alreadySaved){
     // Hard stop: pengeluaran kas tidak boleh melebihi kas 5% yang tersedia sampai tanggal pengeluaran.
     const [txData,expenseData,injectionData]=await Promise.all([
       fetchAllRows(()=>db.from("transactions").select("total_price,transaction_date,created_at,order_items,order_addons").eq("workspace_id",requireWorkspaceId()).lte("transaction_date",expenseDate)),
@@ -2736,10 +2759,13 @@ document.getElementById("cash-expense-form").addEventListener("submit",async e=>
       throw new Error(`Pengeluaran melebihi saldo kas tersedia ${rupiah(cashAvailable)}. Maksimal pengeluaran saat ini: ${rupiah(cashAvailable)}.`);
     }
 
-    const {error}=await db.from("cash_expenses").insert([workspaceInsert({expense_date:expenseDate,amount,description})]);
-    if(error) throw error;
+    const {error}=await db.from("cash_expenses").insert([workspaceInsert({expense_date:expenseDate,amount,description,id:attempt.id})]);
+    alreadySaved=Boolean(error)&&expenseGuard.isDuplicate(error);
+    if(error&&!alreadySaved) throw error;
+    }
+    expenseGuard.done();
     form.reset(); document.getElementById("cash-expense-date").value=todayISO();
-    showToast("🏦 Pengeluaran kas berhasil dicatat."); await refreshAll();
+    showToast(alreadySaved?"Pengeluaran kas sudah tercatat sebelumnya, tidak dicatat dobel.":"🏦 Pengeluaran kas berhasil dicatat."); await refreshAll();
   }catch(err){
     console.error("[KAIRO][PettyCash]",err);
     showToast("Gagal mencatat pengeluaran kas: "+(err?.message||"Terjadi kesalahan saat menyimpan."),true);
@@ -2762,11 +2788,14 @@ document.getElementById("cash-injection-form").addEventListener("submit",async e
     const description=document.getElementById("cash-injection-note").value.trim() || null;
     if(!Number.isFinite(amount) || amount<=0) throw new Error("Nominal pemasukan kas harus lebih dari Rp0.");
     if(!injectionDate || !source) throw new Error("Tanggal dan sumber dana wajib diisi.");
-    const {error}=await db.from("cash_injections").insert([workspaceInsert({injection_date:injectionDate,amount,source,description})]);
-    if(error) throw error;
+    const attempt=injectionGuard.begin({injection_date:injectionDate,amount,source,description});
+    const {error}=await db.from("cash_injections").insert([workspaceInsert({injection_date:injectionDate,amount,source,description,id:attempt.id})]);
+    const alreadySaved=Boolean(error)&&injectionGuard.isDuplicate(error);
+    if(error&&!alreadySaved) throw error;
+    injectionGuard.done();
     form.reset();
     document.getElementById("cash-injection-date").value=todayISO();
-    showToast("💰 Pemasukan kas berhasil dicatat.");
+    showToast(alreadySaved?"Pemasukan kas sudah tercatat sebelumnya, tidak dicatat dobel.":"💰 Pemasukan kas berhasil dicatat.");
     await refreshAll();
   }catch(err){
     showToast("Gagal mencatat pemasukan kas: "+err.message,true);
