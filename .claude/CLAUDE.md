@@ -86,12 +86,12 @@ domain = pengguna login ulang & pengaturan browser (Ingat saya, dark mode) mulai
 | `assets/brand/` | Logo resmi KAIRO Workspaces (kit dari owner, Okt 2026) | `kairo-horizontal-color.svg` = landing (header, footer, dialog Masuk; latar terang, min. lebar 120px); `kairo-app-icon.svg` = logo default dashboard (`KAIRO_LOGO`, sidebar, header HP, preview Settings, admin) sampai user upload logo sendiri; `favicon.svg/.ico`; `assets/og/apple-touch-icon.png` dari kit. Wordmark digambar - jangan diketik ulang pakai font. `assets/kairo-mark.svg` (logo lama) sudah dihapus. |
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
-Versi terakhir: `kairo.css?v=20.10.161`, `kairo-receipt.css?v=1.3.0`, `kairo-v3.css?v=3.43.2`,
-`kairo-v3.js?v=3.32.3`, `kairo-app.js?v=20.10.244`, `kairo-pin.js?v=1.0.2`, `kairo-themes.css?v=1.0.0`/`.js?v=1.0.1`; template seller dimuat dari kairo-app.js
+Versi terakhir: `kairo.css?v=20.10.161`, `kairo-receipt.css?v=1.3.0`, `kairo-v3.css?v=3.44.2`,
+`kairo-v3.js?v=3.32.6`, `kairo-app.js?v=20.10.247`, `kairo-pin.js?v=1.0.2`, `kairo-themes.css?v=1.0.0`/`.js?v=1.0.1`; template seller dimuat dari kairo-app.js
 (`seller-app-premium.js?v=20.10.161`, `.css?v=20.10.157`) — naikkan juga bila file template diubah.
 Setup Wizard dimuat dari `loadSetupWizard()` di kairo-app.js (`kairo-setup-wizard.js/.css?v=1.0.4`, satu konstanta `v`).
-Panduan dimuat dari `window.kairoOpenGuide()` di kairo-v3.js (`kairo-guide.js/.css?v=` konstanta `GUIDE_V`='1.2.2'; gambar `assets/guide/*.webp?v=` `SHOT_V` di kairo-guide.js).
-Admin: `admin.js?v=1.12.3`, `admin.css?v=1.8.2`. Library CDN dikunci versi + SRI: supabase-js 2.117.2 (index.html & admin), Chart.js 4.4.4 `dist/chart.umd.js`
+Panduan dimuat dari `window.kairoOpenGuide()` di kairo-v3.js (`kairo-guide.js/.css?v=` konstanta `GUIDE_V`='1.2.3'; gambar `assets/guide/*.webp?v=` `SHOT_V` di kairo-guide.js).
+Admin: `admin.js?v=1.12.4`, `admin.css?v=1.8.2`. Library CDN dikunci versi + SRI: supabase-js 2.117.2 (index.html & admin), Chart.js 4.4.4 `dist/chart.umd.js`
 (`ensureChartLibrary`, admin), xlsx-js-style 1.2.0. **Ganti versi = hitung ulang SRI** (`npm pack` lalu `openssl dgst -sha384 -binary f | openssl base64 -A`).
 
 **Halaman app** = `main.container > section.section` dengan id:
@@ -120,11 +120,19 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   Copy landing ditulis untuk pelanggan: **jangan** ada catatan internal/teknis (Supabase,
   tenant, auth, "belum final"). Pricing Gratis (Rp0) / Pro / Custom dengan daftar fitur; tombol
   Pro/Custom membuka form daftar dengan paket terpilih (`data-signup-plan` → `window.__kairoSignupPlan`).
-  Harga Pro (owner Okt 2026): **Rp43.000/bulan**; paket 6 bulan harga normal Rp258.000 dicoret →
-  **Rp238.000** (tanpa badge "Hemat" — owner) — tampil di Pricing landing, kartu Pro halaman Daftar, FAQ 03.
-  **Pilihan durasi Pro saat daftar (owner Okt 2026):** kotak "Durasi paket Pro" (`.kairo-pp-period`, hanya saat Pro
-  dipilih): 1 bulan Rp43.000 / 6 bulan ~~Rp258.000~~ Rp238.000 → `#kairo-selected-period` → metadata signup
-  `requested_period` ('monthly'|'semiannual', sama dengan billing_period admin) + disebut di pesan WA konfirmasi. Halaman **`#syarat` (S&K) & `#privasi`** (`.kairo-lp-legal`, berlaku 5 Okt 2026) +
+  **Harga Pro per template + trial (owner Okt 2026, PR #92):** harga per BULAN: Seller App Premium Rp30.000, Jasa Online Rp53.000, Online Shop Rp84.000, Warung/Kasir (POS) Rp98.000;
+  6 bulan = 6 x bulanan - Rp20.000 (Rp160.000 / 298.000 / 484.000 / 568.000), ditampilkan sebagai angka akhir dengan harga normal (6 x bulanan) dicoret, TANPA tulisan "hemat/potongan" dan TANPA harga per bulan di kartu Pricing (owner).
+  Sumber harga ada di 3 tempat - ubah semuanya: `data-m`/`data-s` di opsi `#pricing-picker` (index.html), `PRO_PRICES` (kairo-app.js, form Daftar + pesan WA) dan `PRO_PRICE` (admin.js, nominal Catat Penjualan).
+  Landing Pricing: promo strip "Coba Pro gratis 14 hari di semua template", lalu dropdown **Pilih template usahamu** (`#pricing-picker`, terbuka saat halaman dibuka, menutup setelah memilih, TANPA harga di opsinya; `bindPricingPicker()` kairo-v3.js)
+  yang mengisi kartu Pro (Paket 6 bulan - template: ~~normal~~ final) dan `data-signup-template` tombol Coba Pro gratis (-> `window.__kairoSignupTemplate` -> Jenis Usaha terpilih di form Daftar). Home: kartu Pro "mulai ~~Rp180.000~~ Rp160.000/6 bulan".
+  **Form Daftar:** kotak "Cara mulai Pro" (`.kairo-pp-period`, hanya saat Pro): Coba gratis 14 hari (bawaan, `trial`) / Langsung 1 bulan / Langsung 6 bulan (harga ikut template di langkah 02; `#kairo-selected-period`) -> metadata `requested_period` ('trial'|'monthly'|'semiannual';
+  admin `requestedPro()` hanya mengenali monthly/semiannual jadi trial tidak dianggap "belum bayar"). Tombol Buat Akun = "Buat Akun dan Mulai Trial 14 Hari" untuk trial.
+  **Trial Pro 14 hari (SQL `.claude/sql/2026-10-pro-trial.sql`, dijalankan Claude via MCP):** tabel `kairo_trials` (user_id PK, RLS tanpa policy) + RPC `kairo_start_trial()` (SECURITY DEFINER, hanya `authenticated`): akun harus owner workspace, BELUM pernah trial, workspace Gratis tanpa riwayat masa aktif
+  -> `workspace_subscriptions` = pro / `trialing` / berakhir +14 hari. Dipanggil `submitSignup` lewat klien signup SEBELUM signOut; gagal = akun tetap jadi (Gratis) + pesan kuning + tombol WA. Satu kali per AKUN (user_id); akun yang dihapus lalu dibuat lagi dianggap baru.
+  Sesudah 14 hari `effectiveSubscriptionPlan()` otomatis membaca Gratis (data aman). Dashboard: `html[data-sub-trial="1"]` (status trialing) -> banner `#kairo-upgrade-hint` kata-kata trial ("Trial Pro berakhir <tgl>" <=7 hari, "Trial Pro sudah berakhir") + toast; CTA Perpanjang -> WA.
+  Teruji: RPC di DB asli lewat transaksi yang di-rollback (trial 1 ok, trial 2 ditolak, subscription pro/trialing); alur UI di mock. Belum ada tombol "Mulai trial" di Dashboard untuk akun Gratis lama (RPC sebenarnya mengizinkan).
+  FAQ 03, S&K (poin harga + trial), Panduan (Paket & perpanjangan) menyebut aturan ini tanpa angka harga; tanggal "Berlaku sejak" S&K/Privasi TIDAK diubah.
+   Halaman **`#syarat` (S&K) & `#privasi`** (`.kairo-lp-legal`, berlaku 5 Okt 2026) +
   footer berisi link keduanya, tautan "WhatsApp Kairo Admin" (logo + teks, nomor TIDAK ditampilkan - owner Okt 2026), ©. Headline hero: "Pencatatan usaha yang rapi untuk seller & jasa
   online." Belum ada: testimoni, medsos, kebijakan refund (menunggu owner). FAQ 8 poin fokus fitur
   unggulan (tanpa poin dark mode — owner). Jangan klaim fitur yang belum ada ("Owner Menu
