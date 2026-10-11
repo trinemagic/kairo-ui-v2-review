@@ -87,7 +87,7 @@ domain = pengguna login ulang & pengaturan browser (Ingat saya, dark mode) mulai
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
 Versi terakhir: `kairo.css?v=20.10.161`, `kairo-receipt.css?v=1.3.0`, `kairo-v3.css?v=3.43.2`,
-`kairo-v3.js?v=3.32.1`, `kairo-app.js?v=20.10.241`, `kairo-pin.js?v=1.0.2`, `kairo-themes.css?v=1.0.0`/`.js?v=1.0.1`; template seller dimuat dari kairo-app.js
+`kairo-v3.js?v=3.32.1`, `kairo-app.js?v=20.10.242`, `kairo-pin.js?v=1.0.2`, `kairo-themes.css?v=1.0.0`/`.js?v=1.0.1`; template seller dimuat dari kairo-app.js
 (`seller-app-premium.js?v=20.10.161`, `.css?v=20.10.157`) — naikkan juga bila file template diubah.
 Setup Wizard dimuat dari `loadSetupWizard()` di kairo-app.js (`kairo-setup-wizard.js/.css?v=1.0.4`, satu konstanta `v`).
 Panduan dimuat dari `window.kairoOpenGuide()` di kairo-v3.js (`kairo-guide.js/.css?v=` konstanta `GUIDE_V`='1.2.0'; gambar `assets/guide/*.webp?v=` `SHOT_V` di kairo-guide.js).
@@ -267,8 +267,8 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   manifest) hanya bila mode standalone (`display-mode: standalone` / `navigator.standalone`), bukan demo: CSS + skrip inline di `<head>` index.html supaya tampil sebelum JS lain; hilang saat `__KAIRO_APP_READY__` && `window.kairoPin` (dialog Masuk
   sudah tersusun), minimal 0,9 dtk, maksimal 8 dtk. Masuk layar penuh di HP (<=700px): atribut `html[data-kairo-remembered]` (username diingat ATAU PIN aktif; diatur skrip head + `syncRememberedAttr()` di kairo-v3.js) -> kartu Masuk jadi
   layar penuh, X (fixed, kanan atas) -> landing `#home`, keypad PIN lebih besar, judul form disembunyikan saat keypad. Desktop tidak berubah. **Bug lama yang ikut diperbaiki:** kairo-pin.js hanya memasang keypad lewat MutationObserver, jadi dialog
-  yang dibuka otomatis ("Ingat saya") sebelum modul PIN dimuat tidak menampilkan keypad; sekarang `mountLogin()` juga dipanggil saat modul dimuat bila dialog sudah terbuka. Batas jujur: iOS menampilkan layar putih bawaan sebentar sebelum splash kita
-  (hanya `apple-touch-startup-image` yang bisa mengganti, belum dibuat); Android memakai splash bawaan dari manifest lalu disambung splash kita.
+  yang dibuka otomatis ("Ingat saya") sebelum modul PIN dimuat tidak menampilkan keypad; sekarang `mountLogin()` juga dipanggil saat modul dimuat bila dialog sudah terbuka. **Layar awal iPhone:** 12 gambar `assets/splash/ios-<lebar>x<tinggi>.png` + `<link rel="apple-touch-startup-image">` per ukuran layar (media query device-width/height/pixel-ratio) di index.html, dibuat ulang `node .claude/testing/make-splash.js`
+  (isi = #kairo-splash tanpa spinner, diturunkan setengah tinggi status bar). iOS hanya memakai gambar yang ukurannya PERSIS cocok; model baru -> tambah baris di `DEVICES` + `<link>`. BELUM diuji di iPhone asli (hanya Chromium); Android memakai splash bawaan dari manifest lalu disambung splash kita.
 - **Riwayat Transaksi:** 7 kolom (Tanggal, Start Reading, Nama, Status, Paket=kode,
   Total, Aksi); Detail dialog + menu **Aksi** (Struk, Hapus/Cancel) yang meng-klik
   tombol asli app; mobile = kartu. Kolom lain tetap di DOM (disembunyikan CSS).
@@ -651,7 +651,9 @@ cd .claude/testing && node example.js                                # lihat REA
 
 ## 6. Belum selesai / perlu dicek owner
 
-- Semua perubahan belum diuji di **Safari** dan dengan **Supabase/login asli**.
+- Semua perubahan belum diuji di **Safari/iPhone/Android** dan dengan **Supabase/login asli** (termasuk splash, mode standalone, gambar layar awal iOS, Masuk layar penuh, cek duplikat di trigger kas asli).
+- Menunggu owner: tes printer struk fisik, testimoni/medsos/kebijakan refund untuk landing, Promo di layar Kasir (HOLD), bukti error "tidak bisa tambah topik", Leaked password protection (butuh Supabase Pro).
+- Keputusan terbuka: pengguna standalone yang belum "Ingat saya" setelah splash masuk ke landing (bukan layar Masuk); Simpan Bill belum punya cek duplikat.
 - Penyebab "tidak bisa tambah topik" di DB asli belum terkonfirmasi.
 - Performa (audit Okt 2026): idle di luar Dashboard 0 re-layout; di Dashboard 1×/detik (jam).
   Header Dashboard hanya ditulis ulang bila nama/workspace/tanggal berubah (dulu tiap
