@@ -86,8 +86,8 @@ domain = pengguna login ulang & pengaturan browser (Ingat saya, dark mode) mulai
 | `assets/brand/` | Logo resmi KAIRO Workspaces (kit dari owner, Okt 2026) | `kairo-horizontal-color.svg` = landing (header, footer, dialog Masuk; latar terang, min. lebar 120px); `kairo-app-icon.svg` = logo default dashboard (`KAIRO_LOGO`, sidebar, header HP, preview Settings, admin) sampai user upload logo sendiri; `favicon.svg/.ico`; `assets/og/apple-touch-icon.png` dari kit. Wordmark digambar - jangan diketik ulang pakai font. `assets/kairo-mark.svg` (logo lama) sudah dihapus. |
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
-Versi terakhir: `kairo.css?v=20.10.161`, `kairo-receipt.css?v=1.3.0`, `kairo-v3.css?v=3.43.0`,
-`kairo-v3.js?v=3.32.1`, `kairo-app.js?v=20.10.240`, `kairo-pin.js?v=1.0.2`, `kairo-themes.css?v=1.0.0`/`.js?v=1.0.1`; template seller dimuat dari kairo-app.js
+Versi terakhir: `kairo.css?v=20.10.161`, `kairo-receipt.css?v=1.3.0`, `kairo-v3.css?v=3.43.2`,
+`kairo-v3.js?v=3.32.1`, `kairo-app.js?v=20.10.241`, `kairo-pin.js?v=1.0.2`, `kairo-themes.css?v=1.0.0`/`.js?v=1.0.1`; template seller dimuat dari kairo-app.js
 (`seller-app-premium.js?v=20.10.161`, `.css?v=20.10.157`) — naikkan juga bila file template diubah.
 Setup Wizard dimuat dari `loadSetupWizard()` di kairo-app.js (`kairo-setup-wizard.js/.css?v=1.0.4`, satu konstanta `v`).
 Panduan dimuat dari `window.kairoOpenGuide()` di kairo-v3.js (`kairo-guide.js/.css?v=` konstanta `GUIDE_V`='1.2.0'; gambar `assets/guide/*.webp?v=` `SHOT_V` di kairo-guide.js).
@@ -403,6 +403,7 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   waktu** (owner Okt 2026): tetap tampil sampai order dicentang selesai; titik merah (berdenyut, `.is-urgent`) tidak
   hilang selama ada order ≥30 menit walau daftar sudah dibuka. ≥24 jam ditulis "X hari Y jam".
   Seen (untuk order <30 menit): `kairo_notif_seen_v1_<workspace>`.
+- **Dark mode HANYA setelah login (owner Okt 2026):** pilihan `trine_saas_appearance_v1` dulu langsung memasang `body.saas-dark` saat halaman dibuka, jadi landing (selalu terang) kena `body.saas-dark h1,h2,h3{color:#F5F7FA!important}` dari kairo.css -> judul hampir putih di atas latar terang (laporan owner dari iPhone). Sekarang `apply()` memasang `saas-dark` hanya bila bukan `auth-locked`, plus MutationObserver kelas body yang memasang/melepasnya saat login/logout (kairo-app.js, blok toggle tema). Aturan `body.saas-dark ...` yang tidak ber-scope `#app-shell` TIDAK boleh bocor ke landing - jangan pasang `saas-dark` saat locked. Tes: scratchpad `dark.js`/`dark2.js`/`aud.js` (audit `lowContrast` landing+Masuk+Daftar dengan pilihan gelap tersimpan, 390 & 1440: 0 temuan).
 - **Dark mode:** sudah diaudit 0 temuan kontras (juga template seller: menu, keranjang Orders,
   Settings › Produk, dialog riwayat customer, hover); transisi tema pakai View Transitions.
   Warna status seller di dark (badge expired/H-x/Aktif, "Sisa Rp…", Tersinkron) di-override
