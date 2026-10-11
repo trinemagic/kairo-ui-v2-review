@@ -86,8 +86,8 @@ domain = pengguna login ulang & pengaturan browser (Ingat saya, dark mode) mulai
 | `assets/brand/` | Logo resmi KAIRO Workspaces (kit dari owner, Okt 2026) | `kairo-horizontal-color.svg` = landing (header, footer, dialog Masuk; latar terang, min. lebar 120px); `kairo-app-icon.svg` = logo default dashboard (`KAIRO_LOGO`, sidebar, header HP, preview Settings, admin) sampai user upload logo sendiri; `favicon.svg/.ico`; `assets/og/apple-touch-icon.png` dari kit. Wordmark digambar - jangan diketik ulang pakai font. `assets/kairo-mark.svg` (logo lama) sudah dihapus. |
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
-Versi terakhir: `kairo.css?v=20.10.161`, `kairo-receipt.css?v=1.3.0`, `kairo-v3.css?v=3.44.2`,
-`kairo-v3.js?v=3.32.6`, `kairo-app.js?v=20.10.247`, `kairo-pin.js?v=1.0.2`, `kairo-themes.css?v=1.0.0`/`.js?v=1.0.1`; template seller dimuat dari kairo-app.js
+Versi terakhir: `kairo.css?v=20.10.161`, `kairo-receipt.css?v=1.3.0`, `kairo-v3.css?v=3.44.3`,
+`kairo-v3.js?v=3.32.7`, `kairo-app.js?v=20.10.248`, `kairo-pin.js?v=1.0.2`, `kairo-themes.css?v=1.0.0`/`.js?v=1.0.1`; template seller dimuat dari kairo-app.js
 (`seller-app-premium.js?v=20.10.161`, `.css?v=20.10.157`) — naikkan juga bila file template diubah.
 Setup Wizard dimuat dari `loadSetupWizard()` di kairo-app.js (`kairo-setup-wizard.js/.css?v=1.0.4`, satu konstanta `v`).
 Panduan dimuat dari `window.kairoOpenGuide()` di kairo-v3.js (`kairo-guide.js/.css?v=` konstanta `GUIDE_V`='1.2.3'; gambar `assets/guide/*.webp?v=` `SHOT_V` di kairo-guide.js).
@@ -121,10 +121,10 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   tenant, auth, "belum final"). Pricing Gratis (Rp0) / Pro / Custom dengan daftar fitur; tombol
   Pro/Custom membuka form daftar dengan paket terpilih (`data-signup-plan` → `window.__kairoSignupPlan`).
   **Harga Pro per template + trial (owner Okt 2026, PR #92):** harga per BULAN: Seller App Premium Rp30.000, Jasa Online Rp53.000, Online Shop Rp84.000, Warung/Kasir (POS) Rp98.000;
-  6 bulan = 6 x bulanan - Rp20.000 (Rp160.000 / 298.000 / 484.000 / 568.000), ditampilkan sebagai angka akhir dengan harga normal (6 x bulanan) dicoret, TANPA tulisan "hemat/potongan" dan TANPA harga per bulan di kartu Pricing (owner).
+  6 bulan = 6 x bulanan - Rp20.000 (Rp160.000 / 298.000 / 484.000 / 568.000), ditampilkan sebagai angka akhir dengan harga normal (6 x bulanan) dicoret, TANPA tulisan "hemat/potongan" dan kartu Pro tetap menampilkan harga per bulan template terpilih sebagai judul besar (revisi owner: yang dihapus hanya baris kecil "1 bulan Rp..."; judul harga jangan dihapus).
   Sumber harga ada di 3 tempat - ubah semuanya: `data-m`/`data-s` di opsi `#pricing-picker` (index.html), `PRO_PRICES` (kairo-app.js, form Daftar + pesan WA) dan `PRO_PRICE` (admin.js, nominal Catat Penjualan).
   Landing Pricing: promo strip "Coba Pro gratis 14 hari di semua template", lalu dropdown **Pilih template usahamu** (`#pricing-picker`, terbuka saat halaman dibuka, menutup setelah memilih, TANPA harga di opsinya; `bindPricingPicker()` kairo-v3.js)
-  yang mengisi kartu Pro (Paket 6 bulan - template: ~~normal~~ final) dan `data-signup-template` tombol Coba Pro gratis (-> `window.__kairoSignupTemplate` -> Jenis Usaha terpilih di form Daftar). Home: kartu Pro "mulai ~~Rp180.000~~ Rp160.000/6 bulan".
+  yang mengisi kartu Pro (Paket 6 bulan - template: ~~normal~~ final) dan `data-signup-template` tombol Coba Pro gratis (-> `window.__kairoSignupTemplate` -> Jenis Usaha terpilih di form Daftar). Home dan kartu Pro form Daftar: "mulai Rp30.000/bulan".
   **Form Daftar:** kotak "Cara mulai Pro" (`.kairo-pp-period`, hanya saat Pro): Coba gratis 14 hari (bawaan, `trial`) / Langsung 1 bulan / Langsung 6 bulan (harga ikut template di langkah 02; `#kairo-selected-period`) -> metadata `requested_period` ('trial'|'monthly'|'semiannual';
   admin `requestedPro()` hanya mengenali monthly/semiannual jadi trial tidak dianggap "belum bayar"). Tombol Buat Akun = "Buat Akun dan Mulai Trial 14 Hari" untuk trial.
   **Trial Pro 14 hari (SQL `.claude/sql/2026-10-pro-trial.sql`, dijalankan Claude via MCP):** tabel `kairo_trials` (user_id PK, RLS tanpa policy) + RPC `kairo_start_trial()` (SECURITY DEFINER, hanya `authenticated`): akun harus owner workspace, BELUM pernah trial, workspace Gratis tanpa riwayat masa aktif
