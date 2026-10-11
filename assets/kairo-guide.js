@@ -126,9 +126,10 @@
         intro: 'Gratis untuk mulai, Pro untuk semua fitur.',
         steps: [
           '<b>Gratis</b>: riwayat yang tampil 60 hari terakhir; data lebih dari 12 bulan diringkas setelah pemberitahuan 30 hari (saldo tidak berubah).',
-          '<b>Pro</b>: Rp43.000/bulan atau Rp238.000/6 bulan. Membuka Customer Database, Promo, Petty Cash, Export Excel, Autofill, Open Store, Struk, dan riwayat lengkap.',
+          '<b>Pro</b>: harga mengikuti template (lihat halaman Pricing), 1 bulan atau 6 bulan. Membuka Customer Database, Promo, Petty Cash, Export Excel, Autofill, Open Store, Struk, dan riwayat lengkap.',
+          '<b>Trial Pro 14 hari</b>: akun baru bisa mencoba Pro gratis saat daftar, satu kali per akun. Setelah 14 hari workspace kembali ke Gratis (data tetap aman) dan kamu bisa memperpanjang langganan untuk tetap di Pro.',
           'Upgrade/perpanjang: pencet <b>Upgrade ke Pro</b> / <b>Perpanjang Pro</b> di Dashboard. Pesan WhatsApp ke admin terisi otomatis; setelah transfer dikonfirmasi admin, Pro aktif.',
-          '7 hari sebelum masa Pro berakhir muncul pengingat di Dashboard. Bila lewat, workspace kembali ke Gratis dan data tetap aman.'
+          '7 hari sebelum masa Pro (atau trial) berakhir muncul pengingat di Dashboard. Bila lewat, workspace kembali ke Gratis dan data tetap aman.'
         ]
       },
       {

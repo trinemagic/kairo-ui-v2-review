@@ -92,6 +92,8 @@ if (window.top !== window.self) {
   async function openSignup(event) {
     // Pricing buttons preselect a plan in the signup table (data-signup-plan="pro" | "custom").
     window.__kairoSignupPlan = event?.currentTarget?.dataset?.signupPlan || 'basic';
+    // Tombol harga per template (data-signup-template) juga memilih Jenis Usaha di form daftar.
+    window.__kairoSignupTemplate = event?.currentTarget?.dataset?.signupTemplate || '';
     closeLogin({ restoreFocus: false });
     try { await window.__kairoEnsureRuntime?.(); } catch (_) { return; }
     const started = Date.now();
@@ -165,6 +167,28 @@ if (window.top !== window.self) {
     }));
   }
 
+  // Pricing: pilih template dulu (dropdown terbuka saat halaman dibuka), kartu Pro menampilkan harga template itu.
+  function bindPricingPicker(root) {
+    const picker = q('#pricing-picker', root);
+    if (!picker) return;
+    const btn = q('.kairo-lp-tplpick-btn', picker);
+    const rupiah = n => 'Rp' + Number(n).toLocaleString('id-ID');
+    const setOpen = open => { picker.classList.toggle('is-open', open); btn.setAttribute('aria-expanded', String(open)); };
+    btn.addEventListener('click', () => setOpen(!picker.classList.contains('is-open')));
+    qa('[role="option"]', picker).forEach(opt => opt.addEventListener('click', () => {
+      qa('[role="option"]', picker).forEach(o => o.setAttribute('aria-selected', String(o === opt)));
+      const normal = Number(opt.dataset.m) * 6, six = Number(opt.dataset.s);
+      q('[data-tp-name]', picker).textContent = opt.dataset.name;
+      q('[data-tp-sub]', picker).textContent = q('small', opt)?.textContent || '';
+      const card = picker.parentElement;
+      const title = q('[data-pro-deal-title]', card); if (title) title.textContent = 'Paket 6 bulan · ' + opt.dataset.name;
+      const body = q('[data-pro-deal-body]', card);
+      if (body) body.innerHTML = '<s aria-label="Harga normal ' + rupiah(normal) + '">' + rupiah(normal) + '</s><b>' + rupiah(six) + '</b>';
+      const cta = q('[data-pro-cta]', card); if (cta) cta.dataset.signupTemplate = opt.dataset.tpl;
+      setOpen(false);
+    }));
+  }
+
   function bindLanding(root) {
     bindLandingPages(root);
     qa('[data-v3-login]', root).forEach(button => button.addEventListener('click', openLogin));
@@ -173,6 +197,7 @@ if (window.top !== window.self) {
     q('#kairo-remember-me', root)?.addEventListener('change', event => {
       if (!event.target.checked) setRememberedUsername('');
     });
+    bindPricingPicker(root);
     bindLandingReveal(root);
     root.addEventListener('keydown', event => {
       const dialog = q('#kairo-login-dialog');
@@ -653,7 +678,7 @@ if (window.top !== window.self) {
 
   // Panduan pemakaian (owner Okt 2026): tombol buku di samping lonceng (desktop) + item "Panduan" di menu More (HP).
   // Isi & gaya ada di assets/kairo-guide.js/.css, baru dimuat saat pertama kali dibuka supaya dashboard tetap ringan.
-  const GUIDE_V = '1.2.2';
+  const GUIDE_V = '1.2.3';
   let guideLoader = null;
   window.kairoOpenGuide = function () {
     if (!guideLoader) {
@@ -885,12 +910,15 @@ if (window.top !== window.self) {
     // Online Shop tidak punya Open Store: daftar fitur Pro tanpa itu.
     const feats = root.dataset.businessTemplate === 'pos_kasir' ? 'Customer Database, Promo, Petty Cash, dan Export Excel' : root.dataset.businessTemplate === 'online_shop' ? 'Autofill Orders, Customer Database, Promo, Petty Cash, dan Export Excel' : 'Autofill Orders, Customer Database, Promo, Open Store, Petty Cash, dan Export Excel';
     let text = original ? { ...original, long: original.long.replace('Autofill Orders, Customer Database, Promo, Open Store, Petty Cash, dan Export Excel', feats) } : original;
-    if (m === 'lapsed') text = { strong: 'Masa aktif Pro sudah berakhir', long: 'Workspace sementara memakai paket Gratis, data tetap aman. Perpanjang untuk membuka lagi semua fitur Pro.', short: 'Data tetap aman. Perpanjang untuk membuka fitur Pro lagi.', cta: 'Perpanjang Pro' };
+    const trial = root.dataset.subTrial === '1';
+    if (m === 'lapsed') text = trial ? { strong: 'Trial Pro sudah berakhir', long: 'Workspace kembali memakai paket Gratis, data tetap aman. Mau tetap di Pro? Perpanjang langganan untuk membuka lagi semua fitur Pro.', short: 'Data tetap aman. Perpanjang untuk tetap di Pro.', cta: 'Perpanjang Pro' } : { strong: 'Masa aktif Pro sudah berakhir', long: 'Workspace sementara memakai paket Gratis, data tetap aman. Perpanjang untuk membuka lagi semua fitur Pro.', short: 'Data tetap aman. Perpanjang untuk membuka fitur Pro lagi.', cta: 'Perpanjang Pro' };
     if (m === 'renew') {
       const end = Number(root.dataset.subEnd || 0), days = Math.max(0, Math.ceil((end - Date.now()) / 86400000));
       const date = end ? new Date(end).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
       const left = days <= 0 ? 'Berakhir hari ini.' : `Tinggal ${days} hari lagi.`;
-      text = { strong: `Paket Pro berakhir ${date}`, long: `${left} Perpanjang sekarang supaya ${feats.replace('Autofill Orders', 'Autofill')} tetap bisa dipakai.`, short: `${left} Perpanjang supaya fitur Pro tetap aktif.`, cta: 'Perpanjang Pro' };
+      text = trial
+        ? { strong: `Trial Pro berakhir ${date}`, long: `${left} Perpanjang langganan sebelum trial habis supaya ${feats.replace('Autofill Orders', 'Autofill')} tetap bisa dipakai. Kalau tidak, workspace kembali ke Gratis (data tetap aman).`, short: `${left} Perpanjang untuk tetap di Pro.`, cta: 'Perpanjang Pro' }
+        : { strong: `Paket Pro berakhir ${date}`, long: `${left} Perpanjang sekarang supaya ${feats.replace('Autofill Orders', 'Autofill')} tetap bisa dipakai.`, short: `${left} Perpanjang supaya fitur Pro tetap aktif.`, cta: 'Perpanjang Pro' };
     }
     for (const k of Object.keys(parts)) if (parts[k] && parts[k].textContent !== text[k]) parts[k].textContent = text[k];
     const close = hint.querySelector('[data-upgrade-close]'), label = m === 'renew' ? 'Sembunyikan sampai besok' : 'Sembunyikan selama 7 hari';
@@ -913,7 +941,7 @@ if (window.top !== window.self) {
       sync();
     }
   });
-  new MutationObserver(sync).observe(root, { attributes: true, attributeFilter: ['data-workspace-plan', 'data-sub-state', 'data-sub-end', 'data-business-template'] });
+  new MutationObserver(sync).observe(root, { attributes: true, attributeFilter: ['data-workspace-plan', 'data-sub-state', 'data-sub-end', 'data-sub-trial', 'data-business-template'] });
   new MutationObserver(sync).observe(document.body, { attributes: true, attributeFilter: ['class'] });
   sync();
 })();

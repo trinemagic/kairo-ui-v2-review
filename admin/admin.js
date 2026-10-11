@@ -100,6 +100,8 @@ const WS={active:['Aktif','b-ok'],suspended:['Suspend','b-warn'],archived:['Arsi
 const PAY={paid:'Lunas',pending:'Pending',refunded:'Refund',void:'Void'};
 const FOLLOW={open:['Open','b-info'],done:['Selesai','b-ok'],canceled:['Batal','b-mute']};
 const PRIO={high:['Tinggi','b-danger'],normal:['Normal','b-info'],low:['Rendah','b-mute']};
+// Harga Pro per bulan per template (owner Okt 2026); 6 bulan = 6 x bulanan - Rp20.000. Samakan dengan landing (index.html) & PRO_PRICES di kairo-app.js.
+const PRO_PRICE={digital_subscription:30000,service_consultation:53000,online_shop:84000,pos_kasir:98000};
 const PERIOD={monthly:'1 bulan',quarterly:'3 bulan',semiannual:'6 bulan',annual:'1 tahun',custom:'Custom'};
 const CAT={hosting:'Hosting',domain:'Domain',tools:'Tools',marketing:'Marketing',fee:'Biaya admin',operational:'Operasional',other:'Lainnya'};
 const badge=(map,v)=>{const k=String(v||'').toLowerCase(),m=map[k];return m?`<span class="badge ${m[1]}">${esc(m[0])}</span>`:`<span class="badge b-mute">${esc(v||'—')}</span>`;};
@@ -389,7 +391,7 @@ async function setWsStatus(status){
 function saleFromWorkspace(){
   const o=$('sWorkspace').selectedOptions[0];if(!o)return;
   const a=requestedPro(o.value);$('sPlan').value=a?'pro':o.dataset.plan||'basic';
-  if(a){$('sPeriod').value=a.requested_period;$('sAmount').value=a.requested_period==='semiannual'?238000:43000;}
+  if(a){$('sPeriod').value=a.requested_period;const tp=PRO_PRICE[a.business_template]||PRO_PRICE.digital_subscription;$('sAmount').value=a.requested_period==='semiannual'?tp*6-20000:tp;}
   syncSaleEnd();
 }
 // Hapus akun & workspace permanen (SQL 2026-10-admin-delete-workspace). Pengaman: daftar isi yang akan hilang,
