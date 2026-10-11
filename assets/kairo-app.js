@@ -4646,8 +4646,10 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
     }
     // Force one frame before flipping classes so Safari can interpolate the colors smoothly.
     const commit=()=>{
-      document.body.classList.toggle('saas-dark',dark);
-      document.documentElement.style.colorScheme=dark?'dark':'light';
+      // Landing/Masuk selalu terang: mode gelap hanya dipasang saat sudah login (pilihan tetap tersimpan di perangkat).
+      const show=dark&&!document.body.classList.contains('auth-locked');
+      document.body.classList.toggle('saas-dark',show);
+      document.documentElement.style.colorScheme=show?'dark':'light';
       btn.setAttribute('aria-label',dark?'Aktifkan light mode':'Aktifkan dark mode');
       btn.title=dark?'Light mode':'Dark mode';
       localStorage.setItem(KEY,dark?'dark':'light');
@@ -4660,6 +4662,15 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
   }
   apply(localStorage.getItem(KEY)==='dark'?'dark':'light');
   btn.addEventListener('click',()=>apply(document.body.classList.contains('saas-dark')?'light':'dark',{animate:true}));
+  // Login/logout mengubah auth-locked: pasang atau lepas mode gelap sesuai pilihan tersimpan.
+  new MutationObserver(()=>{
+    const want=localStorage.getItem(KEY)==='dark'&&!document.body.classList.contains('auth-locked');
+    if(want===document.body.classList.contains('saas-dark'))return;
+    document.body.classList.toggle('saas-dark',want);
+    document.documentElement.style.colorScheme=want?'dark':'light';
+    btn.setAttribute('aria-label',want?'Aktifkan light mode':'Aktifkan dark mode');
+    btn.title=want?'Light mode':'Dark mode';
+  }).observe(document.body,{attributes:true,attributeFilter:['class']});
 })();
 
 
