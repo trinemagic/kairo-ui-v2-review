@@ -670,7 +670,7 @@
     head.innerHTML = `<tr><th>Produk</th><th>Stok</th><th class="c-days">Sisa hari</th>${showRetur ? '<th>Retur</th>' : ''}<th>Status</th></tr>`;
     body.innerHTML = sortStock(data).map(d => `<tr class="tone-${d.tone}"><td><strong>${esc(d.name)}</strong></td><td><b>${d.stock.toLocaleString('id-ID')}</b></td><td class="c-days">${d.days === null ? '-' : Math.floor(d.days).toLocaleString('id-ID')}</td>${showRetur ? `<td>${restockBtn(d)}</td>` : ''}<td><span class="shop-status tone-${d.tone}">${esc(d.status)}</span></td></tr>`).join('');
   }
-  document.addEventListener('click', e => { const b = e.target.closest?.('[data-shop-restock]'); if (b) { b.disabled = true; restockReturn(b.dataset.shopRestock).finally(() => { b.disabled = false; }); } });
+  document.addEventListener('click', e => { const b = e.target.closest?.('[data-shop-restock]'); if (b) { const orig = b.textContent; window.kairoBtnLoading(b, true, undefined, 'Menyimpan…'); restockReturn(b.dataset.shopRestock).finally(() => { if (b.isConnected) window.kairoBtnLoading(b, false, orig); }); } });
 
   /* ---------- Pasang ---------- */
   function wrap(name, after) {

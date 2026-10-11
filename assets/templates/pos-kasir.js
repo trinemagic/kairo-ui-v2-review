@@ -241,11 +241,14 @@
   }
   async function deleteBill() {
     if (!cart.billId || !confirm('Hapus bill ini? Pesanan di dalamnya hilang.')) return;
+    const btn = document.getElementById('pos-del-bill'), orig = btn?.textContent;
+    window.kairoBtnLoading(btn, true, undefined, 'Menghapus…');
     try {
       const { error } = await db.from('pos_open_bills').delete().eq('workspace_id', requireWorkspaceId()).eq('id', cart.billId);
       if (error) throw error;
       showToast('Bill dihapus.'); resetCart(true); await loadBills(); renderGrid();
     } catch (err) { showToast('Gagal menghapus bill: ' + (err.message || err), true); }
+    finally { if (btn?.isConnected) window.kairoBtnLoading(btn, false, orig); }
   }
 
   // Service & pajak dicatat sebagai baris tambahan. Pajak memakai HPP = nominal pajak, jadi LABA tidak menghitung pajak sebagai untung
