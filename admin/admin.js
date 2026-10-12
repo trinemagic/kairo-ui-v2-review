@@ -46,6 +46,7 @@ const LOG_ACTIONS={
   platform_admin_create_followup:a=>['Buat follow-up',a.p_workspace_id,a.p_title],
   platform_admin_set_followup_status:a=>['Ubah status follow-up',null,a.p_status],
   platform_admin_save_settings:()=>['Ubah pengaturan admin',null,null],
+  platform_admin_save_pricing:a=>['Ubah harga & promo',null,`Harga Pro per template · trial ${a.p_trial_enabled===false?'mati':'aktif '+(a.p_trial_days||'')+' hari'}`],
   platform_admin_save_custom_request:a=>[a.p_id?'Ubah request Custom':'Catat request Custom',a.p_workspace_id,a.p_title],
   platform_admin_delete_custom_request:()=>['Hapus request Custom',null,null]
 };
@@ -73,7 +74,7 @@ const PAGES={
   workspaces:['Workspaces','Paket, masa aktif, dan status setiap workspace'],
   sales:['Penjualan','Catat dan pantau pembayaran paket'],
   renewals:['Renewal','Workspace yang masa aktifnya segera habis'],
-  plans:['Harga Paket','Harga Pro per template (acuan)'],
+  plans:['Harga Paket','Harga Pro per template & promo trial'],
   templates:['Template','Template usaha yang ada di KAIRO Workspaces + preview dashboard'],
   expenses:['Pengeluaran','Biaya operasional dan laba bersih'],
   analytics:['Analitik','Performa paket dan subscription'],
@@ -100,8 +101,12 @@ const WS={active:['Aktif','b-ok'],suspended:['Suspend','b-warn'],archived:['Arsi
 const PAY={paid:'Lunas',pending:'Pending',refunded:'Refund',void:'Void'};
 const FOLLOW={open:['Open','b-info'],done:['Selesai','b-ok'],canceled:['Batal','b-mute']};
 const PRIO={high:['Tinggi','b-danger'],normal:['Normal','b-info'],low:['Rendah','b-mute']};
-// Harga Pro per bulan per template (owner Okt 2026); 6 bulan = 6 x bulanan - Rp20.000. Samakan dengan landing (index.html) & PRO_PRICES di kairo-app.js.
+// Harga Pro per template + promo trial (owner Okt 2026): sumber kebenarannya tabel kairo_pro_prices / kairo_promo_settings (SQL .claude/sql/2026-10-pricing-admin.sql),
+// diatur di halaman Harga Paket dan otomatis dipakai landing & form Daftar. Angka di bawah = cadangan bila database belum terbaca.
 const PRO_PRICE={digital_subscription:30000,service_consultation:53000,online_shop:84000,pos_kasir:98000};
+const PRO_SEMI={digital_subscription:160000,service_consultation:298000,online_shop:484000,pos_kasir:568000};
+const TRIAL={enabled:true,days:14};
+let pricingHistory=[];
 const PERIOD={monthly:'1 bulan',quarterly:'3 bulan',semiannual:'6 bulan',annual:'1 tahun',custom:'Custom'};
 const CAT={hosting:'Hosting',domain:'Domain',tools:'Tools',marketing:'Marketing',fee:'Biaya admin',operational:'Operasional',other:'Lainnya'};
 // Status subscription; trial yang sudah lewat tanggal berakhir ditulis "Trial habis" (dashboard user sudah membacanya Gratis).
@@ -166,9 +171,21 @@ async function load(){
   failed.forEach(f=>console.warn('Admin load:',f));
   const [o,w,a,b,s,series,prices,ex,an,pp,rq,cr,fu,ps]=calls.map(x=>x.error?null:x.data);
   overview=o||{};all=w||[];activity=a||[];business=b||{};sales=s||[];expenses=ex||[];analytics=an||{};planPerf=pp||[];renewals=rq||[];crm=cr||[];followups=fu||[];platformSettings=ps||{};
-  await loadExtras();
+  await loadExtras();await loadPricing();
   renderOverview(series||[]);renderWorkspaces();renderSales();renderActivity();renderPrices();fillWorkspaceSelect();renderExpenses();renderAnalytics();renderRenewals();renderCrm();renderFollowups();renderPlatformSettings();fillFollowWorkspace();renderCustom();renderServer();renderTemplates();renderIssues();renderNavCounts();
   if(failed.length)toast(`Sebagian data gagal dimuat (${failed.length}). ${failed[0]}`,'warning');
+}
+
+/* Harga Pro & promo trial (butuh SQL .claude/sql/2026-10-pricing-admin.sql). */
+function applyPricingData(d){
+  Object.keys(d.prices||{}).forEach(k=>{const p=d.prices[k];if(p&&p.m>0&&p.s>0){PRO_PRICE[k]=p.m;PRO_SEMI[k]=p.s;}});
+  if(d.trial){TRIAL.enabled=d.trial.enabled!==false;TRIAL.days=d.trial.days||14;}
+}
+async function loadPricing(){
+  const [p,h]=await Promise.all([db.rpc('kairo_public_pricing'),db.rpc('platform_admin_pricing_history',{p_limit:50})].map(x=>Promise.resolve(x).then(r=>r,e=>({error:e}))));
+  needSql.pricing=!!p.error;
+  if(!p.error&&p.data)applyPricingData(p.data);
+  pricingHistory=h.error?[]:(h.data||[]);
 }
 
 /* Fitur v2 (butuh SQL admin panel v2). Gagal = tampilkan catatan, bukan error merah. */
@@ -267,11 +284,55 @@ function renderActivity(){
   $('activityMini').innerHTML=activity.length?activity.slice(0,5).map(activityItem).join(''):none;
 }
 
-// Halaman Harga Paket (owner Okt 2026): harga Pro berbeda per template, jadi kartu lama (1 harga per paket, semua Rp0 dan tidak dipakai perhitungan apa pun)
-// diganti daftar acuan baca-saja dari PRO_PRICE. Harga yang tampil ke pelanggan ada di landing (index.html) dan form Daftar (kairo-app.js).
+// Halaman Harga Paket (owner Okt 2026): harga Pro per template + promo trial bisa diubah di sini dan langsung dipakai landing, form Daftar, dan nominal Catat Penjualan.
+// Disimpan lewat platform_admin_save_pricing (validasi + riwayat di database); tiap perubahan masuk Log Aktivitas.
+const tplName=k=>TEMPLATES.find(t=>t.key===k)?.name||k;
+function pricingHistoryLine(h){
+  const o=h.old_value||{},n=h.new_value||{};
+  if(h.kind==='trial')return `Promo trial: ${o.enabled===false?'mati':'aktif '+o.days+' hari'} → ${n.enabled===false?'mati':'aktif '+n.days+' hari'}`;
+  const parts=[];
+  if(o.m!==n.m)parts.push(`1 bulan ${money(o.m)} → ${money(n.m)}`);
+  if(o.s!==n.s)parts.push(`6 bulan ${money(o.s)} → ${money(n.s)}`);
+  return `${tplName(h.item)}: ${parts.join(' · ')}`;
+}
 function renderPrices(){
-  const rows=TEMPLATES.map(t=>{const m=PRO_PRICE[t.key]||0;return `<tr><td><b>${esc(t.name)}</b><br><small>${esc(t.key)}</small></td><td class="num">${money(m)}</td><td class="num"><s>${money(m*6)}</s> <b>${money(m*6-20000)}</b></td></tr>`;}).join('');
-  $('priceGrid').innerHTML=`<div class="widget price-card"><h2>Gratis ${planBadge('basic')}</h2><p class="muted">Rp0. Riwayat 60 hari, tanpa fitur Pro.</p></div><div class="widget price-card pro wide"><h2>Pro ${planBadge('pro')}</h2><p class="muted">Harga per template. Akun baru bisa trial Pro 14 hari, satu kali per akun.</p><div class="table-wrap"><table><thead><tr><th>Template</th><th class="num">1 bulan</th><th class="num">6 bulan</th></tr></thead><tbody>${rows}</tbody></table></div><p class="muted">Daftar ini hanya acuan (dipakai untuk nominal otomatis di Catat Penjualan). Harga yang tampil ke pelanggan ada di landing page.</p></div>`;
+  const rows=TEMPLATES.map(t=>{const m=PRO_PRICE[t.key]||0,s=PRO_SEMI[t.key]||0;return `<tr data-key="${esc(t.key)}"><td><b>${esc(t.name)}</b><br><small>${esc(t.key)}</small></td><td class="num"><input class="input price-inp" type="number" inputmode="numeric" min="1" step="1000" data-f="m" value="${m}" aria-label="Harga 1 bulan ${esc(t.name)}"></td><td class="num"><input class="input price-inp" type="number" inputmode="numeric" min="1" step="1000" data-f="s" value="${s}" aria-label="Harga 6 bulan ${esc(t.name)}"></td><td class="num price-normal" data-normal></td></tr>`;}).join('');
+  const hist=pricingHistory.length?pricingHistory.map(h=>`<li><b>${esc(pricingHistoryLine(h))}</b><small>${esc(h.changed_by_email||'admin')} · ${h.changed_at?new Date(h.changed_at).toLocaleString('id-ID',{dateStyle:'medium',timeStyle:'short'}):'—'}</small></li>`).join(''):'<li class="empty-li">Belum ada perubahan harga atau promo.</li>';
+  $('priceGrid').innerHTML=`<div class="widget price-card"><h2>Gratis ${planBadge('basic')}</h2><p class="muted">Rp0. Riwayat 60 hari, tanpa fitur Pro.</p></div>
+  <div class="widget price-card pro wide"><h2>Pro ${planBadge('pro')}</h2>
+  ${needSql.pricing?'<p class="muted t-warn">Pengaturan harga belum aktif di database (jalankan .claude/sql/2026-10-pricing-admin.sql). Angka di bawah hanya cadangan.</p>':'<p class="muted">Harga per template. Perubahan langsung tampil di landing page, form Daftar, dan nominal otomatis Catat Penjualan. Harga yang dicoret di landing = 6 × harga 1 bulan.</p>'}
+  <div class="table-wrap"><table><thead><tr><th>Template</th><th class="num">1 bulan (Rp)</th><th class="num">6 bulan (Rp)</th><th class="num">Harga normal 6 bulan</th></tr></thead><tbody id="priceRows">${rows}</tbody></table></div>
+  <div class="price-trial"><h3>Promo trial Pro</h3><label class="price-trial-on"><input type="checkbox" id="trialOn"${TRIAL.enabled?' checked':''}> <span>Aktif (akun baru bisa coba Pro gratis, satu kali per akun)</span></label><label class="field price-trial-days"><span>Durasi (hari)</span><input class="input" id="trialDays" type="number" inputmode="numeric" min="1" max="90" step="1" value="${TRIAL.days}"></label></div>
+  <div class="price-actions"><button class="btn btn-primary" id="priceSave" type="button">Simpan harga &amp; promo</button><span class="muted" id="priceMsg"></span></div></div>
+  <div class="widget price-card wide"><h2>Riwayat perubahan</h2><ul class="feed price-history">${hist}</ul></div>`;
+  const refreshNormal=()=>$('priceRows').querySelectorAll('tr').forEach(tr=>{const m=Number(tr.querySelector('[data-f="m"]').value)||0;tr.querySelector('[data-normal]').innerHTML=`<s>${money(m*6)}</s>`;});
+  refreshNormal();labelCells($('priceRows'));
+  $('priceRows').oninput=refreshNormal;
+  $('priceSave').onclick=savePricing;
+}
+async function savePricing(){
+  const prices={},bad=[];
+  $('priceRows').querySelectorAll('tr').forEach(tr=>{
+    const k=tr.dataset.key,m=Number(tr.querySelector('[data-f="m"]').value),s=Number(tr.querySelector('[data-f="s"]').value);
+    if(!Number.isInteger(m)||!Number.isInteger(s)||m<=0||s<=0)bad.push(`${tplName(k)}: harga harus angka bulat lebih dari 0`);
+    else if(s>=m*6)bad.push(`${tplName(k)}: harga 6 bulan harus lebih murah dari 6 × harga 1 bulan (${money(m*6)})`);
+    prices[k]={m,s};
+  });
+  const on=$('trialOn').checked,days=Number($('trialDays').value);
+  if(!Number.isInteger(days)||days<1||days>90)bad.push('Durasi trial harus 1-90 hari');
+  if(bad.length)return toast(bad[0],'warning');
+  const changed=TEMPLATES.filter(t=>prices[t.key]&&(prices[t.key].m!==PRO_PRICE[t.key]||prices[t.key].s!==PRO_SEMI[t.key])).map(t=>`${t.name}: ${money(PRO_PRICE[t.key])}/${money(PRO_SEMI[t.key])} → ${money(prices[t.key].m)}/${money(prices[t.key].s)}`);
+  const trialChanged=on!==TRIAL.enabled||days!==TRIAL.days;
+  if(!changed.length&&!trialChanged)return toast('Belum ada yang diubah.','info');
+  const msg=['Simpan perubahan ini? Langsung tampil di landing page dan form Daftar.',...changed,trialChanged?`Promo trial: ${on?'aktif '+days+' hari':'dimatikan'}`:null].filter(Boolean).join('\n');
+  if(!confirm(msg))return;
+  const btn=$('priceSave');btn.disabled=true;
+  const {data,error}=await db.rpc('platform_admin_save_pricing',{p_prices:prices,p_trial_enabled:on,p_trial_days:days});
+  btn.disabled=false;
+  if(error)return toast('Gagal menyimpan: '+(error.message||error),'error');
+  if(data)applyPricingData(data);
+  await loadPricing();renderPrices();
+  toast('Harga & promo tersimpan. Landing page memakai angka baru.','success');
 }
 
 function renderExpenses(){
@@ -393,7 +454,7 @@ async function setWsStatus(status){
 function saleFromWorkspace(){
   const o=$('sWorkspace').selectedOptions[0];if(!o)return;
   const a=requestedPro(o.value);$('sPlan').value=a?'pro':o.dataset.plan||'basic';
-  if(a){$('sPeriod').value=a.requested_period;const tp=PRO_PRICE[a.business_template]||PRO_PRICE.digital_subscription;$('sAmount').value=a.requested_period==='semiannual'?tp*6-20000:tp;}
+  if(a){$('sPeriod').value=a.requested_period;const bt=PRO_PRICE[a.business_template]?a.business_template:'digital_subscription';$('sAmount').value=a.requested_period==='semiannual'?PRO_SEMI[bt]:PRO_PRICE[bt];}
   syncSaleEnd();
 }
 // Hapus akun & workspace permanen (SQL 2026-10-admin-delete-workspace). Pengaman: daftar isi yang akan hilang,
@@ -583,7 +644,7 @@ function computeIssues(){
       else if(last&&last<now-14*DAY)add(pro?'med':'low','Tidak ada transaksi 14+ hari',w,`Transaksi terakhir ${dateID(a.last_tx_at)}`,a.last_tx_at,{label:'Follow-up',run:()=>openFollow(w.workspace_id,'Cek kenapa berhenti mencatat')});
       const rp=requestedPro(w.workspace_id);
       if(rp&&!soldWs.has(w.workspace_id)&&!soldWs.has(w.workspace_name))add('med','Daftar Pro, pembayaran belum dicatat',w,`Pilih ${PERIOD[rp.requested_period]}${rp.owner_phone?` · WA ${rp.owner_phone}`:''}`,a.workspace_created_at,{label:'Catat',run:()=>openSale(w.workspace_id)});
-      if(a.requested_plan==='pro'&&a.requested_period==='trial'&&!pro)add('med','Minta trial Pro, belum aktif',w,'Memilih trial 14 hari saat daftar, tetapi paket masih Gratis. Aktifkan lewat Kelola (Pro, berakhir 14 hari dari sekarang).',a.workspace_created_at,manage);
+      if(a.requested_plan==='pro'&&a.requested_period==='trial'&&!pro)add('med','Minta trial Pro, belum aktif',w,'Memilih trial saat daftar, tetapi paket masih Gratis. Aktifkan lewat Kelola (Pro, berakhir '+TRIAL.days+' hari dari sekarang).',a.workspace_created_at,manage);
       if(a.requested_variant==='custom'&&!customWs.has(w.workspace_id))add('med','Daftar paket Custom, request belum dicatat',w,a.owner_phone?`WA ${a.owner_phone}`:'Hubungi owner untuk detail kebutuhan',a.workspace_created_at,{label:'Catat',run:()=>openCustom(null,{workspace_id:w.workspace_id,customer_name:w.owner_username||'',contact:a.owner_phone||''})});
     }
   });
