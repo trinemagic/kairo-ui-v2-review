@@ -452,3 +452,5 @@ tr.is-resolved .issue-title{text-decoration:line-through}
 .price-trial-days{width:140px}
 .price-actions{display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding-top:6px}
 @media (max-width:640px){.price-inp{width:110px}}
+.modal .hint{margin:8px 0 4px;font-size:12.5px;line-height:1.5;color:var(--muted)}
+.modal .hint b{color:var(--text)}
