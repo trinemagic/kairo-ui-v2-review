@@ -9,10 +9,10 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; connect-src 'self' https://sbjmvsiwngmfxfktxbgr.supabase.co wss://sbjmvsiwngmfxfktxbgr.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'; frame-src 'none'">
 <link rel="icon" href="../assets/brand/favicon.ico" sizes="48x48">
 <link rel="icon" type="image/svg+xml" href="../assets/brand/favicon.svg">
-<link rel="stylesheet" href="admin.css?v=1.8.4">
+<link rel="stylesheet" href="admin.css?v=1.8.5">
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js" integrity="sha384-Rj26LVGvoeRVR6+mwQmFfcR3QOBEwT+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok" crossorigin="anonymous"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.js" integrity="sha384-G436+Z2nlA8+PNoeRvWdxKbvOf8E/y+lYxqht2iBwNHTQDV5CJr3+AGVj8fGZi5t" crossorigin="anonymous"></script>
-<script defer src="admin.js?v=1.13.0"></script>
+<script defer src="admin.js?v=1.13.1"></script>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -343,9 +343,11 @@
       <label class="field"><span>Berlaku sampai</span><input id="mUntil" type="date"></label>
     </div>
     <div class="actions"><button id="saveSub" class="btn btn-primary">Simpan Subscription</button><button id="add30" class="btn btn-ghost">+30 hari</button><button id="add365" class="btn btn-ghost">+1 tahun</button></div>
+    <p class="hint">Mengubah Gratis ke Pro: pilih <b>Paket = Pro</b>, isi <b>Berlaku sampai</b> (atau klik +30 hari / +1 tahun), lalu klik <b>Simpan Subscription</b>.</p>
     <div id="mError" class="err"></div>
-    <h4>Kontrol Workspace</h4>
-    <div class="actions"><button class="btn btn-ghost wsStatus" data-status="active">Aktifkan</button><button class="btn btn-danger wsStatus" data-status="suspended">Suspend</button><button class="btn btn-danger wsStatus" data-status="archived">Arsipkan</button></div>
+    <h4>Status akun (bukan paket)</h4>
+    <p class="hint">Hanya membuka atau menutup akses akun. Tidak mengubah Gratis/Pro.</p>
+    <div class="actions"><button class="btn btn-ghost wsStatus" data-status="active">Aktifkan akun</button><button class="btn btn-danger wsStatus" data-status="suspended">Suspend</button><button class="btn btn-danger wsStatus" data-status="archived">Arsipkan</button></div>
     <div class="danger-zone">
       <div><b>Hapus akun &amp; workspace</b><span>Untuk akun dummy atau permintaan hapus data. Permanen, tidak bisa dibatalkan.</span></div>
       <button id="openDelete" class="btn btn-danger">Hapus…</button>

@@ -441,15 +441,23 @@ async function saveSubscription(){
   const date=$('mUntil').value?new Date($('mUntil').value+'T23:59:59').toISOString():null;
   const {error}=await db.rpc('platform_admin_update_subscription',{p_workspace_id:selected.workspace_id,p_plan:$('mPlan').value,p_status:$('mSubStatus').value,p_valid_until:date});
   if(error)return $('mError').textContent=error.message;
-  toast('Subscription diperbarui');closeModal('workspaceModal');await load();
+  const pro=$('mPlan').value==='pro',until=$('mUntil').value?` sampai ${new Date($('mUntil').value+'T12:00:00').toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})}`:(pro?' (tanpa tanggal berakhir)':'');
+  toast(`${selected.workspace_name} sekarang paket ${pro?'Pro':'Gratis'}${until}.`,'success');closeModal('workspaceModal');await load();
+}
+// Perubahan Paket/Status/Tanggal yang belum disimpan: tombol Aktifkan/Suspend/Arsipkan tidak boleh menutup modal diam-diam (owner mengira paket sudah berubah).
+function subDirty(){
+  const d=selected;if(!d)return false;
+  const was=d.valid_until?new Date(d.valid_until).toISOString().slice(0,10):'';
+  return $('mPlan').value!==planKey(d.plan)||$('mSubStatus').value!==(SUB[d.subscription_status]?d.subscription_status:'active')||$('mUntil').value!==was;
 }
 // Memperpanjang (tombol +30 hari / +1 tahun) berarti sudah dibayar: status Trial otomatis jadi Aktif supaya dashboard user tidak lagi memakai kata-kata trial.
-function extend(days){if($('mSubStatus').value==='trialing')$('mSubStatus').value='active';let d=$('mUntil').value?new Date($('mUntil').value+'T12:00:00'):new Date();if(d<new Date())d=new Date();d.setDate(d.getDate()+days);$('mUntil').value=d.toISOString().slice(0,10);}
+function extend(days){if($('mSubStatus').value==='trialing')$('mSubStatus').value='active';if($('mPlan').value==='basic')$('mPlan').value='pro';let d=$('mUntil').value?new Date($('mUntil').value+'T12:00:00'):new Date();if(d<new Date())d=new Date();d.setDate(d.getDate()+days);$('mUntil').value=d.toISOString().slice(0,10);}
 async function setWsStatus(status){
+  if(subDirty())return toast('Perubahan Paket/tanggal belum disimpan. Klik Simpan Subscription dulu.','warning');
   const label={active:'Aktif',suspended:'Suspend',archived:'Arsip'}[status]||status;
   if(['suspended','archived'].includes(status)&&!confirm(`Ubah ${selected.workspace_name} menjadi ${label}?`))return;
   const {error}=await db.rpc('platform_admin_update_workspace_status',{p_workspace_id:selected.workspace_id,p_status:status});
-  if(error)return toast(error.message,true);closeModal('workspaceModal');toast('Status workspace diperbarui');await load();
+  if(error)return toast(error.message,true);closeModal('workspaceModal');toast('Status akun diubah menjadi '+label+'. Paket Gratis/Pro tidak berubah.','info');await load();
 }
 function saleFromWorkspace(){
   const o=$('sWorkspace').selectedOptions[0];if(!o)return;
