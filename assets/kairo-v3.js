@@ -168,27 +168,60 @@ if (window.top !== window.self) {
   }
 
   // Pricing: pilih template dulu (dropdown terbuka saat halaman dibuka), kartu Pro menampilkan harga template itu.
+  // Harga & promo trial datang dari database (admin panel) lewat window.kairoPricing (skrip awal di <head> index.html);
+  // angka di HTML hanya cadangan bila belum ada data.
+  const rupiah = n => 'Rp' + Number(n).toLocaleString('id-ID');
+  function renderProCard() {
+    const picker = q('#pricing-picker');
+    if (!picker) return;
+    const card = picker.parentElement;
+    const opts = qa('[role="option"]', picker);
+    const sel = opts.find(o => o.getAttribute('aria-selected') === 'true');
+    const cheapest = opts.reduce((a, o) => (!a || Number(o.dataset.m) < Number(a.dataset.m) ? o : a), null);
+    const opt = sel || cheapest;
+    if (!opt) return;
+    const m = Number(opt.dataset.m), normal = m * 6, six = Number(opt.dataset.s);
+    const from = q('[data-pro-from]', card); if (from) from.hidden = !!sel;
+    const amount = q('[data-pro-amount]', card); if (amount) amount.textContent = rupiah(m);
+    const title = q('[data-pro-deal-title]', card); if (title) title.textContent = sel ? 'Paket 6 bulan · ' + opt.dataset.name : 'Paket 6 bulan, mulai dari';
+    const body = q('[data-pro-deal-body]', card);
+    if (body) body.innerHTML = '<s aria-label="Harga normal ' + rupiah(normal) + '">' + rupiah(normal) + '</s><b>' + rupiah(six) + '</b>';
+    const cta = q('[data-pro-cta]', card); if (cta && sel) cta.dataset.signupTemplate = opt.dataset.tpl;
+  }
+  function applyPricing(d) {
+    try {
+      if (!d || !d.prices) return;
+      const picker = q('#pricing-picker');
+      let cheapest = null;
+      qa('[role="option"]', picker || document).forEach(o => {
+        const p = d.prices[o.dataset.tpl];
+        if (p) { o.dataset.m = p.m; o.dataset.s = p.s; if (!cheapest || p.m < cheapest) cheapest = p.m; }
+      });
+      const home = q('[data-kp="from"]');
+      if (home && cheapest != null) home.innerHTML = '<em>mulai</em> ' + rupiah(cheapest) + '<span>/bulan</span>';
+      renderProCard();
+      const on = !d.trial || d.trial.enabled !== false, days = (d.trial && d.trial.days) || 14;
+      qa('[data-trial-days]').forEach(e => { e.textContent = days; });
+      qa('[data-trial-only]').forEach(e => { e.hidden = !on; });
+      qa('[data-trial-off]').forEach(e => { e.hidden = on; });
+    } finally {
+      window.kairoPricing?.release?.();
+    }
+  }
   function bindPricingPicker(root) {
     const picker = q('#pricing-picker', root);
     if (!picker) return;
     const btn = q('.kairo-lp-tplpick-btn', picker);
-    const rupiah = n => 'Rp' + Number(n).toLocaleString('id-ID');
     const setOpen = open => { picker.classList.toggle('is-open', open); btn.setAttribute('aria-expanded', String(open)); };
     btn.addEventListener('click', () => setOpen(!picker.classList.contains('is-open')));
     qa('[role="option"]', picker).forEach(opt => opt.addEventListener('click', () => {
       qa('[role="option"]', picker).forEach(o => o.setAttribute('aria-selected', String(o === opt)));
-      const normal = Number(opt.dataset.m) * 6, six = Number(opt.dataset.s);
       q('[data-tp-name]', picker).textContent = opt.dataset.name;
       q('[data-tp-sub]', picker).textContent = q('small', opt)?.textContent || '';
-      const card = picker.parentElement;
-      const from = q('[data-pro-from]', card); if (from) from.hidden = true;
-      const amount = q('[data-pro-amount]', card); if (amount) amount.textContent = rupiah(Number(opt.dataset.m));
-      const title = q('[data-pro-deal-title]', card); if (title) title.textContent = 'Paket 6 bulan · ' + opt.dataset.name;
-      const body = q('[data-pro-deal-body]', card);
-      if (body) body.innerHTML = '<s aria-label="Harga normal ' + rupiah(normal) + '">' + rupiah(normal) + '</s><b>' + rupiah(six) + '</b>';
-      const cta = q('[data-pro-cta]', card); if (cta) cta.dataset.signupTemplate = opt.dataset.tpl;
+      renderProCard();
       setOpen(false);
     }));
+    window.kairoPricing?.onChange(applyPricing);
   }
 
   function bindLanding(root) {
@@ -680,7 +713,7 @@ if (window.top !== window.self) {
 
   // Panduan pemakaian (owner Okt 2026): tombol buku di samping lonceng (desktop) + item "Panduan" di menu More (HP).
   // Isi & gaya ada di assets/kairo-guide.js/.css, baru dimuat saat pertama kali dibuka supaya dashboard tetap ringan.
-  const GUIDE_V = '1.2.3';
+  const GUIDE_V = '1.2.4';
   let guideLoader = null;
   window.kairoOpenGuide = function () {
     if (!guideLoader) {
