@@ -2,6 +2,8 @@
 -- JANGAN dijalankan sebelum akun admin baru berhasil masuk lewat admin/ dan memasang kode 2 langkah (urutan di bawah),
 -- kalau tidak, semua fungsi admin menolak (is_platform_admin() = false) dan tidak ada yang bisa membuka panel.
 -- Aman diulang. Dijalankan Claude via Supabase MCP (satu statement per panggilan).
+-- STATUS 13 Okt 2026: LANGKAH 1-3 SUDAH dijalankan (akun admin khusus kairoadmin terpasang + TOTP terverifikasi, is_platform_admin() wajib aal2,
+-- akun Trine Magic dinonaktifkan). Teruji di DB asli lewat klaim JWT tiruan di transaksi (aal1 false, aal2 true, user biasa/anon false).
 
 -- LANGKAH 1 (sebelum enforce): daftarkan akun admin baru. Ganti email dengan akun yang dibuat lewat form Daftar biasa.
 -- insert into public.platform_admins (user_id)

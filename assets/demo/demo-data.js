@@ -8,6 +8,8 @@
   const rnd = () => { seed |= 0; seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
   const pick = a => a[Math.floor(rnd() * a.length)];
   const iso = d => { const x = new Date(d); return x.getFullYear() + '-' + String(x.getMonth() + 1).padStart(2, '0') + '-' + String(x.getDate()).padStart(2, '0'); };
+  // Barcode contoh (EAN-13 valid) untuk produk demo Kasir & Online Shop, supaya fitur Scan Barcode bisa dicoba tanpa produk sungguhan.
+  const ean = b12 => { let sum = 0; for (let i = 0; i < 12; i++) sum += Number(b12[i]) * (i % 2 ? 3 : 1); return b12 + String((10 - (sum % 10)) % 10); };
   const NAMES = ['Alya Putri', 'Bima Pratama', 'Citra Dewi', 'Dimas Saputra', 'Eka Lestari', 'Farhan Maulana', 'Gita Permata', 'Hana Safitri', 'Indra Wijaya', 'Jihan Aulia', 'Kevin Hartono', 'Laras Ayu'];
   const META = {
     jasa: { template: 'service_consultation', label: 'Jasa Online' },
@@ -59,8 +61,9 @@
     const TOP = kasir ? ['Minuman', 'Makanan', 'Snack'] : ['Branding', 'Sosial Media', 'Promosi'];
     const PL = kasir ? ['Dine In', 'Take Away', 'GrabFood', 'Dine In', 'Take Away'] : ['Instagram', 'TikTok', 'WhatsApp', 'Instagram', 'X'];
     // Kasir: kategori, satuan, dan stok contoh (1 menipis, 1 habis) supaya menu Produk, kartu Stok, dan Hitung Stok berisi.
+    if (kasir) P.forEach((p, i) => { p.oc = p.code; p.code = ean('89910011000' + (i + 1)); });
     const KM = { KSU: ['Minuman', 'gelas', 40, 8], AMR: ['Minuman', 'gelas', 3, 8], RTB: ['Makanan', 'porsi', 0, 5], NGR: ['Makanan', 'porsi', 14, 5], ETM: ['Minuman', 'gelas', 60, 10], MCL: ['Minuman', 'gelas', 22, 8] };
-    T.package_masters = P.map(p => ({ id: p.id, workspace_id: WS, code: p.code, name: p.name, price: p.price, cost_price: p.cost, is_active: true, ...(kasir ? { category: KM[p.code][0], unit: KM[p.code][1], stock_qty: KM[p.code][2], stock_min: KM[p.code][3] } : {}) }));
+    T.package_masters = P.map(p => ({ id: p.id, workspace_id: WS, code: p.code, name: p.name, price: p.price, cost_price: p.cost, is_active: true, ...(kasir ? { category: KM[p.oc][0], unit: KM[p.oc][1], stock_qty: KM[p.oc][2], stock_min: KM[p.oc][3] } : {}) }));
     T.addon_masters = A.map(a => ({ id: a.id, workspace_id: WS, code: a.code, name: a.name, price: a.price, cost_price: a.cost, is_active: true }));
     T.topic_masters = TOP.map((n, i) => ({ id: 't' + (i + 1), workspace_id: WS, name: n, is_active: true }));
     for (let i = 0; i < 64; i++) {
@@ -73,7 +76,7 @@
 
   function shop() {
     const T = base('shop');
-    const P = [['Kaos Polos Hitam', 85000, 40000, 18, 6], ['Totebag Kanvas', 65000, 45000, 40, 10], ['Topi Baseball', 70000, 30000, 0, 5], ['Tumbler 500ml', 120000, 90000, 7, 8], ['Gantungan Kunci', 15000, 6000, 85, 20], ['Hoodie Oversize', 210000, 120000, 12, 5]].map((x, i) => ({ id: 'sp' + i, code: 'P' + (i + 1), name: x[0], price: x[1], cost: x[2], stock: x[3], min: x[4] }));
+    const P = [['Kaos Polos Hitam', 85000, 40000, 18, 6], ['Totebag Kanvas', 65000, 45000, 40, 10], ['Topi Baseball', 70000, 30000, 0, 5], ['Tumbler 500ml', 120000, 90000, 7, 8], ['Gantungan Kunci', 15000, 6000, 85, 20], ['Hoodie Oversize', 210000, 120000, 12, 5]].map((x, i) => ({ id: 'sp' + i, code: ean('89920022000' + (i + 1)), name: x[0], price: x[1], cost: x[2], stock: x[3], min: x[4] }));
     const CH = ['Shopee', 'Shopee', 'Tokopedia', 'TikTok Shop', 'WhatsApp', 'Toko Offline', 'Lazada', 'Shopee'];
     T.package_masters = P.map(p => ({ id: p.id, workspace_id: WS, code: p.code, name: p.name, price: p.price, cost_price: p.cost, stock_qty: p.stock, stock_min: p.min, is_active: true }));
     T.addon_masters = [{ id: 'a1', workspace_id: WS, code: 'BOX', name: 'Kemasan Kado', price: 8000, cost_price: 3000, is_active: true }];

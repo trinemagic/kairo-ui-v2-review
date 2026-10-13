@@ -30,7 +30,7 @@
         steps: [
           'Buka <b>Settings › Workspace &amp; Branding</b>: isi nama usaha, warna, dan logo. Logo default KAIRO dipakai sampai kamu upload logo sendiri.',
           seller ? 'Buka <b>Settings › Produk</b>: atur harga jual dan modal (HPP) tiap aplikasi, atau tambah produk sendiri.'
-                 : shop ? 'Buka <b>Settings › Produk &amp; Harga</b>: isi produk, harga, modal (HPP), dan <b>stok</b>. Atur juga <b>Platform Penjualan</b> dan <b>Metode Pembayaran</b> di Settings › Kategori.'
+                 : shop ? 'Buka menu <b>Produk</b>: tambah produk lewat foto atau <b>scan barcode</b>, isi harga, modal (HPP), dan <b>stok</b>. Atur juga <b>Platform Penjualan</b> dan <b>Metode Pembayaran</b> di Settings › Kategori.'
                  : 'Buka <b>Settings › Package &amp; Harga</b> (dan Add-on/Topik bila dipakai): isi daftar paket beserta harga dan modal.',
           'Buka <b>Settings › Pembagian Omzet</b>: tentukan pembagian laba ke partner (paket Pro bisa lebih dari satu partner dan memakai Kas).',
           'Catat order pertama di menu <b>Orders</b>, lalu simpan.',
@@ -81,6 +81,16 @@
           'Pencet <b>WhatsApp</b> untuk menghubungi customer yang langganannya hampir habis.',
           'Pencet <b>Perpanjang</b>: halaman Orders terbuka dengan nama customer sudah terisi.'
         ]
+      } : null,
+      shop ? {
+        id: 'products', tab: 'pos-products', noShot: true, title: 'Produk', intro: 'Tambah produk lewat foto atau scan barcode, lalu atur harga, modal, dan stok di satu tempat.',
+        steps: [
+          'Punya produk berkemasan? Tekan <b>Scan Barcode</b> di atas daftar, lalu arahkan kamera ke barcode di kemasan. Produk yang sudah ada langsung tampil; kalau belum, lembar <b>Tambah Produk</b> terbuka dengan barcode sudah terisi. Bisa juga pakai alat scanner atau ketik kodenya.',
+          'Atau tekan <b>Tambah Produk</b>: ambil <b>foto</b> (boleh dilewati), isi <b>nama</b>, <b>kategori</b>, dan <b>satuan</b>. Tombol <b>Scan</b> di samping kolom kode mengisi barcode lewat kamera.',
+          'Isi <b>harga jual</b> dan <b>modal</b>; untung per produk langsung terhitung. Nyalakan <b>Hitung stok</b> bila perlu dan atur batas <b>ingatkan saya kalau sisa</b>.',
+          '<b>Hitung Stok</b> (tombol di atas daftar): ketik jumlah barang yang ada di rak/gudang, selisih dengan catatan sistem langsung terlihat. Tab <b>Riwayat</b> menyimpan siapa/kapan stok disesuaikan.'
+        ],
+        tips: ['Izinkan akses kamera saat browser bertanya. Kalau kamera tidak bisa dipakai, ketik kode barcode atau pakai alat scanner.']
       } : null,
       {
         id: 'customers', tab: 'customers', title: 'Customer Database', pro: true,
@@ -216,8 +226,9 @@
       products: {
         id: 'products', tab: 'pos-products', title: 'Produk', intro: 'Semua urusan produk di satu tempat: foto, harga, modal, stok, dan pembagian untung.',
         steps: [
-          'Tekan <b>Tambah Produk</b>. Langkah 1: <b>Ambil Foto</b> (HP membuka kamera, komputer memakai webcam) atau <b>Dari Galeri</b>. Boleh dilewati; produk tanpa foto tampil kotak berhuruf awal.',
-          'Isi <b>nama</b>, pilih <b>kategori</b> dan <b>satuan</b>. Kode/barcode boleh kosong (dibuat otomatis); kalau pakai scanner, scan di kolom itu.',
+          'Produk berkemasan? Tekan <b>Scan Barcode</b> di atas daftar, lalu arahkan kamera ke barcode di kemasan. Kalau barcode itu sudah ada, produknya langsung tampil (tombol <b>Ubah produk</b>); kalau belum, lembar <b>Tambah Produk</b> terbuka dengan barcode sudah terisi. Bisa juga pakai alat scanner atau ketik kodenya di kolom yang tersedia.',
+          'Atau tekan <b>Tambah Produk</b>. Langkah 1: <b>Ambil Foto</b> (HP membuka kamera, komputer memakai webcam) atau <b>Dari Galeri</b>. Boleh dilewati; produk tanpa foto tampil kotak berhuruf awal.',
+          'Isi <b>nama</b>, pilih <b>kategori</b> dan <b>satuan</b>. Kode/barcode boleh kosong (dibuat otomatis); tombol <b>Scan</b> di samping kolom kode mengisinya lewat kamera.',
           'Isi <b>harga jual</b> dan <b>modal</b>. Kotak hijau menunjukkan untung per produk.',
           'Nyalakan <b>Hitung stok</b> bila produk perlu dihitung. Atur stok dengan tombol − / + atau ketik angkanya, dan tentukan batas <b>ingatkan saya kalau sisa</b>.',
           '<b>Pembagian untung</b>: pilih <b>Ikut aturan umum</b>, atau <b>Atur sendiri untuk produk ini</b> (persen per partner, atau tombol Bagi rata / Semua ke satu partner).',
