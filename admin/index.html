@@ -9,10 +9,10 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; connect-src 'self' https://sbjmvsiwngmfxfktxbgr.supabase.co wss://sbjmvsiwngmfxfktxbgr.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'; frame-src 'none'">
 <link rel="icon" href="../assets/brand/favicon.ico" sizes="48x48">
 <link rel="icon" type="image/svg+xml" href="../assets/brand/favicon.svg">
-<link rel="stylesheet" href="admin.css?v=1.8.5">
+<link rel="stylesheet" href="admin.css?v=1.9.0">
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js" integrity="sha384-Rj26LVGvoeRVR6+mwQmFfcR3QOBEwT+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok" crossorigin="anonymous"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.js" integrity="sha384-G436+Z2nlA8+PNoeRvWdxKbvOf8E/y+lYxqht2iBwNHTQDV5CJr3+AGVj8fGZi5t" crossorigin="anonymous"></script>
-<script defer src="admin.js?v=1.13.1"></script>
+<script defer src="admin.js?v=1.14.0"></script>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -43,11 +43,11 @@
   <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4.5 4.5L19 7"/></symbol>
 </svg>
 
-<!-- Gerbang: admin hanya terbuka dari dashboard Trine Magic (tanpa form login) -->
+<!-- Gerbang: login admin + kode 2 langkah (diisi admin.js) -->
 <section id="gate" class="login">
   <div class="login-card">
     <div class="login-brand"><img src="../assets/brand/kairo-app-icon.svg" alt="" width="40" height="40"><div><b>KAIRO Admin</b><span>Panel pengelola KAIRO Workspaces</span></div></div>
-    <div id="gateBody" class="gate-body"><span class="gate-spin" aria-hidden="true"></span><p>Menghubungkan ke dashboard…</p></div>
+    <div id="gateBody" class="gate-body"><span class="gate-spin" aria-hidden="true"></span><p>Memeriksa sesi…</p></div>
     <a class="btn btn-ghost btn-block" href="../">Buka KAIRO Workspaces</a>
   </div>
 </section>
@@ -91,7 +91,7 @@
       <div class="top-actions">
         <span class="top-refresh">Diperbarui <b id="lastRefresh">—</b></span>
         <button id="refresh" class="icon-btn" type="button" aria-label="Refresh data" title="Refresh data"><svg><use href="#i-refresh"/></svg></button>
-        <button id="logout" class="icon-btn" type="button" aria-label="Tutup admin" title="Tutup admin"><svg><use href="#i-out"/></svg></button>
+        <button id="logout" class="icon-btn" type="button" aria-label="Keluar" title="Keluar"><svg><use href="#i-out"/></svg></button>
       </div>
     </header>
 

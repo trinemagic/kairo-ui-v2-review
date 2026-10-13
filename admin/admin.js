@@ -4,32 +4,18 @@
 const SUPABASE_URL='https://sbjmvsiwngmfxfktxbgr.supabase.co';
 const SUPABASE_KEY='sb_publishable_cylO3B4mLWoohXAWlI0R1A_uanf1qYM';
 
-/* Akses: tidak ada form login. Halaman ini hanya bekerja bila dibuka lewat tombol "KAIRO Admin" di
-   dashboard Trine Magic; tab dashboard itulah yang memberi token sesi (lihat openKairoAdmin di
-   assets/kairo-app.js). Token diminta ulang saat hampir kedaluwarsa, jadi bila dashboard ditutup atau
-   logout, admin ikut terkunci. Server tetap memeriksa is_platform_admin di setiap fungsi. */
+/* Akses (Okt 2026): admin punya login sendiri, TIDAK lagi lewat dashboard Trine Magic.
+   Langkah 1 = username/email + password; langkah 2 = kode 2 langkah (TOTP, Supabase MFA) -> sesi level aal2.
+   Server memeriksa is_platform_admin() di setiap fungsi dan (setelah SQL 2026-10-admin-mfa-enforce.sql) menolak sesi yang bukan aal2,
+   jadi password saja tidak cukup. Sesi disimpan di sessionStorage (hilang saat tab ditutup) dan terkunci sendiri setelah 30 menit tidak dipakai. */
 if(window.top!==window.self){try{window.top.location.replace(window.location.href)}catch(_e){document.documentElement.innerHTML=''}}
-let session=null;
-function requestToken(){
-  return new Promise((resolve,reject)=>{
-    const op=window.opener;
-    if(!op||op.closed)return reject(new Error('no-opener'));
-    const timer=setTimeout(()=>{window.removeEventListener('message',onMsg);reject(new Error('no-session'));},5000);
-    function onMsg(e){
-      if(e.origin!==location.origin||e.source!==op||e.data?.type!=='kairo-admin-token')return;
-      clearTimeout(timer);window.removeEventListener('message',onMsg);
-      e.data.token?resolve({token:e.data.token,exp:Number(e.data.exp)||0}):reject(new Error('no-session'));
-    }
-    window.addEventListener('message',onMsg);
-    op.postMessage({type:'kairo-admin-token-request'},location.origin);
-  });
-}
-async function accessToken(){
-  if(session&&session.exp*1000-Date.now()>60e3)return session.token;
-  try{session=await requestToken();return session.token;}
-  catch(e){session=null;gate(e.message==='no-opener'?'no-opener':'no-session');throw e;}
-}
-const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{accessToken,auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
+const mem={};
+const authStore={
+  getItem:k=>{try{return sessionStorage.getItem(k);}catch(_e){return mem[k]??null;}},
+  setItem:(k,v)=>{try{sessionStorage.setItem(k,v);}catch(_e){mem[k]=v;}},
+  removeItem:k=>{try{sessionStorage.removeItem(k);}catch(_e){delete mem[k];}}
+};
+const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{storageKey:'kairo-admin-auth',storage:authStore,persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});
 // Log Aktivitas: setiap aksi admin yang berhasil dicatat lewat platform_admin_log_activity
 // (SQL .claude/sql/2026-10-admin-activity-log.sql). Gagal mencatat tidak menggagalkan aksinya.
 const PLAN_TXT=v=>String(v||'').toLowerCase()==='pro'?'Pro':'Gratis';
@@ -139,29 +125,115 @@ function toast(msg,kind){
 function remain(v){if(!v)return'—';const d=Math.ceil((+new Date(v)-Date.now())/864e5);return d<0?`${Math.abs(d)} hari lewat`:d===0?'Hari ini':`${d} hari`;}
 function remainClass(v){if(!v)return'';const d=Math.ceil((+new Date(v)-Date.now())/864e5);return d<0?'t-danger':d<=7?'t-warn':'';}
 
-/* Gerbang */
-const GATE={
-  'no-opener':['Buka dari dashboard Trine Magic','Admin panel hanya bisa dibuka lewat tombol <b>KAIRO Admin</b> di menu dashboard workspace Trine Magic.'],
-  'no-session':['Sesi dashboard tidak ditemukan','Pastikan tab dashboard Trine Magic masih terbuka dan sudah login, lalu buka lagi lewat tombol <b>KAIRO Admin</b>.'],
-  'denied':['Akses ditolak','Akun ini tidak memiliki akses admin platform KAIRO.']
-};
-function gate(kind){
-  const g=GATE[kind]||GATE['no-session'];
-  $('gateBody').innerHTML=`<svg><use href="#i-lock"/></svg><b>${g[0]}</b><p>${g[1]}</p>`;
+/* Gerbang: login -> kode 2 langkah -> panel */
+const IDLE_MS=30*60e3;
+let idleTimer=null,booted=false;
+function gateView(html){
   document.querySelectorAll('.modal-backdrop').forEach(m=>m.classList.add('hidden'));
   $('shell').classList.add('hidden');$('gate').classList.remove('hidden');
-  clearInterval(serverTimer);
+  $('gateBody').innerHTML=html;
+  clearTimeout(idleTimer);booted=false;
 }
-async function boot(){
-  if(!window.opener)return gate('no-opener');
-  try{await accessToken();}catch(_e){return;}
+const errBox='<p class="gate-err" id="gateErr" role="alert"></p>';
+const setErr=t=>{const e=$('gateErr');if(e)e.textContent=t||'';};
+const busy=(btn,on,txt)=>{btn.disabled=on;btn.textContent=on?'Memproses…':txt;};
+function showLogin(note){
+  gateView(`<form id="loginForm" class="gate-form"><b>Masuk admin</b><p>${esc(note||'Pakai akun admin khusus. Setelah password, kamu diminta kode 2 langkah.')}</p>
+    <label class="field"><span>Username atau email</span><input id="gUser" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required></label>
+    <label class="field"><span>Password</span><input id="gPass" name="password" type="password" autocomplete="current-password" required></label>
+    ${errBox}<button class="btn btn-primary btn-block" type="submit">Masuk</button></form>`);
+  $('loginForm').onsubmit=async e=>{
+    e.preventDefault();
+    const btn=e.target.querySelector('button'),u=$('gUser').value.trim(),pw=$('gPass').value;
+    setErr('');busy(btn,true);
+    try{
+      let email=u;
+      if(!u.includes('@')){
+        const r=await db.rpc('kairo_login_email',{p_username:u,p_password:pw});
+        if(r.error)throw new Error(r.error.message);
+        email=r.data;
+        if(!email)throw new Error('Username atau password salah.');
+      }
+      const {error}=await db.auth.signInWithPassword({email,password:pw});
+      if(error)throw new Error('Username/email atau password salah.');
+      await afterPassword();
+    }catch(err){$('gPass').value='';setErr(err.message||'Gagal masuk.');busy(btn,false,'Masuk');}
+  };
+}
+async function afterPassword(){
+  const {data:aal,error}=await db.auth.mfa.getAuthenticatorAssuranceLevel();
+  if(error)throw error;
+  if(aal.currentLevel==='aal2')return enter();
+  const {data:f,error:fe}=await db.auth.mfa.listFactors();
+  if(fe)throw fe;
+  const totp=(f.totp||[]).find(x=>x.status==='verified');
+  return totp?showCode(totp.id):showEnroll();
+}
+const switchAccount='<button type="button" class="gate-link" id="gSwitch">Pakai akun lain</button>';
+function codeForm(title,intro,extra,verify){
+  gateView(`<form id="codeForm" class="gate-form"><b>${title}</b><p>${intro}</p>${extra||''}
+    <label class="field"><span>Kode 6 angka dari aplikasi authenticator</span><input id="gCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" required></label>
+    ${errBox}<button class="btn btn-primary btn-block" type="submit">Verifikasi</button>${switchAccount}</form>`);
+  $('gSwitch').onclick=()=>lock();
+  $('gCode').focus();
+  $('codeForm').onsubmit=async e=>{
+    e.preventDefault();
+    const btn=e.target.querySelector('button[type=submit]'),code=$('gCode').value.replace(/\D/g,'');
+    setErr('');busy(btn,true);
+    try{await verify(code);await enter();}
+    catch(err){$('gCode').value='';setErr(err.message||'Kode salah.');busy(btn,false,'Verifikasi');}
+  };
+}
+function showCode(factorId){
+  codeForm('Kode 2 langkah','Buka aplikasi authenticator di HP kamu, lalu masukkan kode KAIRO Admin yang sedang tampil.','',async code=>{
+    const {error}=await db.auth.mfa.challengeAndVerify({factorId,code});
+    if(error)throw new Error('Kode salah atau sudah kedaluwarsa. Coba kode yang baru.');
+  });
+}
+async function showEnroll(){
+  try{
+    // Buang faktor yang pernah dibuat tapi tidak pernah diverifikasi, supaya pendaftaran ulang tidak bentrok.
+    const {data:f}=await db.auth.mfa.listFactors();
+    for(const x of (f?.all||[]).filter(x=>x.factor_type==='totp'&&x.status==='unverified'))await db.auth.mfa.unenroll({factorId:x.id});
+    const {data,error}=await db.auth.mfa.enroll({factorType:'totp',friendlyName:'KAIRO Admin'});
+    if(error)throw error;
+    const extra=`<div class="gate-qr"><img src="${esc(data.totp.qr_code)}" alt="Kode QR untuk aplikasi authenticator" width="176" height="176"></div>
+      <p class="gate-small">Scan dengan Google Authenticator / Authy / 1Password. Tidak bisa scan? Ketik kunci ini: <code class="gate-secret">${esc(data.totp.secret)}</code></p>`;
+    codeForm('Pasang kode 2 langkah','Langkah satu kali: scan kode QR di bawah, lalu masukkan 6 angka yang muncul untuk memastikan sudah benar.',extra,async code=>{
+      const {error:ve}=await db.auth.mfa.challengeAndVerify({factorId:data.id,code});
+      if(ve)throw new Error('Kode salah atau sudah kedaluwarsa. Coba kode yang baru.');
+    });
+  }catch(err){
+    gateView(`<div class="gate-form"><b>Gagal menyiapkan kode 2 langkah</b><p>${esc(err.message||'Coba lagi nanti.')}</p>${switchAccount}</div>`);
+    $('gSwitch').onclick=()=>lock();
+  }
+}
+function showDenied(){
+  gateView(`<div class="gate-form"><svg class="gate-ico"><use href="#i-lock"/></svg><b>Akses ditolak</b><p>Akun ini tidak punya akses admin platform KAIRO.</p><button type="button" class="btn btn-ghost btn-block" id="gSwitch">Keluar</button></div>`);
+  $('gSwitch').onclick=()=>lock();
+}
+async function enter(){
   const {data,error}=await db.rpc('is_platform_admin');
-  if(error||!data)return gate('denied');
+  if(error||!data)return showDenied();
   $('gate').classList.add('hidden');$('shell').classList.remove('hidden');
+  booted=true;armIdle();
   const initial=(location.hash||'').replace('#','');
   activatePage(PAGES[initial]?initial:'overview');
   await load();stampRefresh();
 }
+function armIdle(){clearTimeout(idleTimer);idleTimer=setTimeout(()=>lock('Dikunci otomatis karena 30 menit tidak dipakai.'),IDLE_MS);}
+async function lock(note){
+  booted=false;
+  try{await db.auth.signOut();}catch(_e){}
+  showLogin(note);
+}
+async function boot(){
+  const {data}=await db.auth.getSession();
+  if(!data?.session)return showLogin();
+  try{await afterPassword();}catch(_e){showLogin();}
+}
+['click','keydown','pointerdown'].forEach(ev=>document.addEventListener(ev,()=>{if(booted)armIdle();},true));
+db.auth.onAuthStateChange(ev=>{if(ev==='SIGNED_OUT'&&booted){booted=false;showLogin('Sesi berakhir, masuk lagi.');}});
 
 /* Data */
 async function load(){
@@ -891,7 +963,7 @@ $('search').oninput=()=>{$('topSearch').value=$('search').value;renderWorkspaces
 $('topSearch').oninput=()=>{$('search').value=$('topSearch').value;if(activeFilter!=='all')document.querySelector('.filter[data-filter="all"]').click();activatePage('workspaces');renderWorkspaces();$('topSearch').focus();};
 document.querySelectorAll('.filter').forEach(b=>b.onclick=()=>{document.querySelectorAll('.filter').forEach(x=>x.classList.toggle('active',x===b));activeFilter=b.dataset.filter;renderWorkspaces();});
 $('refresh').onclick=async()=>{const b=$('refresh');b.classList.add('spin');try{await load();stampRefresh();toast('Data diperbarui');}catch(e){toast(e.message,true);}finally{b.classList.remove('spin');}};
-$('logout').onclick=()=>{window.close();setTimeout(()=>{location.href='../';},150);};
+$('logout').onclick=()=>lock('Kamu sudah keluar.');
 document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>closeModal(b.dataset.close));
 document.querySelectorAll('.modal-backdrop').forEach(m=>m.addEventListener('mousedown',e=>{if(e.target===m)closeModal(m.id);}));
 document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;const open=[...document.querySelectorAll('.modal-backdrop:not(.hidden)')].pop();if(open)closeModal(open.id);else setNav(false);});

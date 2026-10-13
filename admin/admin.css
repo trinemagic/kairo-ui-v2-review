@@ -249,6 +249,15 @@ td .table-btn+.table-btn{margin-left:6px}
 .gate-body p{margin:0;color:var(--muted)}
 .gate-body b{font-size:16px}
 .gate-body svg{width:34px;height:34px;color:var(--gold)}
+.gate-form{display:grid;gap:12px;justify-self:stretch;text-align:left}
+.gate-form>b{font-size:17px}.gate-form>p{margin:0;color:var(--muted);font-size:13.5px}
+.gate-ico{justify-self:center}
+.gate-err{margin:0;min-height:1.2em;color:var(--danger);font-size:13px}
+.gate-qr{display:grid;place-items:center}.gate-qr img{width:176px;height:176px;padding:8px;border-radius:12px;background:#fff}
+.gate-small{font-size:12.5px!important}
+.gate-secret{display:block;margin-top:6px;padding:8px 10px;border-radius:8px;background:rgba(255,255,255,.06);font-family:ui-monospace,Menlo,monospace;font-size:12.5px;word-break:break-all;color:var(--text)}
+.gate-link{background:none;border:0;color:var(--muted);font:inherit;font-size:13px;text-decoration:underline;cursor:pointer;justify-self:center}
+.gate-link:hover{color:var(--text)}
 .gate-spin{width:28px;height:28px;border-radius:50%;border:3px solid rgba(255,255,255,.15);border-top-color:var(--primary);animation:spin .8s linear infinite}
 
 /* Notice & link rows */
