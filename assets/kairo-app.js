@@ -5072,7 +5072,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
    e.stopPropagation();
    openAccountPage('signup');
  },true);
- function boot(){buildPage();ensureLoginExtras();addAutolock();wireEyes();const q=new URLSearchParams(location.search);if(q.get('recovery')==='1')setTimeout(()=>openAccountPage('recovery-complete'),120);else if(q.get('signup')==='1')setTimeout(()=>openAccountPage('signup'),120)}
+ function boot(){buildPage();ensureLoginExtras();addAutolock();wireEyes();const q=new URLSearchParams(location.search);if(q.get('recovery')==='1')setTimeout(()=>openAccountPage('recovery-complete'),120);else if(q.get('signup')==='1')setTimeout(()=>(window.__kairoOpenAccountPage||openAccountPage)('signup'),120)}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,40));else setTimeout(boot,40)
 })();
 
