@@ -22,6 +22,8 @@ async function bootApp(browser, { width = 1440, height = 900, mobile = false, pl
   // Chart.js is loaded with its real SRI hash: keep the exact pinned version here (npm pack chart.js@4.4.4).
   const chart = path.join(__dirname, 'chartjs/package/dist/chart.umd.js');
   if (fs.existsSync(chart)) await page.route('**/chart.js@*/**', r => r.fulfill({ contentType: 'application/javascript', body: fs.readFileSync(chart), headers: { 'access-control-allow-origin': '*' } }));
+  // Tampilan dasar (Jasa Online): sesi tanpa business_template, supaya loader memberi html.kairo-jasa seperti akun asli.
+  if (!template) await page.addInitScript(() => { window.__mockSession = { user: { user_metadata: {} } }; });
   if (template === 'shop' || template === 'pos' || template === 'jastip') await page.addInitScript(t => { window.__mockSession = { user: { user_metadata: { business_template: t === 'pos' ? 'pos_kasir' : t === 'jastip' ? 'preorder_jastip' : 'online_shop' } } }; }, template);
   await page.goto(BASE);
   await page.waitForTimeout(1500);

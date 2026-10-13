@@ -45,5 +45,5 @@ module.exports = require('./seed.js') + `
     {id:'s6',workspace_id:'w1',transaction_id:'j6',version:1,frequency:'monthly',items:{base_paid:1000000,list:[{seq:1,due:D(-5),amount:1325000},{seq:2,due:D(25),amount:1325000}]},created_at:TS(-35)}
   ];
   T.payouts=[{id:'py1',workspace_id:'w1',partner_id:'pa1',partner_name:'Rani',amount:50000,payout_date:D(-1),notes:'Bagi hasil'}];
-  T.cash_expenses=[];T.cash_injections=[];T.reading_shifts=[];T.promos=[];
+  T.cash_expenses=[];T.cash_injections=[];T.reading_shifts=[];
 })();`;
