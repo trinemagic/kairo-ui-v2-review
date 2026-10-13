@@ -687,7 +687,7 @@ body.saas-sidebar-collapsed #app-shell main.container{margin-left:var(--sidebar-
 .page-title,.card-title,.auth-title{color:var(--brand-primary)!important}
 
 /* Semantic action colors: brand accent is not reused for destructive actions. */
-#close-shift-btn,#logout-confirm-button,.tx-delete-btn,.promo-delete,.settings-master-delete{
+#close-shift-btn,#logout-confirm-button,.tx-delete-btn,.settings-master-delete{
   background:#F9E8EB!important;color:var(--btn-danger)!important;border-color:color-mix(in srgb,var(--btn-danger) 24%,transparent)!important;box-shadow:none!important;
 }
 #btn-save,#confirm-save,#smart-sales-apply{background:var(--btn-primary)!important;color:#fff!important;box-shadow:none!important}
@@ -2076,21 +2076,7 @@ body.dark-mode .username-hint{color:#a0aec0}
 #input .orders-tool-menu{border-radius:15px!important;border:1px solid color-mix(in srgb,var(--brand-primary) 18%,var(--line))!important;background:color-mix(in srgb,var(--brand-primary) 4%,var(--white))!important;backdrop-filter:blur(18px)!important;box-shadow:0 18px 44px rgba(18,38,60,.14)!important;padding:7px!important}
 #input .btn{box-shadow:none}
 
-/* Promo */
-#promo .promo-shell{display:grid;grid-template-columns:minmax(320px,.85fr) minmax(420px,1.15fr);gap:16px;align-items:start}
-#promo .promo-card{border:1px solid color-mix(in srgb,var(--brand-primary) 14%,var(--line));border-radius:18px;background:linear-gradient(145deg,color-mix(in srgb,var(--brand-accent) 5%,var(--white)),color-mix(in srgb,var(--brand-primary) 4%,var(--white)));box-shadow:0 14px 34px rgba(27,45,65,.07);padding:18px}
-#promo .promo-title{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:850;margin-bottom:5px}.promo-title svg{width:23px;height:23px;fill:none;stroke:var(--brand-primary);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-#promo .promo-sub{font-size:11px;color:var(--muted);line-height:1.55;margin-bottom:16px}
-#promo .promo-form{display:grid;grid-template-columns:1fr 1fr;gap:11px}.promo-form .full{grid-column:1/-1}
-#promo .input,#promo select,#promo textarea{width:100%;border:1px solid color-mix(in srgb,var(--brand-primary) 17%,var(--line))!important;border-radius:12px!important;background:linear-gradient(135deg,color-mix(in srgb,var(--brand-accent) 8%,var(--white)),color-mix(in srgb,var(--brand-primary) 5%,var(--white)))!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 7px 16px rgba(28,50,73,.04)!important}
-#promo textarea{min-height:72px;padding:11px;resize:vertical}
-#promo .promo-target-hint{font-size:10px;color:var(--muted);margin-top:5px}
-#promo .promo-save{width:100%;border:0;border-radius:12px;padding:11px 14px;font-weight:850;color:white;background:linear-gradient(135deg,var(--brand-primary),color-mix(in srgb,var(--brand-primary) 62%,var(--brand-accent)));box-shadow:0 10px 24px color-mix(in srgb,var(--brand-primary) 22%,transparent)}
-#promo .promo-list{display:grid;gap:10px}.promo-row{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;padding:13px;border:1px solid color-mix(in srgb,var(--brand-primary) 12%,var(--line));border-radius:14px;background:color-mix(in srgb,var(--white) 94%,transparent);backdrop-filter:blur(10px)}
-#promo .promo-row strong{display:block;font-size:12px;color:var(--ink)}#promo .promo-row small{display:block;margin-top:4px;font-size:10px;color:var(--muted);line-height:1.4}.promo-badge{display:inline-flex;align-items:center;padding:4px 8px;border-radius:999px;background:color-mix(in srgb,var(--brand-accent) 13%,var(--white));color:var(--brand-primary);font-size:9px;font-weight:850;margin-top:6px}.promo-row-actions{display:flex;gap:6px}.promo-row-actions button{border:0;border-radius:9px;padding:7px 9px;font-size:9px;font-weight:800}.promo-toggle{background:color-mix(in srgb,var(--brand-primary) 10%,var(--white));color:var(--brand-primary)}.promo-delete{background:color-mix(in srgb,var(--danger) 12%,var(--white));color:var(--danger)}.promo-empty{padding:28px 12px;text-align:center;color:var(--muted);font-size:11px;border:1px dashed var(--line);border-radius:14px}
-#promo .promo-basic-lock{padding:16px;border-radius:15px;background:linear-gradient(135deg,color-mix(in srgb,var(--gold) 18%,var(--white)),var(--white));border:1px solid color-mix(in srgb,var(--gold) 42%,var(--line));font-size:11px;line-height:1.55;color:var(--ink)}
-body.saas-dark #input .card,body.saas-dark #promo .promo-card{background:linear-gradient(145deg,color-mix(in srgb,var(--brand-accent) 8%,#20252c),color-mix(in srgb,var(--brand-primary) 8%,#20252c));border-color:#3f4854}body.saas-dark #promo .promo-row{background:#252b32;border-color:#414a55}
-@media(max-width:900px){#promo .promo-shell{grid-template-columns:1fr}.promo-form{grid-template-columns:1fr!important}}
+body.saas-dark #input .card{background:linear-gradient(145deg,color-mix(in srgb,var(--brand-accent) 8%,#20252c),color-mix(in srgb,var(--brand-primary) 8%,#20252c));border-color:#3f4854}
 
 
 /* V20.10.144 — Settings submenu anchoring + responsive feedback button */
@@ -2385,7 +2371,7 @@ body.saas-dark #settings .receipt-template-section{background:#252b32;border-col
   /* Retire the desktop plan/header furniture on mobile only; prevents the oversized PRO frame bug. */
   #app-shell .workspace-meta{display:none!important}
 
-  /* Kairo mobile bottom nav: More → Dashboard → Orders → Promo → Settings */
+  /* Kairo mobile bottom nav: More → Dashboard → Orders → Settings */
   #saas-mobile-bottom{left:10px!important;right:10px!important;bottom:max(8px,env(safe-area-inset-bottom))!important;height:70px!important;display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;align-items:end!important;overflow:visible!important;padding:7px 8px 6px!important;border-radius:22px!important;background:color-mix(in srgb,var(--card) 92%,transparent)!important;border:1px solid color-mix(in srgb,var(--brand-accent) 15%,var(--line))!important;box-shadow:0 15px 38px rgba(16,26,36,.20),inset 0 1px 0 rgba(255,255,255,.08)!important;backdrop-filter:blur(22px) saturate(125%)!important;-webkit-backdrop-filter:blur(22px) saturate(125%)!important}
   .saas-mobile-nav-btn{position:relative!important;min-width:0!important;height:55px!important;border:0!important;background:transparent!important;border-radius:15px!important;padding:5px 2px 3px!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:3px!important;color:var(--muted)!important;font-size:8px!important;font-weight:750!important;line-height:1!important;box-shadow:none!important;overflow:visible!important}
   .saas-mobile-nav-btn>span:first-child{width:25px;height:25px;display:grid!important;place-items:center!important;min-height:0!important}.saas-mobile-nav-btn>span:first-child svg{width:21px!important;height:21px!important;fill:none!important;stroke:currentColor!important;stroke-width:1.8!important;stroke-linecap:round!important;stroke-linejoin:round!important}

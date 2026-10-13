@@ -37,7 +37,7 @@ async function toWebp(page, buf, file, width) {
     await p.evaluate(() => document.querySelector('.period-btn[data-period="30days"], [data-period="30days"]')?.click());
     await p.evaluate(() => loadPageData('dashboard', { force: true }));
     await p.waitForTimeout(1200);
-    const tabs = (tpl === 'kasir' ? ['dashboard', 'input', 'pos-products', 'customers', 'performance', 'payout', 'cash', 'settings'] : ['dashboard', 'input', 'customers', 'promo', 'performance', 'payout', 'cash', 'settings']).concat(tpl === 'seller' ? ['subscriptions'] : []);
+    const tabs = (tpl === 'kasir' ? ['dashboard', 'input', 'pos-products', 'customers', 'performance', 'payout', 'cash', 'settings'] : ['dashboard', 'input', 'customers', 'performance', 'payout', 'cash', 'settings']).concat(tpl === 'seller' ? ['subscriptions'] : []);
     for (const tab of tabs) {
       await p.evaluate(tab => { (tab === 'settings' ? document.getElementById('saas-settings-side-btn') : document.querySelector(`#saas-sidebar .tab[data-tab="${tab}"]`))?.click(); window.scrollTo(0, 0); }, tab);
       await p.waitForTimeout(tab === 'subscriptions' ? 3000 : 1500);

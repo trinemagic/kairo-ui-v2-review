@@ -625,6 +625,10 @@ if (window.top !== window.self) {
     if (document.body.classList.contains('seller-app-premium') && typeof window.kairoSellerNotifications === 'function') {
       try { const items = await window.kairoSellerNotifications(); if (items) return items; } catch (_) { return notifyItems; }
     }
+    // Template custom (mis. Pre-Order & Jastip) boleh mengganti isi lonceng sepenuhnya; null = pakai aturan bawaan.
+    if (typeof window.kairoTemplateNotifications === 'function') {
+      try { const items = await window.kairoTemplateNotifications(); if (items) return items; } catch (_) { return notifyItems; }
+    }
     let rows = [];
     try { rows = await allTransactions(); } catch (_) { return notifyItems; }
     const now = Date.now();
@@ -658,7 +662,8 @@ if (window.top !== window.self) {
     const unseen = urgent || notifyItems.some(item => !seen.has(notifyStage(item)));
     const seller = document.body.classList.contains('seller-app-premium');
     const shop = ['online_shop', 'pos_kasir'].includes(document.documentElement.dataset.businessTemplate);
-    const label = notifyItems.length ? `Notifikasi: ${notifyItems.length} ${seller || shop ? 'pengingat' : 'order belum tuntas'}` : 'Notifikasi';
+    const custom = typeof window.kairoTemplateNotifyCopy === 'function' ? window.kairoTemplateNotifyCopy() : null;
+    const label = notifyItems.length ? `Notifikasi: ${notifyItems.length} ${custom ? custom.unit : seller || shop ? 'pengingat' : 'order belum tuntas'}` : 'Notifikasi';
     qa('#kairo-notif-btn, #kairo-mobile-notif-btn').forEach(btn => {
       const dot = q('.kairo-notif-dot', btn);
       if (dot) { dot.hidden = !unseen; dot.classList.toggle('is-urgent', urgent); }
@@ -666,10 +671,10 @@ if (window.top !== window.self) {
     });
     const html = notifyItems.length
       ? notifyItems.map(item => `<div class="kairo-notif-item${item.urgent ? ' is-urgent' : ''}"><div><strong>${escapeHtml(item.name)}</strong><span>${escapeHtml(item.pkg)}</span></div><em>${item.note ? escapeHtml(item.note) : `${item.status ? `${escapeHtml(item.status)} · ` : ''}${item.urgent ? 'Lewat 30 menit · ' : ''}${escapeHtml(notifyAge(item.minutes))}`}</em></div>`).join('')
-      : `<div class="kairo-notif-empty">${seller ? 'Tidak ada akun yang akan expired dan semua order sudah selesai.' : shop ? 'Semua order selesai dan stok aman.' : 'Semua order sudah ditandai selesai.'}</div>`;
+      : `<div class="kairo-notif-empty">${custom ? escapeHtml(custom.empty) : seller ? 'Tidak ada akun yang akan expired dan semua order sudah selesai.' : shop ? 'Semua order selesai dan stok aman.' : 'Semua order sudah ditandai selesai.'}</div>`;
     qa('#kairo-notif-list, #kairo-mobile-notif-list').forEach(list => { if (list.innerHTML !== html) list.innerHTML = html; });
     // Judul panel ikut jenis usaha: seller tidak memakai istilah "Start Reading".
-    const [title, sub] = seller ? ['Pengingat', 'Akun pelanggan yang akan expired & order belum selesai'] : shop ? ['Pengingat', 'Order belum tuntas dan stok menipis'] : ['Order belum tuntas', 'Lebih dari 5 menit sejak ' + (document.documentElement.dataset.businessTemplate === 'online_shop' ? 'Waktu Order' : 'Start Reading')];
+    const [title, sub] = custom ? [custom.title, custom.sub] : seller ? ['Pengingat', 'Akun pelanggan yang akan expired & order belum selesai'] : shop ? ['Pengingat', 'Order belum tuntas dan stok menipis'] : ['Order belum tuntas', 'Lebih dari 5 menit sejak ' + (document.documentElement.dataset.businessTemplate === 'online_shop' ? 'Waktu Order' : 'Start Reading')];
     qa('.kairo-notif-head strong, #kairo-mobile-notif-sheet .kairo-mobile-sheet-head strong').forEach(el => { if (el.textContent !== title) el.textContent = title; });
     qa('.kairo-notif-head span, #kairo-mobile-notif-sheet .kairo-mobile-sheet-head small').forEach(el => { if (el.textContent !== sub) el.textContent = sub; });
   }
@@ -713,7 +718,7 @@ if (window.top !== window.self) {
 
   // Panduan pemakaian (owner Okt 2026): tombol buku di samping lonceng (desktop) + item "Panduan" di menu More (HP).
   // Isi & gaya ada di assets/kairo-guide.js/.css, baru dimuat saat pertama kali dibuka supaya dashboard tetap ringan.
-  const GUIDE_V = '1.2.6';
+  const GUIDE_V = '1.2.7';
   let guideLoader = null;
   window.kairoOpenGuide = function () {
     if (!guideLoader) {
@@ -826,9 +831,9 @@ if (window.top !== window.self) {
     }
     setTimeout(mountDashboardHeader, 700);
   }, true);
-  // Form Settings/Promo yang belum punya penanda proses: tombol simpan menampilkan spinner "Menyimpan…" sampai handler
+  // Form Settings yang belum punya penanda proses: tombol simpan menampilkan spinner "Menyimpan…" sampai handler
   // aslinya selesai (ditandai pop-up hasil muncul di #toast), maksimal 15 dtk supaya tidak pernah macet.
-  const SAVE_FORM_IDS = ['workspace-settings-form', 'profit-share-editor-form', 'receipt-wording-form', 'promo-form'];
+  const SAVE_FORM_IDS = ['workspace-settings-form', 'profit-share-editor-form', 'receipt-wording-form'];
   document.addEventListener('submit', event => {
     const form = event.target;
     if (!form || !SAVE_FORM_IDS.includes(form.id) || typeof window.kairoBtnLoading !== 'function') return;
@@ -943,8 +948,8 @@ if (window.top !== window.self) {
     const parts = { strong: hint.querySelector('.kairo-upgrade-hint-copy strong'), long: hint.querySelector('.is-long'), short: hint.querySelector('.is-short'), cta: hint.querySelector('[data-upgrade-cta]') };
     if (!original) original = Object.fromEntries(Object.entries(parts).map(([k, el]) => [k, el ? el.textContent : '']));
     // Online Shop tidak punya Open Store: daftar fitur Pro tanpa itu.
-    const feats = root.dataset.businessTemplate === 'pos_kasir' ? 'Customer Database, Promo, Petty Cash, dan Export Excel' : root.dataset.businessTemplate === 'online_shop' ? 'Autofill Orders, Customer Database, Promo, Petty Cash, dan Export Excel' : 'Autofill Orders, Customer Database, Promo, Open Store, Petty Cash, dan Export Excel';
-    let text = original ? { ...original, long: original.long.replace('Autofill Orders, Customer Database, Promo, Open Store, Petty Cash, dan Export Excel', feats) } : original;
+    const feats = root.dataset.businessTemplate === 'pos_kasir' ? 'Customer Database, Petty Cash, dan Export Excel' : root.dataset.businessTemplate === 'online_shop' ? 'Autofill Orders, Customer Database, Petty Cash, dan Export Excel' : 'Autofill Orders, Customer Database, Open Store, Petty Cash, dan Export Excel';
+    let text = original ? { ...original, long: original.long.replace('Autofill Orders, Customer Database, Open Store, Petty Cash, dan Export Excel', feats) } : original;
     const trial = root.dataset.subTrial === '1';
     if (m === 'lapsed') text = trial ? { strong: 'Trial Pro sudah berakhir', long: 'Workspace kembali memakai paket Gratis, data tetap aman. Mau tetap di Pro? Perpanjang langganan untuk membuka lagi semua fitur Pro.', short: 'Data tetap aman. Perpanjang untuk tetap di Pro.', cta: 'Perpanjang Pro' } : { strong: 'Masa aktif Pro sudah berakhir', long: 'Workspace sementara memakai paket Gratis, data tetap aman. Perpanjang untuk membuka lagi semua fitur Pro.', short: 'Data tetap aman. Perpanjang untuk membuka fitur Pro lagi.', cta: 'Perpanjang Pro' };
     if (m === 'renew') {
@@ -1172,4 +1177,42 @@ if (window.top !== window.self) {
   document.addEventListener('kairo:refreshed', later);
   document.addEventListener('click', later, true);
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', later); else later();
+})();
+
+/* ---- Jasa Online: WhatsApp, Catatan, Tip dilipat ke "Tambahan (opsional)" di form Orders (owner Okt 2026) ----
+   Data pemakaian: kolom ini jarang diisi, jadi form dibuat lebih pendek. Elemen & id tetap sama (simpan, reset, Autofill
+   tidak berubah); hanya dipindah ke dalam <details>, dan dikembalikan ke tempat asal bila template bukan Jasa Online. */
+(function () {
+  'use strict';
+  const IDS = ['tx-whatsapp', 'tx-notes', 'tx-tip'];
+  const marks = new Map();
+  const isJasa = () => document.documentElement.classList.contains('kairo-jasa');
+  const filled = () => IDS.some(id => String(document.getElementById(id)?.value || '').trim());
+  function fold() {
+    const form = document.getElementById('tx-form'); if (!form) return;
+    let box = form.querySelector('.kairo-tx-extra');
+    if (isJasa()) {
+      if (box) { if (filled()) box.open = true; return; }
+      const total = form.querySelector('.total-box'); if (!total) return;
+      box = document.createElement('details'); box.className = 'kairo-tx-extra full';
+      box.innerHTML = '<summary>Tambahan (opsional) <small>WhatsApp, catatan, tip</small></summary><div class="kairo-tx-extra-body"></div>';
+      const body = box.querySelector('.kairo-tx-extra-body');
+      IDS.forEach(id => {
+        const g = document.getElementById(id)?.closest('.form-group'); if (!g) return;
+        const mark = document.createComment('kairo-tx-extra:' + id); g.before(mark); marks.set(id, mark); body.appendChild(g);
+      });
+      total.before(box);
+      if (filled()) box.open = true;
+    } else if (box) {
+      IDS.forEach(id => { const g = document.getElementById(id)?.closest('.form-group'), mark = marks.get(id); if (g && mark) { mark.replaceWith(g); marks.delete(id); } });
+      box.remove();
+    }
+  }
+  // Field yang wajib/invalid di dalam lipatan harus terlihat sebelum disorot.
+  document.addEventListener('invalid', e => { const d = e.target.closest?.('.kairo-tx-extra'); if (d) d.open = true; }, true);
+  document.addEventListener('change', e => { if (e.target.closest?.('#tx-form') && filled()) fold(); }, true);
+  document.addEventListener('reset', e => { if (e.target.id === 'tx-form') e.target.querySelector('.kairo-tx-extra')?.removeAttribute('open'); }, true);
+  new MutationObserver(fold).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+  document.addEventListener('kairo:template-ready', fold);
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fold); else fold();
 })();

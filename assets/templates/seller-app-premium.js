@@ -775,8 +775,8 @@
     const active=document.querySelector('.section.active')?.id||'';
     // Seller toolbar policy:
     // show period filters on Dashboard / Performance / Withdraw (and Petty Cash),
-    // hide them only on Orders / Promo / Customer Database / Settings.
-    const clean=['input','promo','customers','settings'].includes(active);
+    // hide them only on Orders / Customer Database / Settings.
+    const clean=['input','customers','settings'].includes(active);
     document.body.classList.toggle('seller-clean-top-filters',clean);
     const filters=document.querySelector('main.container > .toolbar .filters');if(!filters)return;
     const refresh=[...filters.querySelectorAll('button')].find(b=>(b.textContent||'').toLowerCase().includes('refresh'));
@@ -856,8 +856,6 @@
   }
   function syncSellerUserFacingWording(){
     if(!mounted)return;
-    const promoName=document.getElementById('promo-name');
-    if(promoName)promoName.placeholder='Contoh: Promo Netflix September';
   }
   function syncSellerDashboardView(){
     if(!mounted||!document.body.classList.contains('seller-app-premium'))return;

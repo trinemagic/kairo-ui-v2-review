@@ -24,6 +24,7 @@
   function baseSections() {
     const seller = isSeller();
     const shop = document.documentElement.dataset.businessTemplate === 'online_shop';
+    const jasa = document.documentElement.classList.contains('kairo-jasa');
     return [
       {
         id: 'start', title: 'Mulai cepat', intro: 'Lima langkah supaya workspace siap dipakai mencatat penjualan.',
@@ -68,7 +69,7 @@
           'Ketik nama customer. Nama yang pernah tercatat muncul sebagai saran.',
           shop ? 'Pilih platform, lalu <b>klik kartu produk</b>: tiap klik menambah 1, tombol <b>−</b> di label jumlah mengurangi. Produk yang stoknya habis atau kurang tidak bisa dipilih.'
                : 'Pilih platform, lalu <b>klik kartu Package</b> (tiap klik menambah 1, tombol <b>−</b> mengurangi). Pilih juga Add-on dan Topik bila ada.',
-          'Pilih metode pembayaran' + (shop ? ' (daftarnya bisa kamu atur sendiri di Settings)' : '') + '. Gunakan <b>Penyesuaian Harga</b> bila ada diskon atau harga khusus.',
+          'Pilih metode pembayaran' + (shop ? ' (daftarnya bisa kamu atur sendiri di Settings)' : '') + '. Gunakan <b>Penyesuaian Harga</b> bila ada diskon atau harga khusus.' + (jasa ? ' WhatsApp, catatan, dan tip ada di bagian <b>Tambahan (opsional)</b>.' : ''),
           'Simpan. Struk bisa dilihat dan disimpan sebagai gambar.',
           'Order berstatus <b>On Progress</b> muncul di lonceng setelah 5 menit; centang selesai bila sudah dikerjakan.'
         ],
@@ -98,11 +99,6 @@
         steps: ['Cari customer berdasarkan nama.', 'Pencet nama untuk melihat riwayat transaksinya.', 'Data customer hanya bisa dilihat akun pemilik workspace ini.']
       },
       {
-        id: 'promo', tab: 'promo', title: 'Promo', pro: true,
-        intro: 'Diskon otomatis saat mencatat order.',
-        steps: ['Isi nama promo dan target: semua paket, paket tertentu, topik, atau kata kunci paket.', 'Pilih diskon persen atau nominal, lalu tanggal mulai dan berakhir.', 'Simpan. Promo aktif langsung terpakai di Orders.']
-      },
-      {
         id: 'performance', tab: 'performance', title: 'Performance',
         intro: 'Analisa penjualan sesuai periode yang dipilih.',
         steps: ['Lihat ringkasan omzet, jumlah transaksi, rata-rata per order, dan produk terlaris.', 'Kartu <b>Penjualan per Produk</b> punya pilihan produk dan periode sendiri.', 'Grafik harian, perbandingan bulan, dan peringkat paket tersedia di paket Pro.']
@@ -116,7 +112,7 @@
       {
         id: 'cash', tab: 'cash', title: 'Petty Cash (Kas)', pro: true,
         intro: 'Kas usaha dari potongan penjualan, plus pengeluaran dan pemasukan kas.',
-        steps: ['Aktifkan/matikan Kas di Settings › Pembagian Omzet (<b>Pakai Kas</b>).', 'Catat pengeluaran (mis. iklan) dan pemasukan kas dari luar.', 'Pakai filter tanggal di atas tabel riwayat. <b>Kas Modal</b> menampilkan total HPP penjualan per tanggal.']
+        steps: ['Aktifkan/matikan Kas di Settings › Pembagian Omzet (<b>Pakai Kas</b>).', 'Catat pengeluaran (mis. iklan) dan pemasukan kas dari luar.', jasa ? 'Pakai filter tanggal di atas tabel riwayat.' : 'Pakai filter tanggal di atas tabel riwayat. <b>Kas Modal</b> menampilkan total HPP penjualan per tanggal.']
       },
       {
         id: 'settings', tab: 'settings', title: 'Settings',
@@ -127,7 +123,7 @@
                  : shop ? 'Produk, harga, modal, dan stok diatur di menu <b>Produk</b> (bukan di Settings). <b>Platform Penjualan</b>: daftar platform, dan saklar komisi per platform (perkiraan dari persen yang kamu isi). <b>Metode Pembayaran</b>: daftar yang muncul di Orders.'
                  : '<b>Package, Add-on, Topik</b>: daftar yang muncul di Orders.',
           '<b>Pembagian Omzet</b>: persentase partner dan Kas; perubahan berlaku mulai tanggal yang dipilih.',
-          '<b>Struk</b> (paket Pro): desain, label, dan logo struk. Kartu <b>Printer Struk</b> di bagian yang sama menghubungkan printer termal (USB, serial/Bluetooth klasik, Bluetooth BLE, RawBT, atau printer biasa lewat dialog cetak); tombol <b>Cetak</b> muncul di preview struk.',
+          jasa ? '<b>Struk</b> (paket Pro): desain, label, dan logo struk.' : '<b>Struk</b> (paket Pro): desain, label, dan logo struk. Kartu <b>Printer Struk</b> di bagian yang sama menghubungkan printer termal (USB, serial/Bluetooth klasik, Bluetooth BLE, RawBT, atau printer biasa lewat dialog cetak); tombol <b>Cetak</b> muncul di preview struk.',
           '<b>Tema Workspace</b> (paket Pro): Lavender, Kayu, Awan, atau Mawar.'
         ].filter(Boolean)
       },
@@ -136,7 +132,7 @@
         intro: 'Gratis untuk mulai, Pro untuk semua fitur.',
         steps: [
           '<b>Gratis</b>: riwayat yang tampil 60 hari terakhir; data lebih dari 12 bulan diringkas setelah pemberitahuan 30 hari (saldo tidak berubah).',
-          '<b>Pro</b>: harga mengikuti template (lihat halaman Pricing), 1 bulan atau 6 bulan. Membuka Customer Database, Promo, Petty Cash, Export Excel, Autofill, Open Store, Struk, dan riwayat lengkap.',
+          '<b>Pro</b>: harga mengikuti template (lihat halaman Pricing), 1 bulan atau 6 bulan. Membuka Customer Database, Petty Cash, Export Excel, Autofill, Open Store, Struk, dan riwayat lengkap.',
           '<b>Trial Pro '+(window.kairoTrial&&window.kairoTrial.enabled===false?'':(window.kairoTrial?.days||14)+' hari')+'</b>: akun baru bisa mencoba Pro gratis saat daftar, satu kali per akun. Setelah masa trial berakhir workspace kembali ke Gratis (data tetap aman) dan kamu bisa memperpanjang langganan untuk tetap di Pro.',
           'Upgrade/perpanjang: pencet <b>Upgrade ke Pro</b> / <b>Perpanjang Pro</b> di Dashboard. Pesan WhatsApp ke admin terisi otomatis; setelah transfer dikonfirmasi admin, Pro aktif.',
           '7 hari sebelum masa Pro (atau trial) berakhir muncul pengingat di Dashboard. Bila lewat, workspace kembali ke Gratis dan data tetap aman.'
@@ -185,7 +181,7 @@
     ].filter(Boolean);
   }
 
-  // Kasir / POS: bagian khusus menggantikan bagian dasar yang beda (Orders -> Kasir, dst.); Promo tidak ditampilkan karena belum dipakai di layar Kasir.
+  // Kasir / POS: bagian khusus menggantikan bagian dasar yang beda (Orders -> Kasir, dst.).
   function kasirSections(base) {
     const mine = {
       start: {
@@ -273,7 +269,6 @@
     };
     const out = [];
     for (const b of base) {
-      if (b.id === 'promo') continue;
       if (mine[b.id]) {
         if (b.id === 'input') out.push(mine.products);
         out.push(mine[b.id]);
@@ -320,7 +315,7 @@
       <section class="kairo-guide-panel" role="dialog" aria-modal="true" aria-labelledby="kairo-guide-title">
         <header class="kairo-guide-head"><span class="kairo-guide-icon">${ICON.book}</span><div><h2 id="kairo-guide-title">Panduan KAIRO</h2><p>${tplName()} · paket ${isPro() ? 'Pro' : 'Gratis'}</p></div>
           <button type="button" class="kairo-guide-close" data-guide-close aria-label="Tutup panduan">${ICON.close}</button></header>
-        <label class="kairo-guide-search">${ICON.search}<input type="search" placeholder="Cari panduan, mis. struk, promo, kas" aria-label="Cari panduan"></label>
+        <label class="kairo-guide-search">${ICON.search}<input type="search" placeholder="Cari panduan, mis. struk, diskon, kas" aria-label="Cari panduan"></label>
         <div class="kairo-guide-list"></div>
       </section>
       <div class="kairo-guide-zoom" hidden><button type="button" class="kairo-guide-zoom-close" data-guide-unzoom aria-label="Tutup gambar">${ICON.close}</button><img alt=""></div>`;

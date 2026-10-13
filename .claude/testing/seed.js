@@ -13,6 +13,5 @@ T.payouts=[{id:'po1',workspace_id:'w1',partner_id:'pa1',partner_name:'Nesa',amou
 T.cash_expenses=[{id:'ce1',workspace_id:'w1',expense_date:iso(now),amount:25000,description:'Iklan Instagram'}];
 T.cash_injections=[{id:'ci1',workspace_id:'w1',injection_date:iso(now-86400000),amount:500000,source:'Pribadi',description:'Modal awal'}];
 T.reading_shifts=[{id:'s1',workspace_id:'w1',opened_at:new Date(now-3*3600000).toISOString(),closed_at:null}];
-T.promos=[{id:'pr1',workspace_id:'w1',name:'Promo Gajian',target:'all',discount_type:'percent',discount_value:10,is_active:true,starts_at:iso(now),ends_at:iso(now+7*86400000)}];
 T.workspace_branding=[{workspace_id:'w1',primary_color:'#696F41',accent_color:'#EA97A9'}];
 `;

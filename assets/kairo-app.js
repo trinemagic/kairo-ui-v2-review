@@ -1021,7 +1021,6 @@ function openAppPage(tabName){
     cash:['Petty Cash','Kelola arus kas operasional workspace.'],
     payout:['Withdraw','Kelola pencairan dan pembagian hasil.'],
     input:['Orders','Input dan kelola transaksi penjualan.'],
-    promo:['Promo','Atur diskon otomatis untuk produk dan pelanggan.'],
     subscriptions:['Tracker Langganan','Pantau masa aktif langganan pelanggan.'],
     customers:['Customer Database','Data dan riwayat customer workspace.'],
     settings:['Workspace Settings','Identitas bisnis, package, add-on, pembagian omzet, dan akses workspace aktif.']
@@ -1052,7 +1051,7 @@ syncColorPair('settings-primary-color','settings-primary-text');syncColorPair('s
 const DEFAULT_DASHBOARD_SLOGAN='';
 function dashboardSlogan(){return String(activeWorkspaceBranding?.receipt_labels?.__dashboard_slogan||DEFAULT_DASHBOARD_SLOGAN).trim()||DEFAULT_DASHBOARD_SLOGAN;}
 const DEFAULT_TOPIC_LABEL='Topik';
-function defaultTopicLabel(){return isShopWorkspace()?'Kategori':DEFAULT_TOPIC_LABEL;}
+function defaultTopicLabel(){return document.documentElement.dataset.businessTemplate==='preorder_jastip'?'Kategori Barang':isShopWorkspace()?'Kategori':DEFAULT_TOPIC_LABEL;}
 function topicFieldLabel(){return String(activeWorkspaceBranding?.receipt_labels?.__topic_label||defaultTopicLabel()).trim()||defaultTopicLabel();}
 function applyTopicFieldLabel(){const label=topicFieldLabel(); document.querySelectorAll('[data-kairo-topic-label]').forEach(el=>el.textContent=label); const orderLabel=document.querySelector('#tx-topics')?.previousElementSibling; if(orderLabel&&orderLabel.classList.contains('label'))orderLabel.textContent=label+' (bisa lebih dari satu)'; const cardTitle=document.getElementById('settings-topic-card-title');if(cardTitle)cardTitle.textContent=label; const add=document.getElementById('settings-add-topic');if(add)add.textContent='+ Tambah '+label; const inp=document.getElementById('settings-topic-label');if(inp)inp.value=label; const opt=document.querySelector('#settings-category-select option[value="topics"]');if(opt)opt.textContent=label; const sub=document.querySelector('.saas-settings-submenu-btn[data-settings-category="topics"]');if(sub)sub.textContent=label; const perf=[...document.querySelectorAll('.card-title')].find(x=>x.textContent.trim()==='Topik yang Dipilih'||x.dataset.topicTitle==='1');if(perf){perf.dataset.topicTitle='1';perf.textContent=label+' yang Dipilih';}}
 document.getElementById('workspace-settings-form')?.addEventListener('submit',async e=>{
@@ -1585,8 +1584,6 @@ async function loadPageData(tabName=currentAppPage(),options={}){
       await Promise.all([fetchCashExpenses(),fetchCashInjections(),fetchFinancialSnapshot()]);renderCashExpenses();
     }else if(tabName==='settings'){
       await ensureMasters();hydrateSaasUi();
-    }else if(tabName==='promo'){
-      await window.kairoRenderPromos?.();
     }
     if(status)status.textContent='● Database terhubung';
   }catch(error){
@@ -1726,7 +1723,7 @@ function calculateTotal(){
   const help=document.getElementById("tx-adjustment-help");
   if(help){
     const a=order.adjustment;
-    help.textContent=a.type==="none" ? "Bisa digunakan untuk promo, harga khusus, atau penyesuaian harga satu kali pada transaksi ini." : `${a.type==="discount"?"Pengurangan":"Penambahan"}: ${a.mode==="percent"?a.value+"%":rupiah(a.value)} → ${a.amount<0?"-":"+"}${rupiah(Math.abs(a.amount))}`;
+    help.textContent=a.type==="none" ? "Untuk potongan harga (diskon), harga khusus, atau penyesuaian harga satu kali pada transaksi ini." : `${a.type==="discount"?"Pengurangan":"Penambahan"}: ${a.mode==="percent"?a.value+"%":rupiah(a.value)} → ${a.amount<0?"-":"+"}${rupiah(Math.abs(a.amount))}`;
   }
   return order;
 }
@@ -3727,7 +3724,6 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
 (function(){
   const iconMap={
     dashboard:`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10.5V20h13v-9.5"/><path d="M9 20v-6h6v6"/></svg>`,
-    promo:`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7.5V5a1 1 0 0 1 1-1h6.5L20 12.5 12.5 20 4 11.5Z"/><circle cx="8" cy="8" r="1.2"/></svg>`,
     performance:`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V9"/><path d="M10 19V5"/><path d="M16 19v-7"/><path d="M22 19V3"/><path d="M2 19h20"/></svg>`,
     cash:`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7.5h16a2 2 0 0 1 2 2v9H5a2 2 0 0 1-2-2z"/><path d="M3 8V6a2 2 0 0 1 2-2h13"/><path d="M16 13h5"/><circle cx="16" cy="13" r=".8"/></svg>`,
     payout:`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19 19 5"/><path d="M10 5h9v9"/><path d="M5 7v12h12"/></svg>`,
@@ -3735,7 +3731,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
     customers:`<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3.5 19c.5-3.5 2.5-5.5 5.5-5.5s5 2 5.5 5.5"/><circle cx="17" cy="9" r="2.5"/><path d="M15.5 14.5c2.8-.2 4.7 1.4 5 4.5"/></svg>`,
     settings:`<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.8 1.8 0 0 0 .36 1.98l.05.05-2.78 2.78-.05-.05A1.8 1.8 0 0 0 15 19.4a1.8 1.8 0 0 0-1.1 1.64V21H10v-.06A1.8 1.8 0 0 0 8.9 19.3a1.8 1.8 0 0 0-1.98.36l-.05.05-2.78-2.78.05-.05A1.8 1.8 0 0 0 4.5 15a1.8 1.8 0 0 0-1.64-1.1H2.8V10h.06A1.8 1.8 0 0 0 4.5 8.9a1.8 1.8 0 0 0-.36-1.98l-.05-.05 2.78-2.78.05.05A1.8 1.8 0 0 0 8.9 4.5 1.8 1.8 0 0 0 10 2.86V2.8h3.9v.06A1.8 1.8 0 0 0 15 4.5a1.8 1.8 0 0 0 1.98-.36l.05-.05 2.78 2.78-.05.05A1.8 1.8 0 0 0 19.4 8.9 1.8 1.8 0 0 0 21.04 10h.06v3.9h-.06A1.8 1.8 0 0 0 19.4 15Z"/></svg>`
   };
-  const labelMap={dashboard:'Dashboard',input:'Orders',promo:'Promo',performance:'Performance',customers:'Customer Database',payout:'Withdraw',cash:'Petty Cash',settings:'Settings'};
+  const labelMap={dashboard:'Dashboard',input:'Orders',performance:'Performance',customers:'Customer Database',payout:'Withdraw',cash:'Petty Cash',settings:'Settings'};
   const SIDEBAR_KEY='trine_saas_sidebar_collapsed_v1';
   const DEFAULT_PRIMARY='#696F41',DEFAULT_ACCENT='#EA97A9';
   let savedBrandingSnapshot=null;
@@ -3785,7 +3781,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
   }
   function buildMobileNav(){
     if(document.getElementById('saas-mobile-bottom')) return; const bar=document.createElement('nav');bar.id='saas-mobile-bottom';bar.setAttribute('aria-label','Navigasi mobile');
-    ['dashboard','input','promo','performance','customers','payout','cash','settings'].forEach(tab=>{const b=document.createElement('button');b.type='button';b.className='saas-mobile-nav-btn';b.dataset.mobileTab=tab;b.innerHTML=`<span>${iconMap[tab]}</span><span>${labelMap[tab]}</span>`;b.addEventListener('click',()=>{if(tab==='settings')document.getElementById('saas-settings-side-btn')?.click();else document.querySelector(`#saas-sidebar .tab[data-tab="${tab}"]`)?.click();setTimeout(syncNavState,20)});bar.appendChild(b)});document.body.appendChild(bar);
+    ['dashboard','input','performance','customers','payout','cash','settings'].forEach(tab=>{const b=document.createElement('button');b.type='button';b.className='saas-mobile-nav-btn';b.dataset.mobileTab=tab;b.innerHTML=`<span>${iconMap[tab]}</span><span>${labelMap[tab]}</span>`;b.addEventListener('click',()=>{if(tab==='settings')document.getElementById('saas-settings-side-btn')?.click();else document.querySelector(`#saas-sidebar .tab[data-tab="${tab}"]`)?.click();setTimeout(syncNavState,20)});bar.appendChild(b)});document.body.appendChild(bar);
   }
   function syncNavState(){
     const active=document.querySelector('.section.active')?.id||'dashboard';document.querySelectorAll('.saas-mobile-nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.mobileTab===active));
@@ -5121,7 +5117,6 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
   ['Performance & grafik','Ya · Seller App: Pro',1,1],
   ['Customer Database',0,1,1],
   ['Autofill Orders',0,1,1],
-  ['Promo & diskon otomatis',0,1,1],
   ['Add-on produk',0,1,1],
   ['Open / Close Store',0,1,1],
   ['Export Excel',0,1,1],
@@ -5187,56 +5182,19 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
 })();
 
 
-/* ---- KAIRO SCRIPT BOUNDARY ---- */
 
 
+/* Urutan menu sidebar: Dashboard, Orders, Performance, Customer Database, Withdraw, Petty Cash, Settings.
+   (Dulu bagian dari modul Promo; modul itu dihapus Okt 2026 karena tidak pernah dipakai, urutannya tetap dijaga.) */
 (function(){
- const PROMO_ICON='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12 12 20 4 12l8-8 8 8Z"/><circle cx="12" cy="9" r="1.5"/><path d="M9 14h6"/></svg>';
- const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
- function currentPlan(){try{return String(window.activeWorkspacePlan||activeWorkspacePlan||document.documentElement.dataset.workspacePlan||'basic').toLowerCase()}catch(e){return 'basic'}}
- function wid(){try{return typeof requireWorkspaceId==='function'?requireWorkspaceId():window.activeWorkspaceId||activeWorkspaceId}catch(e){return window.activeWorkspaceId||null}}
-
- function ensurePromoSection(){
-   if(document.getElementById('promo'))return;
-   const target=document.getElementById('performance')||document.getElementById('customers');if(!target)return;
-   const sec=document.createElement('section');sec.id='promo';sec.className='section';sec.innerHTML=`<div class="promo-shell"><div class="promo-card"><div class="promo-title">${PROMO_ICON}<span>Buat Promo</span></div><div class="promo-sub">Atur diskon otomatis berdasarkan package, topik, semua package, atau keyword package.</div><div id="promo-plan-lock"></div><form id="promo-form" class="promo-form"><div class="full"><label class="label">Nama Promo</label><input id="promo-name" class="input" maxlength="80" required placeholder="Contoh: General Reading September"></div><div><label class="label">Target Promo</label><select id="promo-target-type" class="input"><option value="all_packages">All Packages</option><option value="package">Package tertentu</option><option value="topic">Topik tertentu</option><option value="package_keyword">Keyword Package</option></select></div><div><label class="label">Target / Keyword</label><input id="promo-target-value" class="input" placeholder="Kosong untuk All Packages"><div class="promo-target-hint" id="promo-target-hint">Semua package akan menerima diskon.</div></div><div><label class="label">Jenis Diskon</label><select id="promo-discount-type" class="input"><option value="percent">Persentase (%)</option><option value="fixed">Nominal (Rp)</option></select></div><div><label class="label">Nilai Diskon</label><input id="promo-discount-value" class="input" type="number" min="0" step="0.01" required placeholder="Contoh: 10"></div><div><label class="label">Mulai</label><input id="promo-start" class="input" type="date"></div><div><label class="label">Berakhir</label><input id="promo-end" class="input" type="date"></div><div class="full"><label class="label">Catatan (opsional)</label><textarea id="promo-notes" placeholder="Keterangan internal promo"></textarea></div><div class="full"><button class="promo-save" id="promo-save" type="submit">Simpan Promo</button></div></form></div><div class="promo-card"><div class="promo-title">${PROMO_ICON}<span>Promo Aktif & Tersimpan</span></div><div class="promo-sub">Promo tersimpan per workspace. BASIC hanya dapat melihat penawaran upgrade dan tidak dapat memakai fitur Promo.</div><div id="promo-list" class="promo-list"><div class="promo-empty">Belum ada promo.</div></div></div></div>`;
-   target.parentNode.insertBefore(sec,target);
-   wirePromoForm();
+ function orderNav(){
+   const side=document.querySelector('#saas-sidebar .saas-sidebar-nav');if(!side)return;
+   ['dashboard','input','performance','customers','payout','cash'].forEach(k=>{const n=side.querySelector(`[data-tab="${k}"]`);if(n)side.appendChild(n)});
+   const set=side.querySelector('#saas-settings-side-btn');const submenu=document.getElementById('saas-settings-submenu');if(set){side.appendChild(set);if(submenu)side.appendChild(submenu)}
  }
-
- function ensurePromoNav(){
-   const icon=`<span class="saas-nav-icon">${PROMO_ICON}</span><span class="saas-nav-label">Promo</span>`;
-   const side=document.querySelector('#saas-sidebar .saas-sidebar-nav');
-   if(side&&!side.querySelector('[data-tab="promo"]')){const b=document.createElement('button');b.type='button';b.className='tab';b.dataset.tab='promo';b.innerHTML=icon;b.onclick=()=>openPromo();side.appendChild(b)}
-   if(side){const order=['dashboard','input','promo','performance','customers','payout','cash'];order.forEach(k=>{const n=side.querySelector(`[data-tab="${k}"]`);if(n)side.appendChild(n)});const set=side.querySelector('#saas-settings-side-btn');const submenu=document.getElementById('saas-settings-submenu');if(set){side.appendChild(set);if(submenu)side.appendChild(submenu)}}
- }
- function openPromo(){
-   try{if(typeof openAppPage==='function')openAppPage('promo')}catch(e){}
-   document.querySelectorAll('.section').forEach(x=>x.classList.toggle('active',x.id==='promo'));
-   document.querySelectorAll('#saas-sidebar .tab').forEach(x=>x.classList.toggle('active',x.dataset.tab==='promo'));
-   const t=document.querySelector('main.container .page-title'),sub=document.querySelector('main.container .page-sub');if(t)t.textContent='Promo';if(sub)sub.textContent='Kelola diskon package dan topik untuk workspace aktif.';
-   renderPromos();window.scrollTo({top:0,behavior:'auto'});
- }
- window.kairoRenderPromos=renderPromos;
-
- function promoTargetHint(){const type=document.getElementById('promo-target-type')?.value;const h=document.getElementById('promo-target-hint');const input=document.getElementById('promo-target-value');if(!h||!input)return;const map={all_packages:'Semua package akan menerima diskon.',package:'Isi nama package persis atau sebagian.',topic:'Isi nama topik yang ingin diberi diskon.',package_keyword:'Contoh: ketik “general” untuk semua package yang mengandung keyword general.'};h.textContent=map[type]||'';input.disabled=type==='all_packages';if(type==='all_packages')input.value='';}
- async function renderPromos(){
-   ensurePromoSection();const lock=document.getElementById('promo-plan-lock'),form=document.getElementById('promo-form'),list=document.getElementById('promo-list');if(!list)return;
-   const plan=currentPlan();const allowed=canonicalPlan(plan)==='pro';if(lock)lock.innerHTML=allowed?'':'<div class="promo-basic-lock"><strong>Promo tersedia di paket Pro.</strong><br>Upgrade untuk membuat diskon berdasarkan package, topik, atau keyword.</div>';if(form)form.style.display=allowed?'grid':'none';
-   try{const id=wid();if(!id)return;const {data,error}=await db.from('promotions').select('*').eq('workspace_id',id).order('created_at',{ascending:false});if(error)throw error;const rows=data||[];if(!rows.length){list.innerHTML='<div class="promo-empty">Belum ada promo.</div>';return}list.innerHTML=rows.map(r=>{const amount=r.discount_type==='percent'?`${Number(r.discount_value||0)}%`:`Rp${Number(r.discount_value||0).toLocaleString('id-ID')}`;const target={all_packages:'All Packages',package:`Package: ${esc(r.target_value||'-')}`,topic:`Topik: ${esc(r.target_value||'-')}`,package_keyword:`Keyword: ${esc(r.target_value||'-')}`}[r.target_type]||r.target_type;return `<div class="promo-row"><div><strong>${esc(r.name)}</strong><small>${target} · Diskon ${amount}${r.start_date?` · ${esc(r.start_date)}`:''}${r.end_date?` s/d ${esc(r.end_date)}`:''}</small><span class="promo-badge">${r.is_active?'AKTIF':'NONAKTIF'}</span></div><div class="promo-row-actions">${allowed?`<button class="promo-toggle" data-promo-toggle="${r.id}" data-next="${!r.is_active}">${r.is_active?'Nonaktifkan':'Aktifkan'}</button><button class="promo-delete" data-promo-delete="${r.id}">Hapus</button>`:''}</div></div>`}).join('')}
-   catch(e){console.error(e);list.innerHTML=`<div class="promo-empty">${esc(e.message||'Gagal memuat promo.')}</div>`}
- }
- function wirePromoForm(){
-   document.getElementById('promo-target-type')?.addEventListener('change',promoTargetHint);promoTargetHint();
-   document.getElementById('promo-form')?.addEventListener('submit',async e=>{e.preventDefault();if(canonicalPlan(currentPlan())!=='pro')return showToast('Promo tersedia di paket Pro.',true);const btn=document.getElementById('promo-save');btn.disabled=true;try{const type=document.getElementById('promo-target-type').value;const val=(document.getElementById('promo-target-value').value||'').trim();if(type!=='all_packages'&&!val)throw new Error('Target atau keyword promo wajib diisi.');const discountType=document.getElementById('promo-discount-type').value;const discountValue=Number(document.getElementById('promo-discount-value').value||0);if(!(discountValue>0))throw new Error('Nilai diskon harus lebih dari 0.');if(discountType==='percent'&&discountValue>100)throw new Error('Diskon persentase maksimal 100%.');const row={workspace_id:wid(),name:document.getElementById('promo-name').value.trim(),target_type:type,target_value:type==='all_packages'?null:val,discount_type:discountType,discount_value:discountValue,start_date:document.getElementById('promo-start').value||null,end_date:document.getElementById('promo-end').value||null,notes:document.getElementById('promo-notes').value.trim()||null,is_active:true};const {error}=await db.from('promotions').insert(row);if(error)throw error;e.target.reset();promoTargetHint();showToast('Promo tersimpan.');await renderPromos()}catch(err){console.error(err);showToast(err.message||'Gagal menyimpan promo.',true)}finally{btn.disabled=false}});
-   document.getElementById('promo-list')?.addEventListener('click',async e=>{const del=e.target.closest('[data-promo-delete]'),tog=e.target.closest('[data-promo-toggle]');try{if(del){const {error}=await db.from('promotions').delete().eq('id',del.dataset.promoDelete).eq('workspace_id',wid());if(error)throw error;showToast('Promo dihapus.')}else if(tog){const {error}=await db.from('promotions').update({is_active:tog.dataset.next==='true',updated_at:new Date().toISOString()}).eq('id',tog.dataset.promoToggle).eq('workspace_id',wid());if(error)throw error;showToast('Status promo diperbarui.')}else return;await renderPromos()}catch(err){showToast(err.message||'Gagal memperbarui promo.',true)}});
- }
-
- function boot(){ensurePromoSection();ensurePromoNav();setTimeout(ensurePromoNav,900)}
+ function boot(){orderNav();setTimeout(orderNav,900)}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
- /* v20.10.66: removed global body MutationObserver here. ensurePromoNav() reorders existing nav nodes with appendChild; observing body childList caused a self-triggering mutation loop and could freeze the page. boot() already initializes this UI. */
 })();
-
 
 /* ---- KAIRO v20.10.77 — neutral tenant template + interactive BASIC locks ---- */
 (function(){
@@ -5262,7 +5220,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
  function decorateLocks(){
    const basic=isBasic();
    // Whole menus unavailable on BASIC (Petty Cash juga, owner Okt 2026). They stay clickable so the upgrade message can explain why.
-   document.querySelectorAll('[data-tab="promo"],.saas-mobile-nav-btn[data-mobile-tab="promo"],[data-tab="customers"],.saas-mobile-nav-btn[data-mobile-tab="customers"],[data-tab="cash"],.saas-mobile-nav-btn[data-mobile-tab="cash"]').forEach(el=>setLock(el,basic));
+   document.querySelectorAll('[data-tab="customers"],.saas-mobile-nav-btn[data-mobile-tab="customers"],[data-tab="cash"],.saas-mobile-nav-btn[data-mobile-tab="cash"]').forEach(el=>setLock(el,basic));
    // BASIC Settings: Package & Harga stays available. Premium categories get a visible lock.
    document.querySelectorAll('.saas-settings-submenu-btn').forEach(el=>setLock(el,basic&&['workspace','addons','receipt'].includes(el.dataset.settingsCategory)));
    // Performance is intentionally NOT locked on BASIC; Daily Sales remains available.
@@ -5270,7 +5228,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
  }
  document.addEventListener('click',e=>{
    if(!isBasic())return;
-   const whole=e.target.closest('[data-tab="promo"],.saas-mobile-nav-btn[data-mobile-tab="promo"],[data-tab="customers"],.saas-mobile-nav-btn[data-mobile-tab="customers"],[data-tab="cash"],.saas-mobile-nav-btn[data-mobile-tab="cash"]');
+   const whole=e.target.closest('[data-tab="customers"],.saas-mobile-nav-btn[data-mobile-tab="customers"],[data-tab="cash"],.saas-mobile-nav-btn[data-mobile-tab="cash"]');
    const settings=e.target.closest('.saas-settings-submenu-btn');
    if(whole||(settings&&['workspace','addons','receipt'].includes(settings.dataset.settingsCategory))){e.preventDefault();e.stopImmediatePropagation();upgradeMessage();}
  },true);
@@ -5413,7 +5371,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
   const icons={
     dashboard:`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10.5V20h13v-9.5"/><path d="M9.5 20v-6h5v6"/></svg>`,
     input:`<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h4"/><path d="M16 15v4M14 17h4"/></svg>`,
-    promo:`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 13 11 22l-9-9V4h9l9 9Z"/><circle cx="7" cy="9" r="1.5"/></svg>`,
+    tag:`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 13 11 22l-9-9V4h9l9 9Z"/><circle cx="7" cy="9" r="1.5"/></svg>`,
     settings:`<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.8 1.8 0 0 0 .36 1.98l.05.05-2.78 2.78-.05-.05A1.8 1.8 0 0 0 15 19.4a1.8 1.8 0 0 0-1.1 1.64V21H10v-.06A1.8 1.8 0 0 0 8.9 19.3a1.8 1.8 0 0 0-1.98.36l-.05.05-2.78-2.78.05-.05A1.8 1.8 0 0 0 4.5 15a1.8 1.8 0 0 0-1.64-1.1H2.8V10h.06A1.8 1.8 0 0 0 4.5 8.9a1.8 1.8 0 0 0-.36-1.98l-.05-.05 2.78-2.78.05.05A1.8 1.8 0 0 0 8.9 4.5 1.8 1.8 0 0 0 10 2.86V2.8h3.9v.06A1.8 1.8 0 0 0 15 4.5a1.8 1.8 0 0 0 1.98-.36l.05-.05 2.78 2.78-.05.05A1.8 1.8 0 0 0 19.4 8.9 1.8 1.8 0 0 0 21.04 10h.06v3.9h-.06A1.8 1.8 0 0 0 19.4 15Z"/></svg>`,
     performance:`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V9M10 19V5M16 19v-7M22 19V3M2 19h20"/></svg>`,
     customers:`<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3.5 19c.5-3.5 2.5-5.5 5.5-5.5s5 2 5.5 5.5"/><circle cx="17" cy="9" r="2.5"/><path d="M15.5 14.5c2.8-.2 4.7 1.4 5 4.5"/></svg>`,
@@ -5428,9 +5386,9 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
     moon:`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 15.2A8.5 8.5 0 0 1 8.8 4a8.5 8.5 0 1 0 11.2 11.2Z"/></svg>`,
     sun:`<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>`
   };
-  const labels={performance:'Performance',customers:'Customer Database',promo:'Promo',payout:'Withdraw',cash:'Petty Cash',settings:'Settings'};
+  const labels={performance:'Performance',customers:'Customer Database',payout:'Withdraw',cash:'Petty Cash',settings:'Settings'};
   // Tabs reached through the More sheet (they light up the More button when open).
-  const MORE_TABS=['performance','customers','promo','payout','cash','settings'];
+  const MORE_TABS=['performance','customers','payout','cash','settings'];
   let booted=false;
   let resizeTimer=0;
 
@@ -5601,7 +5559,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
     const items=settingsItems();if(!items.length)return;
     const hub=document.createElement('div');hub.id='kairo-mobile-settings-hub';hub.className='kairo-mobile-settings-hub';
     items.forEach(({key,label,button})=>{
-      const icon=key==='packages'||key==='receipt'?icons.input:key==='addons'?icons.promo:key==='topics'?icons.customers:key==='profit'?icons.performance:icons.settings;
+      const icon=key==='packages'||key==='receipt'?icons.input:key==='addons'?icons.tag:key==='topics'?icons.customers:key==='profit'?icons.performance:icons.settings;
       const b=document.createElement('button');b.type='button';b.className='kairo-mobile-settings-link';b.dataset.settingsCategory=key;
       b.innerHTML=`<span class="kairo-mobile-settings-icon">${icon}</span><span class="kairo-mobile-settings-copy"><strong>${esc(label)}</strong><small>Kelola pengaturan ${esc(label.toLowerCase())}</small></span><span class="kairo-mobile-settings-arrow">›</span>`;
       b.addEventListener('click',()=>{
@@ -5686,6 +5644,8 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
       const {data}=await db.auth.getSession();
       const template=String(data?.session?.user?.user_metadata?.business_template||'').toLowerCase();
       if(data?.session)templateChecked=true;
+      // Jasa Online (tampilan dasar: service_consultation / general / akun lama tanpa template): html.kairo-jasa merapikan bagian yang tidak dipakai.
+      if(data?.session)root.classList.toggle('kairo-jasa',!['online_shop','pos_kasir','preorder_jastip','digital_subscription'].includes(template));
       // Paint the workspace's last theme right away (every template); applyWorkspaceTheme() corrects it once branding/plan are loaded.
       if(!root.dataset.wsTheme){if(activeWorkspaceBranding)applyWorkspaceTheme();else{const t=cachedWorkspaceTheme();if(t)root.dataset.wsTheme=t;}}
       if(template==='online_shop'){root.dataset.businessTemplate='online_shop';if(typeof applyTopicFieldLabel==='function')applyTopicFieldLabel();document.dispatchEvent(new CustomEvent('kairo:template-ready'));
@@ -5701,11 +5661,17 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
         // Dashboard Kasir (tahap 1): dimuat hanya untuk Kasir / POS.
         if(!document.getElementById('pos-kasir-js')){
           const link=document.createElement('link');link.id='pos-kasir-css';link.rel='stylesheet';link.href='assets/templates/pos-kasir.css?v=1.5.2';document.head.appendChild(link);
-          const script=document.createElement('script');script.id='pos-kasir-js';script.src='assets/templates/pos-kasir.js?v=1.5.9';script.defer=true;document.body.appendChild(script);
+          const script=document.createElement('script');script.id='pos-kasir-js';script.src='assets/templates/pos-kasir.js?v=1.5.10';script.defer=true;document.body.appendChild(script);
           const link2=document.createElement('link');link2.id='pos-produk-css';link2.rel='stylesheet';link2.href='assets/templates/pos-produk.css?v=1.5.1';document.head.appendChild(link2);
           const script2=document.createElement('script');script2.id='pos-produk-js';script2.src='assets/templates/pos-produk.js?v=1.6.0';script2.defer=true;document.body.appendChild(script2);
         }}
-      else if(['online_shop','pos_kasir'].includes(root.dataset.businessTemplate)){delete root.dataset.businessTemplate;}
+      else if(template==='preorder_jastip'){root.dataset.businessTemplate='preorder_jastip';if(typeof applyTopicFieldLabel==='function')applyTopicFieldLabel();document.dispatchEvent(new CustomEvent('kairo:template-ready'));
+        // Template custom Pre-Order & Jastip (tidak dibuka untuk umum; akun dibuat admin).
+        if(!document.getElementById('preorder-jastip-js')){
+          const link=document.createElement('link');link.id='preorder-jastip-css';link.rel='stylesheet';link.href='assets/templates/preorder-jastip.css?v=1.0.3';document.head.appendChild(link);
+          const script=document.createElement('script');script.id='preorder-jastip-js';script.src='assets/templates/preorder-jastip.js?v=1.0.2';script.defer=true;document.body.appendChild(script);
+        }}
+      else if(['online_shop','pos_kasir','preorder_jastip'].includes(root.dataset.businessTemplate)){delete root.dataset.businessTemplate;}
       if(template!=='digital_subscription')return;
       sellerTemplateBooted=true;keepPending=true;
       root.dataset.businessTemplate='digital_subscription';
@@ -5723,7 +5689,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
       if(!document.getElementById('seller-app-premium-js')){
         const script=document.createElement('script');
         script.id='seller-app-premium-js';
-        script.src='assets/templates/seller-app-premium.js?v=20.10.162';
+        script.src='assets/templates/seller-app-premium.js?v=20.10.163';
         script.defer=true;
         document.body.appendChild(script);
       }
