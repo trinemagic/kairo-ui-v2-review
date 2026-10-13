@@ -5691,11 +5691,11 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
       if(template==='online_shop'){root.dataset.businessTemplate='online_shop';if(typeof applyTopicFieldLabel==='function')applyTopicFieldLabel();document.dispatchEvent(new CustomEvent('kairo:template-ready'));
         // Analitik toko (laba per produk, channel, batal/retur) + kartu Profit Dashboard dimuat hanya untuk Online Shop.
         if(!document.getElementById('online-shop-js')){
-          const link=document.createElement('link');link.id='online-shop-css';link.rel='stylesheet';link.href='assets/templates/online-shop.css?v=1.7.1';document.head.appendChild(link);
-          const script=document.createElement('script');script.id='online-shop-js';script.src='assets/templates/online-shop.js?v=1.7.4';script.defer=true;document.body.appendChild(script);
+          const link=document.createElement('link');link.id='online-shop-css';link.rel='stylesheet';link.href='assets/templates/online-shop.css?v=1.7.2';document.head.appendChild(link);
+          const script=document.createElement('script');script.id='online-shop-js';script.src='assets/templates/online-shop.js?v=1.7.5';script.defer=true;document.body.appendChild(script);
           // Menu Produk (foto, scan barcode, harga, modal, stok) dipakai bersama dengan Kasir / POS.
           const link2=document.createElement('link');link2.id='pos-produk-css';link2.rel='stylesheet';link2.href='assets/templates/pos-produk.css?v=1.5.1';document.head.appendChild(link2);
-          const script2=document.createElement('script');script2.id='pos-produk-js';script2.src='assets/templates/pos-produk.js?v=1.5.2';script2.defer=true;document.body.appendChild(script2);
+          const script2=document.createElement('script');script2.id='pos-produk-js';script2.src='assets/templates/pos-produk.js?v=1.6.0';script2.defer=true;document.body.appendChild(script2);
         }}
       else if(template==='pos_kasir'){root.dataset.businessTemplate='pos_kasir';if(typeof applyTopicFieldLabel==='function')applyTopicFieldLabel();document.dispatchEvent(new CustomEvent('kairo:template-ready'));
         // Dashboard Kasir (tahap 1): dimuat hanya untuk Kasir / POS.
@@ -5703,7 +5703,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
           const link=document.createElement('link');link.id='pos-kasir-css';link.rel='stylesheet';link.href='assets/templates/pos-kasir.css?v=1.5.2';document.head.appendChild(link);
           const script=document.createElement('script');script.id='pos-kasir-js';script.src='assets/templates/pos-kasir.js?v=1.5.9';script.defer=true;document.body.appendChild(script);
           const link2=document.createElement('link');link2.id='pos-produk-css';link2.rel='stylesheet';link2.href='assets/templates/pos-produk.css?v=1.5.1';document.head.appendChild(link2);
-          const script2=document.createElement('script');script2.id='pos-produk-js';script2.src='assets/templates/pos-produk.js?v=1.5.2';script2.defer=true;document.body.appendChild(script2);
+          const script2=document.createElement('script');script2.id='pos-produk-js';script2.src='assets/templates/pos-produk.js?v=1.6.0';script2.defer=true;document.body.appendChild(script2);
         }}
       else if(['online_shop','pos_kasir'].includes(root.dataset.businessTemplate)){delete root.dataset.businessTemplate;}
       if(template!=='digital_subscription')return;
