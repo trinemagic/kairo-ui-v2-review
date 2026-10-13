@@ -86,7 +86,7 @@
       shop ? {
         id: 'products', tab: 'pos-products', noShot: true, title: 'Produk', intro: 'Tambah produk lewat foto atau scan barcode, lalu atur harga, modal, dan stok di satu tempat.',
         steps: [
-          'Punya produk berkemasan? Tekan <b>Scan Barcode</b> di atas daftar, lalu arahkan kamera ke barcode di kemasan. Produk yang sudah ada langsung tampil; kalau belum, lembar <b>Tambah Produk</b> terbuka dengan barcode sudah terisi. Bisa juga pakai alat scanner atau ketik kodenya.',
+          'Punya produk berkemasan? Tekan <b>Scan Barcode</b> di atas daftar, lalu arahkan kamera ke barcode di kemasan. Produk yang sudah ada langsung tampil; kalau belum, lembar <b>Tambah Produk</b> terbuka dengan barcode sudah terisi dan, untuk barang berkemasan umum, <b>nama diusulkan</b> dari database barcode publik (butuh internet; periksa dulu, bisa kamu ubah). Bisa juga pakai alat scanner atau ketik kodenya.',
           'Atau tekan <b>Tambah Produk</b>: ambil <b>foto</b> (boleh dilewati), isi <b>nama</b>, <b>kategori</b>, dan <b>satuan</b>. Tombol <b>Scan</b> di samping kolom kode mengisi barcode lewat kamera.',
           'Isi <b>harga jual</b> dan <b>modal</b>; untung per produk langsung terhitung. Nyalakan <b>Hitung stok</b> bila perlu dan atur batas <b>ingatkan saya kalau sisa</b>.',
           '<b>Hitung Stok</b> (tombol di atas daftar): ketik jumlah barang yang ada di rak/gudang, selisih dengan catatan sistem langsung terlihat. Tab <b>Riwayat</b> menyimpan siapa/kapan stok disesuaikan.'
@@ -120,7 +120,7 @@
         steps: [
           '<b>Workspace &amp; Branding</b>: nama, warna, logo, <b>Ukuran Teks</b> (Kecil sampai Ekstra), dan <b>PIN Login</b>. Ukuran Teks dan PIN berlaku di perangkat ini.',
           seller ? '<b>Produk</b>: harga jual dan modal tiap plan/durasi, tambah produk sendiri.'
-                 : shop ? '<b>Produk &amp; Harga</b>: harga, modal, dan stok (kosongkan stok bila tidak dilacak; batas menipis memunculkan notifikasi di lonceng). <b>Platform Penjualan</b>: daftar platform, dan saklar komisi per platform (perkiraan dari persen yang kamu isi). <b>Metode Pembayaran</b>: daftar yang muncul di Orders.'
+                 : shop ? 'Produk, harga, modal, dan stok diatur di menu <b>Produk</b> (bukan di Settings). <b>Platform Penjualan</b>: daftar platform, dan saklar komisi per platform (perkiraan dari persen yang kamu isi). <b>Metode Pembayaran</b>: daftar yang muncul di Orders.'
                  : '<b>Package, Add-on, Topik</b>: daftar yang muncul di Orders.',
           '<b>Pembagian Omzet</b>: persentase partner dan Kas; perubahan berlaku mulai tanggal yang dipilih.',
           jasa ? '<b>Struk</b> (paket Pro): desain, label, dan logo struk.' : '<b>Struk</b> (paket Pro): desain, label, dan logo struk. Kartu <b>Printer Struk</b> di bagian yang sama menghubungkan printer termal (USB, serial/Bluetooth klasik, Bluetooth BLE, RawBT, atau printer biasa lewat dialog cetak); tombol <b>Cetak</b> muncul di preview struk.',
@@ -222,7 +222,7 @@
       products: {
         id: 'products', tab: 'pos-products', title: 'Produk', intro: 'Semua urusan produk di satu tempat: foto, harga, modal, stok, dan pembagian untung.',
         steps: [
-          'Produk berkemasan? Tekan <b>Scan Barcode</b> di atas daftar, lalu arahkan kamera ke barcode di kemasan. Kalau barcode itu sudah ada, produknya langsung tampil (tombol <b>Ubah produk</b>); kalau belum, lembar <b>Tambah Produk</b> terbuka dengan barcode sudah terisi. Bisa juga pakai alat scanner atau ketik kodenya di kolom yang tersedia.',
+          'Produk berkemasan? Tekan <b>Scan Barcode</b> di atas daftar, lalu arahkan kamera ke barcode di kemasan. Kalau barcode itu sudah ada, produknya langsung tampil (tombol <b>Ubah produk</b>); kalau belum, lembar <b>Tambah Produk</b> terbuka dengan barcode sudah terisi dan, untuk barang berkemasan umum, <b>nama diusulkan</b> dari database barcode publik (butuh internet; periksa dulu, bisa kamu ubah). Bisa juga pakai alat scanner atau ketik kodenya di kolom yang tersedia.',
           'Atau tekan <b>Tambah Produk</b>. Langkah 1: <b>Ambil Foto</b> (HP membuka kamera, komputer memakai webcam) atau <b>Dari Galeri</b>. Boleh dilewati; produk tanpa foto tampil kotak berhuruf awal.',
           'Isi <b>nama</b>, pilih <b>kategori</b> dan <b>satuan</b>. Kode/barcode boleh kosong (dibuat otomatis); tombol <b>Scan</b> di samping kolom kode mengisinya lewat kamera.',
           'Isi <b>harga jual</b> dan <b>modal</b>. Kotak hijau menunjukkan untung per produk.',

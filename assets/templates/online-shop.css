@@ -57,22 +57,11 @@ body.saas-dark .shop-modal-card p{color:#aab9c9}
 @media (max-width:640px){#shop-channel-card .platform-logo{display:none}}
 
 /* Stok */
-.shop-stock-rows{display:grid;gap:8px;margin-top:12px}
-.shop-stock-row{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(90px,.8fr) minmax(90px,.8fr) auto;gap:8px;align-items:center}
-.shop-stock-row strong{overflow-wrap:anywhere}
-.shop-stock-head{font-size:12px;color:var(--v3-muted,#4e6475);font-weight:700}
-.shop-stock-row .input{min-width:0}
 .shop-stock-tag{display:inline-block;margin-left:8px;font-size:11.5px;font-weight:800;color:#16794c}
 .shop-stock-tag.is-low{color:#a3384a}
 body.saas-dark .shop-stock-tag{color:#7be0a9}
 body.saas-dark .shop-stock-tag.is-low{color:#ff9fb0}
 .shop-hint{margin:0 0 10px;font-size:12px;color:var(--v3-muted,#4e6475)}
-@media (max-width:640px){
-  .shop-stock-row{grid-template-columns:1fr 1fr;}
-  .shop-stock-row strong,.shop-stock-head span:first-child{grid-column:1/-1}
-  .shop-stock-row button{grid-column:1/-1}
-  .shop-stock-head{display:none}
-}
 
 .shop-status{display:inline-flex;align-items:center;gap:6px;padding:3px 10px 3px 8px;border-radius:999px;font-weight:800;font-size:12px;white-space:nowrap}
 .shop-status::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
@@ -131,3 +120,6 @@ html.kairo-v3 #dashboard > .shift-card .shop-dash-stock{height:auto;min-height:0
 body.saas-dark .pick-card .shop-pick-initial{background:linear-gradient(135deg,hsl(var(--h) 40% 30%),hsl(var(--h) 38% 24%));color:hsl(var(--h) 70% 85%)}
 @media (max-width:520px){.pick-card .shop-pick-thumb{width:48px;height:48px}.pick-card .shop-pick-initial{font-size:16px}}
 
+/* Produk & Add-on diatur di menu Produk (bukan lagi di Settings), sama seperti Kasir */
+html[data-business-template="online_shop"] .saas-settings-submenu-btn:is([data-settings-category="packages"],[data-settings-category="addons"]),
+html[data-business-template="online_shop"] .kairo-mobile-settings-link:is([data-settings-category="packages"],[data-settings-category="addons"]){display:none!important}
