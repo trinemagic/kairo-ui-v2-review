@@ -368,7 +368,7 @@ function pricingHistoryLine(h){
   return `${tplName(h.item)}: ${parts.join(' · ')}`;
 }
 function renderPrices(){
-  const rows=TEMPLATES.map(t=>{const m=PRO_PRICE[t.key]||0,s=PRO_SEMI[t.key]||0;return `<tr data-key="${esc(t.key)}"><td><b>${esc(t.name)}</b><br><small>${esc(t.key)}</small></td><td class="num"><input class="input price-inp" type="number" inputmode="numeric" min="1" step="1000" data-f="m" value="${m}" aria-label="Harga 1 bulan ${esc(t.name)}"></td><td class="num"><input class="input price-inp" type="number" inputmode="numeric" min="1" step="1000" data-f="s" value="${s}" aria-label="Harga 6 bulan ${esc(t.name)}"></td><td class="num price-normal" data-normal></td></tr>`;}).join('');
+  const rows=PUBLIC_TEMPLATES.map(t=>{const m=PRO_PRICE[t.key]||0,s=PRO_SEMI[t.key]||0;return `<tr data-key="${esc(t.key)}"><td><b>${esc(t.name)}</b><br><small>${esc(t.key)}</small></td><td class="num"><input class="input price-inp" type="number" inputmode="numeric" min="1" step="1000" data-f="m" value="${m}" aria-label="Harga 1 bulan ${esc(t.name)}"></td><td class="num"><input class="input price-inp" type="number" inputmode="numeric" min="1" step="1000" data-f="s" value="${s}" aria-label="Harga 6 bulan ${esc(t.name)}"></td><td class="num price-normal" data-normal></td></tr>`;}).join('');
   const hist=pricingHistory.length?pricingHistory.map(h=>`<li><b>${esc(pricingHistoryLine(h))}</b><small>${esc(h.changed_by_email||'admin')} · ${h.changed_at?new Date(h.changed_at).toLocaleString('id-ID',{dateStyle:'medium',timeStyle:'short'}):'—'}</small></li>`).join(''):'<li class="empty-li">Belum ada perubahan harga atau promo.</li>';
   $('priceGrid').innerHTML=`<div class="widget price-card"><h2>Gratis ${planBadge('basic')}</h2><p class="muted">Rp0. Riwayat 60 hari, tanpa fitur Pro.</p></div>
   <div class="widget price-card pro wide"><h2>Pro ${planBadge('pro')}</h2>
@@ -393,7 +393,7 @@ async function savePricing(){
   const on=$('trialOn').checked,days=Number($('trialDays').value);
   if(!Number.isInteger(days)||days<1||days>90)bad.push('Durasi trial harus 1-90 hari');
   if(bad.length)return toast(bad[0],'warning');
-  const changed=TEMPLATES.filter(t=>prices[t.key]&&(prices[t.key].m!==PRO_PRICE[t.key]||prices[t.key].s!==PRO_SEMI[t.key])).map(t=>`${t.name}: ${money(PRO_PRICE[t.key])}/${money(PRO_SEMI[t.key])} → ${money(prices[t.key].m)}/${money(prices[t.key].s)}`);
+  const changed=PUBLIC_TEMPLATES.filter(t=>prices[t.key]&&(prices[t.key].m!==PRO_PRICE[t.key]||prices[t.key].s!==PRO_SEMI[t.key])).map(t=>`${t.name}: ${money(PRO_PRICE[t.key])}/${money(PRO_SEMI[t.key])} → ${money(prices[t.key].m)}/${money(prices[t.key].s)}`);
   const trialChanged=on!==TRIAL.enabled||days!==TRIAL.days;
   if(!changed.length&&!trialChanged)return toast('Belum ada yang diubah.','info');
   const msg=['Simpan perubahan ini? Langsung tampil di landing page dan form Daftar.',...changed,trialChanged?`Promo trial: ${on?'aktif '+days+' hari':'dimatikan'}`:null].filter(Boolean).join('\n');
@@ -602,8 +602,14 @@ const TEMPLATES=[
   {key:'pos_kasir',name:'Kasir / POS',desc:'Catat penjualan langsung di toko, kafe, atau warung.',kind:'custom',preview:'kasir',
    features:['Layar Kasir: pilih produk, tambahan cepat, diskon, service & pajak, bayar tunai/QRIS/debit, struk','Open Bill (tahan pesanan, bayar nanti) + nomor meja','Sesi Kasir: modal awal laci, hitung uang fisik, selisih, rekap sesi','Menu Produk: foto (kamera), harga, modal, stok, satuan, kategori, pembagian untung per produk','Hitung Stok (stock opname) + riwayat, stok menipis di lonceng','Performance Kasir: jam ramai, kategori, metode bayar, laba per produk','Cetak struk ke printer (USB, Bluetooth, serial, RawBT, atau printer biasa)'],
    files:['assets/templates/pos-kasir.js/.css','assets/templates/pos-produk.js/.css','assets/kairo-printer.js'],
-   note:'Memakai kerangka tampilan dasar KAIRO dengan layar Kasir, menu Produk, dan Sesi Kasir.'}
+   note:'Memakai kerangka tampilan dasar KAIRO dengan layar Kasir, menu Produk, dan Sesi Kasir.'},
+  {key:'preorder_jastip',name:'Pre-Order & Jastip',desc:'Jasa titip / pre-order luar negeri dengan DP, cicilan, dan talangan partner.',kind:'custom',preview:'preorder-jastip',private:true,
+   features:['Pre-Order: barang bebas + biaya jasa titip, kategori barang, perkiraan tiba, status barang','Bayar Lunas / DP / Cicilan (mingguan/bulanan), jadwal bisa diubah dengan riwayat','Menu Cicilan: daftar cicilan customer + Reminder (telat, hari ini, ≤3 hari) dengan tombol WhatsApp','Talangan partner per order (valas + kurs), pengembalian talangan dengan saran nominal','Menu Keuangan: Pembukuan uang masuk/keluar + Modal Talangan','Laba order masuk bagi hasil (Withdraw) setelah barang Diserahkan dan Lunas'],
+   files:['assets/templates/preorder-jastip.js','assets/templates/preorder-jastip.css','.claude/sql/2026-10-preorder-jastip.sql'],
+   note:'Template custom, TIDAK ada di form Daftar. Akun dibuat lewat Workspaces › Buat Akun (pilih template ini); harga & masa aktif sesuai kesepakatan (Simpan Subscription).'}
 ];
+// Template custom (private) tidak dijual di landing: tidak punya harga di halaman Harga Paket.
+const PUBLIC_TEMPLATES=TEMPLATES.filter(t=>!t.private);
 const TPL_KIND={custom:['Tampilan khusus','b-ok'],base:['Tampilan dasar','b-info'],none:['Belum ada tampilan khusus','b-warn']};
 function templateUsage(){
   const byWs=Object.fromEntries(all.map(w=>[w.workspace_id,w])),known=new Set(TEMPLATES.map(t=>t.key)),use={};
@@ -631,7 +637,7 @@ function renderTemplates(){
     if(use.__none.length)notes.push(['warn',`${use.__none.length} workspace tidak tercatat templatenya (akun lama / dibuat manual) — tampil sebagai Jasa Online.`]);
     TEMPLATES.forEach(t=>{const l=use[t.key];if(l.length&&!l.some(x=>Number(x.a.tx_30d)>0))notes.push(['warn',`Semua workspace <b>${esc(t.name)}</b> tidak mencatat transaksi 30 hari terakhir.`]);});
   }
-  notes.push(['warn',`${TEMPLATES.filter(t=>t.kind==='none').length} dari ${TEMPLATES.length} template di form daftar belum punya tampilan khusus.`]);
+  notes.push(['warn',`${TEMPLATES.filter(t=>t.kind==='none').length} dari ${PUBLIC_TEMPLATES.length} template di form daftar belum punya tampilan khusus.`]);
   $('tplNotes').innerHTML=notes.map(([k,t])=>`<li class="${k}"><svg><use href="#i-${k==='ok'?'check':'alert'}"/></svg><span>${t}</span></li>`).join('');
   $('tplGrid').innerHTML=TEMPLATES.map((t,i)=>{
     const st=stat(use&&use[t.key]),list=use?use[t.key]:[],fb=t.kind==='none';
@@ -896,7 +902,7 @@ function openAccount(){
   ['aName','aBusiness','aUser','aEmail','aPhone'].forEach(id=>$(id).value='');
   $('aPass').value=randomPassword();$('aPlan').value='basic';
   const d=new Date();d.setMonth(d.getMonth()+1);$('aUntil').value=d.toISOString().slice(0,10);
-  $('aTemplate').innerHTML=TEMPLATES.map(t=>`<option value="${esc(t.key)}">${esc(t.name)}</option>`).join('');
+  $('aTemplate').innerHTML=TEMPLATES.map(t=>`<option value="${esc(t.key)}">${esc(t.name)}${t.private?' (custom, tidak di form Daftar)':''}</option>`).join('');
   $('accForm').classList.remove('hidden');$('accDone').classList.add('hidden');$('aError').textContent='';syncAccountPlan();
   openModal('accountModal');
 }
