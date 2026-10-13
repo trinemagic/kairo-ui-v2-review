@@ -13,18 +13,15 @@
 .pp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:14px}
 .pp-card{display:flex;flex-direction:column;gap:4px;text-align:left;padding:0 0 12px;border:1px solid color-mix(in srgb,var(--v3-primary,#25b9b0) 22%,transparent);border-radius:16px;background:var(--card,#fff);color:inherit;font:inherit;cursor:pointer;overflow:hidden;touch-action:manipulation}
 .pp-card:hover{border-color:var(--v3-primary,#25b9b0)}
+.pp-card:focus-visible{outline:3px solid var(--v3-primary,#25b9b0);outline-offset:2px}
 .pp-card>b,.pp-card>span:not(.pp-photo){padding:0 12px}
-.pp-photo{position:relative;display:block;aspect-ratio:4/3;background:color-mix(in srgb,var(--v3-primary,#25b9b0) 9%,var(--card,#fff));margin-bottom:6px}
-.pp-photo img{width:100%;height:100%;object-fit:cover;display:block}
+.pp-photo{position:relative;display:block;height:0;padding-top:75%;overflow:hidden;background:color-mix(in srgb,var(--v3-primary,#25b9b0) 9%,var(--card,#fff));margin-bottom:6px}
+.pp-photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
 .pp-ph{position:absolute;inset:0;display:grid;place-items:center;color:color-mix(in srgb,var(--v3-primary,#25b9b0) 55%,transparent)}
 .pp-ph svg,.pp-photo-box svg{width:38%;max-width:56px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
 .pp-name{font-size:15px;overflow-wrap:anywhere}
 .pp-price{font-size:15px;font-weight:800}
-.pp-profit{font-size:12.5px;font-weight:700;color:#1b7a46}
-.pp-profit.is-neg{color:#a3384a}
-body.saas-dark .pp-profit{color:#7fd9a4}
-body.saas-dark .pp-profit.is-neg{color:#ff9aa8}
-.pp-badge{position:absolute;left:8px;top:8px;padding:3px 10px;border-radius:99px;font-size:12px;font-weight:800;background:#fff;color:#14532d;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+.pp-badge{position:absolute;left:8px;top:8px;max-width:calc(100% - 16px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:3px 10px;border-radius:99px;font-size:12px;font-weight:800;background:#fff;color:#14532d;box-shadow:0 1px 4px rgba(0,0,0,.2)}
 .pp-badge.is-low{background:#fff3cd;color:#7a4b00}
 .pp-badge.is-out{background:#ffe1e5;color:#8d2336}
 .pp-empty{grid-column:1/-1;padding:40px 12px;text-align:center;color:var(--v3-muted,#4e6475);font-size:15px}
