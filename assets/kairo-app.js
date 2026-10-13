@@ -1052,7 +1052,7 @@ syncColorPair('settings-primary-color','settings-primary-text');syncColorPair('s
 const DEFAULT_DASHBOARD_SLOGAN='';
 function dashboardSlogan(){return String(activeWorkspaceBranding?.receipt_labels?.__dashboard_slogan||DEFAULT_DASHBOARD_SLOGAN).trim()||DEFAULT_DASHBOARD_SLOGAN;}
 const DEFAULT_TOPIC_LABEL='Topik';
-function defaultTopicLabel(){return isShopWorkspace()?'Kategori':DEFAULT_TOPIC_LABEL;}
+function defaultTopicLabel(){return document.documentElement.dataset.businessTemplate==='preorder_jastip'?'Kategori Barang':isShopWorkspace()?'Kategori':DEFAULT_TOPIC_LABEL;}
 function topicFieldLabel(){return String(activeWorkspaceBranding?.receipt_labels?.__topic_label||defaultTopicLabel()).trim()||defaultTopicLabel();}
 function applyTopicFieldLabel(){const label=topicFieldLabel(); document.querySelectorAll('[data-kairo-topic-label]').forEach(el=>el.textContent=label); const orderLabel=document.querySelector('#tx-topics')?.previousElementSibling; if(orderLabel&&orderLabel.classList.contains('label'))orderLabel.textContent=label+' (bisa lebih dari satu)'; const cardTitle=document.getElementById('settings-topic-card-title');if(cardTitle)cardTitle.textContent=label; const add=document.getElementById('settings-add-topic');if(add)add.textContent='+ Tambah '+label; const inp=document.getElementById('settings-topic-label');if(inp)inp.value=label; const opt=document.querySelector('#settings-category-select option[value="topics"]');if(opt)opt.textContent=label; const sub=document.querySelector('.saas-settings-submenu-btn[data-settings-category="topics"]');if(sub)sub.textContent=label; const perf=[...document.querySelectorAll('.card-title')].find(x=>x.textContent.trim()==='Topik yang Dipilih'||x.dataset.topicTitle==='1');if(perf){perf.dataset.topicTitle='1';perf.textContent=label+' yang Dipilih';}}
 document.getElementById('workspace-settings-form')?.addEventListener('submit',async e=>{
@@ -5705,7 +5705,13 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
           const link2=document.createElement('link');link2.id='pos-produk-css';link2.rel='stylesheet';link2.href='assets/templates/pos-produk.css?v=1.5.1';document.head.appendChild(link2);
           const script2=document.createElement('script');script2.id='pos-produk-js';script2.src='assets/templates/pos-produk.js?v=1.5.2';script2.defer=true;document.body.appendChild(script2);
         }}
-      else if(['online_shop','pos_kasir'].includes(root.dataset.businessTemplate)){delete root.dataset.businessTemplate;}
+      else if(template==='preorder_jastip'){root.dataset.businessTemplate='preorder_jastip';if(typeof applyTopicFieldLabel==='function')applyTopicFieldLabel();document.dispatchEvent(new CustomEvent('kairo:template-ready'));
+        // Template custom Pre-Order & Jastip (tidak dibuka untuk umum; akun dibuat admin).
+        if(!document.getElementById('preorder-jastip-js')){
+          const link=document.createElement('link');link.id='preorder-jastip-css';link.rel='stylesheet';link.href='assets/templates/preorder-jastip.css?v=1.0.0';document.head.appendChild(link);
+          const script=document.createElement('script');script.id='preorder-jastip-js';script.src='assets/templates/preorder-jastip.js?v=1.0.0';script.defer=true;document.body.appendChild(script);
+        }}
+      else if(['online_shop','pos_kasir','preorder_jastip'].includes(root.dataset.businessTemplate)){delete root.dataset.businessTemplate;}
       if(template!=='digital_subscription')return;
       sellerTemplateBooted=true;keepPending=true;
       root.dataset.businessTemplate='digital_subscription';

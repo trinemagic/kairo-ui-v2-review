@@ -625,6 +625,10 @@ if (window.top !== window.self) {
     if (document.body.classList.contains('seller-app-premium') && typeof window.kairoSellerNotifications === 'function') {
       try { const items = await window.kairoSellerNotifications(); if (items) return items; } catch (_) { return notifyItems; }
     }
+    // Template custom (mis. Pre-Order & Jastip) boleh mengganti isi lonceng sepenuhnya; null = pakai aturan bawaan.
+    if (typeof window.kairoTemplateNotifications === 'function') {
+      try { const items = await window.kairoTemplateNotifications(); if (items) return items; } catch (_) { return notifyItems; }
+    }
     let rows = [];
     try { rows = await allTransactions(); } catch (_) { return notifyItems; }
     const now = Date.now();
@@ -658,7 +662,8 @@ if (window.top !== window.self) {
     const unseen = urgent || notifyItems.some(item => !seen.has(notifyStage(item)));
     const seller = document.body.classList.contains('seller-app-premium');
     const shop = ['online_shop', 'pos_kasir'].includes(document.documentElement.dataset.businessTemplate);
-    const label = notifyItems.length ? `Notifikasi: ${notifyItems.length} ${seller || shop ? 'pengingat' : 'order belum tuntas'}` : 'Notifikasi';
+    const custom = typeof window.kairoTemplateNotifyCopy === 'function' ? window.kairoTemplateNotifyCopy() : null;
+    const label = notifyItems.length ? `Notifikasi: ${notifyItems.length} ${custom ? custom.unit : seller || shop ? 'pengingat' : 'order belum tuntas'}` : 'Notifikasi';
     qa('#kairo-notif-btn, #kairo-mobile-notif-btn').forEach(btn => {
       const dot = q('.kairo-notif-dot', btn);
       if (dot) { dot.hidden = !unseen; dot.classList.toggle('is-urgent', urgent); }
@@ -666,10 +671,10 @@ if (window.top !== window.self) {
     });
     const html = notifyItems.length
       ? notifyItems.map(item => `<div class="kairo-notif-item${item.urgent ? ' is-urgent' : ''}"><div><strong>${escapeHtml(item.name)}</strong><span>${escapeHtml(item.pkg)}</span></div><em>${item.note ? escapeHtml(item.note) : `${item.status ? `${escapeHtml(item.status)} · ` : ''}${item.urgent ? 'Lewat 30 menit · ' : ''}${escapeHtml(notifyAge(item.minutes))}`}</em></div>`).join('')
-      : `<div class="kairo-notif-empty">${seller ? 'Tidak ada akun yang akan expired dan semua order sudah selesai.' : shop ? 'Semua order selesai dan stok aman.' : 'Semua order sudah ditandai selesai.'}</div>`;
+      : `<div class="kairo-notif-empty">${custom ? escapeHtml(custom.empty) : seller ? 'Tidak ada akun yang akan expired dan semua order sudah selesai.' : shop ? 'Semua order selesai dan stok aman.' : 'Semua order sudah ditandai selesai.'}</div>`;
     qa('#kairo-notif-list, #kairo-mobile-notif-list').forEach(list => { if (list.innerHTML !== html) list.innerHTML = html; });
     // Judul panel ikut jenis usaha: seller tidak memakai istilah "Start Reading".
-    const [title, sub] = seller ? ['Pengingat', 'Akun pelanggan yang akan expired & order belum selesai'] : shop ? ['Pengingat', 'Order belum tuntas dan stok menipis'] : ['Order belum tuntas', 'Lebih dari 5 menit sejak ' + (document.documentElement.dataset.businessTemplate === 'online_shop' ? 'Waktu Order' : 'Start Reading')];
+    const [title, sub] = custom ? [custom.title, custom.sub] : seller ? ['Pengingat', 'Akun pelanggan yang akan expired & order belum selesai'] : shop ? ['Pengingat', 'Order belum tuntas dan stok menipis'] : ['Order belum tuntas', 'Lebih dari 5 menit sejak ' + (document.documentElement.dataset.businessTemplate === 'online_shop' ? 'Waktu Order' : 'Start Reading')];
     qa('.kairo-notif-head strong, #kairo-mobile-notif-sheet .kairo-mobile-sheet-head strong').forEach(el => { if (el.textContent !== title) el.textContent = title; });
     qa('.kairo-notif-head span, #kairo-mobile-notif-sheet .kairo-mobile-sheet-head small').forEach(el => { if (el.textContent !== sub) el.textContent = sub; });
   }
