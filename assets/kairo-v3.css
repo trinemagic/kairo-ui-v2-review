@@ -5253,3 +5253,7 @@ html.kairo-v3[data-pricing-wait] [data-kp] { width: fit-content; max-width: 100%
 html.kairo-v3[data-pricing-wait] [data-trial-only] { visibility: hidden; }
 html.kairo-v3 [data-trial-only][hidden],
 html.kairo-v3 [data-trial-off][hidden] { display: none !important; }
+
+/* Orders: belum ada Topik/Kategori -> petunjuk + tombol ke Settings (owner Okt 2026) */
+html.kairo-v3 .kairo-topic-empty { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; padding: 12px 14px; border-radius: 14px; border: 1px dashed color-mix(in srgb, var(--v3-primary, #25b9b0) 45%, transparent); background: color-mix(in srgb, var(--v3-primary, #25b9b0) 7%, transparent); font-size: 13.5px; }
+html.kairo-v3 .kairo-topic-empty span { flex: 1 1 220px; min-width: 0; }

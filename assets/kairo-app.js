@@ -1217,10 +1217,22 @@ async function writeMasterPayload(m,payload,write){
   return res;
 }
 async function saveExistingMasterRow(row){
-  try{ const type=row.dataset.masterType,id=row.dataset.masterId,code=row.querySelector('.settings-master-code').value.trim(),name=row.querySelector('.settings-master-name').value.trim(),m=masterTypeMeta(type); if(!name)throw new Error('Nama wajib diisi.'); const payload={code:code||null,name}; if(m.priced){const price=Number(row.querySelector('.settings-master-price').value);if(!Number.isFinite(price)||price<0)throw new Error('Harga tidak valid.');payload.price=price;const cost=Number(row.querySelector('.settings-master-cost')?.value||0);if(!Number.isFinite(cost)||cost<0)throw new Error('Modal tidak valid.');payload.cost_price=cost;const split=row.querySelector('.settings-master-split');if(split){const mode=split.value==='manual'?'manual':'percentage',manual=[...row.querySelectorAll('.settings-master-manual')].map(i=>({partner_id:i.dataset.partnerId||null,partner_name:i.dataset.partnerName||'',amount:Math.max(0,Number(i.value||0))})),net=Math.max(0,price-cost),total=manual.reduce((x,r)=>x+r.amount,0);if(mode==='manual'&&Math.abs(total-net)>0.005)throw new Error(`Total nominal manual wajib sama dengan laba bersih ${rupiah(net)}. Sekarang ${rupiah(total)}.`);payload.profit_share_mode=mode;payload.manual_profit_split=mode==='manual'?manual:[];}} const {error}=await writeMasterPayload(m,payload,data=>db.from(m.table).update(data).eq('workspace_id',requireWorkspaceId()).eq('id',id)); if(error)throw error; showToast(`${m.label} berhasil diperbarui.`); await loadMasters();if(m.priced){try{await refreshAll();}catch(_e){}}}catch(err){showToast(err.message||'Gagal menyimpan master data.',true)}
+  try{ const type=row.dataset.masterType,id=row.dataset.masterId,code=row.querySelector('.settings-master-code').value.trim(),name=row.querySelector('.settings-master-name').value.trim(),m=masterTypeMeta(type); if(!name)throw new Error('Nama wajib diisi.'); const payload={code:code||null,name}; if(m.priced){const price=Number(row.querySelector('.settings-master-price').value);if(!Number.isFinite(price)||price<0)throw new Error('Harga tidak valid.');payload.price=price;const cost=Number(row.querySelector('.settings-master-cost')?.value||0);if(!Number.isFinite(cost)||cost<0)throw new Error('Modal tidak valid.');payload.cost_price=cost;const split=row.querySelector('.settings-master-split');if(split){const mode=split.value==='manual'?'manual':'percentage',manual=[...row.querySelectorAll('.settings-master-manual')].map(i=>({partner_id:i.dataset.partnerId||null,partner_name:i.dataset.partnerName||'',amount:Math.max(0,Number(i.value||0))})),net=Math.max(0,price-cost),total=manual.reduce((x,r)=>x+r.amount,0);if(mode==='manual'&&Math.abs(total-net)>0.005)throw new Error(`Total nominal manual wajib sama dengan laba bersih ${rupiah(net)}. Sekarang ${rupiah(total)}.`);payload.profit_share_mode=mode;payload.manual_profit_split=mode==='manual'?manual:[];}} const {error}=await writeMasterPayload(m,payload,data=>db.from(m.table).update(data).eq('workspace_id',requireWorkspaceId()).eq('id',id)); if(error)throw error; showToast(`${m.label} berhasil diperbarui.`); await loadMasters();if(m.priced){try{await refreshAll();}catch(_e){}}}catch(err){showToast(masterDupMessage(err,'Gagal menyimpan master data.'),true)}
+}
+// Nama topik harus unik per workspace di database (juga untuk topik yang sudah dinonaktifkan, yang tidak tampil di daftar).
+async function findTopicByName(name){
+  const {data,error}=await db.from('topic_masters').select('id,name,is_active').eq('workspace_id',requireWorkspaceId());
+  if(error)throw error;
+  const k=String(name||'').trim().toLowerCase();
+  return (data||[]).find(r=>String(r.name||'').trim().toLowerCase()===k)||null;
+}
+window.kairoFindTopic=findTopicByName;
+function masterDupMessage(err,fallback){
+  const raw=String(err?.message||'')+' '+String(err?.code||'');
+  return /duplicate key|23505/i.test(raw)?'Nama atau kode ini sudah dipakai di daftar yang sama (bisa jadi sudah ada tapi dinonaktifkan). Pakai nama lain.':(String(err?.message||'')||fallback);
 }
 async function createMasterRow(row){
-  try{ const type=row.dataset.masterType,code=row.querySelector('.settings-master-code').value.trim(),name=row.querySelector('.settings-master-name').value.trim(),m=masterTypeMeta(type); if(!name)throw new Error('Nama wajib diisi.'); const payload={workspace_id:requireWorkspaceId(),code:code||null,name,is_active:true}; if(m.priced){const price=Number(row.querySelector('.settings-master-price').value);if(!Number.isFinite(price)||price<0)throw new Error('Harga tidak valid.');payload.price=price;const cost=Number(row.querySelector('.settings-master-cost')?.value||0);if(!Number.isFinite(cost)||cost<0)throw new Error('Modal tidak valid.');payload.cost_price=cost} const {error}=await writeMasterPayload(m,payload,data=>db.from(m.table).insert(data)); if(error)throw error; showToast(`${m.label} berhasil ditambahkan.`); await loadMasters();}catch(err){showToast(err.message||'Gagal menambah master data.',true)}
+  try{ const type=row.dataset.masterType,code=row.querySelector('.settings-master-code').value.trim(),name=row.querySelector('.settings-master-name').value.trim(),m=masterTypeMeta(type); if(!name)throw new Error('Nama wajib diisi.'); const payload={workspace_id:requireWorkspaceId(),code:code||null,name,is_active:true}; if(m.priced){const price=Number(row.querySelector('.settings-master-price').value);if(!Number.isFinite(price)||price<0)throw new Error('Harga tidak valid.');payload.price=price;const cost=Number(row.querySelector('.settings-master-cost')?.value||0);if(!Number.isFinite(cost)||cost<0)throw new Error('Modal tidak valid.');payload.cost_price=cost} if(!m.priced){const hit=await findTopicByName(name);if(hit){if(hit.is_active!==false)throw new Error(`${m.label} “${hit.name}” sudah ada di daftar.`);if(!confirm(`${m.label} “${hit.name}” pernah dibuat lalu dinonaktifkan. Aktifkan lagi?`))return;const {error:ue}=await db.from(m.table).update({is_active:true}).eq('workspace_id',requireWorkspaceId()).eq('id',hit.id);if(ue)throw ue;showToast(`${m.label} “${hit.name}” diaktifkan lagi.`);await loadMasters();return}} const {error}=await writeMasterPayload(m,payload,data=>db.from(m.table).insert(data)); if(error)throw error; showToast(`${m.label} berhasil ditambahkan.`); await loadMasters();}catch(err){showToast(masterDupMessage(err,'Gagal menambah master data.'),true)}
 }
 async function deleteMasterRow(row){
   const type=row.dataset.masterType,id=row.dataset.masterId,name=row.querySelector('.settings-master-name')?.value||'',m=masterTypeMeta(type);
@@ -1234,6 +1246,7 @@ async function disableMasterRow(row){
 document.getElementById('settings-add-package')?.addEventListener('click',()=>appendNewMasterRow('package'));
 document.getElementById('settings-add-addon')?.addEventListener('click',()=>appendNewMasterRow('addon'));
 document.getElementById('settings-add-topic')?.addEventListener('click',()=>appendNewMasterRow('topic'));
+document.addEventListener('click',e=>{if(!e.target.closest?.('[data-kairo-open-topics]'))return;openAppPage('settings');setTimeout(()=>{const sel=document.getElementById('settings-category-select');if(sel){sel.value='topics';sel.dispatchEvent(new Event('change',{bubbles:true}))}setTimeout(()=>{try{document.getElementById('settings-add-topic')?.click();document.getElementById('settings-topic-card')?.scrollIntoView({block:'start'})}catch(_e){}},150)},60)});
 document.getElementById('settings-save-topic-label')?.addEventListener('click',async()=>{try{const label=(document.getElementById('settings-topic-label')?.value||'').trim();if(!label)throw new Error('Nama field wajib diisi.');const wid=requireWorkspaceId(),labels={...(activeWorkspaceBranding?.receipt_labels||{}),__topic_label:label};const {error}=await db.from('workspace_branding').upsert({workspace_id:wid,receipt_labels:labels,updated_at:new Date().toISOString()},{onConflict:'workspace_id'});if(error)throw error;await loadWorkspaceSaasContext();applyTopicFieldLabel();renderSettingsMasterData();showToast(`Nama Topik diubah menjadi “${label}”.`)}catch(err){showToast(err.message||'Gagal menyimpan nama Topik.',true)}});
 document.addEventListener('click',e=>{const row=e.target.closest('.settings-master-row'); if(!row)return; if(e.target.closest('.settings-master-save'))saveExistingMasterRow(row); if(e.target.closest('.settings-master-create'))createMasterRow(row); if(e.target.closest('.settings-master-disable'))disableMasterRow(row); if(e.target.closest('.settings-master-delete'))deleteMasterRow(row); if(e.target.closest('.settings-master-cancel'))renderSettingsMasterData();});
 
@@ -1280,8 +1293,9 @@ function renderMasterOptions(){
   window.trineMasters={packages,addons,topics};
   document.getElementById("tx-packages").innerHTML = packages.map(x=>pickCardHtml("package",x)).join("");
 
-  document.getElementById("tx-topics").innerHTML = topics.map(x=>`
-    <label class="master-item"><input type="checkbox" class="topic-check" data-id="${x.id}" data-name="${escapeHtml(x.name)}"> <span class="master-main">${escapeHtml(x.name)}</span></label>`).join("");
+  document.getElementById("tx-topics").innerHTML = topics.length?topics.map(x=>`
+    <label class="master-item"><input type="checkbox" class="topic-check" data-id="${x.id}" data-name="${escapeHtml(x.name)}"> <span class="master-main">${escapeHtml(x.name)}</span></label>`).join(""):
+    `<div class="kairo-topic-empty"><span>Belum ada ${escapeHtml(topicFieldLabel().toLowerCase())}. Tambah dulu supaya order bisa disimpan.</span><button type="button" class="btn btn-light" data-kairo-open-topics>Tambah di Settings</button></div>`;
 
   document.getElementById("tx-addons").innerHTML = addons.map(x=>pickCardHtml("addon",x)).join("");
 
@@ -2595,7 +2609,7 @@ document.getElementById("tx-form").addEventListener("submit",async e=>{
   try{
     const order=calculateTotal();
     if(!order.packages.length) throw new Error("Pilih minimal 1 package.");
-    if(!order.topics.length) throw new Error("Pilih minimal 1 topik.");
+    if(!order.topics.length) throw new Error(topics.length?`Pilih minimal 1 ${topicFieldLabel().toLowerCase()}.`:`Belum ada ${topicFieldLabel().toLowerCase()}. Tambah dulu di Settings › ${topicFieldLabel()}.`);
     const customer=document.getElementById("tx-customer").value.trim();
     if(!customer) throw new Error("Nama customer wajib diisi.");
     const customerId=document.getElementById("tx-customer-id")?.value || null;
@@ -5741,7 +5755,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
           const link=document.createElement('link');link.id='pos-kasir-css';link.rel='stylesheet';link.href='assets/templates/pos-kasir.css?v=1.5.2';document.head.appendChild(link);
           const script=document.createElement('script');script.id='pos-kasir-js';script.src='assets/templates/pos-kasir.js?v=1.5.9';script.defer=true;document.body.appendChild(script);
           const link2=document.createElement('link');link2.id='pos-produk-css';link2.rel='stylesheet';link2.href='assets/templates/pos-produk.css?v=1.4.0';document.head.appendChild(link2);
-          const script2=document.createElement('script');script2.id='pos-produk-js';script2.src='assets/templates/pos-produk.js?v=1.4.2';script2.defer=true;document.body.appendChild(script2);
+          const script2=document.createElement('script');script2.id='pos-produk-js';script2.src='assets/templates/pos-produk.js?v=1.4.3';script2.defer=true;document.body.appendChild(script2);
         }}
       else if(['online_shop','pos_kasir'].includes(root.dataset.businessTemplate)){delete root.dataset.businessTemplate;}
       if(template!=='digital_subscription')return;
