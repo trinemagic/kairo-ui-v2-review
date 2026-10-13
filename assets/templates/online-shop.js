@@ -438,42 +438,6 @@
     refreshBell();
   }
 
-  function mountStockSettings() {
-    const panel = document.querySelector('.settings-category-panel[data-settings-panel="packages"]');
-    const old = document.getElementById('shop-stock-settings');
-    if (!panel || !stockReady()) { if (old) old.hidden = true; return; }
-    let card = old;
-    if (!card) {
-      card = document.createElement('div');
-      card.className = 'card settings-master-card';
-      card.id = 'shop-stock-settings';
-      card.innerHTML = '<div class="settings-master-head"><div><div class="card-title">Stok Produk</div><div class="page-sub">Kosongkan stok jika produk tidak dilacak.</div></div></div><div id="shop-stock-rows" class="shop-stock-rows"></div>';
-      panel.appendChild(card);
-      card.addEventListener('click', async e => {
-        const btn = e.target.closest('[data-shop-stock-save]');
-        if (!btn) return;
-        const row = btn.closest('.shop-stock-row');
-        const read = sel => { const v = row.querySelector(sel).value.trim(); return v === '' ? null : Math.round(Number(v)); };
-        const qty = read('.shop-stock-qty'), min = read('.shop-stock-min');
-        if ((qty !== null && !Number.isFinite(qty)) || (min !== null && (!Number.isFinite(min) || min < 0))) { showToast('Isi stok dengan angka.', true); return; }
-        const orig = btn.textContent; window.kairoBtnLoading(btn, true, undefined, 'Menyimpan…');
-        try {
-          const { error } = await db.from('package_masters').update({ stock_qty: qty, stock_min: min }).eq('workspace_id', requireWorkspaceId()).eq('id', row.dataset.id);
-          if (error) throw error;
-          lastQty.clear();
-          await loadMasters();
-          showToast('Stok disimpan.');
-        } catch (err) { showToast(window.kairoFriendlyError(err.message, 'menyimpan stok') || 'Gagal menyimpan stok.', true); }
-        finally { window.kairoBtnLoading(btn, false, orig); }
-      });
-    }
-    card.hidden = false;
-    const sig = packages.map(p => `${p.id}|${p.name}|${p.stock_qty}|${p.stock_min}`).join(';');
-    if (card.dataset.sig === sig) return;
-    card.dataset.sig = sig;
-    document.getElementById('shop-stock-rows').innerHTML = `<div class="shop-stock-row shop-stock-head"><span>Produk</span><span>Stok</span><span>Batas menipis</span><span></span></div>` + packages.map(p => `<div class="shop-stock-row" data-id="${esc(p.id)}"><strong>${esc(p.name)}</strong><input class="input shop-stock-qty" type="number" step="1" inputmode="numeric" placeholder="Tidak dilacak" value="${p.stock_qty ?? ''}" aria-label="Stok ${esc(p.name)}"><input class="input shop-stock-min" type="number" min="0" step="1" inputmode="numeric" placeholder="-" value="${p.stock_min ?? ''}" aria-label="Batas menipis ${esc(p.name)}"><button type="button" class="btn btn-light" data-shop-stock-save>Simpan</button></div>`).join('');
-  }
-
   // Orders: foto produk (dari menu Produk) di kiri kartu; produk tanpa foto memakai kotak berhuruf awal supaya sejajar.
   const hueOf = n => { let h = 0; for (const c of String(n || '')) h = (h * 31 + c.charCodeAt(0)) % 360; return h; };
   const initialsOf = n => { const w = String(n || '?').trim().split(/\s+/); return ((w[0] || '?')[0] + (w[1] ? w[1][0] : '')).toUpperCase(); };
@@ -641,8 +605,6 @@
     mountPlatformSettings();
     syncPlatformSelect();
     wrap('renderMasterOptions', () => { decorateOrderPhotos(); decorateOrderStock(); watchStockLevels(); renderDashStock(); });
-    wrap('renderSettingsMasterData', mountStockSettings);
-    mountStockSettings();
     decorateOrderStock();
     renderShopDashboardKpi();
     renderDashStock();

@@ -149,7 +149,7 @@
     const isNew = !item;
     photoBlob = null;
     draft = {
-      id: item?.id || null, name: item?.name || '', code: item?.code || preset?.code || '', category: item?.category || '', unit: item?.unit || (kind === 'package' ? 'pcs' : ''),
+      id: item?.id || null, name: item?.name || preset?.name || '', code: item?.code || preset?.code || '', category: item?.category || '', unit: item?.unit || (kind === 'package' ? 'pcs' : ''),
       price: num(item?.price), cost: num(item?.cost_price), image: item?.image_url || '',
       track: tracked(item), qty: tracked(item) ? num(item.stock_qty) : 0, min: item?.stock_min === null || item?.stock_min === undefined ? 5 : num(item.stock_min),
       ...initialSplit(item), isNew
@@ -559,8 +559,34 @@
   const demoSamples = () => {
     if (!window.__kairoDemo) return [];
     const have = (packages || []).filter(x => x && x.is_active !== false && /^\d{8,14}$/.test(String(x.code || ''))).slice(0, 2).map(x => ({ code: x.code, label: x.name }));
-    return [...have, { code: '8999909000018', label: 'Produk baru (belum ada)' }];
+    return [...have, { code: '8999909000018', label: 'Produk baru (belum ada)' }, { code: '3017620422003', label: 'Contoh barang kemasan (nama dicari di internet)' }];
   };
+  // Nama produk dari barcode: database barcode publik Open Food Facts (gratis, tanpa akun). Hanya kode angka 8-14 digit (EAN/UPC) yang dikirim, tanpa data akun/usaha.
+  // Jawaban "tidak ketemu"/gagal/lambat (>3,5 dtk) = kembali ke isian manual seperti biasa. Hasil hanya usulan nama; pengguna tetap memeriksanya.
+  const OFF_URL = 'https://world.openfoodfacts.org/api/v2/product/';
+  const nameCache = new Map();
+  function offName(p) {
+    const clean = v => String(v ?? '').replace(/\s+/g, ' ').trim();
+    let n = clean(p.product_name_id) || clean(p.product_name);
+    if (!n) return '';
+    const brand = clean(p.brands).split(',')[0].trim(), qty = clean(p.quantity);
+    if (brand && !n.toLowerCase().includes(brand.toLowerCase())) n = brand + ' ' + n;
+    if (qty && !n.toLowerCase().includes(qty.toLowerCase()) && (n + ' ' + qty).length <= 60) n += ' ' + qty;
+    return n.slice(0, 60);
+  }
+  async function lookupName(code) {
+    if (!/^\d{8,14}$/.test(code)) return '';
+    if (nameCache.has(code)) return nameCache.get(code);
+    const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 3500);
+    try {
+      const r = await fetch(`${OFF_URL}${code}.json?fields=product_name,product_name_id,brands,quantity`, { signal: ctl.signal });
+      let name = '';
+      if (r.ok) { const j = await r.json(); name = j && j.status !== 0 && j.product ? offName(j.product) : ''; }
+      else if (r.status !== 404) return '';
+      nameCache.set(code, name);
+      return name;
+    } catch (_e) { return ''; } finally { clearTimeout(timer); }
+  }
   const unlockIfIdle = () => { if (!document.getElementById('pp-sheet') && !document.getElementById('pp-count') && !document.getElementById('pp-scan')) document.documentElement.classList.remove('pp-lock'); };
 
   function openScan(ctx) {
@@ -670,14 +696,30 @@
       closeScan();
       const inp = S('pp-code');
       if (inp && draft) { inp.value = code; draft.code = code; const d = inp.closest('details'); if (d) d.open = true; }
-      if (p && String(p.id) !== String(draft?.id)) showToast(`Barcode ${code} sudah dipakai "${p.name}". Pakai barcode lain atau ubah produk itu.`, 'warning');
-      else showToast(`Barcode ${code} dimasukkan.`, 'success');
+      if (p && String(p.id) !== String(draft?.id)) { showToast(`Barcode ${code} sudah dipakai "${p.name}". Pakai barcode lain atau ubah produk itu.`, 'warning'); return; }
+      showToast(`Barcode ${code} dimasukkan.`, 'success');
+      // Nama masih kosong -> usulkan nama dari database barcode publik (tidak menimpa kalau pengguna sudah mengetik).
+      const d0 = draft;
+      if (d0 && !d0.name.trim()) lookupName(code).then(nm => {
+        const nameEl = S('pp-name');
+        if (!nm || !nameEl || draft !== d0 || d0.name.trim() || S('pp-code')?.value !== code) return;
+        nameEl.value = nm; d0.name = nm;
+        showToast(`Nama "${nm}" diambil dari database barcode publik. Periksa dulu sebelum disimpan.`, 'info');
+      });
       return;
     }
     if (!p) {
-      closeScan(); kind = 'package'; renderGrid();
-      openSheet(null, { code });
-      showToast(`Barcode ${code} belum ada. Isi nama dan harganya.`, 'info');
+      const open = nm => {
+        if (scan !== s) return;
+        closeScan(); kind = 'package'; renderGrid();
+        openSheet(null, { code, name: nm });
+        showToast(nm ? `Barcode ${code} belum ada. Nama "${nm}" diambil dari database barcode publik, periksa dulu lalu isi harganya.` : `Barcode ${code} belum ada. Isi nama dan harganya.`, 'info');
+      };
+      if (!/^\d{8,14}$/.test(code)) { open(''); return; }
+      stopCamera(s);
+      s.ov.querySelector('#pp-scan-view').classList.add('is-off');
+      s.ov.querySelector('#pp-scan-msg').textContent = 'Mencari nama produk…';
+      lookupName(code).then(open);
       return;
     }
     // Produk dengan barcode itu sudah ada: tampilkan, jangan membuat dobel.
