@@ -70,6 +70,7 @@
           fetchAllRows(() => db.from('installment_schedules').select('*').eq('workspace_id', w).order('version', { ascending: true }))
         ]);
         ledger = l || []; schedules = s || []; ready = true; loadedFor = w;
+        await loadCustomerMeta(w);
       } catch (e) {
         console.warn('[KAIRO][Jastip] data', e);
         ready = !/relation|does not exist|schema cache/i.test(String(e?.message || ''));
@@ -148,6 +149,16 @@
   async function loadOrders() { try { allTx = (await allTransactions()).filter(t => !(typeof isRollupTx === 'function' && isRollupTx(t))); } catch (_e) { allTx = Array.isArray(transactions) ? transactions : []; } return allTx; }
   const itemsText = t => (Array.isArray(t.order_items) ? t.order_items : []).map(x => `${x.name}${num(x.qty) > 1 ? ' ×' + x.qty : ''}`).join(', ') || t.package_code || '-';
 
+  /* Kategori minat & catatan customer (kolom customers.interest_topic_ids / notes; tidak ada = fitur diam). */
+  let custMeta = {}, custMetaReady = false;
+  async function loadCustomerMeta(w) {
+    try {
+      const rows = await fetchAllRows(() => db.from('customers').select('id,interest_topic_ids,notes').eq('workspace_id', w));
+      custMeta = {}; (rows || []).forEach(r => { custMeta[String(r.id)] = { ids: Array.isArray(r.interest_topic_ids) ? r.interest_topic_ids.map(String) : [], notes: r.notes || '' }; });
+      custMetaReady = true;
+    } catch (e) { console.warn('[KAIRO][Jastip] minat customer', e); custMetaReady = false; }
+  }
+
   /* Saldo talangan per partner + saldo kas usaha (semua waktu). */
   function advanceBalances() {
     const out = {};
@@ -178,6 +189,24 @@
       return { hpp: Math.max(0, num(t.total_price) - base), distributable: base, manual: [], manualTotal: 0, percentageBase: base };
     };
   }
+  /* Pemasukan lain (+) dan pengeluaran operasional (−) ikut dibagi ke hak partner (Withdraw) memakai % partner yang berlaku
+     pada tanggal entrinya. Hak periode (Dashboard/Withdraw/Export) = entri di periode filter; hak kumulatif & validasi
+     pencairan = semua entri sampai tanggal itu. */
+  function bookShare(partner, from, to) {
+    if (typeof shareRuleFor !== 'function') return 0;
+    return liveEntries().filter(e => (e.kind === 'other_income' || e.kind === 'operating_expense') && (!from || String(e.entry_date) >= from) && (!to || String(e.entry_date) <= to))
+      .reduce((s, e) => s + (e.kind === 'other_income' ? 1 : -1) * num(e.amount) * num(shareRuleFor(partner, e.entry_date)), 0);
+  }
+  const coreEntitlement = window.entitlementFromTransactions;
+  if (typeof coreEntitlement === 'function') {
+    window.entitlementFromTransactions = function (txRows, partner, throughDate) {
+      const base = coreEntitlement.apply(this, arguments);
+      if (!isJastip() || !partner) return base;
+      let from = '', to = throughDate ? String(throughDate) : '';
+      if (txRows === transactions) { try { const r = getRange(); from = r.from || ''; to = r.to || ''; } catch (_e) { /* periode kustom belum lengkap */ } }
+      return base + bookShare(partner, from, to);
+    };
+  }
   // Data buku uang harus siap sebelum halaman (dan hitungan hak partner) digambar.
   const coreLoad = window.loadPageData;
   if (typeof coreLoad === 'function') {
@@ -194,6 +223,7 @@
     if (tab === 'input') renderOrders();
     if (tab === 'po-plans') renderPlans();
     if (tab === 'po-finance') renderFinance();
+    if (tab === 'customers') decorateCustomers();
     refreshBell();
   }
   // Order yang sudah punya pembayaran/biaya tidak dihapus (supaya buku uang tidak menggantung): pakai Batalkan.
@@ -701,9 +731,9 @@
     const lp = laborProfit(from, to);
     const kindName = r => r.kind === 'payout' ? 'Bagi hasil (Withdraw)' : kindLabel(r.kind);
     const signed = r => r.dir === 'in' ? `<b class="po-pos">+${money(r.amount)}</b>` : r.dir === 'out' ? `<b class="po-neg">−${money(r.amount)}</b>` : r.dir === 'adv' ? `<b>${money(r.amount)}</b><span class="po-muted">ditalangi</span>` : `<b>${money(r.amount)}</b>`;
-    box.innerHTML = `<div class="po-tools"><select class="input po-sel" id="po-fin-period" aria-label="Periode">${opt([['month', 'Bulan ini'], ['last', 'Bulan lalu'], ['30', '30 hari terakhir'], ['year', 'Tahun ini'], ['all', 'Semua']], finPeriod)}</select><select class="input po-sel" id="po-fin-kind" aria-label="Jenis">${opt([['all', 'Semua jenis'], ['in', 'Uang masuk'], ['out', 'Uang keluar'], ...Object.keys(KIND).filter(k => k !== 'reversal').map(k => [k, kindLabel(k)])], finKind)}</select><span class="po-grow"></span><button type="button" class="btn btn-light po-small" data-book-add="other_income">＋ Pemasukan</button><button type="button" class="btn btn-light po-small" data-book-add="operating_expense">＋ Pengeluaran</button></div>
+    box.innerHTML = `<div class="po-tools"><select class="input po-sel" id="po-fin-period" aria-label="Periode">${opt([['month', 'Bulan ini'], ['last', 'Bulan lalu'], ['30', '30 hari terakhir'], ['year', 'Tahun ini'], ['all', 'Semua']], finPeriod)}</select><select class="input po-sel" id="po-fin-kind" aria-label="Jenis">${opt([['all', 'Semua jenis'], ['in', 'Uang masuk'], ['out', 'Uang keluar'], ...Object.keys(KIND).filter(k => k !== 'reversal').map(k => [k, kindLabel(k)])], finKind)}</select><span class="po-grow"></span><button type="button" class="btn btn-light po-small" data-book-add="other_income">＋ Pemasukan</button><button type="button" class="btn btn-light po-small" data-book-add="operating_expense">＋ Pengeluaran</button><button type="button" class="btn btn-light po-small" data-book-export>Export Excel</button></div>
       <div class="po-stats po-stats4"><div><span>Uang masuk</span><b>${money(inSum)}</b></div><div><span>Uang keluar</span><b>${money(outSum)}</b></div><div><span>Biaya ditalangi partner</span><b>${money(advSum)}</b></div><div><span>Laba usaha</span><b class="${lp.total < 0 ? 'po-neg' : ''}">${money(lp.total)}</b></div></div>
-      <div class="po-muted po-mb">Laba usaha = laba pre-order selesai ${money(lp.orders)} + pemasukan lain ${money(lp.other)} − pengeluaran operasional ${money(lp.opex)}. Uang masuk/keluar = kas usaha (talangan pribadi tidak termasuk).</div>
+      <div class="po-muted po-mb">Laba usaha = laba pre-order selesai ${money(lp.orders)} + pemasukan lain ${money(lp.other)} − pengeluaran operasional ${money(lp.opex)}. Pemasukan lain dan pengeluaran operasional ikut menambah/memotong hak bagi hasil partner di Withdraw sesuai % partner. Uang masuk/keluar = kas usaha (talangan pribadi tidak termasuk).</div>
       ${rows.length ? `<div class="po-table-wrap"><table class="po-table po-book"><thead><tr><th>Tanggal</th><th>Jenis</th><th>Keterangan</th><th>Partner</th><th>Nominal</th><th></th></tr></thead><tbody>${rows.map(r => `<tr class="${r.voided ? 'is-void' : ''}"><td data-label="Tanggal">${esc(fmtDate(r.date))}</td><td data-label="Jenis">${esc(kindName(r))}${r.voided ? ' <span class="po-badge is-muted">dibatalkan</span>' : ''}</td><td data-label="Keterangan">${esc(r.order || '')}${r.order && r.desc ? '<br>' : ''}<span class="po-muted">${esc(r.desc || (r.order ? '' : '-'))}</span></td><td data-label="Partner">${esc(r.who || '-')}</td><td data-label="Nominal" class="po-amt">${signed(r)}</td><td data-label="">${r.src === 'ledger' && !r.voided && r.kind !== 'reversal' ? `<button type="button" class="po-link" data-po-void="${esc(r.e.id)}">Batalkan</button>` : ''}</td></tr>`).join('')}</tbody></table></div>` : '<div class="po-empty">Belum ada catatan di periode ini.</div>'}`;
   }
   function openBookEntry(kind) {
@@ -755,6 +785,7 @@
     s.addEventListener('click', e => {
       const tb = e.target.closest('[data-fin-tab]'); if (tb) { finTab = tb.dataset.finTab; renderFinance(); return; }
       const add = e.target.closest('[data-book-add]'); if (add) { openBookEntry(add.dataset.bookAdd); return; }
+      const ex = e.target.closest('[data-book-export]'); if (ex) { exportBook(ex); return; }
       const rp = e.target.closest('[data-repay]'); if (rp) { openRepay(rp.dataset.repay); return; }
       const v = e.target.closest('[data-po-void]'); if (v) { voidEntry(v.dataset.poVoid, null); return; }
       const o = e.target.closest('[data-po-open]'); if (o) openDetail(o.dataset.poOpen);
@@ -762,6 +793,115 @@
     s.addEventListener('change', e => { if (e.target.id === 'po-fin-period') { finPeriod = e.target.value; renderFinance(); } if (e.target.id === 'po-fin-kind') { finKind = e.target.value; renderFinance(); } });
     s.addEventListener('keydown', e => { if (e.key === 'Enter') { const o = e.target.closest('[data-po-open]'); if (o) openDetail(o.dataset.poOpen); } });
   }
+
+  /* ---------- Export Excel Pembukuan (periode & jenis yang sedang dipilih) ---------- */
+  async function exportBook(btn) {
+    if (window.__kairoDemo) return toast('Export Excel tidak tersedia di mode demo.', 'info');
+    if (typeof canUseFeature === 'function' && !canUseFeature('export_excel')) return toast('Export Excel tersedia di paket Pro.', 'warning');
+    busy(btn, true, null, 'Menyiapkan…');
+    try {
+      if (typeof XLSX === 'undefined') await ensureXlsxLibrary();
+      const [from, to] = periodRange(finPeriod), lp = laborProfit(from, to);
+      let rows = bookRows();
+      if (finKind === 'in') rows = rows.filter(r => r.dir === 'in'); else if (finKind === 'out') rows = rows.filter(r => r.dir === 'out'); else if (finKind !== 'all') rows = rows.filter(r => r.kind === finKind);
+      const act = bookRows().filter(r => !r.voided && r.kind !== 'reversal'), sum = d => act.filter(r => r.dir === d).reduce((s, r) => s + r.amount, 0);
+      const periodName = { month: 'Bulan ini', last: 'Bulan lalu', 30: '30 hari terakhir', year: 'Tahun ini', all: 'Semua' }[finPeriod] || finPeriod;
+      const head = { font: { name: 'Arial', sz: 11, bold: true, color: { rgb: 'FFFFFF' } }, fill: { fgColor: { rgb: '1F305E' } }, alignment: { horizontal: 'center', vertical: 'center', wrap_text: true } };
+      const cell = { font: { name: 'Arial', sz: 10 }, alignment: { vertical: 'center', wrap_text: true }, border: ['top', 'bottom', 'left', 'right'].reduce((o, k) => (o[k] = { style: 'thin', color: { rgb: 'D9D9D9' } }, o), {}) };
+      const rp = Object.assign({}, cell, { numFmt: '"Rp"#,##0' });
+      const makeSheet = (aoa, headRows, moneyCols, widths) => {
+        const sh = XLSX.utils.aoa_to_sheet(aoa);
+        aoa.forEach((r, ri) => r.forEach((v, ci) => { const a = XLSX.utils.encode_cell({ r: ri, c: ci }); if (!sh[a]) return; sh[a].s = headRows.includes(ri) ? head : (moneyCols.includes(ci) && typeof v === 'number' ? rp : cell); }));
+        sh['!cols'] = widths.map(w => ({ wch: w })); return sh;
+      };
+      const wb = XLSX.utils.book_new();
+      const kindName = r => r.kind === 'payout' ? 'Bagi hasil (Withdraw)' : kindLabel(r.kind);
+      const book = [['Tanggal', 'Jenis', 'Pre-order', 'Keterangan', 'Partner', 'Masuk', 'Keluar', 'Ditalangi partner', 'Status']];
+      rows.slice().reverse().forEach(r => book.push([r.date || '', kindName(r), r.order || '', r.desc || '', r.who || '', r.dir === 'in' ? r.amount : '', r.dir === 'out' ? r.amount : '', r.dir === 'adv' ? r.amount : '', r.voided ? 'Dibatalkan' : (r.kind === 'reversal' ? 'Pembatalan' : '')]));
+      const bs = makeSheet(book, [0], [5, 6, 7], [12, 24, 30, 30, 14, 14, 14, 16, 12]); bs['!freeze'] = 'A2';
+      XLSX.utils.book_append_sheet(wb, bs, 'Pembukuan');
+      const sumRows = [['Ringkasan', ''], ['Periode', `${periodName}${from ? ` (${from} s/d ${to})` : ''}`], ['Uang masuk', sum('in')], ['Uang keluar', sum('out')], ['Biaya ditalangi partner', sum('adv')], [], ['Laba pre-order selesai', lp.orders], ['Pemasukan lain', lp.other], ['Pengeluaran operasional', lp.opex], ['Laba usaha', lp.total]];
+      XLSX.utils.book_append_sheet(wb, makeSheet(sumRows, [0], [1], [28, 30]), 'Ringkasan');
+      const adv = [['Partner', 'Menalangi', 'Sudah dikembalikan', 'Belum kembali']];
+      advanceBalances().forEach(x => adv.push([x.name, x.adv, x.back, x.left]));
+      adv.push([], ['Saldo kas usaha', businessCash()]);
+      XLSX.utils.book_append_sheet(wb, makeSheet(adv, [0], [1, 2, 3], [20, 16, 18, 16]), 'Modal Talangan');
+      const safe = String(activeWorkspaceName || 'KAIRO').replace(/[^A-Za-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || 'KAIRO';
+      XLSX.writeFile(wb, `${safe}_Pembukuan_${from || 'semua'}${to ? '_sd_' + to : ''}.xlsx`);
+      toast('Excel Pembukuan berhasil dibuat.', 'success');
+    } catch (err) { console.error(err); toast('Gagal membuat Excel: ' + (err.message || err), true); }
+    finally { busy(btn, false, 'Export Excel'); }
+  }
+
+  /* ---------- Customer Database: kategori minat, pernah beli, sisa tagihan, catatan ---------- */
+  let intFilter = '';
+  const activeCats = () => (Array.isArray(topics) ? topics : []).filter(t => t.is_active !== false && t.name);
+  const custOrders = (id, name) => { const n = String(name || '').trim().toLowerCase(); return poOrders().filter(t => (id && String(t.customer_id || '') === String(id)) || (!t.customer_id && String(t.customer_name || '').trim().toLowerCase() === n)); };
+  function custInfo(id, name) {
+    const meta = custMeta[String(id)] || { ids: [], notes: '' };
+    const cats = activeCats(), interest = meta.ids.map(x => (cats.find(c => String(c.id) === x) || {}).name).filter(Boolean);
+    const orders = custOrders(id, name), bought = [...new Set(orders.flatMap(orderCats))];
+    const due = orders.filter(t => t.po_status !== 'cancelled').reduce((s, t) => s + fin(t).remaining, 0);
+    return { meta, interest, bought, due };
+  }
+  function decorateCustomers() {
+    if (!isJastip()) return;
+    const body = document.getElementById('customer-db-body'), search = document.getElementById('customer-db-search'); if (!body || !search) return;
+    const names = [...new Set([...activeCats().map(c => c.name), ...poOrders().flatMap(orderCats)])].sort((a, b) => a.localeCompare(b, 'id'));
+    if (intFilter && !names.includes(intFilter)) intFilter = '';
+    let sel = document.getElementById('po-int-filter');
+    if (!sel) {
+      sel = document.createElement('select'); sel.id = 'po-int-filter'; sel.className = 'input po-sel po-int-filter'; sel.setAttribute('aria-label', 'Filter kategori');
+      search.parentElement.insertBefore(sel, search);
+      sel.addEventListener('change', () => { intFilter = sel.value; window.renderCustomerDatabase(); });
+      search.addEventListener('input', () => decorateCustomers());
+    }
+    sel.innerHTML = `<option value="">Semua kategori</option>${names.map(n => `<option value="${esc(n)}"${n === intFilter ? ' selected' : ''}>${esc(n)}</option>`).join('')}`;
+    body.querySelector('.po-int-empty')?.remove();
+    let shown = 0;
+    body.querySelectorAll('tr').forEach(tr => {
+      const btn = tr.querySelector('[data-customer-history-name]'); if (!btn) return;
+      const info = custInfo(btn.dataset.customerHistoryId, btn.dataset.customerHistoryName);
+      const hide = intFilter && !info.interest.includes(intFilter) && !info.bought.includes(intFilter);
+      tr.hidden = Boolean(hide); if (hide) return;
+      shown++; const rank = tr.querySelector('.customer-db-rank'); if (rank) rank.textContent = shown;
+      tr.querySelector('.po-cust-tags')?.remove();
+      const tags = [...info.interest.map(n => `<span class="po-tag">${esc(n)}</span>`), info.due > 0.5 ? `<span class="po-badge is-warn">Sisa ${money(info.due)}</span>` : ''].filter(Boolean);
+      if (tags.length) btn.insertAdjacentHTML('afterend', `<div class="po-cust-tags">${tags.join('')}</div>`);
+    });
+    if (intFilter && !shown) body.insertAdjacentHTML('beforeend', `<tr class="po-int-empty"><td colspan="8" class="empty">Belum ada customer dengan minat atau pembelian kategori ${esc(intFilter)}.</td></tr>`);
+  }
+  function mountInterestPanel(id, name) {
+    const content = document.querySelector('#customer-history-modal #customer-history-content'); if (!content || !isJastip()) return;
+    content.querySelector('.po-int-panel')?.remove();
+    const box = document.createElement('div'); box.className = 'po-int-panel';
+    if (!id || !custMetaReady) { box.innerHTML = `<div class="po-muted">${!id ? 'Customer ini belum tersimpan di database, jadi kategori minat belum bisa diatur.' : 'Kategori minat belum bisa dimuat. Coba Refresh.'}</div>`; content.prepend(box); return; }
+    const info = custInfo(id, name), cats = activeCats();
+    box.innerHTML = `<div class="po-int-head"><b>Kategori minat</b><span class="po-muted">Pilih kategori barang yang biasa dicari customer ini.</span></div>
+      <div class="po-int-chips">${cats.map(c => { const on = info.meta.ids.includes(String(c.id)); return `<button type="button" class="po-int-chip${on ? ' on' : ''}" data-int="${esc(c.id)}" aria-pressed="${on}">${esc(c.name)}</button>`; }).join('') || '<span class="po-muted">Belum ada kategori. Tambah lewat form Pre-Order.</span>'}</div>
+      <div class="po-int-meta"><span>Pernah beli: <b>${esc(info.bought.join(', ') || '-')}</b></span><span>Sisa tagihan: <b>${money(info.due)}</b></span></div>
+      <label class="po-f"><span>Catatan</span><textarea class="input" rows="2" data-int-note placeholder="mis. suka ukuran S, minta dikabari PO Jepang">${esc(info.meta.notes)}</textarea></label>
+      <div class="po-int-actions"><button type="button" class="btn btn-green po-small" data-int-save>Simpan</button></div>`;
+    content.prepend(box);
+    box.addEventListener('click', async e => {
+      const chip = e.target.closest('[data-int]'); if (chip) { chip.classList.toggle('on'); chip.setAttribute('aria-pressed', chip.classList.contains('on')); return; }
+      const save = e.target.closest('[data-int-save]'); if (!save) return;
+      const ids = [...box.querySelectorAll('[data-int].on')].map(b => b.dataset.int), notes = box.querySelector('[data-int-note]').value.trim();
+      busy(save, true, null, 'Menyimpan…');
+      try {
+        const { error } = await db.from('customers').update({ interest_topic_ids: ids, notes: notes || null }).eq('workspace_id', ws()).eq('id', id);
+        if (error) throw error;
+        custMeta[String(id)] = { ids, notes };
+        toast(`Minat ${name} tersimpan.`, 'success');
+        window.renderCustomerDatabase();
+      } catch (err) { toast('Gagal menyimpan: ' + (err.message || err), true); }
+      finally { busy(save, false, 'Simpan'); }
+    });
+  }
+  const coreCustRender = window.renderCustomerDatabase;
+  if (typeof coreCustRender === 'function') window.renderCustomerDatabase = function () { const r = coreCustRender.apply(this, arguments); if (isJastip()) { try { decorateCustomers(); } catch (e) { console.warn('[KAIRO][Jastip]', e); } } return r; };
+  const coreHistory = window.openCustomerHistory;
+  if (typeof coreHistory === 'function') window.openCustomerHistory = async function (id, name) { const r = await coreHistory.apply(this, arguments); if (isJastip()) { try { if (!(Array.isArray(topics) && topics.length) && typeof loadMasters === 'function') await loadMasters(); mountInterestPanel(id, name); } catch (e) { console.warn('[KAIRO][Jastip]', e); } } return r; };
 
   /* ---------- Dashboard ---------- */
   function renderDash() {
