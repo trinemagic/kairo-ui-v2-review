@@ -52,6 +52,7 @@
       <div id="pp-grid" class="pp-grid"></div>`;
     main.appendChild(s);
     s.addEventListener('click', onPageClick);
+    s.addEventListener('keydown', onPageKey);
     s.querySelector('#pp-search').addEventListener('input', e => { query = e.target.value.trim().toLowerCase(); renderGrid(); });
   }
   function ensureNav() {
@@ -103,10 +104,11 @@
       return;
     }
     box.innerHTML = rows.map(p => {
-      const profit = num(p.price) - num(p.cost_price), st = stockState(p);
+      const st = stockState(p);
       const badge = st === 'none' ? '' : `<span class="pp-badge is-${st}">${st === 'out' ? 'Habis' : st === 'low' ? 'Menipis · ' + p.stock_qty : 'Stok ' + p.stock_qty + (p.unit ? ' ' + p.unit : '')}</span>`;
       const img = p.image_url ? `<img src="${esc(p.image_url)}" alt="" loading="lazy">` : `<span class="pp-ph pp-initial" style="--h:${hue(p.name)}">${esc(initials(p.name))}</span>`;
-      return `<button type="button" class="pp-card" data-id="${esc(p.id)}"><span class="pp-photo">${img}${badge}</span><b class="pp-name">${esc(p.name)}</b>${p.category || p.unit ? `<small class="pp-sub">${esc([p.category, p.unit].filter(Boolean).join(' · '))}</small>` : ''}<span class="pp-price">${money(p.price)}</span><span class="pp-profit ${profit < 0 ? 'is-neg' : ''}">Untung ${money(profit)}</span></button>`;
+      // Kartu = div (bukan button): Safari tidak menata isi <button> sebagai flex/grid dengan benar. Untung per produk hanya tampil di lembar yang terbuka saat kartu diklik.
+      return `<div class="pp-card" role="button" tabindex="0" data-id="${esc(p.id)}"><span class="pp-photo">${img}${badge}</span><b class="pp-name">${esc(p.name)}</b>${p.category || p.unit ? `<small class="pp-sub">${esc([p.category, p.unit].filter(Boolean).join(' · '))}</small>` : ''}<span class="pp-price">${money(p.price)}</span></div>`;
     }).join('');
   }
   function onPageClick(e) {
@@ -116,6 +118,12 @@
     if (e.target.closest('#pp-count-open')) { openCount(); return; }
     if (e.target.closest('#pp-scan-open')) { openScan('page'); return; }
     const card = e.target.closest('.pp-card'); if (card) openSheet(list().find(x => String(x.id) === card.dataset.id));
+  }
+  // Kartu produk bisa dibuka dengan papan ketik (Enter / spasi).
+  function onPageKey(e) {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    const card = e.target.closest && e.target.closest('.pp-card'); if (!card) return;
+    e.preventDefault(); openSheet(list().find(x => String(x.id) === card.dataset.id));
   }
 
   /* ---------- Pembagian untung ---------- */
