@@ -1,4 +1,4 @@
-/* KAIRO - Kasir / POS: halaman Produk + lembar isian. Hanya dimuat untuk pos_kasir. */
+/* KAIRO - Kasir / POS + Online Shop: halaman Produk + lembar isian + Scan Barcode. Hanya dimuat untuk pos_kasir dan online_shop. */
 #pos-products .pp-top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
 .pp-seg{display:inline-flex;padding:4px;border-radius:14px;background:color-mix(in srgb,var(--v3-primary,#25b9b0) 12%,transparent)}
 .pp-seg button{border:0;background:transparent;font:inherit;font-weight:800;font-size:15px;padding:10px 22px;border-radius:11px;color:var(--v3-muted,#4e6475);cursor:pointer;min-height:44px}
@@ -167,3 +167,44 @@ body.saas-dark .pp-hist-q em.is-neg{color:#ff9aa8}body.saas-dark .pp-hist-q em.i
   .pp-count-row{grid-template-columns:minmax(0,1fr) 84px 44px;gap:8px}
   #pos-products .pp-count-btn{width:100%}
 }
+
+/* Scan barcode */
+#pos-products .pp-scan-btn{display:inline-flex;align-items:center;gap:8px;min-height:48px;font-size:15px}
+#pos-products .pp-scan-btn[hidden]{display:none}
+#pos-products .pp-scan-btn svg,.pp-code-scan svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}
+.pp-code-row{display:flex;gap:10px;align-items:stretch}
+.pp-code-row .input{flex:1;min-width:0}
+.pp-code-scan{flex:0 0 auto;min-height:46px;padding:0 16px}
+.pp-code-hint{display:block;margin-top:8px;font-size:12.5px;color:var(--v3-muted,#4e6475)}
+.pp-scan-overlay{z-index:9100}
+.pp-scan-view{position:relative;margin-top:12px;aspect-ratio:4/3;border-radius:16px;overflow:hidden;background:#05090d;display:grid;place-items:center}
+.pp-scan-view video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.pp-scan-frame{position:absolute;left:11%;right:11%;top:26%;bottom:26%;border-radius:14px;border:2px solid rgba(255,255,255,.85);box-shadow:0 0 0 999px rgba(0,0,0,.38);pointer-events:none}
+.pp-scan-frame::after{content:"";position:absolute;left:6%;right:6%;top:50%;height:2px;background:#ff5d6c;box-shadow:0 0 8px #ff5d6c;animation:ppScanLine 1.8s ease-in-out infinite alternate}
+@keyframes ppScanLine{from{transform:translateY(-34px)}to{transform:translateY(34px)}}
+@media (prefers-reduced-motion:reduce){.pp-scan-frame::after{animation:none}}
+.pp-scan-msg{position:absolute;left:12px;right:12px;bottom:10px;margin:0;padding:7px 12px;border-radius:10px;background:rgba(0,0,0,.6);color:#fff;font-size:13.5px;font-weight:700;text-align:center}
+.pp-scan-view.is-off{aspect-ratio:auto;min-height:0;background:color-mix(in srgb,var(--v3-primary,#25b9b0) 10%,var(--card-solid,#fff));padding:0}
+.pp-scan-view.is-off video,.pp-scan-view.is-off .pp-scan-frame{display:none}
+.pp-scan-view.is-off .pp-scan-msg{position:static;margin:0;padding:16px;background:transparent;color:inherit;font-weight:600;font-size:14px}
+.pp-scan-view.is-off .pp-scan-msg:empty{display:none}
+.pp-scan-manual{display:flex;gap:10px}
+.pp-scan-manual .input{flex:1;min-width:0;font-size:16px}
+.pp-scan-manual .btn{min-height:52px;padding:0 20px}
+.pp-scan-samples{display:flex;flex-wrap:wrap;gap:8px}
+.pp-scan-samples button{display:grid;gap:2px;text-align:left;border:1px dashed color-mix(in srgb,var(--v3-primary,#25b9b0) 60%,transparent);background:transparent;color:inherit;font:inherit;border-radius:12px;padding:8px 12px;cursor:pointer}
+.pp-scan-samples button b{font-size:14px;letter-spacing:.02em}
+.pp-scan-samples button small{font-size:12.5px;color:var(--v3-muted,#4e6475)}
+.pp-scan-result{margin-top:12px}
+.pp-scan-found{display:flex;gap:14px;align-items:center;padding:14px;border-radius:16px;border:1px solid color-mix(in srgb,var(--v3-primary,#25b9b0) 35%,transparent);background:color-mix(in srgb,var(--v3-primary,#25b9b0) 8%,transparent)}
+.pp-scan-found>div{display:grid;gap:2px;min-width:0}
+.pp-scan-found small{font-weight:700;color:var(--v3-muted,#4e6475)}
+.pp-scan-found b{font-size:17px;overflow-wrap:anywhere}
+.pp-scan-found span{font-size:14px}
+.pp-scan-found em{font-style:normal;font-size:12.5px;color:var(--v3-muted,#4e6475)}
+.pp-scan-thumb{position:relative;display:block;width:72px;height:72px;border-radius:14px;overflow:hidden;flex:0 0 auto;background:color-mix(in srgb,var(--v3-primary,#25b9b0) 9%,var(--card-solid,#fff))}
+.pp-scan-thumb img{width:100%;height:100%;object-fit:cover}
+.pp-scan-actions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+.pp-scan-actions .btn{min-height:50px;font-size:16px}
+@media (max-width:700px){#pos-products .pp-count-btn:not([hidden]),#pos-products .pp-scan-btn:not([hidden]){width:auto;flex:1 1 calc(50% - 5px);justify-content:center;padding:0 10px}}
+

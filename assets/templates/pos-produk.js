@@ -1,5 +1,5 @@
-/* KAIRO - Kasir / POS: halaman Produk (tambah produk + foto, harga, modal, stok, pembagian untung).
-   Dimuat HANYA untuk workspace pos_kasir (loader di kairo-app.js), setelah pos-kasir.js.
+/* KAIRO - Kasir / POS + Online Shop: halaman Produk (tambah produk + foto / scan barcode, harga, modal, stok, pembagian untung).
+   Dimuat HANYA untuk workspace pos_kasir dan online_shop (loader di kairo-app.js); di Kasir sesudah pos-kasir.js.
    Satu tempat untuk semua urusan produk, dibuat sesederhana mungkin (ramah orang tua): kartu produk besar, lembar isian bertahap.
    Menyimpan ke package_masters (foto: kolom image_url + Storage workspace-branding/<workspace>/products/). Tambahan = addon_masters. */
 (function () {
@@ -16,7 +16,9 @@
   const ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 7.5 12 3l8.5 4.5v9L12 21l-8.5-4.5z"/><path d="m3.5 7.5 8.5 4.5 8.5-4.5M12 12v9"/></svg>';
   const PLACEHOLDER = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="14" rx="2.5"/><circle cx="9" cy="10.5" r="1.6"/><path d="m4 17 5-4.5 3.5 3L15 13l5 4.5"/></svg>';
 
-  const UNITS = ['pcs', 'porsi', 'potong', 'gelas', 'bungkus', 'box'];
+  const isShop = () => document.documentElement.dataset.businessTemplate === 'online_shop';
+  const units = () => (isShop() ? ['pcs', 'pasang', 'lusin', 'set', 'pack', 'box'] : ['pcs', 'porsi', 'potong', 'gelas', 'bungkus', 'box']);
+  const SCAN_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2"/><path d="M8 8v8M11 8v8M14 8v8M17 8v8"/></svg>';
   let kind = 'package';          // package | addon
   let filter = 'all';            // all | low | out
   let query = '';
@@ -42,6 +44,7 @@
     s.innerHTML = `<div class="pp-top">
         <div class="pp-seg" role="tablist"><button type="button" class="on" data-kind="package">Produk</button><button type="button" data-kind="addon">Tambahan</button></div>
         <button type="button" class="btn btn-light pp-count-btn" id="pp-count-open">Hitung Stok</button>
+        <button type="button" class="btn btn-light pp-scan-btn" id="pp-scan-open">${SCAN_ICON}Scan Barcode</button>
         <button type="button" class="btn btn-green pp-add" id="pp-add">＋ Tambah <span id="pp-add-word">Produk</span></button>
       </div>
       <div class="pp-tools"><input class="input pp-search" id="pp-search" placeholder="Cari nama atau kode…" autocomplete="off">
@@ -88,6 +91,7 @@
     document.getElementById('pp-add-word').textContent = kind === 'addon' ? 'Tambahan' : 'Produk';
     document.getElementById('pp-chips').hidden = kind === 'addon';
     document.getElementById('pp-count-open').hidden = kind === 'addon';
+    document.getElementById('pp-scan-open').hidden = kind === 'addon';
     document.querySelectorAll('#pos-products .pp-seg button').forEach(b => b.classList.toggle('on', b.dataset.kind === kind));
     document.querySelectorAll('#pp-chips button').forEach(b => b.classList.toggle('on', b.dataset.f === filter));
     let rows = active();
@@ -110,6 +114,7 @@
     const chip = e.target.closest('#pp-chips button'); if (chip) { filter = chip.dataset.f; renderGrid(); return; }
     if (e.target.closest('#pp-add')) { openSheet(null); return; }
     if (e.target.closest('#pp-count-open')) { openCount(); return; }
+    if (e.target.closest('#pp-scan-open')) { openScan('page'); return; }
     const card = e.target.closest('.pp-card'); if (card) openSheet(list().find(x => String(x.id) === card.dataset.id));
   }
 
@@ -132,11 +137,11 @@
   }
 
   /* ---------- Lembar isian ---------- */
-  function openSheet(item) {
+  function openSheet(item, preset) {
     const isNew = !item;
     photoBlob = null;
     draft = {
-      id: item?.id || null, name: item?.name || '', code: item?.code || '', category: item?.category || '', unit: item?.unit || (kind === 'package' ? 'pcs' : ''),
+      id: item?.id || null, name: item?.name || '', code: item?.code || preset?.code || '', category: item?.category || '', unit: item?.unit || (kind === 'package' ? 'pcs' : ''),
       price: num(item?.price), cost: num(item?.cost_price), image: item?.image_url || '',
       track: tracked(item), qty: tracked(item) ? num(item.stock_qty) : 0, min: item?.stock_min === null || item?.stock_min === undefined ? 5 : num(item.stock_min),
       ...initialSplit(item), isNew
@@ -158,11 +163,13 @@
           <div class="pp-photo-hint"><small>Boleh dilewati. Foto otomatis dipotong persegi dan dikecilkan. Di komputer, foto juga bisa diseret ke sini.</small></div>
           <button type="button" class="pp-link is-red" id="pp-photo-del" hidden>Hapus foto</button></section>
         <section class="pp-step"><h4><i>2</i>Nama</h4>
-          <input class="input pp-big" id="pp-name" maxlength="60" placeholder="${kind === 'addon' ? 'Mis. Extra Shot' : 'Mis. Kopi Susu'}" autocomplete="off">
+          <input class="input pp-big" id="pp-name" maxlength="60" placeholder="${kind === 'addon' ? (isShop() ? 'Mis. Kemasan Kado' : 'Mis. Extra Shot') : (isShop() ? 'Mis. Kaos Polos Hitam' : 'Mis. Kopi Susu')}" autocomplete="off">
           ${kind === 'package' ? `<div class="pp-label">Kategori <small>(boleh dikosongkan)</small></div><div class="pp-cats" id="pp-cats">${['', ...cats].map(c => `<button type="button" data-cat="${esc(c)}">${c ? esc(c) : 'Tanpa kategori'}</button>`).join('')}</div>
           <div class="pp-newcat"><input class="input" id="pp-newcat" maxlength="30" placeholder="Kategori baru…"><button type="button" class="btn btn-light" id="pp-newcat-add">Tambah</button></div>` : ''}
-          ${kind === 'package' ? `<div class="pp-label">Satuan</div><div class="pp-cats pp-units" id="pp-units">${UNITS.map(u => `<button type="button" data-unit="${u}">${u}</button>`).join('')}</div>` : ''}
-          <details class="pp-more"><summary>Kode / barcode (opsional)</summary><input class="input" id="pp-code" maxlength="40" placeholder="Kosong = dibuat otomatis. Scanner barcode: arahkan lalu scan di sini"></details></section>
+          ${kind === 'package' ? `<div class="pp-label">Satuan</div><div class="pp-cats pp-units" id="pp-units">${units().map(u => `<button type="button" data-unit="${u}">${u}</button>`).join('')}</div>` : ''}
+          <details class="pp-more"><summary>Kode / barcode (opsional)</summary>
+            <div class="pp-code-row"><input class="input" id="pp-code" maxlength="40" placeholder="Kosong = dibuat otomatis">${kind === 'package' ? `<button type="button" class="pp-pbtn is-light pp-code-scan" id="pp-code-scan">${SCAN_ICON}Scan</button>` : ''}</div>
+            ${kind === 'package' ? '<small class="pp-code-hint">Scan barcode di kemasan produk pakai kamera, atau pakai alat scanner lalu scan di kolom ini.</small>' : ''}</details></section>
         <section class="pp-step"><h4><i>3</i>Harga &amp; modal</h4>
           <div class="pp-two"><div><div class="pp-label">Harga jual</div><input class="input pp-big pp-money" id="pp-price" inputmode="numeric" placeholder="Rp0"></div>
           <div><div class="pp-label">Modal (HPP) <small>harga beli / bahan</small></div><input class="input pp-big pp-money" id="pp-cost" inputmode="numeric" placeholder="Rp0"></div></div>
@@ -275,6 +282,7 @@
     if (t.dataset.unit !== undefined) { draft.unit = t.dataset.unit; paintUnits(); return; }
     if (t.dataset.cat !== undefined) { draft.category = t.dataset.cat; paintCats(); return; }
     if (t.id === 'pp-cam-btn') { takePhoto(); return; }
+    if (t.id === 'pp-code-scan') { openScan('field'); return; }
     if (t.id === 'pp-photo-del') { draft.image = ''; photoBlob = null; paintPhoto(); return; }
     if (t.id === 'pp-newcat-add') { addCategory(); return; }
     if (t.dataset.q) {
@@ -527,11 +535,156 @@
     paintCount();
   }
 
+  /* ---------- Scan barcode: kamera HP / webcam (ZXing, dimuat saat dibuka) + alat scanner (keyboard) + ketik manual ---------- */
+  const ZX_SRC = 'assets/vendor/zxing/zxing-library-0.21.3.min.js?v=1';
+  let zxPromise = null, scan = null;   // scan = { ctx: 'page' | 'field', ov, reader, done }
+  const loadZx = () => zxPromise || (zxPromise = new Promise((ok, no) => {
+    if (window.ZXing) { ok(window.ZXing); return; }
+    const sc = document.createElement('script');
+    sc.src = ZX_SRC;
+    sc.onload = () => (window.ZXing ? ok(window.ZXing) : no(new Error('zxing')));
+    sc.onerror = () => { zxPromise = null; no(new Error('zxing')); };
+    document.head.appendChild(sc);
+  }));
+  const normCode = v => String(v ?? '').replace(/[\s\u0000-\u001f]/g, '').slice(0, 40);
+  const byCode = code => (packages || []).find(x => x && x.is_active !== false && String(x.code || '').trim().toLowerCase() === code.toLowerCase());
+  const demoSamples = () => {
+    if (!window.__kairoDemo) return [];
+    const have = (packages || []).filter(x => x && x.is_active !== false && /^\d{8,14}$/.test(String(x.code || ''))).slice(0, 2).map(x => ({ code: x.code, label: x.name }));
+    return [...have, { code: '8999909000018', label: 'Produk baru (belum ada)' }];
+  };
+  const unlockIfIdle = () => { if (!document.getElementById('pp-sheet') && !document.getElementById('pp-count') && !document.getElementById('pp-scan')) document.documentElement.classList.remove('pp-lock'); };
+
+  function openScan(ctx) {
+    closeScan();
+    const ov = document.createElement('div');
+    ov.id = 'pp-scan'; ov.className = 'pp-overlay pp-scan-overlay';
+    const samples = demoSamples();
+    ov.innerHTML = `<div class="pp-sheet pp-scan-sheet" role="dialog" aria-modal="true" aria-label="Scan barcode">
+      <div class="pp-sheet-head"><b>Scan barcode</b><button type="button" class="pp-x" data-sc="close" aria-label="Tutup">×</button></div>
+      <div class="pp-sheet-body">
+        <div class="pp-scan-view" id="pp-scan-view"><video playsinline muted autoplay></video><i class="pp-scan-frame" aria-hidden="true"></i><p class="pp-scan-msg" id="pp-scan-msg" role="status">Menyiapkan kamera…</p></div>
+        <div class="pp-scan-result" id="pp-scan-result" hidden></div>
+        <div class="pp-label">Pakai alat scanner atau ketik kodenya</div>
+        <div class="pp-scan-manual"><input class="input pp-big" id="pp-scan-input" maxlength="40" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Scan / ketik barcode, lalu Enter"><button type="button" class="btn btn-green" data-sc="ok">Cari</button></div>
+        ${samples.length ? `<div class="pp-label">Mode demo — belum punya produk berbarcode? Coba contoh:</div><div class="pp-scan-samples">${samples.map(x => `<button type="button" data-sample="${esc(x.code)}"><b>${esc(x.code)}</b><small>${esc(x.label)}</small></button>`).join('')}</div>` : ''}
+      </div></div>`;
+    document.body.appendChild(ov);
+    document.documentElement.classList.add('pp-lock');
+    scan = { ctx, ov, stream: null, timer: null, done: false };
+    ov.addEventListener('click', e => {
+      if (e.target === ov) { closeScan(); return; }
+      const sm = e.target.closest('[data-sample]'); if (sm) { onScanned(sm.dataset.sample); return; }
+      const b = e.target.closest('[data-sc]'); if (!b) return;
+      if (b.dataset.sc === 'close') closeScan();
+      else if (b.dataset.sc === 'ok') { const v = ov.querySelector('#pp-scan-input').value; if (normCode(v)) onScanned(v); }
+      else if (b.dataset.sc === 'again') resetScan();
+      else if (b.dataset.sc === 'open') { const p = (packages || []).find(x => String(x.id) === b.dataset.id); closeScan(); if (p) openSheet(p); }
+    });
+    ov.querySelector('#pp-scan-input').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); const v = e.target.value; if (normCode(v)) onScanned(v); } });
+    // Di komputer, kolom langsung siap menerima alat scanner; di HP tidak (supaya papan ketik tidak menutupi kamera).
+    if (!(window.matchMedia && matchMedia('(pointer:coarse)').matches)) setTimeout(() => ov.querySelector('#pp-scan-input')?.focus(), 80);
+    startCamera();
+  }
+  function stopCamera(s) {
+    if (!s) return;
+    clearTimeout(s.timer); s.timer = null;
+    if (s.stream) { s.stream.getTracks().forEach(t => t.stop()); s.stream = null; }
+    const v = s.ov && s.ov.querySelector('video'); if (v) v.srcObject = null;
+  }
+  function closeScan() {
+    if (!scan) return;
+    stopCamera(scan); scan.ov.remove(); scan = null; unlockIfIdle();
+  }
+  async function startCamera() {
+    const s = scan; if (!s) return;
+    const view = s.ov.querySelector('#pp-scan-view'), msg = s.ov.querySelector('#pp-scan-msg'), video = s.ov.querySelector('video');
+    view.classList.remove('is-off');
+    const fail = t => { if (scan !== s) return; view.classList.add('is-off'); msg.textContent = t; };
+    if (!navigator.mediaDevices?.getUserMedia) { fail('Kamera tidak tersedia di perangkat ini. Pakai alat scanner atau ketik kodenya di bawah.'); return; }
+    try {
+      const Z = await loadZx(); if (scan !== s) return;
+      const hints = new Map();
+      hints.set(Z.DecodeHintType.POSSIBLE_FORMATS, [Z.BarcodeFormat.EAN_13, Z.BarcodeFormat.EAN_8, Z.BarcodeFormat.UPC_A, Z.BarcodeFormat.UPC_E, Z.BarcodeFormat.CODE_128, Z.BarcodeFormat.CODE_39, Z.BarcodeFormat.ITF, Z.BarcodeFormat.QR_CODE]);
+      hints.set(Z.DecodeHintType.TRY_HARDER, true);
+      const reader = new Z.MultiFormatReader(); reader.setHints(hints);
+      msg.textContent = 'Menyalakan kamera…';
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false });
+      if (scan !== s) { stream.getTracks().forEach(t => t.stop()); return; }
+      s.stream = stream; video.srcObject = stream; video.muted = true; video.setAttribute('playsinline', '');
+      try { await video.play(); } catch (_e) { /* autoplay sudah menyala */ }
+      if (scan !== s) return;
+      msg.textContent = 'Arahkan kamera ke barcode produk';
+      // Baca bingkai kamera tiap ±130 ms (diperkecil dulu supaya ringan di HP sederhana) sampai ada barcode yang terbaca.
+      const canvas = document.createElement('canvas'), cx = canvas.getContext('2d', { willReadFrequently: true });
+      const tick = () => {
+        if (scan !== s || s.done) return;
+        if (video.readyState >= 2 && video.videoWidth) {
+          const k = Math.min(1, 960 / video.videoWidth);
+          canvas.width = Math.round(video.videoWidth * k); canvas.height = Math.round(video.videoHeight * k);
+          cx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          try {
+            const res = reader.decode(new Z.BinaryBitmap(new Z.HybridBinarizer(new Z.HTMLCanvasElementLuminanceSource(canvas))));
+            onScanned(res.getText(), true); return;
+          } catch (_e) { /* belum ada barcode di bingkai ini */ }
+        }
+        s.timer = setTimeout(tick, 130);
+      };
+      tick();
+    } catch (err) {
+      stopCamera(s);
+      const m = String((err && (err.name + ' ' + err.message)) || '');
+      fail(/zxing/i.test(m) ? 'Pembaca barcode gagal dimuat. Periksa koneksi internet, atau ketik kodenya di bawah.'
+        : /NotAllowed|Permission|Denied/i.test(m) ? 'Izin kamera ditolak. Izinkan kamera untuk situs ini di pengaturan browser, atau ketik kodenya di bawah.'
+        : /NotFound|Devices|Overconstrained/i.test(m) ? 'Kamera tidak ditemukan. Pakai alat scanner atau ketik kodenya di bawah.'
+        : 'Kamera tidak bisa dibuka. Pakai alat scanner atau ketik kodenya di bawah.');
+    }
+  }
+  function resetScan() {
+    const s = scan; if (!s) return;
+    stopCamera(s); s.done = false;
+    s.ov.querySelector('#pp-scan-result').hidden = true;
+    const inp = s.ov.querySelector('#pp-scan-input'); inp.value = '';
+    startCamera();
+  }
+  function onScanned(raw, viaCamera) {
+    const s = scan; if (!s) return;
+    const code = normCode(raw);
+    if (!code) { s.done = false; return; }
+    s.done = true;
+    if (viaCamera) { try { navigator.vibrate && navigator.vibrate(60); } catch (_e) { /* tidak didukung */ } }
+    const p = byCode(code);
+    if (s.ctx === 'field') {
+      closeScan();
+      const inp = S('pp-code');
+      if (inp && draft) { inp.value = code; draft.code = code; const d = inp.closest('details'); if (d) d.open = true; }
+      if (p && String(p.id) !== String(draft?.id)) showToast(`Barcode ${code} sudah dipakai "${p.name}". Pakai barcode lain atau ubah produk itu.`, 'warning');
+      else showToast(`Barcode ${code} dimasukkan.`, 'success');
+      return;
+    }
+    if (!p) {
+      closeScan(); kind = 'package'; renderGrid();
+      openSheet(null, { code });
+      showToast(`Barcode ${code} belum ada. Isi nama dan harganya.`, 'info');
+      return;
+    }
+    // Produk dengan barcode itu sudah ada: tampilkan, jangan membuat dobel.
+    stopCamera(s);
+    s.ov.querySelector('#pp-scan-view').classList.add('is-off');
+    s.ov.querySelector('#pp-scan-msg').textContent = '';
+    const st = stockState(p), res = s.ov.querySelector('#pp-scan-result');
+    res.innerHTML = `<div class="pp-scan-found"><span class="pp-scan-thumb">${p.image_url ? `<img src="${esc(p.image_url)}" alt="">` : `<span class="pp-ph pp-initial" style="--h:${hue(p.name)}">${esc(initials(p.name))}</span>`}</span>
+      <div><small>Produk sudah ada</small><b>${esc(p.name)}</b><span>${money(p.price)}${st === 'none' ? '' : ' · ' + (st === 'out' ? 'Stok habis' : 'Stok ' + num(p.stock_qty) + (p.unit ? ' ' + esc(p.unit) : ''))}</span><em>Barcode ${esc(code)}</em></div></div>
+      <div class="pp-scan-actions"><button type="button" class="btn btn-light" data-sc="again">Scan lagi</button><button type="button" class="btn btn-green" data-sc="open" data-id="${esc(p.id)}">Ubah produk</button></div>`;
+    res.hidden = false;
+  }
+
   /* ---------- Stok untuk Dashboard + Lonceng ---------- */
   function problems() {
     return (packages || []).filter(p => p && p.is_active !== false && ['out', 'low'].includes(stockState(p))).sort((a, b) => num(a.stock_qty) - num(b.stock_qty));
   }
-  window.kairoShopStockNotifications = function () {
+  // Online Shop punya penghitung lonceng sendiri (online-shop.js, batas minimum per produk); jangan ditimpa.
+  if (!isShop()) window.kairoShopStockNotifications = function () {
     return problems().map(p => ({ id: `stock:${p.id}:${p.stock_qty}`, name: p.name, pkg: num(p.stock_qty) <= 0 ? 'Stok habis' : 'Stok menipis', note: num(p.stock_qty) <= 0 ? 'Habis' : `Sisa ${p.stock_qty}`, urgent: num(p.stock_qty) <= 0 }));
   };
   function renderDashStock() {
@@ -555,7 +708,7 @@
   wrap('renderDashboard', () => { ensureNav(); renderDashStock(); });
   wrap('renderMasterOptions', () => { renderGrid(); renderDashStock(); });
   new MutationObserver(() => ensureNav()).observe(document.getElementById('app-shell') || document.body, { childList: true, subtree: true });
-  document.addEventListener('keydown', e => { if (e.key === 'Escape' && document.getElementById('pp-sheet')) closeSheet(); });
+  document.addEventListener('keydown', e => { if (e.key !== 'Escape') return; if (scan) closeScan(); else if (document.getElementById('pp-sheet')) closeSheet(); });
   document.addEventListener('kairo:refreshed', () => { renderGrid(); renderDashStock(); });
   window.kairoPosProduk = { open: openPage, count: openCount, edit: id => { kind = 'package'; openPage(); openSheet((packages || []).find(x => String(x.id) === String(id))); } };
   boot();
