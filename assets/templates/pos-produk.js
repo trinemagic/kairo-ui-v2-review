@@ -623,20 +623,24 @@
       try { await video.play(); } catch (_e) { /* autoplay sudah menyala */ }
       if (scan !== s) return;
       msg.textContent = 'Arahkan kamera ke barcode produk';
-      // Baca bingkai kamera tiap ±130 ms (diperkecil dulu supaya ringan di HP sederhana) sampai ada barcode yang terbaca.
+      // Baca bingkai kamera tiap ±110 ms sampai ada barcode. Bingkai bergantian dibaca tegak dan diputar 90° (barcode di kemasan sering berdiri vertikal;
+      // ZXing hanya membaca garis mendatar). Resolusi dijaga sampai 1280 px supaya barcode kecil/jauh tetap terbaca.
       const canvas = document.createElement('canvas'), cx = canvas.getContext('2d', { willReadFrequently: true });
+      let turn = false;
       const tick = () => {
         if (scan !== s || s.done) return;
         if (video.readyState >= 2 && video.videoWidth) {
-          const k = Math.min(1, 960 / video.videoWidth);
-          canvas.width = Math.round(video.videoWidth * k); canvas.height = Math.round(video.videoHeight * k);
-          cx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          const k = Math.min(1, 1280 / video.videoWidth), w = Math.round(video.videoWidth * k), h = Math.round(video.videoHeight * k);
+          turn = !turn;
+          cx.setTransform(1, 0, 0, 1, 0, 0);
+          if (turn) { canvas.width = h; canvas.height = w; cx.setTransform(0, 1, -1, 0, h, 0); } else { canvas.width = w; canvas.height = h; }
+          cx.drawImage(video, 0, 0, w, h);
           try {
             const res = reader.decode(new Z.BinaryBitmap(new Z.HybridBinarizer(new Z.HTMLCanvasElementLuminanceSource(canvas))));
             onScanned(res.getText(), true); return;
           } catch (_e) { /* belum ada barcode di bingkai ini */ }
         }
-        s.timer = setTimeout(tick, 130);
+        s.timer = setTimeout(tick, 110);
       };
       tick();
     } catch (err) {

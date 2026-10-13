@@ -474,6 +474,22 @@
     document.getElementById('shop-stock-rows').innerHTML = `<div class="shop-stock-row shop-stock-head"><span>Produk</span><span>Stok</span><span>Batas menipis</span><span></span></div>` + packages.map(p => `<div class="shop-stock-row" data-id="${esc(p.id)}"><strong>${esc(p.name)}</strong><input class="input shop-stock-qty" type="number" step="1" inputmode="numeric" placeholder="Tidak dilacak" value="${p.stock_qty ?? ''}" aria-label="Stok ${esc(p.name)}"><input class="input shop-stock-min" type="number" min="0" step="1" inputmode="numeric" placeholder="-" value="${p.stock_min ?? ''}" aria-label="Batas menipis ${esc(p.name)}"><button type="button" class="btn btn-light" data-shop-stock-save>Simpan</button></div>`).join('');
   }
 
+  // Orders: foto produk (dari menu Produk) di kiri kartu; produk tanpa foto memakai kotak berhuruf awal supaya sejajar.
+  const hueOf = n => { let h = 0; for (const c of String(n || '')) h = (h * 31 + c.charCodeAt(0)) % 360; return h; };
+  const initialsOf = n => { const w = String(n || '?').trim().split(/\s+/); return ((w[0] || '?')[0] + (w[1] ? w[1][0] : '')).toUpperCase(); };
+  function decorateOrderPhotos() {
+    document.querySelectorAll('#tx-packages .pick-card').forEach(card => {
+      const p = (Array.isArray(packages) ? packages : []).find(x => String(x.id) === String(card.dataset.id));
+      if (!p) return;
+      let th = card.querySelector('.shop-pick-thumb');
+      if (!th) { th = document.createElement('span'); th.className = 'shop-pick-thumb'; card.insertBefore(th, card.querySelector('.master-main')); }
+      const url = String(p.image_url || '');
+      if (th.dataset.src === url && th.dataset.name === String(p.name)) return;
+      th.dataset.src = url; th.dataset.name = String(p.name);
+      th.innerHTML = url ? `<img src="${esc(url)}" alt="" loading="lazy" decoding="async">` : `<span class="shop-pick-initial" style="--h:${hueOf(p.name)}">${esc(initialsOf(p.name))}</span>`;
+    });
+  }
+
   // Orders: "Sisa N" di samping harga produk.
   function decorateOrderStock() {
     if (!stockReady()) return;
@@ -624,7 +640,7 @@
     wrap('applyTopicFieldLabel', () => { syncPlatformSelect(); });
     mountPlatformSettings();
     syncPlatformSelect();
-    wrap('renderMasterOptions', () => { decorateOrderStock(); watchStockLevels(); renderDashStock(); });
+    wrap('renderMasterOptions', () => { decorateOrderPhotos(); decorateOrderStock(); watchStockLevels(); renderDashStock(); });
     wrap('renderSettingsMasterData', mountStockSettings);
     mountStockSettings();
     decorateOrderStock();

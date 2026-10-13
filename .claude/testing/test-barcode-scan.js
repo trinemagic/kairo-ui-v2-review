@@ -9,6 +9,7 @@ const gen=require('./barcode-video.js');
 const ean=b12=>{let s=0;for(let i=0;i<12;i++)s+=Number(b12[i])*(i%2?3:1);return b12+String((10-(s%10))%10)};
 // Kamera palsu Chromium memutar video y4m berisi barcode EAN-13 (dibuat di sini), jadi pembacaan kamera diuji sungguhan.
 for(const [n,c] of [['exist','899100110001'],['new','899990900001'],['field','899300330001']])gen(ean(c),SP+n+'.y4m');
+gen(ean('899100110001'),SP+'vert.y4m',{vertical:true});gen(ean('899100110001'),SP+'small.y4m',{mod:2});
 let fails=0;const ok=(c,m)=>{if(!c){fails++;console.log('  GAGAL:',m)}else console.log('  ok:',m)};
 const EXIST='8991001100016',NEW='8999909000018',FIELD='8993003300012';
 const launch=file=>chromium.launch({args:['--use-fake-device-for-media-stream','--use-fake-ui-for-media-stream','--use-file-for-fake-video-capture='+SP+file]});
@@ -79,6 +80,13 @@ async function waitFor(p,fn,ms=9000){try{await p.waitForFunction(fn,null,{timeou
   ok(await p.inputValue('#pp-code')===FIELD,'kode = '+FIELD);
   ok(await visible(p,'#pp-sheet')&&!(await visible(p,'#pp-scan')),'lembar tetap terbuka, jendela scan tertutup');ok(await streamsEnded(p),'kamera mati');
   await b.close();
+
+  // F) barcode berdiri (vertikal) dan barcode kecil/jauh tetap terbaca
+  for(const [f,label] of [['vert.y4m','barcode berdiri (vertikal)'],['small.y4m','barcode kecil (modul 2px)']]){
+    b=await launch(f);p=await setup(b,tpl);await openPage(p);await p.click('#pp-scan-open');
+    ok(await waitFor(p,()=>!document.getElementById('pp-scan-result')?.hidden,12000),'kamera membaca '+label);
+    await b.close();
+  }
 
   // D) ketik / alat scanner (Enter), produk ada vs baru, tanpa kamera
   b=await chromium.launch();p=await setup(b,tpl);await openPage(p);
