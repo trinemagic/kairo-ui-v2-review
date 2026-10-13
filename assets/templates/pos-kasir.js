@@ -885,14 +885,13 @@
     [/^Kelola pilihan yang tersedia di menu Orders\..*$/, 'Kelola daftar kategori produk yang muncul di menu Kasir dan Produk. Nama kategori bisa disesuaikan.']];
   function relabelTerms() {
     trimAccess();
-    const roots = ['dashboard', 'performance', 'customers', 'promo', 'settings'].map(id => document.getElementById(id)).filter(Boolean);
+    const roots = ['dashboard', 'performance', 'customers', 'settings'].map(id => document.getElementById(id)).filter(Boolean);
     roots.forEach(r => {
       const w = document.createTreeWalker(r, NodeFilter.SHOW_TEXT); let n;
       while ((n = w.nextNode())) {
         const raw = n.nodeValue, t = raw.trim(); if (!t) continue;
         let out = t;
         for (const [re, to] of TERMS) if (re.test(out) && !(r.id === 'settings' && /Waktu/.test(re.source))) { out = out.replace(re, to); break; }
-        if (r.id === 'promo') out = out.replace(/package/gi, m => (m[0] === 'P' ? 'Produk' : 'produk')).replace(/topik/gi, m => (m[0] === 'T' ? 'Kategori' : 'kategori')).replace(/keyword/gi, 'kata kunci');
         if (out !== t) n.nodeValue = raw.replace(t, out);
       }
     });

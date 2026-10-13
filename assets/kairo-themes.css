@@ -199,7 +199,6 @@ html.kairo-v3[data-ws-theme=pinky] body.authenticated #dashboard .kpi .kpi-value
 html.kairo-v3[data-ws-theme=pinky] body.authenticated #dashboard .kpi .kpi-eye{color:var(--ws-k-ink)!important}
 /* Wood: serif titles */
 html.kairo-v3[data-ws-theme=wood] body.authenticated #app-shell .card-title,
-html.kairo-v3[data-ws-theme=wood] body.authenticated #app-shell .promo-title,
 html.kairo-v3[data-ws-theme=wood] body.authenticated #kairo-v3-dashboard-head h2{font-family:Georgia,"Times New Roman",serif!important;font-weight:700!important;letter-spacing:0}
 html.kairo-v3[data-ws-theme=girlie] body.authenticated #app-shell .btn,
 html.kairo-v3[data-ws-theme=pinky] body.authenticated #app-shell .btn,
