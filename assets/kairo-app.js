@@ -541,12 +541,20 @@ function renderRetentionNotice(state){
   note.innerHTML=`<span><b>Pemberitahuan paket Gratis:</b> ${Number(state.count)||0} catatan sebelum ${fmt(new Date(`${state.through}T12:00:00`))} akan dihapus permanen mulai <b>${fmt(at)}</b> (data lebih dari 12 bulan). Saldo partner & Kas tetap aman. Upgrade ke Pro sebelum tanggal itu supaya semua data tetap tersimpan.</span><button type="button" class="kairo-history-limit-btn">Upgrade ke Pro</button>`;
   note.querySelector('button').onclick=()=>window.kairoRequestUpgrade?.();
 }
+async function isPreorderWorkspace(){
+  const {data,error}=await db.from('workspace_business_profiles').select('business_template').eq('workspace_id',requireWorkspaceId()).maybeSingle();
+  if(!error&&data)return data.business_template==='preorder_jastip';
+  const {data:auth}=await db.auth.getSession();
+  return String(auth?.session?.user?.user_metadata?.business_template||'').toLowerCase()==='preorder_jastip';
+}
 async function maybeRunDataRetention(){
   try{
     let st=activeWorkspaceBranding&&('data_retention' in activeWorkspaceBranding)?activeWorkspaceBranding.data_retention:undefined;
     if(st===undefined){const {data,error}=await db.from('workspace_branding').select('data_retention').eq('workspace_id',requireWorkspaceId()).maybeSingle();if(error)return;st=data?.data_retention;}
     st=st||{};
     if(normalizedPlan()==='pro'||isTrineMagicWorkspace()){if(st.notice_at)await saveRetentionState({cancelled_at:new Date().toISOString(),reason:'pro'});renderRetentionNotice(null);return;}
+    // Template Pre-Order & Jastip tidak ikut aturan ini: buku uang (DP, cicilan, talangan) tidak ikut diringkas (owner 13 Okt 2026; database juga menolak).
+    if(await isPreorderWorkspace()){if(st.notice_at)await saveRetentionState({cancelled_at:new Date().toISOString(),reason:'preorder'});renderRetentionNotice(null);return;}
     const now=Date.now();
     if(st.notice_at&&Date.parse(st.notice_at)<=now-RETENTION_NOTICE_DAYS*864e5){if(await applyRetention(st.through))st=activeWorkspaceBranding?.data_retention||{};}
     if(!st.notice_at){
