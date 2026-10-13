@@ -5708,8 +5708,8 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
       else if(template==='preorder_jastip'){root.dataset.businessTemplate='preorder_jastip';if(typeof applyTopicFieldLabel==='function')applyTopicFieldLabel();document.dispatchEvent(new CustomEvent('kairo:template-ready'));
         // Template custom Pre-Order & Jastip (tidak dibuka untuk umum; akun dibuat admin).
         if(!document.getElementById('preorder-jastip-js')){
-          const link=document.createElement('link');link.id='preorder-jastip-css';link.rel='stylesheet';link.href='assets/templates/preorder-jastip.css?v=1.0.0';document.head.appendChild(link);
-          const script=document.createElement('script');script.id='preorder-jastip-js';script.src='assets/templates/preorder-jastip.js?v=1.0.0';script.defer=true;document.body.appendChild(script);
+          const link=document.createElement('link');link.id='preorder-jastip-css';link.rel='stylesheet';link.href='assets/templates/preorder-jastip.css?v=1.0.1';document.head.appendChild(link);
+          const script=document.createElement('script');script.id='preorder-jastip-js';script.src='assets/templates/preorder-jastip.js?v=1.0.1';script.defer=true;document.body.appendChild(script);
         }}
       else if(['online_shop','pos_kasir','preorder_jastip'].includes(root.dataset.businessTemplate)){delete root.dataset.businessTemplate;}
       if(template!=='digital_subscription')return;

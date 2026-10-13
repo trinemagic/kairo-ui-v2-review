@@ -269,7 +269,8 @@
         <label class="po-f"><span>WhatsApp (opsional)</span><input class="input" name="wa" inputmode="tel" placeholder="08…"></label>
       </div>
       <label class="po-f"><span>Platform</span><select class="input" name="platform" required><option value="">Pilih platform</option>${opt(platforms(), '')}</select></label>
-      <div class="po-f"><span>Kategori barang</span><div class="po-chips" id="po-cats">${cats.length ? cats.map(c => `<label class="po-chip"><input type="checkbox" name="cat" value="${esc(c.id)}" data-name="${esc(c.name)}"><span>${esc(c.name)}</span></label>`).join('') : '<em class="po-muted">Belum ada kategori. Tambah di Settings › Kategori Barang.</em>'}</div></div>
+      <div class="po-grid2"><label class="po-f"><span>Kategori barang</span><select class="input" name="cat"><option value="">Pilih kategori</option>${cats.map(c => `<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('')}<option value="__new">＋ Kategori baru…</option></select></label>
+        <label class="po-f" id="po-newcat-wrap" hidden><span>Nama kategori baru</span><input class="input" name="newcat" maxlength="40" placeholder="mis. Sepatu, Mainan"></label></div>
       <div class="po-f"><span>Barang</span><div id="po-items" class="po-items"></div><button type="button" class="btn btn-light po-small" id="po-add-item">＋ Tambah barang</button></div>
       <div class="po-f"><span>Biaya tambahan ke customer (jasa titip, ongkir, dll.)</span><div id="po-fees" class="po-items"></div><button type="button" class="btn btn-light po-small" id="po-add-fee">＋ Tambah biaya</button></div>
       <div class="po-total"><span>Total tagihan</span><b id="po-total">Rp0</b></div>
@@ -322,10 +323,28 @@
     form.querySelector('#po-add-item').onclick = () => addLine(form.querySelector('#po-items'), 'item');
     form.querySelector('#po-add-fee').onclick = () => addLine(form.querySelector('#po-fees'), 'fee');
     form.querySelector('#po-scheme').addEventListener('change', payBox);
+    form.cat.addEventListener('change', () => { const on = form.cat.value === '__new'; o.querySelector('#po-newcat-wrap').hidden = !on; if (on) form.newcat.focus(); });
     form.addEventListener('input', e => { if (e.target.closest('#po-pay-box')) recalc(); });
     form.addEventListener('change', e => { if (e.target.closest('#po-pay-box')) recalc(); });
     payBox();
     o.querySelector('#po-save').onclick = () => saveNewOrder(form, { items, fees, total, scheme });
+  }
+
+  /* Kategori: pilih dari daftar, atau ketik baru -> disimpan ke topic_masters (nama kembar/nonaktif dipakai lagi, tidak dobel). */
+  async function pickCategory(id, newName) {
+    if (id && id !== '__new') { const t = (topics || []).find(x => String(x.id) === String(id)); return t ? { id: t.id, name: t.name } : null; }
+    const name = String(newName || '').trim();
+    if (id !== '__new' || !name) return null;
+    const hit = (topics || []).find(x => String(x.name || '').trim().toLowerCase() === name.toLowerCase()) || await window.kairoFindTopic?.(name);
+    if (hit) {
+      if (hit.is_active === false) { const { error } = await db.from('topic_masters').update({ is_active: true }).eq('workspace_id', ws()).eq('id', hit.id); if (error) throw error; }
+      if (hit.is_active === false && typeof loadMasters === 'function') await loadMasters();
+      return { id: hit.id, name: hit.name };
+    }
+    const { data, error } = await db.from('topic_masters').insert([workspaceInsert({ name, is_active: true })]).select('id,name').single();
+    if (error) throw error;
+    if (typeof loadMasters === 'function') await loadMasters();
+    return { id: data.id, name: data.name };
   }
 
   let savingOrder = false;
@@ -344,13 +363,15 @@
     if (dp > total) return err('DP tidak boleh lebih besar dari total tagihan.');
     if (scheme === 'dp' && !val('due')) return err('Isi tanggal pelunasan paling lambat.');
     if (scheme === 'installment' && total - dp <= 0) return err('Tidak ada sisa untuk dicicil. Pilih Lunas sekarang.');
+    if (val('cat') === '__new' && !val('newcat')) return err('Isi nama kategori baru.');
     const recorder = val('recorded_by');
     if (g('recorded_by') && !recorder) return err('Pilih siapa yang mencatat.');
     if (recorder) rememberRecorder(recorder);
-    const cats = [...form.querySelectorAll('[name=cat]:checked')].map(c => ({ id: c.value, name: c.dataset.name }));
     const btn = document.getElementById('po-save');
     savingOrder = true; busy(btn, true, null, 'Menyimpan…');
     try {
+      const cat = await pickCategory(val('cat'), val('newcat'));
+      const cats = cat ? [cat] : [];
       // Customer: pakai yang sudah ada (nama sama), kalau belum ada dibuat.
       await (typeof loadCustomerDirectory === 'function' ? loadCustomerDirectory() : null);
       let cust = typeof getExactCustomer === 'function' ? getExactCustomer(customer) : null;
@@ -535,14 +556,14 @@
   }
 
   /* ---------- Halaman Pre-Order (menggantikan form Orders) ---------- */
-  let orderFilter = 'active', orderQuery = '';
+  let orderFilter = 'active', orderQuery = '', orderCat = '';
   function ensureOrdersPage() {
     const sec = document.getElementById('input');
     if (!sec || document.getElementById('po-orders')) return;
     const box = document.createElement('div');
     box.id = 'po-orders'; box.className = 'card po-card';
     box.innerHTML = `<div class="po-top"><div><div class="card-title">Pre-Order</div><div class="page-sub">Pesanan customer, pembayaran DP/cicilan, dan status barang.</div></div><button type="button" class="btn btn-green po-add" id="po-new-open">＋ Pre-Order Baru</button></div>
-      <div class="po-tools"><div class="po-filter" role="group" aria-label="Filter pre-order">${[['active', 'Aktif'], ['unpaid', 'Belum lunas'], ['waiting', 'Menunggu barang'], ['done', 'Selesai'], ['cancelled', 'Dibatalkan'], ['all', 'Semua']].map(([k, l]) => `<button type="button" data-po-f="${k}">${l}</button>`).join('')}</div><input class="input po-search" type="search" id="po-search" placeholder="Cari customer atau barang" aria-label="Cari pre-order"></div>
+      <div class="po-tools"><div class="po-filter" role="group" aria-label="Filter pre-order">${[['active', 'Aktif'], ['unpaid', 'Belum lunas'], ['waiting', 'Menunggu barang'], ['done', 'Selesai'], ['cancelled', 'Dibatalkan'], ['all', 'Semua']].map(([k, l]) => `<button type="button" data-po-f="${k}">${l}</button>`).join('')}</div><select class="input po-sel" id="po-cat-filter" aria-label="Filter kategori"></select><input class="input po-search" type="search" id="po-search" placeholder="Cari customer atau barang" aria-label="Cari pre-order"></div>
       <div id="po-list" class="po-list"></div>`;
     sec.prepend(box);
     box.addEventListener('click', e => {
@@ -551,12 +572,20 @@
     });
     box.querySelector('#po-new-open').onclick = () => openNewOrder();
     box.querySelector('#po-search').addEventListener('input', e => { orderQuery = e.target.value.trim().toLowerCase(); renderOrders(); });
+    box.querySelector('#po-cat-filter').addEventListener('change', e => { orderCat = e.target.value; renderOrders(); });
   }
   const poOrders = () => allTx.filter(t => t.po_scheme);
+  const orderCats = t => { const list = (Array.isArray(t.order_topics) ? t.order_topics : []).map(x => x && x.name).filter(Boolean); return list.length ? list : String(t.topic_name || '').split(',').map(x => x.trim()).filter(Boolean); };
   function renderOrders() {
     ensureOrdersPage();
     const list = document.getElementById('po-list'); if (!list) return;
     document.querySelectorAll('[data-po-f]').forEach(b => b.classList.toggle('is-active', b.dataset.poF === orderFilter));
+    // Dropdown kategori: kategori aktif + kategori yang masih dipakai order lama (walau sudah dinonaktifkan).
+    const catSel = document.getElementById('po-cat-filter');
+    const catNames = [...new Set([...(Array.isArray(topics) ? topics : []).filter(t => t.is_active !== false).map(t => t.name), ...poOrders().flatMap(orderCats)].filter(Boolean))].sort((a, b) => a.localeCompare(b, 'id'));
+    if (orderCat && !catNames.includes(orderCat)) orderCat = '';
+    const catHtml = `<option value="">Semua kategori</option>${catNames.map(n => `<option value="${esc(n)}"${n === orderCat ? ' selected' : ''}>${esc(n)}</option>`).join('')}`;
+    if (catSel && catSel.innerHTML !== catHtml) catSel.innerHTML = catHtml;
     if (!ready) { list.innerHTML = '<div class="po-empty">Tabel pre-order belum siap di database. Hubungi admin KAIRO.</div>'; return; }
     const rows = poOrders().map(t => ({ t, f: fin(t) })).filter(({ t, f }) => {
       if (orderFilter === 'active') return !f.cancelled && !f.done;
@@ -565,7 +594,7 @@
       if (orderFilter === 'done') return f.done;
       if (orderFilter === 'cancelled') return f.cancelled;
       return true;
-    }).filter(({ t }) => !orderQuery || `${t.customer_name} ${itemsText(t)} ${t.topic_name || ''}`.toLowerCase().includes(orderQuery));
+    }).filter(({ t }) => !orderCat || orderCats(t).includes(orderCat)).filter(({ t }) => !orderQuery || `${t.customer_name} ${itemsText(t)} ${t.topic_name || ''}`.toLowerCase().includes(orderQuery));
     list.innerHTML = rows.length ? rows.map(({ t, f }) => {
       const p = planRows(t, f), nx = nextRow(p), eta = t.po_eta && !['arrived', 'delivered', 'cancelled'].includes(t.po_status) ? (dayDiff(t.po_eta, today()) < 0 ? `<span class="po-badge is-bad">Lewat ETA ${esc(fmtDate(t.po_eta))}</span>` : `<span class="po-muted">ETA ${esc(fmtDate(t.po_eta))}</span>`) : '';
       return `<button type="button" class="po-item" data-po-open="${esc(t.id)}">

@@ -87,7 +87,7 @@ domain = pengguna login ulang & pengaturan browser (Ingat saya, dark mode) mulai
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
 Versi terakhir: `kairo.css?v=20.10.161`, `kairo-receipt.css?v=1.3.0`, `kairo-v3.css?v=3.44.7`,
-`kairo-v3.js?v=3.32.11`, `kairo-app.js?v=20.10.258`, `preorder-jastip.js/.css?v=1.0.0` (dari loader kairo-app.js), `kairo-pin.js?v=1.0.2`, `kairo-payments.js?v=1.0.0`, `kairo-themes.css?v=1.0.0`/`.js?v=1.0.1`; template seller dimuat dari kairo-app.js
+`kairo-v3.js?v=3.32.11`, `kairo-app.js?v=20.10.259`, `preorder-jastip.js/.css?v=1.0.1` (dari loader kairo-app.js), `kairo-pin.js?v=1.0.2`, `kairo-payments.js?v=1.0.0`, `kairo-themes.css?v=1.0.0`/`.js?v=1.0.1`; template seller dimuat dari kairo-app.js
 (`seller-app-premium.js?v=20.10.161`, `.css?v=20.10.157`) — naikkan juga bila file template diubah.
 Setup Wizard dimuat dari `loadSetupWizard()` di kairo-app.js (`kairo-setup-wizard.js/.css`, satu konstanta `v` = 1.0.8; online-shop.js 1.7.4 / css 1.7.1 dimuat dari loader template).
 Panduan dimuat dari `window.kairoOpenGuide()` di kairo-v3.js (`kairo-guide.js/.css?v=` konstanta `GUIDE_V`='1.2.5'; gambar `assets/guide/*.webp?v=` `SHOT_V` di kairo-guide.js).
@@ -246,6 +246,7 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   Keputusan owner: talangan dicatat PER ORDER (valas + kurs), pengembalian talangan manual dengan saran (saldo kas usaha dibagi sebanding sisa talangan), belum ada tabungan customer, laba order = total - refund - talangan - biaya order
   dan baru masuk bagi hasil (Withdraw, % partner biasa) saat barang **Diserahkan DAN Lunas** (`transactionProfitBreakdown` dibungkus; order lain tetap aturan lama). Menu: Pre-Order (menggantikan form Orders), Cicilan (Cicilan Customer + Reminder WA), Keuangan
   (Pembukuan + Modal Talangan; Petty Cash & kartu Saldo Kas disembunyikan, `cash` dialihkan ke `po-finance`), kartu Dashboard + "Perlu tindakan", lonceng = pengingat cicilan (hook umum `window.kairoTemplateNotifications/kairoTemplateNotifyCopy` di kairo-v3.js).
+  **Kategori barang (owner 13 Okt 2026, v1.0.1):** form Pre-Order = dropdown kategori (`topic_masters` aktif) + opsi "＋ Kategori baru…" yang memunculkan kolom nama; `pickCategory()` memakai kategori lama bila namanya sama (huruf besar/kecil diabaikan, yang nonaktif diaktifkan lagi), kalau tidak insert baru. Daftar Pre-Order punya filter `#po-cat-filter` (Semua kategori + kategori aktif + kategori yang masih dipakai order).
   Order dengan catatan uang tidak bisa dihapus (pakai Batalkan). Belum: kategori minat di Customer Database, Export Excel pembukuan, pengeluaran operasional tidak mengurangi hak Withdraw (hanya di Laba usaha Pembukuan).
   Tes: `seed-jastip.js` + `bootApp(b,{template:'jastip',seed:require('./seed-jastip.js')})`; preview admin `ONLY=preorder-jastip node shoot-templates.js`.
 - **Cek saldo Kas di database diperbaiki (owner Okt 2026):** trigger `prevent_cash_overdraw` dulu menjumlah transaksi SEMUA workspace dengan Kas 5% tetap. Sekarang `kairo_cash_entitlement(ws, tanggal)` meniru `cashEntitlementFromTransactions` (HPP snapshot, nominal manual + skala,
