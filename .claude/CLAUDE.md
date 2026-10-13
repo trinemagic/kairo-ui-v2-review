@@ -87,7 +87,7 @@ domain = pengguna login ulang & pengaturan browser (Ingat saya, dark mode) mulai
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
 Versi terakhir: `kairo.css?v=20.10.162`, `kairo-receipt.css?v=1.3.0`, `kairo-v3.css?v=3.44.8`,
-`kairo-v3.js?v=3.32.13`, `kairo-app.js?v=20.10.263`, `preorder-jastip.js?v=1.0.2`/`.css?v=1.0.3` (dari loader kairo-app.js), `kairo-pin.js?v=1.0.2`, `kairo-payments.js?v=1.0.0`, `kairo-themes.css?v=1.0.1`/`.js?v=1.0.2`; template seller dimuat dari kairo-app.js
+`kairo-v3.js?v=3.32.13`, `kairo-app.js?v=20.10.264`, `preorder-jastip.js?v=1.0.2`/`.css?v=1.0.3` (dari loader kairo-app.js), `kairo-pin.js?v=1.0.2`, `kairo-payments.js?v=1.0.0`, `kairo-themes.css?v=1.0.1`/`.js?v=1.0.2`; template seller dimuat dari kairo-app.js
 (`seller-app-premium.js?v=20.10.163`, `.css?v=20.10.157`) — naikkan juga bila file template diubah.
 Setup Wizard dimuat dari `loadSetupWizard()` di kairo-app.js (`kairo-setup-wizard.js/.css`, satu konstanta `v` = 1.0.8; online-shop.js 1.7.5 / css 1.7.2 dimuat dari loader template).
 Panduan dimuat dari `window.kairoOpenGuide()` di kairo-v3.js (`kairo-guide.js/.css?v=` konstanta `GUIDE_V`='1.2.7'; gambar `assets/guide/*.webp?v=` `SHOT_V` di kairo-guide.js).
@@ -150,7 +150,7 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   baris "Saldo awal" (transaksi `package_code='KAIRO_ROLLUP'` dengan `manual_profit_split` = hak tiap partner + Kas + `__lainnya`; pencairan per
   partner & kas berawalan `[Saldo awal]`) lalu RPC `kairo_retention_apply` menghapus + menyisipkan dalam SATU transaksi DB (cek pemilik, bukan
   Pro aktif, 30 hari, 12 bulan). Saldo partner/Kas/omzet total TERUJI sama sebelum & sesudah (juga saat ringkasan lama diringkas ulang).
-  Pro/Trine Magic = pemberitahuan dibatalkan. Langganan seller yang berakhir >= 30 hari lalu disimpan (`window.kairoSellerTxActiveUntil`).
+  Pro/Trine Magic = pemberitahuan dibatalkan. **Template Pre-Order & Jastip TIDAK ikut** (owner 13 Okt 2026; buku uang `ledger_entries`/cicilan tidak ikut diringkas): `isPreorderWorkspace()` (baca `workspace_business_profiles`, cadangan metadata login) membatalkan pemberitahuan, dan `kairo_retention_apply` menolak template itu (`.claude/sql/2026-10-retention-skip-preorder.sql`, **dijalankan Claude via MCP**). Langganan seller yang berakhir >= 30 hari lalu disimpan (`window.kairoSellerTxActiveUntil`).
   Baris ringkasan disembunyikan dari daftar (`isRollupTx/isRollupRow`: riwayat, periode, customer, penjualan per produk, notice 60 hari).
   SQL `.claude/sql/2026-10-free-data-retention.sql` (**sudah dijalankan owner Okt 2026**). Keterbatasan: workspace yang tidak pernah
   login tidak dihapus; hak partner nonaktif masuk `__lainnya`; Kas dari data lama mengikuti aturan Gratis (0) saat diringkas.
