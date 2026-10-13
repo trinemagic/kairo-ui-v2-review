@@ -1103,6 +1103,7 @@ if (window.top !== window.self) {
     show(el);
   }
 
+  window.kairoMoneyInput = setup; // dipakai Setup Wizard (kolom Harga jual / Modal) supaya tampil "Rp7.000" juga
   // Settings › Package & Harga / Add-on & Harga: harga dan modal tampil "Rp85.000" (baris dibuat ulang tiap render).
   function setupMasterMoney() {
     document.querySelectorAll('#settings-package-list, #settings-addon-list').forEach(host => {
