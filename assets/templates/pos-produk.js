@@ -290,8 +290,12 @@
     if (!name) return;
     if ((topics || []).some(x => String(x.name || '').toLowerCase() === name.toLowerCase())) { draft.category = (topics.find(x => String(x.name).toLowerCase() === name.toLowerCase())).name; inp.value = ''; paintCats(); return; }
     try {
-      let res = await db.from('topic_masters').insert({ workspace_id: wid(), name, code: name.toUpperCase().slice(0, 12), is_active: true });
-      if (res.error && /code/i.test(String(res.error.message))) res = await db.from('topic_masters').insert({ workspace_id: wid(), name, is_active: true });
+      // Nama kategori unik per workspace di database, termasuk yang sudah dinonaktifkan (tidak tampil di daftar): aktifkan lagi, jangan gagal.
+      const hit = await window.kairoFindTopic?.(name);
+      let res = hit
+        ? (hit.is_active === false ? await db.from('topic_masters').update({ is_active: true }).eq('workspace_id', wid()).eq('id', hit.id) : { error: null })
+        : await db.from('topic_masters').insert({ workspace_id: wid(), name: name, code: name.toUpperCase().slice(0, 12), is_active: true });
+      if (!hit && res.error && /code/i.test(String(res.error.message))) res = await db.from('topic_masters').insert({ workspace_id: wid(), name, is_active: true });
       if (res.error) throw res.error;
       await loadMasters();
       const row = document.getElementById('pp-cats');

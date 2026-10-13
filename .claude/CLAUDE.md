@@ -86,8 +86,8 @@ domain = pengguna login ulang & pengaturan browser (Ingat saya, dark mode) mulai
 | `assets/brand/` | Logo resmi KAIRO Workspaces (kit dari owner, Okt 2026) | `kairo-horizontal-color.svg` = landing (header, footer, dialog Masuk; latar terang, min. lebar 120px); `kairo-app-icon.svg` = logo default dashboard (`KAIRO_LOGO`, sidebar, header HP, preview Settings, admin) sampai user upload logo sendiri; `favicon.svg/.ico`; `assets/og/apple-touch-icon.png` dari kit. Wordmark digambar - jangan diketik ulang pakai font. `assets/kairo-mark.svg` (logo lama) sudah dihapus. |
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
-Versi terakhir: `kairo.css?v=20.10.161`, `kairo-receipt.css?v=1.3.0`, `kairo-v3.css?v=3.44.5`,
-`kairo-v3.js?v=3.32.9`, `kairo-app.js?v=20.10.252`, `kairo-pin.js?v=1.0.2`, `kairo-payments.js?v=1.0.0`, `kairo-themes.css?v=1.0.0`/`.js?v=1.0.1`; template seller dimuat dari kairo-app.js
+Versi terakhir: `kairo.css?v=20.10.161`, `kairo-receipt.css?v=1.3.0`, `kairo-v3.css?v=3.44.6`,
+`kairo-v3.js?v=3.32.9`, `kairo-app.js?v=20.10.253`, `kairo-pin.js?v=1.0.2`, `kairo-payments.js?v=1.0.0`, `kairo-themes.css?v=1.0.0`/`.js?v=1.0.1`; template seller dimuat dari kairo-app.js
 (`seller-app-premium.js?v=20.10.161`, `.css?v=20.10.157`) — naikkan juga bila file template diubah.
 Setup Wizard dimuat dari `loadSetupWizard()` di kairo-app.js (`kairo-setup-wizard.js/.css`, satu konstanta `v` = 1.0.8; online-shop.js 1.7.3 dimuat dari loader template).
 Panduan dimuat dari `window.kairoOpenGuide()` di kairo-v3.js (`kairo-guide.js/.css?v=` konstanta `GUIDE_V`='1.2.4'; gambar `assets/guide/*.webp?v=` `SHOT_V` di kairo-guide.js).
@@ -545,6 +545,11 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   Mengisi `<select id="tx-payment">`: tanpa pengaturan (atau sama dengan bawaan) di template dasar/Seller = pilihan HTML bawaan tidak disentuh (nilai QRIS/CASH/TRANSFER/OTHER, akun lama tidak berubah); setelah diubah, empat nama bawaan tetap memakai nilai lama (QRIS/CASH/TRANSFER/OTHER) supaya riwayat & Autofill cocok, nama baru disimpan apa adanya.
   Online Shop: nama = nilai (seperti sebelumnya, bawaan Cash/Transfer/Other). Mengganti nama tidak mengubah transaksi lama. Pemasangan lewat `wrap()` fungsi global (`loadWorkspaceSaasContext`, `renderSettingsMasterData`, ...) + MutationObserver `#tx-form`/`#settings`, aman terhadap urutan muat template.
   Tes: scratchpad `pay/pay.js` (4 template: tambah/ganti nama/hapus/simpan/bawaan, nilai lama dipertahankan, Kasir tanpa kartu bersama), `pay/order.js` (simpan order dengan metode baru).
+- **Topik/Kategori & pendaftaran (owner Okt 2026, kairo-app.js 20.10.253, SQL `.claude/sql/2026-10-provision-pos-topic.sql` **dijalankan Claude via MCP**):** (1) `findTopicByName()` (`window.kairoFindTopic`) mencari nama topik TERMASUK yang nonaktif (huruf besar/kecil tidak dibedakan): tambah topik di Settings -> nama aktif sudah ada = "Topik “X” sudah ada di daftar.",
+  nama cocok topik nonaktif = konfirmasi "Aktifkan lagi?" lalu `is_active=true` (tanpa baris baru); Kasir (pos-produk.js 1.4.3 `addCategory`) langsung mengaktifkan lagi. Error DB duplikat (23505) tampil lewat `masterDupMessage()` ("Nama atau kode ini sudah dipakai ...") untuk tambah & simpan master.
+  (2) Orders tanpa topik: `#tx-topics` menampilkan `.kairo-topic-empty` ("Belum ada topik/kategori ...") + tombol `[data-kairo-open-topics]` yang membuka Settings › Topik dengan baris baru siap diisi; pesan submit "Belum ada <label>. Tambah dulu di Settings › <label>." (label mengikuti `topicFieldLabel()`).
+  (3) DB: `provision_kairo_workspace_for_user()` memberi workspace BARU (template general / service_consultation / online_shop) 1 topik "Umum" (bisa diubah/dihapus); Seller (digital_subscription) dan Kasir tidak (topik tak dipakai/Kasir tanpa wajib topik). Akun lama TIDAK diubah (Lunera, Bubulak, TOKO SEMPAK tetap 0 topik -> pakai petunjuk di Orders).
+  (4) DB: `pos_kasir` ditambahkan ke daftar template di fungsi itu dan di constraint `workspace_business_profiles_business_template_check` (dulu pendaftar Kasir/POS diam-diam tercatat 'general'). Teruji di DB asli lewat akun percobaan di transaksi yang di-rollback (pos_kasir/service/online_shop/digital + nilai ngawur). Tes UI: scratchpad `pay/topic2.js`, `pay/pos-cat.js`.
 - **Setup Wizard: kolom uang berformat Rupiah (owner Okt 2026):** kolom Harga jual/Modal (langkah Paket & harga, Produk sendiri & Harga seller) memakai pemformat yang sama dengan Settings: `window.kairoMoneyInput` (kairo-v3.js, di-set di blok 'Kolom nominal Rupiah') dipasang pada input `[data-money]` lewat MutationObserver
   dialog wizard; tampil "Rp7.000", `.value` tetap angka murni (jadi `num()`/penghitung profit tak berubah); FormData 'Produk sendiri' membaca `form.price.value` (bukan nilai tampilan). Kolom uang baru di wizard: beri `data-money`, jangan `type=number`.
 - **Admin x Trial/harga per template (Okt 2026, admin.js 1.12.5):** pendapatan admin (`platform_admin_analytics/business_overview/plan_performance`) dihitung dari `platform_sales` berstatus paid, jadi akun trial TIDAK dihitung sebagai pendapatan. Badge status "Trial" sudah ada (`SUB.trialing`).
@@ -647,8 +652,8 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
 - Tombol yang mengganti `innerHTML`-nya sendiri saat diklik (mis. `.kpi-eye` lewat `updateKpiEyeButtons()`): saat event sampai ke
   `document` (bubble) target `<svg>` sudah lepas dari halaman -> `closest()` gagal. Pakai listener capture (`true`). Tes klik dengan
   koordinat/tap di ikon, bukan `el.click()` (yang targetnya tombol) - bug ikon mata Profit seller Okt 2026 lolos karena itu.
-- Topik: tabel `topic_masters` mungkin tidak punya kolom `code`; simpan topik sudah
-  retry tanpa `code`. Belum diverifikasi di DB asli.
+- Topik: tabel `topic_masters` TIDAK punya kolom `code` (dicek di DB asli Okt 2026; simpan topik otomatis retry tanpa `code`) dan punya indeks UNIK `(workspace_id, name)` yang case-sensitive
+  dan ikut menghitung topik NONAKTIF (daftar app hanya menampilkan yang aktif). Dulu menambah nama yang sama dengan topik nonaktif gagal dengan pesan mentah `duplicate key ... topic_masters_workspace_name_uidx`.
 
 ---
 
@@ -695,7 +700,7 @@ cd .claude/testing && node example.js                                # lihat REA
 
 - Semua perubahan belum diuji di **Safari/iPhone/Android** dan dengan **Supabase/login asli** (termasuk splash, mode standalone, gambar layar awal iOS, Masuk layar penuh, cek duplikat di trigger kas asli).
 - Menunggu owner: tes printer struk fisik, testimoni/medsos/kebijakan refund untuk landing, Promo di layar Kasir (HOLD), bukti error "tidak bisa tambah topik", Leaked password protection asli (butuh Supabase Pro; sementara diganti cek gratis di browser) dan pemasangan SMTP sendiri di Supabase Auth.
-- Penyebab "tidak bisa tambah topik" di DB asli belum terkonfirmasi.
+- "Tidak bisa tambah topik": penyebab ditemukan Okt 2026 (nama kembar dengan topik nonaktif + akun baru tanpa topik, lihat poin 'Topik/Kategori' di bagian 3) dan sudah diperbaiki; bukti error asli dari owner tidak ada.
 - Performa (audit Okt 2026): idle di luar Dashboard 0 re-layout; di Dashboard 1×/detik (jam).
   Header Dashboard hanya ditulis ulang bila nama/workspace/tanggal berubah (dulu tiap
   perubahan class body); jam berhenti saat tidak terlihat; cek notifikasi dilewati saat tab
