@@ -495,7 +495,7 @@ let setupWizardLoader=null;
 function loadSetupWizard(){
   if(window.kairoSetupWizard)return Promise.resolve(window.kairoSetupWizard);
   if(!setupWizardLoader)setupWizardLoader=new Promise((resolve,reject)=>{
-    const v='1.0.7',css=document.createElement('link');css.rel='stylesheet';css.href=`assets/kairo-setup-wizard.css?v=${v}`;document.head.appendChild(css);
+    const v='1.0.8',css=document.createElement('link');css.rel='stylesheet';css.href=`assets/kairo-setup-wizard.css?v=${v}`;document.head.appendChild(css);
     const js=document.createElement('script');js.src=`assets/kairo-setup-wizard.js?v=${v}`;js.onload=()=>resolve(window.kairoSetupWizard);js.onerror=()=>{setupWizardLoader=null;reject(new Error('Setup wizard gagal dimuat.'));};document.head.appendChild(js);
   });
   return setupWizardLoader;
@@ -5733,7 +5733,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
         // Analitik toko (laba per produk, channel, batal/retur) + kartu Profit Dashboard dimuat hanya untuk Online Shop.
         if(!document.getElementById('online-shop-js')){
           const link=document.createElement('link');link.id='online-shop-css';link.rel='stylesheet';link.href='assets/templates/online-shop.css?v=1.7.0';document.head.appendChild(link);
-          const script=document.createElement('script');script.id='online-shop-js';script.src='assets/templates/online-shop.js?v=1.7.2';script.defer=true;document.body.appendChild(script);
+          const script=document.createElement('script');script.id='online-shop-js';script.src='assets/templates/online-shop.js?v=1.7.3';script.defer=true;document.body.appendChild(script);
         }}
       else if(template==='pos_kasir'){root.dataset.businessTemplate='pos_kasir';if(typeof applyTopicFieldLabel==='function')applyTopicFieldLabel();document.dispatchEvent(new CustomEvent('kairo:template-ready'));
         // Dashboard Kasir (tahap 1): dimuat hanya untuk Kasir / POS.

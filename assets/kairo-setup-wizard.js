@@ -105,6 +105,8 @@
       root.setAttribute('role', 'dialog'); root.setAttribute('aria-modal', 'true'); root.setAttribute('aria-labelledby', 'ksw-title');
       root.innerHTML = '<div class="ksw-scrim"></div><div class="ksw-dialog"></div>';
       document.body.appendChild(root);
+      const moneyFields = () => { if (typeof window.kairoMoneyInput === 'function') root?.querySelectorAll('input[data-money]').forEach(window.kairoMoneyInput); };
+      new MutationObserver(moneyFields).observe(root, { childList: true, subtree: true });
       root.addEventListener('keydown', e => { if (e.key === 'Escape' && !busy) { e.preventDefault(); later(); } });
       document.documentElement.classList.add('ksw-open');
     }
@@ -237,8 +239,8 @@
         <label class="ksw-fld"><span>Kategori</span><select name="category">${cats}</select></label>
         <label class="ksw-fld"><span>Plan / varian</span><input type="text" name="variant" maxlength="40" placeholder="Contoh: Sharing" required></label>
         <label class="ksw-fld"><span>Durasi</span><input type="text" name="duration" maxlength="20" placeholder="Contoh: 1 bulan" required></label>
-        <label class="ksw-fld"><span>Harga jual</span><input type="number" name="price" min="0" step="500" inputmode="numeric" value="0"></label>
-        <label class="ksw-fld"><span>Modal</span><input type="number" name="cost" min="0" step="500" inputmode="numeric" value="0"></label>
+        <label class="ksw-fld"><span>Harga jual</span><input type="text" name="price" data-money inputmode="numeric" value="0"></label>
+        <label class="ksw-fld"><span>Modal</span><input type="text" name="cost" data-money inputmode="numeric" value="0"></label>
       </div><div class="ksw-addbar"><span class="ksw-addhint">Satu produk bisa punya beberapa plan: simpan, lalu ganti plan/durasinya dan simpan lagi.</span><button type="submit" class="ksw-btn is-sm">Simpan produk</button></div></form>
       <div class="ksw-chips" role="tablist">${['', ...C.categories].map(c => `<button type="button" class="ksw-chip" data-cat="${esc(c)}" aria-pressed="${c === D.pcat}">${c ? esc(catLabel(c)) : 'Semua'}</button>`).join('')}</div><div class="ksw-apps" data-apps></div><div class="ksw-picked" data-picked></div>`;
     },
@@ -260,7 +262,7 @@
       toggle.addEventListener('click', () => { form.hidden = !form.hidden; toggle.setAttribute('aria-expanded', String(!form.hidden)); if (!form.hidden) { if (D.pcat) form.category.value = D.pcat; form.product.focus(); } });
       form.addEventListener('submit', async e => {
         e.preventDefault(); if (busy) return;
-        const btn = form.querySelector('[type=submit]'), data = Object.fromEntries(new FormData(form).entries());
+        const btn = form.querySelector('[type=submit]'), data = Object.fromEntries(new FormData(form).entries()); data.price = form.price.value; data.cost = form.cost.value;
         busy = true; btn.disabled = true; btn.classList.add('is-busy');
         try {
           const row = await C.addCustom(data);
@@ -292,7 +294,7 @@
         const list = rows.filter(r => r.product === p);
         return `<details class="ksw-grp" ${gi === 0 ? 'open' : ''}><summary><img src="${esc(C.iconBase + C.slug(p) + '.svg')}" alt=""><b>${esc(C.pretty(p))}</b><small>${list.length} plan</small></summary>${list.map(r => {
           const k = C.rowKey(r), v = D.prices[k] || { price: r.price, cost: r.cost };
-          return `<div class="ksw-prow" data-k="${esc(k)}"><span class="ksw-plan">${esc(C.pretty(r.variant))} · ${esc(r.duration)}</span><label><span class="ksw-ml">Harga jual</span><input type="number" min="0" step="500" inputmode="numeric" data-f="price" value="${Number(v.price) || 0}"></label><label><span class="ksw-ml">Modal</span><input type="number" min="0" step="500" inputmode="numeric" data-f="cost" value="${Number(v.cost) || 0}"></label><b class="ksw-profit">${profit(v.price, v.cost)}</b></div>`;
+          return `<div class="ksw-prow" data-k="${esc(k)}"><span class="ksw-plan">${esc(C.pretty(r.variant))} · ${esc(r.duration)}</span><label><span class="ksw-ml">Harga jual</span><input type="text" data-money inputmode="numeric" data-f="price" value="${Number(v.price) || 0}"></label><label><span class="ksw-ml">Modal</span><input type="text" data-money inputmode="numeric" data-f="cost" value="${Number(v.cost) || 0}"></label><b class="ksw-profit">${profit(v.price, v.cost)}</b></div>`;
         }).join('')}</details>`;
       }).join('')}</div>`;
     },
@@ -364,7 +366,7 @@
     }
   };
   function pkRow(r, i) {
-    return `<div class="ksw-prow" data-i="${i}"><label class="ksw-pname"><span class="ksw-ml">${shopWs() ? 'Nama produk' : 'Nama paket'}</span><input type="text" maxlength="100" placeholder="${shopWs() ? 'Contoh: Kaos Polos Hitam' : 'Contoh: Paket Reguler'}" data-f="name" value="${esc(r.name)}"></label><label><span class="ksw-ml">Harga jual</span><input type="number" min="0" step="1000" inputmode="numeric" data-f="price" value="${r.price}"></label><label><span class="ksw-ml">Modal</span><input type="number" min="0" step="500" inputmode="numeric" data-f="cost" value="${r.cost}"></label><b class="ksw-profit">${profit(r.price, r.cost)}</b>${r.id ? '<span></span>' : `<button type="button" class="ksw-del" data-del="${i}" aria-label="Hapus baris" title="Hapus baris">${ic('trash')}</button>`}</div>`;
+    return `<div class="ksw-prow" data-i="${i}"><label class="ksw-pname"><span class="ksw-ml">${shopWs() ? 'Nama produk' : 'Nama paket'}</span><input type="text" maxlength="100" placeholder="${shopWs() ? 'Contoh: Kaos Polos Hitam' : 'Contoh: Paket Reguler'}" data-f="name" value="${esc(r.name)}"></label><label><span class="ksw-ml">Harga jual</span><input type="text" data-money inputmode="numeric" data-f="price" value="${r.price}"></label><label><span class="ksw-ml">Modal</span><input type="text" data-money inputmode="numeric" data-f="cost" value="${r.cost}"></label><b class="ksw-profit">${profit(r.price, r.cost)}</b>${r.id ? '<span></span>' : `<button type="button" class="ksw-del" data-del="${i}" aria-label="Hapus baris" title="Hapus baris">${ic('trash')}</button>`}</div>`;
   }
 
   // 4. Kas & pembagian omzet: versi pembagian baru mulai sekarang (sama dengan Settings › Pembagian Omzet).
