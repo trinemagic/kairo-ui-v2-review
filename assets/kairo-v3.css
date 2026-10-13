@@ -5036,7 +5036,16 @@ html.kairo-v3 .kairo-pin-state { font-weight: 800; color: var(--v3-ink); }
 html.kairo-v3 .kairo-pin-btns { display: flex; flex-wrap: wrap; gap: 8px; }
 html.kairo-v3 .kairo-pin-btns [hidden] { display: none; }
 
-html.kairo-v3 #shop-payment-card .shop-platform-row { grid-template-columns: minmax(0, 1fr) 32px; }
+/* Settings › Metode Pembayaran (semua template, assets/kairo-payments.js): tiap baris = kolom nama yang bisa diganti + tombol hapus. */
+html.kairo-v3 .kpay-rows { display: grid; gap: 8px; margin: 12px 0; }
+html.kairo-v3 .kpay-row { display: grid; grid-template-columns: minmax(0, 1fr) 36px; gap: 8px; align-items: center; }
+html.kairo-v3 .kpay-row .input { min-height: 40px; }
+html.kairo-v3 .kpay-del { width: 36px; height: 36px; border: 0; border-radius: 50%; background: transparent; color: inherit; font-size: 20px; line-height: 1; cursor: pointer; }
+html.kairo-v3 .kpay-del:hover { background: color-mix(in srgb, currentColor 14%, transparent); }
+html.kairo-v3 .kpay-empty { color: var(--v3-muted, #4e6475); font-size: 13px; }
+html.kairo-v3 .kpay-add { display: flex; gap: 8px; margin-bottom: 12px; }
+html.kairo-v3 .kpay-add .input { flex: 1; min-width: 0; }
+html.kairo-v3 .kpay-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 
 /* Masuk layar penuh di HP untuk pengguna "Ingat saya"/PIN (owner Okt 2026): tanpa kartu melayang di atas landing; tombol X di pojok
    kanan atas kembali ke landing (#home). Isinya (keypad PIN atau form password) diletakkan di tengah dan bisa digulir bila layar pendek. */

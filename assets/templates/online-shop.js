@@ -111,71 +111,7 @@
   }
 
 
-  /* ---------- Metode pembayaran (bisa diatur user): receipt_labels.__payments ---------- */
-  const DEFAULT_PAYMENTS = ['QRIS', 'Cash', 'Transfer', 'Other'];
-  function paymentList() {
-    const l = brandingLabels().__payments;
-    const clean = Array.isArray(l) ? l.map(x => String(x || '').trim()).filter(Boolean) : [];
-    return clean.length ? clean : DEFAULT_PAYMENTS.slice();
-  }
-  function syncPaymentSelect() {
-    const sel = document.getElementById('tx-payment');
-    if (!sel) return;
-    const cur = sel.value, list = paymentList();
-    if (cur && !list.some(x => x.toLowerCase() === cur.toLowerCase())) list.push(cur);
-    const html = '<option value="">-- Pilih Metode Pembayaran --</option>' + list.map(p => `<option value="${esc(p)}">${esc(p)}</option>`).join('');
-    if (sel.dataset.shopOptions === html) return;
-    sel.innerHTML = html;
-    sel.dataset.shopOptions = html;
-    sel.value = list.find(x => x.toLowerCase() === cur.toLowerCase()) || cur;
-  }
-  let payDraft = null;
-  function renderPaymentRows() {
-    const box = document.getElementById('shop-payment-rows');
-    if (!box) return;
-    box.innerHTML = payDraft.map((n, i) => `<div class="shop-platform-row"><strong>${esc(n)}</strong><button type="button" class="shop-row-del" data-shop-pay-del="${i}" aria-label="Hapus ${esc(n)}">×</button></div>`).join('') || '<span class="shop-muted">Belum ada metode pembayaran.</span>';
-  }
-  function mountPaymentSettings() {
-    if (document.getElementById('shop-payment-card')) return;
-    const anchor = document.getElementById('shop-platform-card') || document.getElementById('settings-topic-card');
-    if (!anchor) return;
-    const card = document.createElement('div');
-    card.className = 'card settings-master-card';
-    card.id = 'shop-payment-card';
-    card.innerHTML = `<div class="settings-master-head"><div><div class="card-title">Metode Pembayaran</div><div class="page-sub">Pilihan metode pembayaran di Orders, mis. QRIS, Transfer, COD, atau nama dompet digital.</div></div></div>
-      <div id="shop-payment-rows" class="shop-platform-rows"></div>
-      <div class="shop-platform-add"><input class="input" id="shop-payment-input" maxlength="30" placeholder="Nama metode baru"><button type="button" class="btn btn-light" id="shop-payment-add">Tambah</button></div>
-      <div class="shop-platform-actions"><button type="button" class="btn btn-green" id="shop-payment-save">Simpan Metode</button><button type="button" class="btn btn-light" id="shop-payment-reset">Kembalikan Bawaan</button></div>`;
-    anchor.after(card);
-    payDraft = paymentList();
-    renderPaymentRows();
-    const input = card.querySelector('#shop-payment-input');
-    const add = () => {
-      const v = input.value.trim();
-      if (!v) return;
-      if (payDraft.some(x => x.toLowerCase() === v.toLowerCase())) { showToast('Metode itu sudah ada.', 'warning'); return; }
-      payDraft.push(v); input.value = ''; renderPaymentRows();
-    };
-    card.addEventListener('click', async e => {
-      const del = e.target.closest('[data-shop-pay-del]');
-      if (del) { payDraft.splice(Number(del.dataset.shopPayDel), 1); renderPaymentRows(); return; }
-      if (e.target.closest('#shop-payment-add')) { add(); return; }
-      if (e.target.closest('#shop-payment-reset')) { payDraft = DEFAULT_PAYMENTS.slice(); renderPaymentRows(); return; }
-      if (e.target.closest('#shop-payment-save')) {
-        try {
-          if (!payDraft.length) throw new Error('Isi minimal satu metode pembayaran.');
-          const wid = requireWorkspaceId();
-          const labels = { ...brandingLabels(), __payments: payDraft.slice() };
-          const { error } = await db.from('workspace_branding').upsert({ workspace_id: wid, receipt_labels: labels, updated_at: new Date().toISOString() }, { onConflict: 'workspace_id' });
-          if (error) throw error;
-          await loadWorkspaceSaasContext();
-          syncPaymentSelect();
-          showToast('Metode pembayaran disimpan.');
-        } catch (err) { showToast(err.message || 'Gagal menyimpan metode pembayaran.', true); }
-      }
-    });
-    input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); add(); } });
-  }
+  /* Metode pembayaran: kini dikelola modul bersama assets/kairo-payments.js (semua template). */
 
   // Logo kecil channel marketplace (huruf + warna); channel lain tetap memakai logo bawaan.
   const BRAND = { 'Shopee': ['S', '#ee4d2d'], 'Tokopedia': ['T', '#03ac0e'], 'TikTok Shop': ['♪', '#111827'], 'Lazada': ['L', '#2a37d4'], 'Toko Offline': ['⌂', '#6b7a90'], 'Lainnya': ['•', '#8794a8'], 'Other': ['•', '#8794a8'] };
@@ -685,11 +621,9 @@
     installDelete();
     wrap('renderDashboard', () => { renderShopDashboardKpi(); renderDashStock(); });
     wrap('renderPerformanceKpis', renderPerformanceExtras);
-    wrap('applyTopicFieldLabel', () => { syncPlatformSelect(); syncPaymentSelect(); });
+    wrap('applyTopicFieldLabel', () => { syncPlatformSelect(); });
     mountPlatformSettings();
-    mountPaymentSettings();
     syncPlatformSelect();
-    syncPaymentSelect();
     wrap('renderMasterOptions', () => { decorateOrderStock(); watchStockLevels(); renderDashStock(); });
     wrap('renderSettingsMasterData', mountStockSettings);
     mountStockSettings();
@@ -699,7 +633,7 @@
     if (document.getElementById('product-sales-card')) renderPerformanceExtras();
   }
   install();
-  document.addEventListener('kairo:refreshed', () => { syncPlatformSelect(); syncPaymentSelect(); });
+  document.addEventListener('kairo:refreshed', () => { syncPlatformSelect(); });
   // Opsi channel dibangun ulang bila form Orders digambar ulang / branding dimuat ulang.
-  new MutationObserver(() => { syncPlatformSelect(); syncPaymentSelect(); }).observe(document.getElementById('tx-form') || document.body, { childList: true, subtree: true });
+  new MutationObserver(() => { syncPlatformSelect(); }).observe(document.getElementById('tx-form') || document.body, { childList: true, subtree: true });
 })();
