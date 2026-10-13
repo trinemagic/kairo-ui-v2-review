@@ -41,64 +41,14 @@ let activeWorkspacePlan = "basic";
 let activeWorkspaceBranding = null;
 let activeWorkspaceSubscription = null;
 let activeWorkspaceMemberships = [];
-let activePlatformAdmin = false;
-
-async function loadPlatformAccess(){
-  activePlatformAdmin=false;
-  if(!activeAuthUserId) return false;
-  try{
-    const {data,error}=await db.rpc("is_platform_admin");
-    if(error) throw error;
-    activePlatformAdmin=Boolean(data);
-  }catch(err){
-    console.warn("Platform access check:",err?.message||err);
-  }
-  document.documentElement.dataset.platformAdmin=activePlatformAdmin?"true":"false";
-  return activePlatformAdmin;
-}
-
 // Hanya lewat ID: nama workspace bisa diganti user di Settings, jadi workspace lain yang dinamai "Trine Magic" dulu ikut
 // dianggap Pro selamanya (Okt 2026, celah ditutup).
+const TRINE_MAGIC_WORKSPACE_ID="e43c8ee6-f4a7-4e10-8d00-dc34fdaf1dc2";
 function isTrineMagicWorkspace(){
   return String(activeWorkspaceId||"")===TRINE_MAGIC_WORKSPACE_ID;
 }
-// "KAIRO Admin" shortcut — only inside the Trine Magic workspace (the future KAIRO Workspaces admin
-// panel lives at admin/). Desktop: under Settings in the sidebar; phone: in the More sheet.
-const TRINE_MAGIC_WORKSPACE_ID="e43c8ee6-f4a7-4e10-8d00-dc34fdaf1dc2";
-function isKairoAdminWorkspace(){
-  return String(activeWorkspaceId||"")===TRINE_MAGIC_WORKSPACE_ID || (activePlatformAdmin && String(activeWorkspaceName||"").trim().toLowerCase()==="trine magic");
-}
-// admin/ has no login form of its own: it only opens from this tab, which hands it the current
-// session token on request (same origin, only to the window opened here, only for a platform admin).
-let kairoAdminWindow=null;
-function openKairoAdmin(){
-  kairoAdminWindow=window.open("admin/","_blank");
-  if(!kairoAdminWindow)showToast("Browser memblokir tab baru. Izinkan pop-up untuk KAIRO, lalu coba lagi.","warning");
-}
-window.addEventListener("message",async e=>{
-  if(e.origin!==location.origin||e.data?.type!=="kairo-admin-token-request"||!kairoAdminWindow||e.source!==kairoAdminWindow)return;
-  let token=null,exp=0;
-  if(activePlatformAdmin&&isKairoAdminWorkspace()){
-    try{const {data}=await db.auth.getSession();token=data?.session?.access_token||null;exp=data?.session?.expires_at||0;}catch(_e){}
-  }
-  e.source.postMessage({type:"kairo-admin-token",token,exp},location.origin);
-});
-function ensureKairoAppSwitcher(){
-  const icon='<span class="saas-nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4.5 6v5.2c0 4.7 3.1 8.9 7.5 9.8 4.4-.9 7.5-5.1 7.5-9.8V6L12 3Z"/><path d="M9 12.2 11 14l4-4"/></svg></span>';
-  let side=document.getElementById("kairo-app-switcher"), more=document.getElementById("kairo-admin-more-item");
-  if(!isKairoAdminWorkspace()){side?.remove();more?.remove();return;}
-  const settings=document.getElementById("saas-settings-side-btn");
-  if(!side&&settings){
-    side=document.createElement("button");side.type="button";side.id="kairo-app-switcher";side.className="saas-settings-side-btn kairo-admin-side-btn";
-    side.innerHTML=`${icon}<span class="saas-nav-label">KAIRO Admin</span>`;side.title="Admin panel KAIRO Workspaces";side.addEventListener("click",openKairoAdmin);
-    settings.insertAdjacentElement("afterend",side);
-  }
-  const grid=document.querySelector("#kairo-mobile-more-sheet .kairo-mobile-more-grid");
-  if(!more&&grid){
-    more=document.createElement("button");more.type="button";more.id="kairo-admin-more-item";more.className="saas-mobile-nav-btn kairo-mobile-more-item";
-    more.innerHTML=`${icon.replace('class="saas-nav-icon"','')}<span>KAIRO Admin</span>`;more.addEventListener("click",openKairoAdmin);grid.appendChild(more);
-  }
-}
+// Admin panel (admin/) punya login + kode 2 langkah sendiri (Okt 2026). Tidak ada tombol atau serah-terima token dari dashboard lagi,
+// jadi akun workspace (yang bisa dipakai bersama tim) tidak pernah jadi pintu masuk admin.
 
 let activePlanEntitlements = new Map();
 // KAIRO has two plans: Gratis (stored as "basic"/"free") and Pro. The retired "plus" and the
@@ -616,9 +566,7 @@ async function handleAuthSession(session){
     try{
       await loadActiveWorkspaceForUser(session.user);
       await loadWorkspaceSaasContext();
-      await loadPlatformAccess();
       if(seq!==authSessionSeq) return;
-      ensureKairoAppSwitcher();
       setTimeout(hydrateSaasUi,0);
     }catch(workspaceError){
       if(seq!==authSessionSeq) return;
@@ -654,12 +602,10 @@ async function handleAuthSession(session){
     activeWorkspaceId=null;
     activeWorkspaceRole=null;
     activeAuthUserId=null;
-    activePlatformAdmin=false;
     mastersWorkspaceId='';
     workspaceDataCache.workspaceId=null;
     workspaceDataCache.rows.clear();
     workspaceDataCache.promises.clear();
-    document.getElementById("kairo-app-switcher")?.remove();
     document.body.classList.remove("authenticated");
     document.body.classList.add("auth-locked");
     document.getElementById("user-email").textContent="";
@@ -3902,7 +3848,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
   // Extend existing UI hydrator without replacing its backend behavior.
   if(typeof hydrateSaasUi==='function'){
     const originalHydrate=hydrateSaasUi;
-    hydrateSaasUi=function(){const r=originalHydrate.apply(this,arguments);setTimeout(()=>{addBrandPreview();wireBrandingPreview();applyWorkspaceBrandingV204(activeWorkspaceBranding);renderThemePicker();syncSetupEntry();ensureKairoAppSwitcher();syncNavState();},0);return r;};
+    hydrateSaasUi=function(){const r=originalHydrate.apply(this,arguments);setTimeout(()=>{addBrandPreview();wireBrandingPreview();applyWorkspaceBrandingV204(activeWorkspaceBranding);renderThemePicker();syncSetupEntry();syncNavState();},0);return r;};
   }
   // Add workspace-specific receipt footer to preview.
   if(typeof showReceiptPreview==='function'){
@@ -5586,7 +5532,6 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
     fb.addEventListener('click',()=>{closeMore();window.kairoOpenFeedback?.()});grid.appendChild(fb);
     wrap.querySelector('.kairo-mobile-more-backdrop')?.addEventListener('click',closeMore);
     wrap.querySelector('.kairo-mobile-sheet-close')?.addEventListener('click',closeMore);
-    if(typeof ensureKairoAppSwitcher==='function')ensureKairoAppSwitcher();
   }
   function buildNotifSheet(){
     document.getElementById('kairo-mobile-notif-sheet')?.remove();

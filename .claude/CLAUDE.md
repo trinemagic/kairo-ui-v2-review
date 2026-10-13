@@ -87,11 +87,11 @@ domain = pengguna login ulang & pengaturan browser (Ingat saya, dark mode) mulai
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
 Versi terakhir: `kairo.css?v=20.10.161`, `kairo-receipt.css?v=1.3.0`, `kairo-v3.css?v=3.44.6`,
-`kairo-v3.js?v=3.32.9`, `kairo-app.js?v=20.10.253`, `kairo-pin.js?v=1.0.2`, `kairo-payments.js?v=1.0.0`, `kairo-themes.css?v=1.0.0`/`.js?v=1.0.1`; template seller dimuat dari kairo-app.js
+`kairo-v3.js?v=3.32.9`, `kairo-app.js?v=20.10.254`, `kairo-pin.js?v=1.0.2`, `kairo-payments.js?v=1.0.0`, `kairo-themes.css?v=1.0.0`/`.js?v=1.0.1`; template seller dimuat dari kairo-app.js
 (`seller-app-premium.js?v=20.10.161`, `.css?v=20.10.157`) — naikkan juga bila file template diubah.
 Setup Wizard dimuat dari `loadSetupWizard()` di kairo-app.js (`kairo-setup-wizard.js/.css`, satu konstanta `v` = 1.0.8; online-shop.js 1.7.3 dimuat dari loader template).
 Panduan dimuat dari `window.kairoOpenGuide()` di kairo-v3.js (`kairo-guide.js/.css?v=` konstanta `GUIDE_V`='1.2.4'; gambar `assets/guide/*.webp?v=` `SHOT_V` di kairo-guide.js).
-Admin: `admin.js?v=1.13.1`, `admin.css?v=1.8.5`. Library CDN dikunci versi + SRI: supabase-js 2.117.2 (index.html & admin), Chart.js 4.4.4 `dist/chart.umd.js`
+Admin: `admin.js?v=1.14.0`, `admin.css?v=1.9.0`. Library CDN dikunci versi + SRI: supabase-js 2.117.2 (index.html & admin), Chart.js 4.4.4 `dist/chart.umd.js`
 (`ensureChartLibrary`, admin), xlsx-js-style 1.2.0. **Ganti versi = hitung ulang SRI** (`npm pack` lalu `openssl dgst -sha384 -binary f | openssl base64 -A`).
 
 **Halaman app** = `main.container > section.section` dengan id:
@@ -487,14 +487,12 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   Settings (submenu sidebar, template seller, kunci paket semua lewat `change` di select ini).
 - Dibersihkan Okt 2026: CSS/JS layar login & daftar lama (`#auth-screen`, `.auth-card`, form
   `#signup-form`), carousel paket, `kairo-runtime.js`, file sampah `app-logos/.../a`.
-- **Tombol "KAIRO Admin"** (`ensureKairoAppSwitcher()`): hanya di workspace Trine Magic
-  (`TRINE_MAGIC_WORKSPACE_ID`, atau nama "Trine Magic" + `is_platform_admin`). Desktop: di bawah
-  Settings di sidebar (`#kairo-app-switcher`); HP: menu More (`#kairo-admin-more-item`). Klik → buka `admin/`
-  di tab baru (langsung, supaya tidak diblokir pop-up blocker Safari).
+- **Tombol "KAIRO Admin" di dashboard DIHAPUS (owner Okt 2026):** dulu admin hanya terbuka lewat tombol di workspace Trine Magic (serah token lewat `postMessage`), sehingga siapa pun yang memegang login Trine Magic (tim yang mencatat memakai akun owner) otomatis bisa membuka admin.
+  Sekarang dashboard tidak punya kode admin sama sekali (`openKairoAdmin`, `ensureKairoAppSwitcher`, `loadPlatformAccess`, `activePlatformAdmin` sudah dibuang; kairo-app.js 20.10.254). Admin dibuka langsung di `/admin/` (bookmark), lihat poin Akses di bawah.
 - **Admin panel (`admin/`)**: `index.html` + `admin.css` + `admin.js` (tanpa build). Gaya diadaptasi dari template
   Light Blue (flatlogic) dengan palet KAIRO, dark saja: sidebar bergrup (drawer di HP), topbar (cari workspace,
   refresh, keluar), widget kaca. Logika & RPC `platform_admin_*` sama persis dengan admin lama di repo
-  `trinemagic/trine-magic-dashboard/admin` (yang lama tidak diubah). Tombol keluar = tutup tab admin. Paket tampil Gratis/Pro
+  `trinemagic/trine-magic-dashboard/admin` (yang lama tidak diubah). Tombol keluar = signOut + kembali ke form Masuk. Paket tampil Gratis/Pro
   (`plus` dll dihitung Pro; pilihan paket di modal hanya basic/pro; harga `plus` disembunyikan). Tabel jadi kartu di
   ≤640px (label kolom otomatis dari `thead`, `labelCells()`). Tes: stub `window.supabase` + data contoh di
   scratchpad (route `**/supabase-js@2*` dan `**/chart.umd.min.js`). Cache: lihat bagian 2.
@@ -506,12 +504,11 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   Buat Akun gagal) -> `.claude/sql/2026-10-admin-update-subscription.sql` (deteksi kolom tanggal berakhir otomatis + query cek fungsi
   admin lain yang belum ada). **Sudah dijalankan owner Okt 2026**, sukses. Query cek menemukan 1 lagi: `platform_admin_update_workspace_status`
   (Aktifkan/Suspend/Arsipkan) -> `.claude/sql/2026-10-admin-workspace-status.sql` (menolak Trine Magic & workspace akun sendiri). **Sudah dijalankan owner Okt 2026**, sukses. Semua fungsi admin kini lengkap. **Log Aktivitas (Okt 2026):** fungsi `platform_admin_activity` tidak pernah ada di DB asli -> dibuat lewat `.claude/sql/2026-10-admin-activity-log.sql` (tabel `platform_admin_activity_log` tanpa FK, RLS tanpa policy, maks 5000 baris; `platform_admin_log_activity`). admin.js membungkus `db.rpc`: aksi di `LOG_ACTIONS` yang sukses otomatis dicatat (nama workspace diambil sebelum aksi). Pop-up admin (`toast(msg, true|'success'|'info'|'warning'|'error')`) = gaya dashboard: kartu bertumpuk kanan atas di bawah topbar, ikon+judul, X, 5 dtk, jeda saat hover. "Sebagian data gagal dimuat" kuning + menyebut fungsi & pesan error DB (juga di console). Modal Workspace membaca baris dari daftar (`all`), bukan RPC `platform_admin_workspace_detail` (tidak ada di DB asli).
-  **Akses (owner Okt 2026): tanpa form login.** admin/ hanya jalan bila dibuka dari tombol KAIRO Admin di dashboard
-  Trine Magic: `openKairoAdmin()` membuka tab (tanpa `noopener`), admin minta token lewat `postMessage`
-  (`kairo-admin-token-request` → `kairo-admin-token`, cek origin + window yang dibuka), dashboard hanya menjawab bila
-  `activePlatformAdmin && isKairoAdminWorkspace()`. Admin memakai opsi supabase-js `accessToken` (tidak pegang refresh
-  token → tidak bentrok rotasi sesi dashboard). Buka langsung / dashboard logout → layar terkunci. Kode tetap terlihat di
-  repo publik (tidak ada rahasia di dalamnya); data dilindungi `is_platform_admin` di setiap fungsi SQL.
+  **Akses (owner Okt 2026): login sendiri + kode 2 langkah (admin.js 1.14.0).** `admin/` punya form Masuk di `#gate`: (1) username ATAU email + password (username lewat RPC `kairo_login_email`, sama dengan dashboard, ada batas percobaan; email langsung `signInWithPassword`),
+  (2) kode 6 angka TOTP (Supabase MFA: `mfa.listFactors` -> `challengeAndVerify`; akun yang belum punya faktor diarahkan `mfa.enroll` = QR + kunci manual, faktor menggantung yang belum diverifikasi dibuang dulu) -> sesi `aal2`. Klien Supabase admin punya sesi SENDIRI (`storageKey 'kairo-admin-auth'`, `sessionStorage` = hilang saat tab ditutup, autoRefresh),
+  terkunci sendiri setelah 30 menit tanpa aktivitas, tombol Keluar = `signOut`. Setelah masuk, `is_platform_admin()` tetap dicek; bukan admin = layar "Akses ditolak". Server: SQL `.claude/sql/2026-10-admin-mfa-enforce.sql` membuat `is_platform_admin()` menolak sesi yang claim `aal` bukan `aal2` (jadi password curi saja tidak cukup, juga bila API dipanggil langsung)
+  dan memindahkan hak admin ke akun admin KHUSUS (tanpa dipakai tim/workspace); urutan wajib: daftar akun admin baru lewat form Daftar -> tambahkan ke `platform_admins` -> masuk di /admin + pasang kode 2 langkah -> baru jalankan enforce -> baru cabut akun Trine Magic (status `inactive`, bukan hapus).
+  Alamat `/admin/` tetap terlihat di repo publik dan itu aman: kode tidak berisi rahasia, `<meta robots noindex>`, dan semua data dijaga fungsi SQL `is_platform_admin()`. Tes: scratchpad `adm/auth.js` (stub supabase auth+mfa; BELUM diuji dengan Supabase asli: pendaftaran TOTP asli, aplikasi authenticator, claim `aal` di JWT).
   Menu v2: **Perlu Perhatian** (deteksi otomatis di `computeIssues()`: telat bayar, Pro habis/hampir habis tanpa
   follow-up, belum pernah transaksi >3 hari, tidak ada transaksi 14+ hari, daftar Custom belum dicatat, pending >3 hari,
   error aplikasi user, kapasitas server), **Request Custom** (papan Pending/On progress/Success + checklist per poin;
@@ -660,8 +657,7 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
 - **Animasi tak berujung hanya boleh `transform`/`opacity`** (dijalankan GPU). Denyut titik notifikasi dulu `box-shadow`
   -> CPU menghitung ulang tiap frame selama ada order terlambat (~2-4% CPU terus). Sekarang lingkaran `::after` di belakang titik
   (`isolation:isolate` di tombol). Cek animasi baru dengan CDP `RecalcStyleCount` saat idle (harus ~0 selain jam Dashboard).
-- **Link ke situs luar dari JS:** `window.open(url,'_blank','noopener')` (WhatsApp). Pengecualian: tab admin (butuh `opener` untuk
-  serah token lewat `postMessage`).
+- **Link ke situs luar dari JS:** `window.open(url,'_blank','noopener')` (WhatsApp). (Tab admin tidak lagi dibuka dari dashboard.)
 
 ## 5. Cara menguji
 
