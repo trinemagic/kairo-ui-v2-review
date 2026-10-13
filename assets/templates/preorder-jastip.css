@@ -5,7 +5,7 @@ html[data-business-template="preorder_jastip"] body.saas-dark{--po-ok:#7fd9b5;--
 /* Bagian lama yang tidak dipakai template ini: form Orders bawaan, Open Store, Petty Cash, kartu Saldo Kas. */
 html.kairo-v3[data-business-template="preorder_jastip"] #input > .card:not(#po-orders){display:none!important}
 html.kairo-v3[data-business-template="preorder_jastip"] #dashboard > .shift-card{display:none!important}
-html.kairo-v3[data-business-template="preorder_jastip"] :is([data-tab="cash"],.saas-mobile-nav-btn[data-mobile-tab="cash"]){display:none!important}
+html.kairo-v3[data-business-template="preorder_jastip"] :is([data-tab="cash"],.saas-mobile-nav-btn[data-mobile-tab="cash"],.kairo-mobile-more-item[data-mobile-tab="cash"]){display:none!important}
 html.kairo-v3[data-business-template="preorder_jastip"] #dashboard .kpi:has(#kpi-cash){display:none!important}
 @media (min-width:1241px){
   html.kairo-v3[data-business-template="preorder_jastip"] body #dashboard .kpi-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}
