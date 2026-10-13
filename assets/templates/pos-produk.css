@@ -205,3 +205,14 @@ body.saas-dark .pp-hist-q em.is-neg{color:#ff9aa8}body.saas-dark .pp-hist-q em.i
 .pp-scan-actions .btn{min-height:50px;font-size:16px}
 @media (max-width:700px){#pos-products .pp-count-btn:not([hidden]),#pos-products .pp-scan-btn:not([hidden]){width:auto;flex:1 1 calc(50% - 5px);justify-content:center;padding:0 10px}}
 
+/* Scan Barcode di form Orders (Online Shop) */
+.pp-order-scan{display:inline-flex;align-items:center;gap:8px;min-height:44px;margin:2px 0 10px;font-size:14.5px}
+.pp-order-scan svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}
+.pp-scan-line{display:grid;gap:2px;padding:12px 14px;border-radius:14px;border:1px solid transparent}
+.pp-scan-line b{font-size:16px;overflow-wrap:anywhere}
+.pp-scan-line span{font-size:14px}
+.pp-scan-line.is-ok{border-color:color-mix(in srgb,#16794c 40%,transparent);background:color-mix(in srgb,#16794c 10%,transparent)}
+.pp-scan-line.is-bad{border-color:color-mix(in srgb,#a3384a 40%,transparent);background:color-mix(in srgb,#a3384a 9%,transparent)}
+.pp-scan-done{width:100%;min-height:50px;margin-top:12px;font-size:16px}
+body.saas-dark .pp-scan-line.is-ok{border-color:color-mix(in srgb,#7be0a9 45%,transparent);background:color-mix(in srgb,#7be0a9 12%,transparent)}
+body.saas-dark .pp-scan-line.is-bad{border-color:color-mix(in srgb,#ff9fb0 45%,transparent);background:color-mix(in srgb,#ff9fb0 12%,transparent)}

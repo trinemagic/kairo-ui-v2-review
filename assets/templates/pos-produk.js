@@ -545,7 +545,7 @@
 
   /* ---------- Scan barcode: kamera HP / webcam (ZXing, dimuat saat dibuka) + alat scanner (keyboard) + ketik manual ---------- */
   const ZX_SRC = 'assets/vendor/zxing/zxing-library-0.21.3.min.js?v=1';
-  let zxPromise = null, scan = null;   // scan = { ctx: 'page' | 'field', ov, reader, done }
+  let zxPromise = null, scan = null;   // scan = { ctx: 'page' | 'field' | 'order', ov, reader, done }
   const loadZx = () => zxPromise || (zxPromise = new Promise((ok, no) => {
     if (window.ZXing) { ok(window.ZXing); return; }
     const sc = document.createElement('script');
@@ -593,12 +593,13 @@
     closeScan();
     const ov = document.createElement('div');
     ov.id = 'pp-scan'; ov.className = 'pp-overlay pp-scan-overlay';
-    const samples = demoSamples();
+    const samples = demoSamples().filter(x => ctx !== 'order' || byCode(x.code));
     ov.innerHTML = `<div class="pp-sheet pp-scan-sheet" role="dialog" aria-modal="true" aria-label="Scan barcode">
-      <div class="pp-sheet-head"><b>Scan barcode</b><button type="button" class="pp-x" data-sc="close" aria-label="Tutup">×</button></div>
+      <div class="pp-sheet-head"><b>${ctx === 'order' ? 'Scan produk ke pesanan' : 'Scan barcode'}</b><button type="button" class="pp-x" data-sc="close" aria-label="Tutup">×</button></div>
       <div class="pp-sheet-body">
         <div class="pp-scan-view" id="pp-scan-view"><video playsinline muted autoplay></video><i class="pp-scan-frame" aria-hidden="true"></i><p class="pp-scan-msg" id="pp-scan-msg" role="status">Menyiapkan kamera…</p></div>
         <div class="pp-scan-result" id="pp-scan-result" hidden></div>
+        ${ctx === 'order' ? '<button type="button" class="btn btn-green pp-scan-done" data-sc="close">Selesai</button>' : ''}
         <div class="pp-label">Pakai alat scanner atau ketik kodenya</div>
         <div class="pp-scan-manual"><input class="input pp-big" id="pp-scan-input" maxlength="40" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Scan / ketik barcode, lalu Enter"><button type="button" class="btn btn-green" data-sc="ok">Cari</button></div>
         ${samples.length ? `<div class="pp-label">Mode demo — belum punya produk berbarcode? Coba contoh:</div><div class="pp-scan-samples">${samples.map(x => `<button type="button" data-sample="${esc(x.code)}"><b>${esc(x.code)}</b><small>${esc(x.label)}</small></button>`).join('')}</div>` : ''}
@@ -663,7 +664,9 @@
           cx.drawImage(video, 0, 0, w, h);
           try {
             const res = reader.decode(new Z.BinaryBitmap(new Z.HybridBinarizer(new Z.HTMLCanvasElementLuminanceSource(canvas))));
-            onScanned(res.getText(), true); return;
+            onScanned(res.getText(), true);
+            if (scan === s && !s.done) s.timer = setTimeout(tick, 110);   // mode pesanan: lanjut membaca produk berikutnya
+            return;
           } catch (_e) { /* belum ada barcode di bingkai ini */ }
         }
         s.timer = setTimeout(tick, 110);
@@ -685,10 +688,49 @@
     const inp = s.ov.querySelector('#pp-scan-input'); inp.value = '';
     startCamera();
   }
+  // Scan dari halaman Orders (Online Shop): barcode cocok produk -> kartu produk di form dihitung +1 lewat klik kartu yang sama (aturan stok tetap berlaku).
+  // Kamera tetap menyala untuk produk berikutnya; barcode yang masih terlihat kamera tidak dihitung lagi; produk dihitung lagi setelah barcode hilang dari kamera sekitar 1 dtk.
+  function orderQty(id) {
+    const c = document.querySelector(`#tx-packages .package-check[data-id="${CSS.escape(String(id))}"]`), q = document.querySelector(`#tx-packages .package-qty[data-id="${CSS.escape(String(id))}"]`);
+    return c && c.checked ? Math.max(1, num(q && q.value) || 1) : 0;
+  }
+  function addToOrder(s, code, viaCamera) {
+    const now = Date.now();
+    if (viaCamera) { const same = s.camCode === code && now - (s.camSeen || 0) < 1000; s.camCode = code; s.camSeen = now; if (same) return; }   // barcode yang masih di depan kamera tidak dihitung lagi
+    const res = s.ov.querySelector('#pp-scan-result'), inp = s.ov.querySelector('#pp-scan-input');
+    const show = (cls, html) => { res.innerHTML = `<div class="pp-scan-line ${cls}">${html}</div>`; res.hidden = false; };
+    if (inp) { inp.value = ''; }
+    const p = byCode(code);
+    if (!p) { show('is-bad', `<b>Barcode ${esc(code)} belum ada di produk.</b><span>Tambah dulu di menu Produk.</span>`); try { navigator.vibrate && navigator.vibrate([40, 60, 40]); } catch (_e) { /* tidak didukung */ } return; }
+    const card = document.querySelector(`#tx-packages .pick-card[data-id="${CSS.escape(String(p.id))}"]`);
+    if (!card) { show('is-bad', `<b>${esc(p.name)}</b><span>Kartu produk belum tampil di form Orders. Muat ulang data lalu coba lagi.</span>`); return; }
+    const before = orderQty(p.id);
+    card.click();
+    const after = orderQty(p.id);
+    if (after > before) {
+      try { navigator.vibrate && navigator.vibrate(60); } catch (_e) { /* tidak didukung */ }
+      show('is-ok', `<b>✓ ${esc(p.name)}</b><span>Di pesanan ×${after} · ${money(num(p.price) * after)}</span>`);
+    } else {
+      show('is-bad', `<b>${esc(p.name)}</b><span>Tidak bisa ditambah (stok habis atau sudah mencapai sisa stok).</span>`);
+    }
+    if (inp && !(window.matchMedia && matchMedia('(pointer:coarse)').matches)) inp.focus();
+  }
+  // Tombol "Scan Barcode" di form Orders Online Shop (di bawah label Produk).
+  function mountOrderScan() {
+    if (!isShop()) return;
+    const box = document.getElementById('tx-packages');
+    if (!box || document.getElementById('pp-order-scan')) return;
+    const b = document.createElement('button');
+    b.type = 'button'; b.id = 'pp-order-scan'; b.className = 'btn btn-light pp-order-scan';
+    b.innerHTML = `${SCAN_ICON}Scan Barcode`;
+    box.insertAdjacentElement('beforebegin', b);
+  }
+  document.addEventListener('click', e => { if (e.target.closest('#pp-order-scan')) openScan('order'); });
   function onScanned(raw, viaCamera) {
     const s = scan; if (!s) return;
     const code = normCode(raw);
     if (!code) { s.done = false; return; }
+    if (s.ctx === 'order') { addToOrder(s, code, viaCamera); return; }
     s.done = true;
     if (viaCamera) { try { navigator.vibrate && navigator.vibrate(60); } catch (_e) { /* tidak didukung */ } }
     const p = byCode(code);
@@ -752,7 +794,7 @@
     card.querySelector('#pp-dash-count').onclick = openCount;
   }
 
-  function boot() { ensurePage(); ensureNav(); renderGrid(); renderDashStock(); }
+  function boot() { ensurePage(); ensureNav(); renderGrid(); renderDashStock(); mountOrderScan(); }
   function wrap(name, after) {
     const core = window[name];
     if (typeof core !== 'function' || core.__pp) return;
@@ -760,7 +802,7 @@
     w.__pp = true; window[name] = w;
   }
   wrap('renderDashboard', () => { ensureNav(); renderDashStock(); });
-  wrap('renderMasterOptions', () => { renderGrid(); renderDashStock(); });
+  wrap('renderMasterOptions', () => { renderGrid(); renderDashStock(); mountOrderScan(); });
   new MutationObserver(() => ensureNav()).observe(document.getElementById('app-shell') || document.body, { childList: true, subtree: true });
   document.addEventListener('keydown', e => { if (e.key !== 'Escape') return; if (scan) closeScan(); else if (document.getElementById('pp-sheet')) closeSheet(); });
   document.addEventListener('kairo:refreshed', () => { renderGrid(); renderDashStock(); });

@@ -188,6 +188,53 @@ async function waitFor(p,fn,ms=9000){try{await p.waitForFunction(fn,null,{timeou
   ok(p.errs.filter(e=>!/ERR_TUNNEL|Failed to load resource|net::/.test(e)).length===0,'tanpa error JS '+JSON.stringify(p.errs.filter(e=>!/ERR_TUNNEL|Failed to load resource|net::/.test(e))));
   await b.close();
  }
+
+ // H) Scan di form Orders Online Shop: tiap scan = +1 ke pesanan, kamera lanjut, stok tetap dihormati
+ {
+  console.log('=== Scan di Orders Online Shop ===');
+  let b=await launch('exist.y4m');let p=await setup(b,'shop');
+  await p.evaluate(()=>openAppPage('input'));await p.waitForTimeout(600);
+  ok(await visible(p,'#pp-order-scan'),'tombol Scan Barcode ada di form Orders');
+  const id0=await p.evaluate(()=>packages[0].id), name0=await p.evaluate(()=>packages[0].name);
+  const qty=()=>p.evaluate(i=>{const c=document.querySelector('#tx-packages .package-check[data-id="'+i+'"]');const q=document.querySelector('#tx-packages .package-qty[data-id="'+i+'"]');return c&&c.checked?Number(q.value):0},id0);
+  await p.click('#pp-order-scan');
+  ok(await visible(p,'#pp-scan')&&/Scan produk ke pesanan/.test(await p.innerText('#pp-scan .pp-sheet-head')),'jendela scan mode pesanan terbuka');
+  ok(await waitFor(p,()=>!document.getElementById('pp-scan-result')?.hidden,9000),'kamera membaca barcode produk');
+  await p.waitForTimeout(400);
+  ok(await qty()===1,'produk masuk pesanan x1');
+  ok((await p.innerText('#pp-scan-result')).includes(name0)&&/x?×?1/.test(await p.innerText('#pp-scan-result')),'umpan balik menyebut produk + jumlah');
+  await p.waitForTimeout(3500);
+  ok(await qty()===1,'barcode yang tetap di depan kamera tidak terhitung berkali-kali (qty '+await qty()+')');
+  ok(await visible(p,'#pp-scan')&&!(await streamsEnded(p)),'jendela dan kamera tetap menyala untuk produk berikutnya');
+  ok(await p.evaluate(i=>document.querySelector('#tx-packages .pick-card[data-id="'+i+'"]').getAttribute('aria-pressed'),id0)==='true','kartu produk di form tertandai dipilih');
+  // ketik/alat scanner: dua kali = +2
+  await p.fill('#pp-scan-input',EXIST);await p.press('#pp-scan-input','Enter');await p.waitForTimeout(250);
+  await p.fill('#pp-scan-input',EXIST);await p.press('#pp-scan-input','Enter');await p.waitForTimeout(250);
+  ok(await qty()===3,'alat scanner/ketik: dua kali scan = +2 (qty '+await qty()+')');
+  ok(await p.inputValue('#pp-scan-input')==='','kolom ketik dikosongkan setelah scan');
+  // barcode tak dikenal
+  await p.fill('#pp-scan-input','8990000000009');await p.press('#pp-scan-input','Enter');await p.waitForTimeout(250);
+  ok(/belum ada di produk/.test(await p.innerText('#pp-scan-result')),'barcode tak dikenal: pesan jelas, pesanan tidak berubah');
+  ok(await qty()===3,'qty tidak berubah');
+  // stok: sisa 1 -> scan kedua ditolak
+  const id1=await p.evaluate(()=>{const q=packages[1];q.stock_qty=1;q.stock_min=0;q.code='8991111100000';renderMasterOptions();return q.id});
+  await p.waitForTimeout(300);
+  await p.fill('#pp-scan-input','8991111100000');await p.press('#pp-scan-input','Enter');await p.waitForTimeout(250);
+  const q1=()=>p.evaluate(i=>{const c=document.querySelector('#tx-packages .package-check[data-id="'+i+'"]');const q=document.querySelector('#tx-packages .package-qty[data-id="'+i+'"]');return c&&c.checked?Number(q.value):0},id1);
+  ok(await q1()===1,'produk stok 1: scan pertama masuk');
+  await p.fill('#pp-scan-input','8991111100000');await p.press('#pp-scan-input','Enter');await p.waitForTimeout(250);
+  ok(await q1()===1&&/Tidak bisa ditambah/.test(await p.innerText('#pp-scan-result')),'scan kedua melewati stok ditolak + pesan');
+  // total pesanan ikut
+  ok(await p.evaluate(()=>/[1-9]/.test((document.getElementById('tx-total')||document.getElementById('total-price')||{textContent:'1'}).textContent)),'total pesanan terhitung');
+  await p.click('.pp-scan-done');await p.waitForTimeout(300);
+  ok(!(await visible(p,'#pp-scan')),'"Selesai" menutup jendela');ok(await streamsEnded(p),'kamera mati setelah Selesai');
+  ok(p.errs.filter(e=>!/ERR_TUNNEL|status of 404/.test(e)).length===0,'tanpa error JS '+JSON.stringify(p.errs.filter(e=>!/ERR_TUNNEL|status of 404/.test(e))));
+  await b.close();
+  // Kasir tidak punya tombol ini (scan lewat kolom cari)
+  b=await chromium.launch();p=await setup(b,'pos');
+  ok(!(await p.evaluate(()=>!!document.getElementById('pp-order-scan'))),'Kasir: tombol scan Orders tidak ada');
+  await b.close();
+ }
  // Online Shop: lonceng stok tetap milik online-shop.js
  let b=await chromium.launch();let p=await setup(b,'shop');
  ok(/stockReady/.test(await p.evaluate(()=>String(window.kairoShopStockNotifications))),'Online Shop: penghitung lonceng stok tetap versi online-shop.js');

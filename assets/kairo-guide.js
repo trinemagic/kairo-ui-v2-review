@@ -67,7 +67,7 @@
         id: 'input', tab: 'input', title: 'Orders (catat penjualan)', intro: 'Catat setiap penjualan beserta paket, add-on, dan topik.',
         steps: [
           'Ketik nama customer. Nama yang pernah tercatat muncul sebagai saran.',
-          shop ? 'Pilih platform, lalu <b>klik kartu produk</b>: tiap klik menambah 1, tombol <b>−</b> di label jumlah mengurangi. Produk yang stoknya habis atau kurang tidak bisa dipilih.'
+          shop ? 'Pilih platform, lalu <b>klik kartu produk</b>: tiap klik menambah 1, tombol <b>−</b> di label jumlah mengurangi. Produk yang stoknya habis atau kurang tidak bisa dipilih. Produk berbarcode bisa juga lewat tombol <b>Scan Barcode</b> di atas daftar produk: arahkan kamera (atau pakai alat scanner) ke barcode, tiap scan menambah 1 ke pesanan dan kamera tetap menyala untuk produk berikutnya; tekan <b>Selesai</b> kalau sudah.'
                : 'Pilih platform, lalu <b>klik kartu Package</b> (tiap klik menambah 1, tombol <b>−</b> mengurangi). Pilih juga Add-on dan Topik bila ada.',
           'Pilih metode pembayaran' + (shop ? ' (daftarnya bisa kamu atur sendiri di Settings)' : '') + '. Gunakan <b>Penyesuaian Harga</b> bila ada diskon atau harga khusus.' + (jasa ? ' WhatsApp, catatan, dan tip ada di bagian <b>Tambahan (opsional)</b>.' : ''),
           'Simpan. Struk bisa dilihat dan disimpan sebagai gambar.',
