@@ -403,6 +403,12 @@ if (window.top !== window.self) {
       value.textContent = index === 4 && packageBadge?.dataset.fullName ? packageBadge.dataset.fullName : text(index);
       return [term, value];
     }));
+    // Pembagian per handler (Jasa Online): nama handler order ini.
+    if (row.dataset.handler) {
+      const term = document.createElement('dt'), value = document.createElement('dd');
+      term.textContent = window.kairoHandler?.label?.() || 'Handler'; value.textContent = row.dataset.handler;
+      list.append(term, value);
+    }
     txDetailReturnFocus = trigger;
     dialog.hidden = false;
     q('.kairo-tx-detail-close', dialog)?.focus();
@@ -718,7 +724,7 @@ if (window.top !== window.self) {
 
   // Panduan pemakaian (owner Okt 2026): tombol buku di samping lonceng (desktop) + item "Panduan" di menu More (HP).
   // Isi & gaya ada di assets/kairo-guide.js/.css, baru dimuat saat pertama kali dibuka supaya dashboard tetap ringan.
-  const GUIDE_V = '1.2.8';
+  const GUIDE_V = '1.2.10';
   let guideLoader = null;
   window.kairoOpenGuide = function () {
     if (!guideLoader) {
