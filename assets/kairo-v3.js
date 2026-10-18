@@ -406,7 +406,7 @@ if (window.top !== window.self) {
     // Pembagian per handler (Jasa Online): nama handler order ini.
     if (row.dataset.handler) {
       const term = document.createElement('dt'), value = document.createElement('dd');
-      term.textContent = 'Handler'; value.textContent = row.dataset.handler;
+      term.textContent = window.kairoHandler?.label?.() || 'Handler'; value.textContent = row.dataset.handler;
       list.append(term, value);
     }
     txDetailReturnFocus = trigger;
@@ -724,7 +724,7 @@ if (window.top !== window.self) {
 
   // Panduan pemakaian (owner Okt 2026): tombol buku di samping lonceng (desktop) + item "Panduan" di menu More (HP).
   // Isi & gaya ada di assets/kairo-guide.js/.css, baru dimuat saat pertama kali dibuka supaya dashboard tetap ringan.
-  const GUIDE_V = '1.2.9';
+  const GUIDE_V = '1.2.10';
   let guideLoader = null;
   window.kairoOpenGuide = function () {
     if (!guideLoader) {

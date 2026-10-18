@@ -123,7 +123,7 @@
                  : shop ? 'Produk, harga, modal, dan stok diatur di menu <b>Produk</b> (bukan di Settings). <b>Platform Penjualan</b>: daftar platform, dan saklar komisi per platform (perkiraan dari persen yang kamu isi). <b>Metode Pembayaran</b>: daftar yang muncul di Orders.'
                  : '<b>Package, Add-on, Topik</b>: daftar yang muncul di Orders.',
           '<b>Pembagian Omzet</b>: persentase partner dan Kas; perubahan berlaku mulai tanggal yang dipilih.',
-          jasa ? '<b>Pembagian per handler</b> (Pro): handler yang memegang order dapat porsi lebih besar (bawaan 60%), sisanya dibagi rata. Handler bisa dinonaktifkan tanpa mengubah angka: dua handler aktif otomatis 50-50. Berlaku untuk order baru; order lama tidak berubah.' : '',
+          jasa ? '<b>Pembagian per handler</b> (Pro): handler yang memegang order dapat porsi lebih besar (bawaan 60%), sisanya dibagi rata. Sebutan "Handler" bisa diganti sesuai usahamu (mis. Reader, PIC). Handler bisa dinonaktifkan tanpa mengubah angka: dua handler aktif otomatis 50-50. Berlaku untuk order baru; order lama tidak berubah.' : '',
           jasa ? '<b>Struk</b> (paket Pro): desain, label, dan logo struk.' : '<b>Struk</b> (paket Pro): desain, label, dan logo struk. Kartu <b>Printer Struk</b> di bagian yang sama menghubungkan printer termal (USB, serial/Bluetooth klasik, Bluetooth BLE, RawBT, atau printer biasa lewat dialog cetak); tombol <b>Cetak</b> muncul di preview struk.',
           '<b>Tema Workspace</b> (paket Pro): Lavender, Kayu, Awan, atau Mawar.'
         ].filter(Boolean)

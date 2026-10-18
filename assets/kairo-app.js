@@ -3034,7 +3034,7 @@ async function exportExcel(){
       ["Nama","Persentase","Hak Periode","Pencairan Periode","Sisa Hak Kumulatif"]
     ];
     partners.filter(partner=>String(partner.partner_name).toLowerCase()!=="kas").forEach(partner=>{
-      const pct=window.kairoHandler?.isOn?.()?"Per handler":shareRuleFor(partner,todayISO());
+      const pct=window.kairoHandler?.isOn?.()?`Per ${window.kairoHandler.label().toLowerCase()}`:shareRuleFor(partner,todayISO());
       const periodRight=entitlementFromTransactions(transactions,partner);
       const partnerPayoutPeriod=payouts.filter(p=>String(p.partner_id||"")===String(partner.id||"")||(!p.partner_id&&String(p.partner_name||"")===String(partner.partner_name||""))).reduce((s,p)=>s+Number(p.amount||0),0);
       const paidToDate=Number(financialSnapshot.payoutByPartner?.[partner.id||partner.partner_name]||0);

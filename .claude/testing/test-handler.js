@@ -52,8 +52,7 @@ async function openProfitSettings(p) {
   await fill();
   ok(!(await p.evaluate(() => document.getElementById('tx-form').checkValidity())) && (await p.evaluate(() => [...document.querySelectorAll('#tx-form :invalid')].map(e => e.id))).includes('tx-handler'), 'tanpa handler: form menolak (wajib pilih)');
   await p.selectOption('#tx-handler', 'g');
-  const h1 = await p.innerText('#tx-handler-hint');
-  ok(/Ganesh 60%/.test(h1) && /Merry 20%/.test(h1) && /Yono 20%/.test(h1), 'petunjuk pembagian: ' + h1);
+  ok(!(await p.evaluate(() => !!document.getElementById('tx-handler-hint'))), 'tulisan "Pembagian laba" di bawah pilihan handler sudah dihapus');
   await p.evaluate(() => document.getElementById('tx-form').requestSubmit()); await p.waitForTimeout(700);
   ok(!/Handler:/.test(await p.innerText('#receipt-content')), 'struk untuk customer tidak memuat data handler (internal)');
   await p.evaluate(() => document.getElementById('confirm-save')?.click()); await p.waitForTimeout(1500);
@@ -80,7 +79,7 @@ async function openProfitSettings(p) {
   await p.evaluate(() => { const i = document.querySelector('.kh-row[data-id="y"] [data-kh-active]'); i.checked = false; i.dispatchEvent(new Event('change', { bubbles: true })); });
   await p.waitForTimeout(300);
   const pv = await p.evaluate(() => document.querySelector('.kh-row[data-id="g"] small').textContent);
-  ok(/Tinggal 2 handler: Ganesh 50% · Merry 50%/.test(pv), 'pratinjau setelah Yono nonaktif: ' + pv);
+  ok(/Tinggal 2 handler aktif: Ganesh 50% · Merry 50%/.test(pv), 'pratinjau setelah Yono nonaktif: ' + pv);
   ok(await p.evaluate(() => document.querySelector('.kh-row[data-id="g"] [data-kh-pct]').disabled), 'kolom porsi dikunci saat tinggal 2 aktif (otomatis)');
   await p.click('#kh-save'); await p.waitForTimeout(900);
   await p.evaluate(async () => { openAppPage('input'); await loadPageData('input', { force: true }); });
@@ -88,8 +87,6 @@ async function openProfitSettings(p) {
   const opts2 = await p.evaluate(() => [...document.querySelectorAll('#tx-handler option')].map(o => o.textContent));
   ok(JSON.stringify(opts2) === JSON.stringify(['-- Pilih Handler --', 'Ganesh', 'Merry']), 'Yono tidak bisa dipilih lagi: ' + opts2.join(' | '));
   await fill('Pelanggan Dua'); await p.selectOption('#tx-handler', 'g');
-  const h2 = await p.innerText('#tx-handler-hint');
-  ok(/Ganesh 50%/.test(h2) && /Merry 50%/.test(h2) && !/Yono/.test(h2), '2 handler aktif: 50-50 -> ' + h2);
   await p.evaluate(() => document.getElementById('tx-form').requestSubmit()); await p.waitForTimeout(600);
   await p.evaluate(() => document.getElementById('confirm-save')?.click()); await p.waitForTimeout(1500);
   const tx2 = await p.evaluate(() => window.__db.tables.transactions.filter(t => t.handler_name === 'Ganesh').pop());
@@ -101,6 +98,35 @@ async function openProfitSettings(p) {
   // payout ke partner yang haknya hanya dari handler
   ok(await p.evaluate(() => { const part = partners.find(x => x.id === 'y'); return typeof partnerHasHandlerShare === 'function'; }), 'fungsi partnerHasHandlerShare ada');
   ok(p.errs.filter(e => !/ERR_TUNNEL|status of 404/.test(e)).length === 0, 'tanpa error JS ' + JSON.stringify(p.errs.filter(e => !/ERR_TUNNEL|status of 404/.test(e))));
+  await b.close();
+
+  console.log('=== Nama field "Handler" bisa diganti ===');
+  b = await chromium.launch(); p = await setup(b);
+  await openProfitSettings(p);
+  await p.evaluate(() => { const i = document.getElementById('kh-on'); i.checked = true; i.dispatchEvent(new Event('change', { bubbles: true })); });
+  await p.waitForTimeout(250);
+  ok(await p.evaluate(() => document.getElementById('kh-label').value) === 'Handler', 'nama field bawaan: Handler');
+  await p.fill('#kh-label', 'Reader'); await p.dispatchEvent('#kh-label', 'change'); await p.waitForTimeout(250);
+  ok(/Pembagian per reader/.test(await p.innerText('#kairo-handler-card')) && /Reader/.test(await p.innerText('.kh-head')), 'judul kartu & kolom Settings ikut memakai "Reader"');
+  await p.click('#kh-save'); await p.waitForTimeout(900);
+  ok(await p.evaluate(() => window.__db.tables.workspace_branding[0].receipt_labels.__handler.label) === 'Reader', 'nama field tersimpan');
+  await p.evaluate(async () => { openAppPage('input'); await loadPageData('input', { force: true }); }); await p.waitForTimeout(600);
+  ok((await p.innerText('#tx-handler-group label')).trim() === 'Reader', 'label di form Orders = Reader');
+  ok((await p.evaluate(() => document.querySelector('#tx-handler option').textContent)) === '-- Pilih Reader --', 'placeholder pilihan = "-- Pilih Reader --"');
+  await p.evaluate(() => {
+    const set = (id, v) => { const el = document.getElementById(id); el.value = v; el.dispatchEvent(new Event('change', { bubbles: true })); };
+    set('tx-platform', 'Instagram'); set('tx-payment', 'TRANSFER'); document.getElementById('tx-date').value = todayISO();
+    document.getElementById('tx-customer').value = 'Cust Reader';
+    const pk = document.querySelector('.package-check'); pk.checked = true; pk.dispatchEvent(new Event('change', { bubbles: true }));
+    const tp = document.querySelector('.topic-check'); tp.checked = true; tp.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+  await p.evaluate(() => document.getElementById('tx-form').requestSubmit()); await p.waitForTimeout(500);
+  ok(/pilih reader dulu/i.test(await p.evaluate(() => document.getElementById('toast').innerText)) || !(await p.evaluate(() => document.getElementById('tx-form').checkValidity())), 'tanpa pilihan: pesan memakai "reader"');
+  await p.selectOption('#tx-handler', 'g');
+  await p.evaluate(() => document.getElementById('tx-form').requestSubmit()); await p.waitForTimeout(600);
+  await p.evaluate(() => document.getElementById('confirm-save')?.click()); await p.waitForTimeout(1300);
+  await p.evaluate(async () => { openAppPage('dashboard'); await loadPageData('dashboard', { force: true }); }); await p.waitForTimeout(700);
+  ok(await p.evaluate(() => { document.querySelector('#tx-table-body tr[data-handler]')?.querySelector('.kairo-tx-detail-btn')?.click(); return /ReaderGanesh/.test(document.querySelector('#kairo-tx-detail dl')?.textContent || ''); }), 'dialog Detail menulis "Reader: Ganesh"');
   await b.close();
 
   console.log('=== Matikan lagi: kembali ke pembagian biasa ===');

@@ -5278,8 +5278,8 @@ html.kairo-v3 .kh-pct { display: flex; align-items: center; gap: 6px; color: var
 html.kairo-v3 .kh-pct .input { width: 84px; min-width: 0; padding: 8px 10px; }
 html.kairo-v3 .kh-pair { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 0 0 10px; padding: 10px 14px; border: 1px dashed var(--v3-line); border-radius: 12px; }
 html.kairo-v3 .kh-pair label { color: var(--v3-ink); font-size: 13.5px; font-weight: 700; }
-html.kairo-v3 .kh-note, html.kairo-v3 .kh-hint { margin: 0 0 12px; color: var(--v3-muted); font-size: 12.5px; line-height: 1.5; }
-html.kairo-v3 .kh-hint { margin: 6px 0 0; }
+html.kairo-v3 .kh-note { margin: 0 0 12px; color: var(--v3-muted); font-size: 12.5px; line-height: 1.5; }
+html.kairo-v3 .kh-label .input { width: 180px; }
 html.kairo-v3 .kh-warn { margin: 0 0 12px; padding: 10px 14px; border-radius: 12px; background: color-mix(in srgb, #d99a00 14%, transparent); color: var(--v3-ink); font-size: 13px; }
 html.kairo-v3 .kh-actions { display: flex; align-items: center; justify-content: flex-end; gap: 12px; flex-wrap: wrap; }
 html.kairo-v3 .kh-status { font-size: 13px; color: var(--v3-muted); }
