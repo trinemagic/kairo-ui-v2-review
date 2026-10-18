@@ -5262,3 +5262,32 @@ html.kairo-v3 #tx-form .kairo-tx-extra > summary small { font-weight: 600; color
 html.kairo-v3 #tx-form .kairo-tx-extra-body { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 16px; padding-bottom: 14px; }
 html.kairo-v3 #tx-form .kairo-tx-extra-body > .full { grid-column: 1 / -1; }
 @media (max-width: 700px) { html.kairo-v3 #tx-form .kairo-tx-extra-body { grid-template-columns: minmax(0, 1fr); } }
+
+/* Pembagian omzet per handler (Jasa Online) */
+html.kairo-v3 .kairo-handler-card { margin: 0 0 16px; }
+html.kairo-v3 .kairo-handler-card .kairo-cash-toggle { margin-bottom: 12px; }
+html.kairo-v3 .kh-table { display: grid; gap: 8px; margin: 0 0 12px; }
+html.kairo-v3 .kh-row { display: grid; grid-template-columns: minmax(0, 1fr) auto 132px; gap: 14px; align-items: center; padding: 10px 14px; border: 1px solid var(--v3-line); border-radius: 12px; background: var(--v3-surface); }
+html.kairo-v3 .kh-row.is-off { opacity: .66; }
+html.kairo-v3 .kh-head { padding: 0 14px; border: 0; background: transparent; color: var(--v3-muted); font-size: 12.5px; font-weight: 700; }
+html.kairo-v3 .kh-head span:nth-child(2) { text-align: center; }
+html.kairo-v3 .kh-name { display: grid; gap: 2px; min-width: 0; }
+html.kairo-v3 .kh-name strong { color: var(--v3-ink); font-size: 14.5px; overflow-wrap: anywhere; }
+html.kairo-v3 .kh-name small { color: var(--v3-muted); font-size: 12.5px; line-height: 1.4; }
+html.kairo-v3 .kh-pct { display: flex; align-items: center; gap: 6px; color: var(--v3-muted); font-size: 13px; }
+html.kairo-v3 .kh-pct .input { width: 84px; min-width: 0; padding: 8px 10px; }
+html.kairo-v3 .kh-pair { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 0 0 10px; padding: 10px 14px; border: 1px dashed var(--v3-line); border-radius: 12px; }
+html.kairo-v3 .kh-pair label { color: var(--v3-ink); font-size: 13.5px; font-weight: 700; }
+html.kairo-v3 .kh-note, html.kairo-v3 .kh-hint { margin: 0 0 12px; color: var(--v3-muted); font-size: 12.5px; line-height: 1.5; }
+html.kairo-v3 .kh-hint { margin: 6px 0 0; }
+html.kairo-v3 .kh-warn { margin: 0 0 12px; padding: 10px 14px; border-radius: 12px; background: color-mix(in srgb, #d99a00 14%, transparent); color: var(--v3-ink); font-size: 13px; }
+html.kairo-v3 .kh-actions { display: flex; align-items: center; justify-content: flex-end; gap: 12px; flex-wrap: wrap; }
+html.kairo-v3 .kh-status { font-size: 13px; color: var(--v3-muted); }
+html.kairo-v3 .kh-status.is-bad { color: #a3384a; }
+body.saas-dark .kh-status.is-bad { color: #ff9fb0; }
+@media (max-width: 640px) {
+  html.kairo-v3 .kh-row { grid-template-columns: minmax(0, 1fr) auto; }
+  html.kairo-v3 .kh-row .kh-pct { grid-column: 1 / -1; }
+  html.kairo-v3 .kh-head { display: none; }
+  html.kairo-v3 .kh-actions .btn { width: 100%; }
+}

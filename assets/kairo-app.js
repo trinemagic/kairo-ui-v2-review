@@ -838,7 +838,17 @@ function transactionProfitBreakdown(t){
   return {hpp,distributable,manual:manualScaled,manualTotal,percentageBase:Math.max(0,distributable-manualTotal)};
 }
 function manualAllocationForPartner(breakdown,partner){const pid=partner?.id?String(partner.id):'',pname=String(partner?.partner_name||partner||'').toLowerCase();return (breakdown?.manual||[]).reduce((sum,r)=>sum+(((pid&&r.partner_id&&String(r.partner_id)===pid)||String(r.partner_name||'').toLowerCase()===pname)?Number(r.amount||0):0),0);}
-function entitlementFromTransactions(txRows,partner,throughDate=null){return (txRows||[]).filter(t=>!throughDate||String(t.transaction_date||'')<=String(throughDate)).reduce((sum,t)=>{const b=transactionProfitBreakdown(t);return sum+manualAllocationForPartner(b,partner)+b.percentageBase*shareRuleFor(partner,t.created_at||t.transaction_date);},0);}
+// Pembagian per handler (Jasa Online, owner Okt 2026): order yang menyimpan snapshot handler_split membagi bagian non-Kas sesuai snapshot itu
+// (Kas tetap dipotong lebih dulu dengan persentase Kas di tanggal order). Order tanpa snapshot tetap memakai aturan persentase biasa.
+function handlerShareFor(partner,t){
+  const sp=t?.handler_split;if(!Array.isArray(sp)||!sp.length)return null;
+  const pid=partner?.id?String(partner.id):'',pname=String(partner?.partner_name||partner||'').toLowerCase();
+  const r=sp.find(x=>(pid&&x.partner_id&&String(x.partner_id)===pid)||String(x.partner_name||'').toLowerCase()===pname);
+  return (1-cashShareRateForDate(t.created_at||t.transaction_date))*Number(r?.pct||0);
+}
+function txShareFor(partner,t){const h=handlerShareFor(partner,t);return h===null?shareRuleFor(partner,t.created_at||t.transaction_date):h;}
+function partnerHasHandlerShare(partner){return (financialSnapshot?.txAll||[]).some(t=>(handlerShareFor(partner,t)||0)>0);}
+function entitlementFromTransactions(txRows,partner,throughDate=null){return (txRows||[]).filter(t=>!throughDate||String(t.transaction_date||'')<=String(throughDate)).reduce((sum,t)=>{const b=transactionProfitBreakdown(t);return sum+manualAllocationForPartner(b,partner)+b.percentageBase*txShareFor(partner,t);},0);}
 function cashEntitlementFromTransactions(txRows,throughDate=null){const kasPartner=partners.find(p=>String(p.partner_name||'').toLowerCase()==='kas')||{partner_name:'Kas'};return (txRows||[]).filter(t=>!throughDate||String(t.transaction_date||'')<=String(throughDate)).reduce((sum,t)=>{const b=transactionProfitBreakdown(t);return sum+manualAllocationForPartner(b,kasPartner)+b.percentageBase*cashShareRateForDate(t.created_at||t.transaction_date);},0);}
 
 function localISODate(d=new Date()){
@@ -1967,7 +1977,7 @@ function renderHistory(){
     const addons=Array.isArray(t.order_addons)&&t.order_addons.length?t.order_addons.map(x=>`${escapeHtml(x.name||x.code||"-")} × ${Number(x.qty||1)}`).join(", "):(t.addon_code||"-");
     const qty=items.reduce((sum,x)=>sum+Number(x.qty||1),0);
     const done=(t.reading_status||"done")==="done";
-    return `<tr>
+    return `<tr${t.handler_name?` data-handler="${escapeHtml(t.handler_name)}"`:""}>
       <td>${escapeHtml(t.transaction_date||"-")}</td>
       <td><strong>${escapeHtml(formatReadingStartedAt(t.reading_started_at))}</strong></td>
       <td>${escapeHtml(t.customer_name||"-")}</td>
@@ -2600,7 +2610,8 @@ document.getElementById("tx-form").addEventListener("submit",async e=>{
       tip_amount:order.tip,
       total_price:order.total,
       payment_method:document.getElementById("tx-payment").value,
-      notes:document.getElementById("tx-notes").value.trim() || null
+      notes:document.getElementById("tx-notes").value.trim() || null,
+      ...(window.kairoHandler?.payload?.()||{})
     };
     const saveBtn=document.getElementById("confirm-save");
     if(saveBtn){saveBtn.style.display="";saveBtn.disabled=false;saveBtn.textContent="✓ Simpan Transaksi";}
@@ -2727,7 +2738,7 @@ document.getElementById("payout-form").addEventListener("submit",async e=>{
     // Validasi terhadap hak kumulatif partner sampai tanggal pencairan.
     const partner=partners.find(p=>String(p.id)===String(partnerId));
     const pct=shareRuleFor(partner,payoutDate);
-    if(!partner || pct<=0) throw new Error("Profit sharing partner tidak ditemukan.");
+    if(!partner || (pct<=0 && !partnerHasHandlerShare(partner))) throw new Error("Profit sharing partner tidak ditemukan.");
 
     const payload={
       partner_id:partnerId,
@@ -3023,7 +3034,7 @@ async function exportExcel(){
       ["Nama","Persentase","Hak Periode","Pencairan Periode","Sisa Hak Kumulatif"]
     ];
     partners.filter(partner=>String(partner.partner_name).toLowerCase()!=="kas").forEach(partner=>{
-      const pct=shareRuleFor(partner,todayISO());
+      const pct=window.kairoHandler?.isOn?.()?"Per handler":shareRuleFor(partner,todayISO());
       const periodRight=entitlementFromTransactions(transactions,partner);
       const partnerPayoutPeriod=payouts.filter(p=>String(p.partner_id||"")===String(partner.id||"")||(!p.partner_id&&String(p.partner_name||"")===String(partner.partner_name||""))).reduce((s,p)=>s+Number(p.amount||0),0);
       const paidToDate=Number(financialSnapshot.payoutByPartner?.[partner.id||partner.partner_name]||0);

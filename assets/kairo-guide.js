@@ -73,7 +73,7 @@
           'Simpan. Struk bisa dilihat dan disimpan sebagai gambar.',
           'Order berstatus <b>On Progress</b> muncul di lonceng setelah 5 menit; centang selesai bila sudah dikerjakan.'
         ],
-        tips: ['<b>Autofill</b> (paket Pro): tempel teks pesanan dari chat, form terisi otomatis.']
+        tips: ['<b>Autofill</b> (paket Pro): tempel teks pesanan dari chat, form terisi otomatis.'].concat(jasa ? ['Kalau <b>Pembagian per handler</b> aktif (Pro, Settings › Pembagian Omzet), pilih <b>Handler</b> yang memegang order. Pembagian laba order itu mengikuti pilihannya.'] : [])
       },
       seller ? {
         id: 'subscriptions', tab: 'subscriptions', title: 'Tracker Langganan', intro: 'Pantau masa aktif langganan tiap customer.',
@@ -123,6 +123,7 @@
                  : shop ? 'Produk, harga, modal, dan stok diatur di menu <b>Produk</b> (bukan di Settings). <b>Platform Penjualan</b>: daftar platform, dan saklar komisi per platform (perkiraan dari persen yang kamu isi). <b>Metode Pembayaran</b>: daftar yang muncul di Orders.'
                  : '<b>Package, Add-on, Topik</b>: daftar yang muncul di Orders.',
           '<b>Pembagian Omzet</b>: persentase partner dan Kas; perubahan berlaku mulai tanggal yang dipilih.',
+          jasa ? '<b>Pembagian per handler</b> (Pro): handler yang memegang order dapat porsi lebih besar (bawaan 60%), sisanya dibagi rata. Handler bisa dinonaktifkan tanpa mengubah angka: dua handler aktif otomatis 50-50. Berlaku untuk order baru; order lama tidak berubah.' : '',
           jasa ? '<b>Struk</b> (paket Pro): desain, label, dan logo struk.' : '<b>Struk</b> (paket Pro): desain, label, dan logo struk. Kartu <b>Printer Struk</b> di bagian yang sama menghubungkan printer termal (USB, serial/Bluetooth klasik, Bluetooth BLE, RawBT, atau printer biasa lewat dialog cetak); tombol <b>Cetak</b> muncul di preview struk.',
           '<b>Tema Workspace</b> (paket Pro): Lavender, Kayu, Awan, atau Mawar.'
         ].filter(Boolean)
