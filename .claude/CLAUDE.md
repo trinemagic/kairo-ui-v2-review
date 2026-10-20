@@ -86,7 +86,7 @@ domain = pengguna login ulang & pengaturan browser (Ingat saya, dark mode) mulai
 | `assets/brand/` | Logo resmi KAIRO Workspaces (kit dari owner, Okt 2026) | `kairo-horizontal-color.svg` = landing (header, footer, dialog Masuk; latar terang, min. lebar 120px); `kairo-app-icon.svg` = logo default dashboard (`KAIRO_LOGO`, sidebar, header HP, preview Settings, admin) sampai user upload logo sendiri; `favicon.svg/.ico`; `assets/og/apple-touch-icon.png` dari kit. Wordmark digambar - jangan diketik ulang pakai font. `assets/kairo-mark.svg` (logo lama) sudah dihapus. |
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
-Versi terakhir: `kairo.css?v=20.10.164`, `kairo-receipt.css?v=1.3.0`, `kairo-v3.css?v=3.44.13`,
+Versi terakhir: `kairo.css?v=20.10.164`, `kairo-receipt.css?v=1.3.0`, `kairo-v3.css?v=3.44.14`,
 `kairo-v3.js?v=3.32.18`, `kairo-app.js?v=20.10.271`, `preorder-jastip.js?v=1.0.2`/`.css?v=1.0.3` (dari loader kairo-app.js), `kairo-pin.js?v=1.0.3`, `kairo-payments.js?v=1.0.0`, `kairo-handler.js?v=1.1.0`, `kairo-themes.css?v=1.0.2`/`.js?v=1.0.2`; template seller dimuat dari kairo-app.js
 (`seller-app-premium.js?v=20.10.166`, `.css?v=20.10.159`) — naikkan juga bila file template diubah.
 Setup Wizard dimuat dari `loadSetupWizard()` di kairo-app.js (`kairo-setup-wizard.js/.css`, satu konstanta `v` = 1.0.9; online-shop.js 1.7.5 / css 1.7.3 dimuat dari loader template).
@@ -328,7 +328,7 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
 - **Sidebar mini** 76px (`--sidebar-mini:96px`), ikon tidak bergeser saat transisi.
 - **Toolbar:** Orders/Customers/Petty Cash/Settings hanya tombol Refresh (CSS `:has`).
   Refresh & Export pakai ikon SVG (`.kairo-btn-icon`; jangan glyph ⬇ — iOS jadi emoji).
-  Mobile: filter tanggal 4 kolom + Refresh/Export 2 kolom, semua tinggi 42px.
+  Mobile: filter tanggal 4 kolom, semua tinggi 42px. HP <=520px (owner 20 Okt 2026): Refresh/Export = tombol ikon 42x42 di baris judul (`.filters{display:contents}`, label disembunyikan visual tapi tetap terbaca screen reader). Placeholder input light = `--v3-muted` (dulu bawaan browser 4,4:1).
 - **Refresh:** `kairoManualRefresh(btn)` (kairo-app.js) = reset masters + `refreshAll()` +
   event `kairo:refreshed` + toast "Data diperbarui", ikon berputar. **Jangan** `location.reload()`:
   `persistSession:false` → reload = logout.
