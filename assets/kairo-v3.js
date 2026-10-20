@@ -1055,7 +1055,7 @@ if (window.top !== window.self) {
     const form = document.getElementById('workspace-settings-form'), actions = form?.querySelector('.actions');
     if (!form || !actions || document.getElementById('kairo-font-scale-picker')) return;
     const box = document.createElement('div'); box.id = 'kairo-font-scale-picker'; box.className = 'full kairo-font-scale';
-    box.innerHTML = `<div class="kairo-layout-colors-title">Ukuran Teks</div><div class="page-sub">Perbesar atau perkecil tulisan di seluruh dashboard. Ukuran kartu dan tabel tetap. Berlaku langsung di perangkat ini.</div>
+    box.innerHTML = `<div class="kairo-layout-colors-title">Ukuran Teks</div><div class="page-sub">Atur besar tulisan. Hanya berlaku di perangkat ini.</div>
       <div class="kairo-font-scale-control"><input type="range" min="0" max="${LEVELS.length - 1}" step="1" aria-label="Ukuran teks"><div class="kairo-font-scale-opts">${LEVELS.map((l, i) => `<button type="button" data-kfs-opt="${i}" style="--i:${i}">${l.label}</button>`).join('')}</div></div>`;
     actions.before(box);
     box.querySelector('input').addEventListener('input', e => set(Number(e.target.value)));

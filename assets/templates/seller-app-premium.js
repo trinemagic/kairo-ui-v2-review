@@ -151,7 +151,7 @@
     const box=document.getElementById('seller-product-grid'); if(!box)return;
     const list=products();
     if(!list.length){
-      box.innerHTML=`<div class="seller-product-empty">${searchQuery?'Produk tidak ditemukan.':'Pilih kategori dulu untuk menampilkan produk.'}</div>`;
+      box.innerHTML=`<div class="seller-product-empty">${searchQuery?'Produk tidak ditemukan.':'Pilih kategori dulu.'}</div>`;
       renderCategories();
       return;
     }
@@ -757,7 +757,7 @@
     });
     if(select&&['addons','topics'].includes(select.value)){select.value='packages';select.dispatchEvent(new Event('change',{bubbles:true}))}
     const pageSub=document.querySelector('main.container .page-sub');
-    if(document.getElementById('settings')?.classList.contains('active')&&pageSub)pageSub.textContent='Identitas bisnis, produk, pembagian omzet, struk, dan akses workspace aktif.';
+    if(document.getElementById('settings')?.classList.contains('active')&&pageSub)pageSub.textContent='Identitas usaha, produk, pembagian omzet, dan struk.';
   }
   function cleanupSellerPerformance(){
     if(!mounted)return;
@@ -876,7 +876,7 @@
     hideGenericMasterAreas();wireCoreHooks();
 
     const host=document.createElement('section');host.id='seller-app-premium-template';host.className='seller-app-panel';
-    host.innerHTML=`<div class="seller-app-head"><div><h3>Buat Pesanan Baru</h3><p>Pilih kategori, cari produk, lalu tentukan plan dan durasi.</p></div></div><div class="seller-app-field seller-category-field"><label>Kategori</label><div id="seller-category-grid" class="seller-category-grid"></div></div><div class="seller-app-search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input id="seller-product-search" type="search" placeholder="Cari produk, contoh: Netflix, Canva, ChatGPT..."></div><div class="seller-app-field"><label>Pilih Produk</label><div id="seller-product-grid" class="seller-product-grid"></div></div><div class="seller-app-field" id="seller-variant-section" hidden><label>Plan / Varian</label><div id="seller-variant-grid" class="seller-choice-grid"></div></div><div class="seller-app-field" id="seller-duration-section" hidden><label>Durasi</label><div id="seller-duration-grid" class="seller-choice-grid"></div></div><div class="seller-selection" id="seller-selection" hidden><div><small>Harga pilihan</small><strong id="seller-selected-price">—</strong><span id="seller-selected-meta">Pilih paket</span></div><button id="seller-add-order" type="button">+ Tambah ke Pesanan</button></div>`;
+    host.innerHTML=`<div class="seller-app-head"><div><h3>Buat Pesanan Baru</h3><p>Pilih kategori, lalu produknya.</p></div></div><div class="seller-app-field seller-category-field"><label>Kategori</label><div id="seller-category-grid" class="seller-category-grid"></div></div><div class="seller-app-search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input id="seller-product-search" type="search" placeholder="Cari produk, contoh: Netflix, Canva, ChatGPT..."></div><div class="seller-app-field"><label>Pilih Produk</label><div id="seller-product-grid" class="seller-product-grid"></div></div><div class="seller-app-field" id="seller-variant-section" hidden><label>Plan / Varian</label><div id="seller-variant-grid" class="seller-choice-grid"></div></div><div class="seller-app-field" id="seller-duration-section" hidden><label>Durasi</label><div id="seller-duration-grid" class="seller-choice-grid"></div></div><div class="seller-selection" id="seller-selection" hidden><div><small>Harga pilihan</small><strong id="seller-selected-price">—</strong><span id="seller-selected-meta">Pilih paket</span></div><button id="seller-add-order" type="button">+ Tambah ke Pesanan</button></div>`;
 
     const packageBox=packages.closest('.form-group')||packages.parentElement;(packageBox||form.firstChild).insertAdjacentElement('beforebegin',host);
     installExtraFields();
@@ -953,7 +953,7 @@
     if(!document.getElementById('subscriptions')){
       const sec=document.createElement('section');sec.id='subscriptions';sec.className='section';
       sec.innerHTML=`<div class="card seller-tracker-card">
-        <div class="seller-tracker-head"><div><div class="card-title">Tracker Langganan</div><div class="page-sub">Akun yang dijual ke pelanggan, dihitung dari tanggal order + durasi paket. Perpanjangan otomatis menggantikan masa aktif lama.</div></div></div>
+        <div class="seller-tracker-head"><div><div class="card-title">Tracker Langganan</div><div class="page-sub">Masa aktif = tanggal order + durasi. Perpanjangan menggantikan masa aktif lama.</div></div></div>
         <div class="seller-tracker-stats" id="seller-tracker-stats"></div>
         <div class="seller-tracker-tools">
           <div class="seller-tracker-chips" role="group" aria-label="Filter status langganan">

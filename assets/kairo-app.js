@@ -1035,13 +1035,13 @@ function openAppPage(tabName){
   const pageSub=document.querySelector('main.container .page-sub');
   const pageCopy={
     dashboard:['Dashboard',dashboardSlogan()],
-    performance:['Performance','Ringkasan performa penjualan berdasarkan periode aktif.'],
+    performance:['Performance','Ringkasan penjualan di periode terpilih.'],
     cash:['Petty Cash','Kelola arus kas operasional workspace.'],
     payout:['Withdraw','Kelola pencairan dan pembagian hasil.'],
-    input:['Orders','Input dan kelola transaksi penjualan.'],
+    input:['Orders','Catat penjualan baru.'],
     subscriptions:['Tracker Langganan','Pantau masa aktif langganan pelanggan.'],
     customers:['Customer Database','Data dan riwayat customer workspace.'],
-    settings:['Workspace Settings','Identitas bisnis, package, add-on, pembagian omzet, dan akses workspace aktif.']
+    settings:['Workspace Settings','Identitas usaha, produk, pembagian omzet, dan struk.']
   };
   if(pageTitle&&pageCopy[tabName]) pageTitle.textContent=pageCopy[tabName][0];
   if(pageSub&&pageCopy[tabName]) pageSub.textContent=pageCopy[tabName][1];
@@ -1741,7 +1741,7 @@ function calculateTotal(){
   const help=document.getElementById("tx-adjustment-help");
   if(help){
     const a=order.adjustment;
-    help.textContent=a.type==="none" ? "Untuk potongan harga (diskon), harga khusus, atau penyesuaian harga satu kali pada transaksi ini." : `${a.type==="discount"?"Pengurangan":"Penambahan"}: ${a.mode==="percent"?a.value+"%":rupiah(a.value)} → ${a.amount<0?"-":"+"}${rupiah(Math.abs(a.amount))}`;
+    help.textContent=a.type==="none" ? "Diskon atau harga khusus untuk order ini saja." : `${a.type==="discount"?"Pengurangan":"Penambahan"}: ${a.mode==="percent"?a.value+"%":rupiah(a.value)} → ${a.amount<0?"-":"+"}${rupiah(Math.abs(a.amount))}`;
   }
   return order;
 }
@@ -3827,7 +3827,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
     const allowed=workspaceThemeAllowed(),saved=allowed?workspaceTheme():'';
     if(!box){
       box=document.createElement('div');box.id='kairo-theme-picker';box.className='full kairo-theme-picker';
-      box.innerHTML=`<div class="kairo-layout-colors-title">Tema Workspace</div><div class="page-sub">Pilih suasana dashboard tokomu. Data dan fitur tidak berubah; warna masih bisa kamu atur di bawah.</div><input type="hidden" id="settings-theme"><div class="kairo-theme-grid" role="radiogroup" aria-label="Tema workspace">${Object.entries(WORKSPACE_THEMES).map(([id,t])=>`<button type="button" class="kairo-theme-opt" role="radio" data-theme-opt="${id}"><span class="kairo-theme-swatch" data-swatch="${id}" aria-hidden="true"><i></i><b></b><b></b><em></em></span><strong>${t.name}</strong><small>${t.desc}</small></button>`).join('')}</div><div class="kairo-theme-lock" hidden>Tema workspace tersedia di paket Pro.</div>`;
+      box.innerHTML=`<div class="kairo-layout-colors-title">Tema Workspace</div><div class="page-sub">Hanya mengubah tampilan. Warna bisa diatur di bawah.</div><input type="hidden" id="settings-theme"><div class="kairo-theme-grid" role="radiogroup" aria-label="Tema workspace">${Object.entries(WORKSPACE_THEMES).map(([id,t])=>`<button type="button" class="kairo-theme-opt" role="radio" data-theme-opt="${id}"><span class="kairo-theme-swatch" data-swatch="${id}" aria-hidden="true"><i></i><b></b><b></b><em></em></span><strong>${t.name}</strong><small>${t.desc}</small></button>`).join('')}</div><div class="kairo-theme-lock" hidden>Tema workspace tersedia di paket Pro.</div>`;
       head.insertAdjacentElement('beforebegin',box);
       box.addEventListener('click',e=>{
         const opt=e.target.closest('[data-theme-opt]');if(!opt)return;
@@ -4061,7 +4061,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
    const group=urlInput.closest('.form-group')||urlInput.parentElement;
    const shell=document.createElement('div');
    shell.id='settings-logo-upload-shell';shell.className='logo-upload-shell';
-   shell.innerHTML=`<div class="logo-upload-row"><div class="logo-upload-preview"><img id="settings-logo-upload-preview" alt="Preview logo"></div><div class="logo-upload-copy"><strong>Upload Logo</strong><small>Upload PNG, JPG, atau WebP lalu atur crop supaya logo tetap centered di sidebar, header, dan preview branding.</small></div><div class="logo-upload-actions"><input id="settings-logo-file" type="file" accept="image/png,image/jpeg,image/webp" hidden><button id="settings-logo-file-btn" class="btn" type="button">Pilih File</button><button id="settings-logo-recrop-btn" class="btn" type="button" style="display:none">Crop Ulang</button></div></div><div class="logo-upload-note">URL logo tetap bisa dipakai seperti sebelumnya. Upload file akan otomatis mengisi dan menyimpan Logo URL workspace.</div>`;
+   shell.innerHTML=`<div class="logo-upload-row"><div class="logo-upload-preview"><img id="settings-logo-upload-preview" alt="Preview logo"></div><div class="logo-upload-copy"><strong>Upload Logo</strong><small>PNG, JPG, atau WebP. Bisa dipotong setelah dipilih.</small></div><div class="logo-upload-actions"><input id="settings-logo-file" type="file" accept="image/png,image/jpeg,image/webp" hidden><button id="settings-logo-file-btn" class="btn" type="button">Pilih File</button><button id="settings-logo-recrop-btn" class="btn" type="button" style="display:none">Crop Ulang</button></div></div>`;
    group.appendChild(shell);
    document.body.insertAdjacentHTML('beforeend',`<div id="logo-crop-modal" aria-hidden="true"><div class="logo-crop-card" role="dialog" aria-modal="true" aria-labelledby="logo-crop-title"><div class="logo-crop-head"><div><h3 id="logo-crop-title">Atur posisi logo</h3><p>Geser gambar dan atur zoom. Area kotak adalah hasil logo yang akan dipakai.</p></div><button class="logo-crop-close" id="logo-crop-close" type="button" aria-label="Tutup">×</button></div><div class="logo-crop-stage-wrap"><div class="logo-crop-stage" id="logo-crop-stage"><img id="logo-crop-image" alt="Crop logo"><div class="logo-crop-guide"></div></div></div><div class="logo-crop-controls"><label for="logo-crop-zoom">Zoom</label><input id="logo-crop-zoom" type="range" min="1" max="3" step="0.01" value="1"><span id="logo-crop-zoom-value">100%</span></div><div class="logo-crop-actions"><button class="btn" id="logo-crop-cancel" type="button">Batal</button><button class="btn btn-green" id="logo-crop-apply" type="button">Gunakan Logo</button></div></div></div>`);
    q('settings-logo-file-btn').addEventListener('click',()=>q('settings-logo-file').click());
@@ -5670,7 +5670,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
       if(template==='online_shop'){root.dataset.businessTemplate='online_shop';if(typeof applyTopicFieldLabel==='function')applyTopicFieldLabel();document.dispatchEvent(new CustomEvent('kairo:template-ready'));
         // Analitik toko (laba per produk, channel, batal/retur) + kartu Profit Dashboard dimuat hanya untuk Online Shop.
         if(!document.getElementById('online-shop-js')){
-          const link=document.createElement('link');link.id='online-shop-css';link.rel='stylesheet';link.href='assets/templates/online-shop.css?v=1.7.2';document.head.appendChild(link);
+          const link=document.createElement('link');link.id='online-shop-css';link.rel='stylesheet';link.href='assets/templates/online-shop.css?v=1.7.3';document.head.appendChild(link);
           const script=document.createElement('script');script.id='online-shop-js';script.src='assets/templates/online-shop.js?v=1.7.5';script.defer=true;document.body.appendChild(script);
           // Menu Produk (foto, scan barcode, harga, modal, stok) dipakai bersama dengan Kasir / POS.
           const link2=document.createElement('link');link2.id='pos-produk-css';link2.rel='stylesheet';link2.href='assets/templates/pos-produk.css?v=1.6.0';document.head.appendChild(link2);
@@ -5701,14 +5701,14 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
         const link=document.createElement('link');
         link.id='seller-app-premium-css';
         link.rel='stylesheet';
-        link.href='assets/templates/seller-app-premium.css?v=20.10.157';
+        link.href='assets/templates/seller-app-premium.css?v=20.10.158';
         // Sebelum CSS tema (kairo-themes.css) supaya aturan tema tetap menang seperti dulu.
         document.head.insertBefore(link,document.getElementById('kairo-themes-css'));
       }
       if(!document.getElementById('seller-app-premium-js')){
         const script=document.createElement('script');
         script.id='seller-app-premium-js';
-        script.src='assets/templates/seller-app-premium.js?v=20.10.163';
+        script.src='assets/templates/seller-app-premium.js?v=20.10.164';
         script.defer=true;
         document.body.appendChild(script);
       }
