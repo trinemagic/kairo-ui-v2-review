@@ -198,7 +198,7 @@
     if(total)total.textContent=rupiahLocal(sum);
     if(empty)empty.hidden=cart.length>0;
     list.innerHTML=cart.map((x,i)=>`<div class="seller-cart-item"><img src="${ICON_BASE+slug(x.product)+'.svg'}" alt=""><div class="seller-cart-copy"><strong>${esc(pretty(x.product))}</strong><small>${esc(pretty(x.variant))} · ${esc(pretty(x.duration))}</small></div><div class="seller-cart-qty"><button type="button" data-seller-minus="${i}">−</button><span>${x.qty}</span><button type="button" data-seller-plus="${i}">+</button></div><strong class="seller-cart-subtotal">${rupiahLocal(x.price*x.qty)}</strong><button class="seller-cart-remove" type="button" data-seller-remove="${i}" aria-label="Hapus">×</button></div>`).join('');
-    const save=document.getElementById('seller-save-order'); if(save)save.disabled=!cart.length;
+    const save=document.getElementById('seller-save-order'); if(save)save.setAttribute('aria-disabled',cart.length?'false':'true');
   }
   function addSelected(){
     const r=selectedRow(); if(!r)return;
@@ -312,7 +312,7 @@
     actions.innerHTML=`<button type="button" class="seller-reset-btn" id="seller-reset-order">↻ Reset</button><button type="button" class="seller-save-btn" id="seller-save-order">Simpan Penjualan</button>`;
     cartBox.insertAdjacentElement('afterend',actions);
     document.getElementById('seller-reset-order').addEventListener('click',()=>{try{resetTxForm()}catch(_e){document.getElementById('tx-form')?.reset();resetSellerState()}});
-    document.getElementById('seller-save-order').addEventListener('click',()=>{if(!cart.length)return;form.requestSubmit();});
+    document.getElementById('seller-save-order').addEventListener('click',()=>{if(!cart.length){try{showToast('Pilih produk dulu, lalu tekan + Tambah ke Pesanan.','warning')}catch(_e){}return;}form.requestSubmit();});
   }
 
   function installSellerOrderLayout(form){
@@ -466,7 +466,8 @@
     const dash=document.getElementById('dashboard');if(!dash)return null;
     let card=document.getElementById('seller-expiry-card');if(card)return card;
     card=document.createElement('section');card.id='seller-expiry-card';card.className='card seller-expiry-card';
-    card.innerHTML=`<div class="seller-expiry-head"><div><div class="card-title">Akan Expired</div><div class="muted">Dihitung otomatis dari tanggal transaksi + durasi paket.</div></div><span class="seller-expiry-window">14 hari</span></div><div id="seller-expiry-list" class="seller-expiry-list"></div>`;
+    card.innerHTML=`<div class="seller-expiry-head"><div><div class="card-title">Akan Expired</div><div class="muted">Habis dalam 7 hari atau baru lewat.</div></div><button type="button" class="seller-expiry-window" data-open-tracker>Lihat semua</button></div><div id="seller-expiry-list" class="seller-expiry-list"></div>`;
+    card.querySelector('[data-open-tracker]').addEventListener('click',()=>{trackerFilter='soon';openSubscriptionTracker();});
     const row=installSellerDashboardAlertRow();
     if(row)row.appendChild(card);else dash.appendChild(card);
     return card;
@@ -481,15 +482,18 @@
     const card=installSellerExpiryTracker();if(!card)return;
     const host=document.getElementById('seller-expiry-list');if(!host)return;
     const txs=reminderTransactions().filter(isSellerTx);
-    const entries=txs.flatMap(sellerExpiryEntriesForTx)
-      .filter(x=>x.days>=-7&&x.days<=14)
+    // Sama dengan Tracker Langganan: satu baris per pelanggan + produk + plan, perpanjangan menggantikan masa aktif lama.
+    const latest=new Map();
+    txs.flatMap(sellerExpiryEntriesForTx).forEach(e=>{const k=trackerKey(e),old=latest.get(k);if(!old||e.expiry>old.expiry)latest.set(k,e);});
+    const entries=[...latest.values()]
+      .filter(x=>x.days>=-7&&x.days<=7)
       .sort((a,b)=>a.expiry-b.expiry||txStamp(b.tx)-txStamp(a.tx))
       .slice(0,8);
     host.innerHTML=entries.length?entries.map(x=>{
       const item=x.item||{},badge=x.badge||sellerExpiryBadge(x.days);
       const meta=[pretty(item.product||item.package_name||'Paket'),pretty(item.variant||''),pretty(item.duration||'')].filter(Boolean).join(' · ');
       return `<div class="seller-expiry-row"><div class="seller-expiry-copy"><strong>${esc(x.tx.customer_name||'-')}</strong><small>${esc(meta)}</small></div><div class="seller-expiry-date"><span>${esc(sellerExpiryDateText(x.expiry))}</span><b class="seller-expiry-badge is-${esc(badge.tone)}">${esc(badge.label)}</b></div></div>`;
-    }).join(''):'<div class="seller-expiry-empty">Tidak ada akun yang akan expired dalam 14 hari.</div>';
+    }).join(''):'<div class="seller-expiry-empty">Tidak ada akun yang habis dalam 7 hari.</div>';
   }
 
   function sellerOrderStatus(value,tx){
@@ -953,7 +957,6 @@
     if(!document.getElementById('subscriptions')){
       const sec=document.createElement('section');sec.id='subscriptions';sec.className='section';
       sec.innerHTML=`<div class="card seller-tracker-card">
-        <div class="seller-tracker-head"><div><div class="card-title">Tracker Langganan</div><div class="page-sub">Masa aktif = tanggal order + durasi. Perpanjangan menggantikan masa aktif lama.</div></div></div>
         <div class="seller-tracker-stats" id="seller-tracker-stats"></div>
         <div class="seller-tracker-tools">
           <div class="seller-tracker-chips" role="group" aria-label="Filter status langganan">
@@ -992,7 +995,7 @@
   function openSubscriptionTracker(){
     if(typeof openAppPage==='function')openAppPage('subscriptions');
     const t=document.querySelector('main.container .page-title'),sub=document.querySelector('main.container .page-sub');
-    if(t)t.textContent='Tracker Langganan';if(sub)sub.textContent='Pantau masa aktif akun pelanggan dan siapa yang perlu diperpanjang.';
+    if(t)t.textContent='Tracker Langganan';if(sub)sub.textContent='Masa aktif = tanggal order + durasi. Perpanjangan menggantikan masa aktif lama.';
     renderSubscriptionTracker();
   }
   async function renderSubscriptionTracker(){
@@ -1015,7 +1018,7 @@
       const wa=waLink(e.tx.whatsapp,msg);
       const left=e.days<0?`Lewat ${Math.abs(e.days)} hari`:e.days===0?'Hari ini':`${e.days} hari lagi`;
       return `<div class="seller-tracker-row"><div class="seller-tracker-copy"><strong>${esc(name)}</strong><small>${esc(meta)}</small><small>Order ${esc(e.tx.transaction_date||'-')} · berakhir ${esc(sellerExpiryDateText(e.expiry))}</small></div><div class="seller-tracker-when"><b class="seller-expiry-badge is-${esc(badge?.tone||'active')}">${esc(badge?.label||'')}</b><span>${esc(left)}</span></div><div class="seller-tracker-actions">${wa?`<a class="seller-tracker-btn" href="${esc(wa)}" target="_blank" rel="noopener">WhatsApp</a>`:''}<button type="button" class="seller-tracker-btn is-primary" data-tracker-renew="${i}">Perpanjang</button></div></div>`;
-    }).join(''):`<div class="seller-tracker-empty">${trackerRows.length?'Tidak ada langganan untuk filter ini.':'Belum ada penjualan dengan durasi paket.'}</div>`;
+    }).join(''):`<div class="seller-tracker-empty">${!trackerRows.length?'Belum ada penjualan dengan durasi paket.':trackerFilter==='soon'&&!trackerQuery&&count('active')?`Belum ada yang habis dalam 7 hari. <button type="button" class="seller-tracker-empty-link" data-tracker-filter="active">Lihat ${count('active')} langganan aktif</button>`:'Tidak ada langganan untuk filter ini.'}</div>`;
   }
   function renewSubscription(e){
     if(!e)return;

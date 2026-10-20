@@ -265,7 +265,6 @@ html.kairo-v3[data-ws-theme] body.authenticated #app-shell tbody td{background-c
 html.kairo-v3[data-ws-theme] body.authenticated #app-shell tbody tr:nth-child(2n) td{background-color:var(--v3-surface-subtle)!important}
 html.kairo-v3[data-ws-theme] body.authenticated #app-shell tbody tr:hover td{background-color:var(--ws-row-hover)!important}
 
-/* Mode gelap: teks berwarna tema di atas latar gelap dicerahkan (label "WORKSPACE HARI INI", nama platform di Performance,
+/* Mode gelap: teks berwarna tema di atas latar gelap dicerahkan (nama platform di Performance,
    nama customer, angka Open Store). Dulu warna tema yang gelap (mis. Awan #2F4F8A) dipakai apa adanya: kontras 1,7-4,4. */
-html.kairo-v3[data-ws-theme] body.authenticated.saas-dark #kairo-v3-dashboard-head small,
 html.kairo-v3[data-ws-theme] body.authenticated.saas-dark #app-shell :is(.platform-summary-name,.customer-db-name,.shift-stat-value){color:color-mix(in srgb,var(--v3-primary) 40%,#fff)!important}

@@ -2389,7 +2389,7 @@ body.saas-dark #settings .receipt-template-section{background:#252b32;border-col
   .kairo-mobile-sheet-handle{width:42px;height:4px;border-radius:99px;background:color-mix(in srgb,var(--muted) 50%,transparent);margin:0 auto 12px}
   .kairo-mobile-sheet-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:13px}.kairo-mobile-sheet-head strong{display:block;font-size:16px;color:var(--ink)}.kairo-mobile-sheet-head small{display:block;font-size:12px;color:var(--muted);margin-top:3px}.kairo-mobile-sheet-close{width:34px;height:34px;border:1px solid var(--line);border-radius:11px;background:color-mix(in srgb,var(--card) 96%,transparent);color:var(--ink);display:grid;place-items:center}.kairo-mobile-sheet-close svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.9}
   .kairo-mobile-more-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.kairo-mobile-more-item{height:76px!important;border:1px solid color-mix(in srgb,var(--brand-primary) 12%,var(--line))!important;background:color-mix(in srgb,var(--brand-primary) 4%,var(--card))!important;border-radius:16px!important;font-size:12px!important}.kairo-mobile-more-item>span:first-child{width:31px!important;height:31px!important;color:var(--brand-accent)}.kairo-mobile-more-item>span:first-child svg{width:25px!important;height:25px!important}.kairo-mobile-more-item.active{border-color:color-mix(in srgb,var(--brand-accent) 45%,var(--line))!important;background:color-mix(in srgb,var(--brand-accent) 10%,var(--card))!important;color:var(--brand-accent)!important}
-  .kairo-mobile-sheet-tip{display:flex;align-items:center;gap:9px;margin-top:11px;padding:9px 11px;border-radius:13px;background:color-mix(in srgb,var(--brand-accent) 6%,var(--card));border:1px solid color-mix(in srgb,var(--brand-accent) 14%,var(--line));color:var(--brand-accent)}.kairo-mobile-sheet-tip>span{font-size:18px}.kairo-mobile-sheet-tip strong{display:block;font-size:12px;color:var(--ink)}.kairo-mobile-sheet-tip small{display:block;font-size:11px;color:var(--muted);margin-top:2px}
+  
   body.kairo-mobile-sheet-open{overflow:hidden}
 
   /* Full Settings submenu on mobile, mirroring the desktop categories */
@@ -2478,13 +2478,10 @@ body.saas-dark #settings .receipt-template-section{background:#252b32;border-col
   .kairo-mobile-more-item{color:var(--ink)!important;background:color-mix(in srgb,var(--card) 96%,var(--brand-primary) 4%)!important;border-color:color-mix(in srgb,var(--ink) 18%,var(--line))!important}
   .kairo-mobile-more-item>span:first-child{color:var(--brand-accent)!important;opacity:1!important}
   .kairo-mobile-more-item>span:last-child{color:var(--ink)!important;opacity:1!important;font-weight:760!important}
-  .kairo-mobile-sheet-tip{color:var(--ink)!important;background:color-mix(in srgb,var(--card) 94%,var(--brand-primary) 6%)!important;border-color:color-mix(in srgb,var(--ink) 18%,var(--line))!important}
-  .kairo-mobile-sheet-tip strong{color:var(--ink)!important;opacity:1!important}
-  .kairo-mobile-sheet-tip small{color:var(--muted)!important;opacity:1!important}
   body.saas-dark .kairo-mobile-more-panel{color:#f3f6f8!important;background:color-mix(in srgb,#171a1f 97%,var(--brand-primary))!important}
-  body.saas-dark .kairo-mobile-sheet-head strong,body.saas-dark .kairo-mobile-more-item>span:last-child,body.saas-dark .kairo-mobile-sheet-tip strong{color:#f3f6f8!important}
-  body.saas-dark .kairo-mobile-sheet-head small,body.saas-dark .kairo-mobile-sheet-tip small{color:#b8c1cb!important}
-  body.saas-dark .kairo-mobile-more-item,body.saas-dark .kairo-mobile-sheet-tip,body.saas-dark .kairo-mobile-sheet-close{background:color-mix(in srgb,#20252c 96%,var(--brand-primary))!important;border-color:rgba(255,255,255,.17)!important;color:#f3f6f8!important}
+  body.saas-dark .kairo-mobile-sheet-head strong,body.saas-dark .kairo-mobile-more-item>span:last-child{color:#f3f6f8!important}
+  body.saas-dark .kairo-mobile-sheet-head small{color:#b8c1cb!important}
+  body.saas-dark .kairo-mobile-more-item,body.saas-dark .kairo-mobile-sheet-close{background:color-mix(in srgb,#20252c 96%,var(--brand-primary))!important;border-color:rgba(255,255,255,.17)!important;color:#f3f6f8!important}
 }
 
 /* KAIRO v20.10.111 — mobile bottom-nav vertical alignment only */

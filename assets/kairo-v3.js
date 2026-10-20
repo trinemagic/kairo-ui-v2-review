@@ -354,7 +354,7 @@ if (window.top !== window.self) {
     const key = `${name}|${workspaceName()}|${date}`;
     if (header.dataset.kairoKey !== key) {
       header.dataset.kairoKey = key;
-      header.innerHTML = `<div><small>WORKSPACE HARI INI</small><h2>${name ? `Halo, ${escapeHtml(name)}!` : 'Halo!'}</h2><p>${escapeHtml(workspaceName())} · ${escapeHtml(date)}</p></div><div class="kairo-live-clock"><strong data-kairo-clock-time></strong><span data-kairo-clock-zone></span></div>`;
+      header.innerHTML = `<div><h2>${name ? `Halo, ${escapeHtml(name)}!` : 'Halo!'}</h2><p>${escapeHtml(workspaceName())} · ${escapeHtml(date)}</p></div><div class="kairo-live-clock"><strong data-kairo-clock-time></strong><span data-kairo-clock-zone></span></div>`;
       tickLiveClock();
     }
     startLiveClock();
@@ -1185,40 +1185,55 @@ if (window.top !== window.self) {
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', later); else later();
 })();
 
-/* ---- Jasa Online: WhatsApp, Catatan, Tip dilipat ke "Tambahan (opsional)" di form Orders (owner Okt 2026) ----
-   Data pemakaian: kolom ini jarang diisi, jadi form dibuat lebih pendek. Elemen & id tetap sama (simpan, reset, Autofill
-   tidak berubah); hanya dipindah ke dalam <details>, dan dikembalikan ke tempat asal bila template bukan Jasa Online. */
+/* ---- Isian opsional Orders dilipat ke "Tambahan (opsional)" (owner Okt 2026) ----
+   Jasa Online: WhatsApp, Catatan, Tip (data pemakaian: jarang diisi). Seller App Premium (owner 20 Okt 2026, audit UI/UX):
+   Penyesuaian Harga, Catatan, Tip; WhatsApp tetap terlihat karena dipakai pengingat perpanjangan di Tracker Langganan.
+   Elemen & id tetap sama (simpan, reset, Autofill tidak berubah); hanya dipindah ke dalam <details>, dan dikembalikan ke
+   tempat asal bila template lain. */
 (function () {
   'use strict';
-  const IDS = ['tx-whatsapp', 'tx-notes', 'tx-tip'];
+  const SETS = {
+    jasa: { ids: ['tx-whatsapp', 'tx-notes', 'tx-tip'], title: 'Tambahan (opsional)', hint: 'WhatsApp, catatan, tip' },
+    // Seller sudah punya kartu "Detail Tambahan", jadi judul lipatan ini menyebut isinya langsung.
+    seller: { ids: ['tx-adjustment-type', 'tx-notes', 'tx-tip'], title: 'Diskon, catatan & tip', hint: 'opsional' }
+  };
   const marks = new Map();
-  const isJasa = () => document.documentElement.classList.contains('kairo-jasa');
-  const filled = () => IDS.some(id => String(document.getElementById(id)?.value || '').trim());
+  let active = null;
+  const current = () => document.documentElement.dataset.businessTemplate === 'digital_subscription' ? 'seller'
+    : document.documentElement.classList.contains('kairo-jasa') ? 'jasa' : null;
+  const group = id => document.getElementById(id)?.closest('.price-adjustment, .form-group');
+  const filled = () => !!active && SETS[active].ids.some(id => {
+    const v = String(document.getElementById(id)?.value || '').trim();
+    return id === 'tx-adjustment-type' ? v && v !== 'none' : v;
+  });
+  function unfold(box) {
+    marks.forEach((mark, g) => mark.replaceWith(g)); marks.clear();
+    box.remove(); active = null;
+  }
   function fold() {
     const form = document.getElementById('tx-form'); if (!form) return;
     let box = form.querySelector('.kairo-tx-extra');
-    if (isJasa()) {
-      if (box) { if (filled()) box.open = true; return; }
-      const total = form.querySelector('.total-box'); if (!total) return;
-      box = document.createElement('details'); box.className = 'kairo-tx-extra full';
-      box.innerHTML = '<summary>Tambahan (opsional) <small>WhatsApp, catatan, tip</small></summary><div class="kairo-tx-extra-body"></div>';
-      const body = box.querySelector('.kairo-tx-extra-body');
-      IDS.forEach(id => {
-        const g = document.getElementById(id)?.closest('.form-group'); if (!g) return;
-        const mark = document.createComment('kairo-tx-extra:' + id); g.before(mark); marks.set(id, mark); body.appendChild(g);
-      });
-      total.before(box);
-      if (filled()) box.open = true;
-    } else if (box) {
-      IDS.forEach(id => { const g = document.getElementById(id)?.closest('.form-group'), mark = marks.get(id); if (g && mark) { mark.replaceWith(g); marks.delete(id); } });
-      box.remove();
-    }
+    const want = current();
+    if (box && active !== want) { unfold(box); box = null; }
+    if (!want) return;
+    if (box) { if (filled()) box.open = true; return; }
+    const total = form.querySelector('.total-box'); if (!total) return;
+    box = document.createElement('details'); box.className = 'kairo-tx-extra full';
+    box.innerHTML = '<summary>' + SETS[want].title + ' <small>' + SETS[want].hint + '</small></summary><div class="kairo-tx-extra-body"></div>';
+    const body = box.querySelector('.kairo-tx-extra-body');
+    SETS[want].ids.forEach(id => {
+      const g = group(id); if (!g) return;
+      const mark = document.createComment('kairo-tx-extra:' + id); g.before(mark); marks.set(g, mark); body.appendChild(g);
+    });
+    total.before(box); active = want;
+    if (filled()) box.open = true;
   }
   // Field yang wajib/invalid di dalam lipatan harus terlihat sebelum disorot.
   document.addEventListener('invalid', e => { const d = e.target.closest?.('.kairo-tx-extra'); if (d) d.open = true; }, true);
   document.addEventListener('change', e => { if (e.target.closest?.('#tx-form') && filled()) fold(); }, true);
   document.addEventListener('reset', e => { if (e.target.id === 'tx-form') e.target.querySelector('.kairo-tx-extra')?.removeAttribute('open'); }, true);
-  new MutationObserver(fold).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+  new MutationObserver(fold).observe(document.documentElement, { attributes: true, attributeFilter: ['class', 'data-business-template'] });
   document.addEventListener('kairo:template-ready', fold);
+  document.addEventListener('kairo:seller-mounted', fold);
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fold); else fold();
 })();
