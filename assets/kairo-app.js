@@ -5604,7 +5604,8 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
     if(section!=='dashboard')setHistoryMode(false);
     const active=section==='dashboard'&&document.body.classList.contains('kairo-mobile-history')?'history':section;
     document.querySelectorAll('#saas-mobile-bottom .saas-mobile-nav-btn[data-mobile-tab],#kairo-mobile-more-sheet .saas-mobile-nav-btn[data-mobile-tab]').forEach(b=>b.classList.toggle('active',b.dataset.mobileTab===active));
-    document.getElementById('kairo-mobile-more-btn')?.classList.toggle('active',MORE_TABS.includes(active));
+    // Seller memindah History ke More (slotnya dipakai Langganan); saat itu More yang menyala.
+    document.getElementById('kairo-mobile-more-btn')?.classList.toggle('active',MORE_TABS.includes(active)||(active==='history'&&!document.querySelector('#saas-mobile-bottom [data-mobile-tab="history"]')));
     if(active==='settings'){if(!document.getElementById('kairo-mobile-settings-hub'))buildSettings();syncSettings()}
     syncPlan();
   }
@@ -5708,7 +5709,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
       if(!document.getElementById('seller-app-premium-js')){
         const script=document.createElement('script');
         script.id='seller-app-premium-js';
-        script.src='assets/templates/seller-app-premium.js?v=20.10.165';
+        script.src='assets/templates/seller-app-premium.js?v=20.10.166';
         script.defer=true;
         document.body.appendChild(script);
       }

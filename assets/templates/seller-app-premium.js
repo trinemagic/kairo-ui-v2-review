@@ -975,6 +975,7 @@
     }
     ensureTrackerNav();
   }
+  const historyIcon='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 12a8.5 8.5 0 1 0 2.5-6"/><path d="M3 4v4h4"/><path d="M12 8v4.5l3 2"/></svg>';
   function ensureTrackerNav(){
     const nav=document.querySelector('#saas-sidebar .saas-sidebar-nav');
     if(nav&&!nav.querySelector('[data-tab="subscriptions"]')){
@@ -984,11 +985,19 @@
       const after=nav.querySelector('[data-tab="input"]');if(after)after.insertAdjacentElement('afterend',b);else nav.appendChild(b);
     }
     { const t=nav&&nav.querySelector('[data-tab="subscriptions"]'),inp=nav&&nav.querySelector('[data-tab="input"]'); if(t&&inp&&inp.nextElementSibling!==t)inp.insertAdjacentElement('afterend',t); }
+    // HP (owner 20 Okt 2026): slot History di bottom nav dipakai Tracker Langganan ("Langganan"), History pindah ke menu More.
+    const hist=document.querySelector('#saas-mobile-bottom [data-mobile-tab="history"]');
+    if(hist){
+      const t=hist.cloneNode(false);t.dataset.mobileTab='subscriptions';t.removeAttribute('aria-current');
+      t.innerHTML=`<span>${TRACKER_ICON}</span><span>Langganan</span>`;
+      t.addEventListener('click',openSubscriptionTracker);
+      hist.replaceWith(t);
+    }
     const grid=document.querySelector('#kairo-mobile-more-sheet .kairo-mobile-more-grid');
-    if(grid&&!grid.querySelector('[data-mobile-tab="subscriptions"]')){
-      const m=document.createElement('button');m.type='button';m.className='saas-mobile-nav-btn kairo-mobile-more-item';m.dataset.mobileTab='subscriptions';
-      m.innerHTML=`<span>${TRACKER_ICON}</span><span>Tracker Langganan</span>`;
-      m.addEventListener('click',()=>{document.querySelector('#kairo-mobile-more-sheet .kairo-mobile-more-backdrop')?.click();openSubscriptionTracker();});
+    if(grid&&!grid.querySelector('[data-mobile-tab="history"]')){
+      const m=document.createElement('button');m.type='button';m.className='saas-mobile-nav-btn kairo-mobile-more-item';m.dataset.mobileTab='history';
+      m.innerHTML=`<span>${historyIcon}</span><span>History</span>`;
+      m.addEventListener('click',()=>{document.querySelector('#kairo-mobile-more-sheet .kairo-mobile-more-backdrop')?.click();window.kairoOpenMobileHistory?.();});
       grid.prepend(m);
     }
   }
