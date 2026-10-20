@@ -1001,7 +1001,7 @@ if (window.top !== window.self) {
   const LEVELS = [{ v: 0.9, label: 'Kecil' }, { v: 1, label: 'Normal' }, { v: 1.1, label: 'Besar' }, { v: 1.2, label: 'Ekstra' }];
   const root = document.documentElement;
   let sheet = null, built = '', timer = 0;
-  const saved = () => { try { const i = Number(localStorage.getItem(KEY)); return LEVELS[i] ? i : 1; } catch (_e) { return 1; } };
+  const saved = () => { try { const raw = localStorage.getItem(KEY); const i = raw === null ? 1 : Number(raw); return LEVELS[i] ? i : 1; } catch (_e) { return 1; } };
   const splitList = sel => { const out = []; let depth = 0, cur = ''; for (const ch of sel) { if (ch === '(' || ch === '[') depth++; if (ch === ')' || ch === ']') depth--; if (ch === ',' && !depth) { out.push(cur); cur = ''; } else cur += ch; } out.push(cur); return out.map(s => s.trim()).filter(Boolean); };
   const scope = sel => /^html(?=$|[.:#[\s>~+])/i.test(sel) ? sel.replace(/^html/i, 'html[data-kfs]') : /^:root/.test(sel) ? sel.replace(/^:root/, ':root[data-kfs]') : 'html[data-kfs] ' + sel;
   function convert(rules) {
