@@ -167,7 +167,7 @@ body.saas-dark.seller-app-premium .seller-extra-grid .input::placeholder{color:#
   .seller-app-head h3{font-size:18px}
   .seller-category-grid{grid-template-columns:repeat(5,minmax(68px,1fr));gap:6px;overflow-x:auto;padding-bottom:2px}
   .seller-category-card{min-height:72px;padding:8px 5px}
-  .seller-category-card strong{font-size:9px}
+  .seller-category-card strong{font-size:10.5px}
   .seller-product-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
   .seller-product-card{min-height:78px;padding:8px 5px}
   .seller-product-card img{width:31px;height:31px}
@@ -326,7 +326,7 @@ body.seller-app-premium .seller-performance-locked-nav::after{content:'PRO';marg
   body.seller-app-premium #input .seller-orders-card-full,
   body.seller-app-premium #input .card:has(#tx-form),
   body.seller-app-premium #input #tx-form{width:100%;max-width:100%;min-width:0;box-sizing:border-box;overflow:visible}
-  body.seller-app-premium #seller-app-premium-template{width:calc(100% - 16px);max-width:calc(100% - 16px);margin:10px auto 16px;padding:14px 12px;border-radius:var(--seller-radius-md);overflow:hidden}
+  body.seller-app-premium #seller-app-premium-template,body.saas-dark.seller-app-premium #seller-app-premium-template{width:100%;max-width:100%;margin:6px 0 12px;padding:0;border:0;border-radius:0;background:none;box-shadow:none;overflow:hidden}
   body.seller-app-premium #seller-app-premium-template>*{width:100%;max-width:100%;min-width:0}
   body.seller-app-premium #seller-app-premium-template .seller-category-grid{display:grid;grid-template-columns:repeat(5,minmax(58px,1fr));gap:6px;overflow-x:auto;overscroll-behavior-inline:contain;padding-bottom:3px}
   body.seller-app-premium #seller-app-premium-template .seller-category-card{min-width:58px;min-height:68px;padding:7px 3px}

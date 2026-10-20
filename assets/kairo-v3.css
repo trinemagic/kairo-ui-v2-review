@@ -2146,10 +2146,11 @@ html.kairo-v3 body.saas-dark .customer-contact-item strong {
     font-size: 13px !important;
   }
 
-  /* Pages where Refresh is alone get a full-width button. */
+  /* Pages where Refresh is alone: half width on the right, so it does not
+     outweigh the page content (it used to span the full row). */
   html.kairo-v3 #app-shell main.container:has(> section.section.active:is(#input, #customers, #cash, #settings, #subscriptions, #pos-products, #po-plans, #po-finance)) > .toolbar .kairo-refresh-btn,
   html.kairo-v3 body.kairo-mobile-history #app-shell main.container > .toolbar .kairo-refresh-btn {
-    grid-column: 1 / -1;
+    grid-column: -2 / -1;
   }
 
   /* History (bottom nav): the Dashboard page showing only the transaction history,
@@ -4816,6 +4817,14 @@ html.kairo-v3 .pick-hidden { display: none !important; }
 html.kairo-v3 .pick-card { cursor: pointer; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
 html.kairo-v3 .pick-card:focus-visible { outline: 2px solid var(--v3-primary); outline-offset: 2px; }
 html.kairo-v3 .pick-card:active { transform: scale(.992); }
+/* Orders HP: product cards shorter, topics two per row, Save/Reset fill the row. */
+@media (max-width: 700px) {
+  html.kairo-v3 #input .master-item.pick-card { padding: 8px 11px !important; }
+  html.kairo-v3 #input #tx-topics.master-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  html.kairo-v3 #input #tx-topics .master-item { padding: 9px 10px !important; }
+  html.kairo-v3 #input #tx-form .full.actions:not(:has(#seller-order-actions)) { display: grid; grid-template-columns: 2fr 1fr; }
+  html.kairo-v3 #input #tx-form .full.actions:not(:has(#seller-order-actions)) > .btn { width: 100%; }
+}
 html.kairo-v3 .pick-qty { margin-left: auto; flex: 0 0 auto; display: inline-flex; align-items: center; gap: 8px; padding: 3px 4px 3px 12px; border-radius: 999px; background: var(--v3-primary); color: var(--v3-on-primary, #fff); font-size: 13px; font-weight: 800; }
 html.kairo-v3 .pick-qty[hidden] { display: none; }
 html.kairo-v3 .pick-minus { width: 26px; height: 26px; border: 0; border-radius: 50%; background: rgba(255, 255, 255, .28); color: inherit; font: inherit; font-size: 17px; line-height: 1; cursor: pointer; }
