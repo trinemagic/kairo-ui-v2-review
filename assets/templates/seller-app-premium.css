@@ -92,7 +92,8 @@ body:not(.saas-dark) .seller-choice{background:#fff;color:#17233a;border-color:#
 .seller-reset-btn,.seller-save-btn{height:38px;min-height:38px;max-height:38px;padding:0 14px;border-radius:var(--seller-radius-sm);font:inherit;font-size:11px;font-weight:800;line-height:1;cursor:pointer;flex:0 0 auto}
 .seller-reset-btn{width:112px;min-width:112px;border:1px solid var(--seller-line);background:var(--seller-panel);color:var(--seller-text)}
 .seller-save-btn{width:190px;min-width:190px;border:0;background:var(--seller-blue);color:#fff}
-.seller-save-btn:disabled{opacity:.45;cursor:not-allowed}
+/* Total sudah tampil di Ringkasan Pesanan; kotak Total Harga bawaan disembunyikan (owner 20 Okt 2026). */
+body.seller-app-premium #tx-form .total-box{display:none!important}
 .seller-original-submit-hidden{display:none!important}
 
 .seller-history-list{display:grid;gap:9px}
@@ -249,6 +250,7 @@ body.seller-app-premium .seller-save-btn,
 body.seller-app-premium .seller-add-product-btn,
 body.seller-app-premium .seller-add-product-save,
 body.seller-app-premium .seller-setting-save{background:var(--seller-blue);border-color:var(--seller-blue);color:#fff;box-shadow:none}
+body.seller-app-premium .seller-save-btn[aria-disabled=true]{background:var(--seller-panel);color:var(--seller-muted);border:1px dashed var(--seller-line);cursor:not-allowed}
 body.seller-app-premium .seller-selection{border-color:color-mix(in srgb,var(--seller-blue) 35%,var(--seller-line));background:color-mix(in srgb,var(--seller-blue) 6%,var(--seller-panel))}
 body.seller-app-premium .seller-history-avatar{background:linear-gradient(135deg,var(--pink,#EA97A9),color-mix(in srgb,var(--seller-blue) 80%,#fff 20%))}
 body.seller-app-premium .seller-cart-total strong,

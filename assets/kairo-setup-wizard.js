@@ -25,6 +25,8 @@
   const rp = n => 'Rp' + Math.round(Number(n) || 0).toLocaleString('id-ID');
   // Profit per baris; minus (modal > harga jual) ditulis merah supaya kerugian kelihatan.
   const profit = (price, cost) => { const v = (Number(price) || 0) - (Number(cost) || 0); return `<span class="ksw-ml">Profit</span><span class="${v < 0 ? 'is-loss' : ''}">${v < 0 ? '−' : ''}${rp(Math.abs(v))}</span>`; };
+  // Seller: modal 0 = belum diisi (audit UI/UX Okt 2026), jangan tampil seolah profit = harga jual.
+  const sellerProfit = (price, cost) => (Number(cost) || 0) > 0 || !(Number(price) > 0) ? profit(price, cost) : '<span class="ksw-ml">Profit</span><span class="is-empty">Modal belum diisi</span>';
   const num = v => { const n = Number(String(v ?? '').replace(/[^\d.-]/g, '')); return Number.isFinite(n) ? n : 0; };
   const posWs = () => document.documentElement.dataset.businessTemplate === 'pos_kasir';
   const shopWs = () => ['online_shop', 'pos_kasir'].includes(document.documentElement.dataset.businessTemplate);
@@ -283,18 +285,18 @@
   // 3. Harga & modal (Seller): tabel yang sama dengan Settings › Produk (seller_product_settings).
   STEP.prices = {
     title: () => 'Harga jual & modal',
-    lead: () => 'Isi modal supaya profit tiap order langsung terhitung di dashboard. Yang belum diisi bisa dilengkapi nanti di Settings › Produk.',
+    lead: () => 'Isi modal supaya profit tiap order langsung terhitung di dashboard.',
     init() { D.prices = D.prices || {}; },
     html() {
       const C = window.kairoSellerCatalog, chosen = [...(D.products || new Set(S.products || []))];
       if (!C?.ready()) return `<div class="ksw-note">${ic('info')}<span>Daftar produk belum bisa dimuat. Lewati dulu; harga bisa diisi di Settings › Produk.</span></div>`;
       if (!chosen.length) return `<div class="ksw-note">${ic('info')}<span>Belum ada aplikasi dipilih. Kembali ke langkah Produk, atau isi harga nanti di Settings › Produk.</span></div>`;
       const rows = C.rows();
-      return `<div class="ksw-ptable"><div class="ksw-prow is-head" aria-hidden="true"><span>Plan · durasi</span><span>Harga jual</span><span>Modal</span><span>Profit</span></div>${chosen.map((p, gi) => {
+      return `<div class="ksw-note">${ic('info')}<span>Boleh dilewati. Harga & modal bisa dilengkapi nanti di Settings › Produk.</span></div><div class="ksw-ptable"><div class="ksw-prow is-head" aria-hidden="true"><span>Plan · durasi</span><span>Harga jual</span><span>Modal</span><span>Profit</span></div>${chosen.map((p, gi) => {
         const list = rows.filter(r => r.product === p);
         return `<details class="ksw-grp" ${gi === 0 ? 'open' : ''}><summary><img src="${esc(C.iconBase + C.slug(p) + '.svg')}" alt=""><b>${esc(C.pretty(p))}</b><small>${list.length} plan</small></summary>${list.map(r => {
           const k = C.rowKey(r), v = D.prices[k] || { price: r.price, cost: r.cost };
-          return `<div class="ksw-prow" data-k="${esc(k)}"><span class="ksw-plan">${esc(C.pretty(r.variant))} · ${esc(r.duration)}</span><label><span class="ksw-ml">Harga jual</span><input type="text" data-money inputmode="numeric" data-f="price" value="${Number(v.price) || 0}"></label><label><span class="ksw-ml">Modal</span><input type="text" data-money inputmode="numeric" data-f="cost" value="${Number(v.cost) || 0}"></label><b class="ksw-profit">${profit(v.price, v.cost)}</b></div>`;
+          return `<div class="ksw-prow" data-k="${esc(k)}"><span class="ksw-plan">${esc(C.pretty(r.variant))} · ${esc(r.duration)}</span><label><span class="ksw-ml">Harga jual</span><input type="text" data-money inputmode="numeric" data-f="price" value="${Number(v.price) || 0}"></label><label><span class="ksw-ml">Modal</span><input type="text" data-money inputmode="numeric" data-f="cost" value="${Number(v.cost) || 0}"></label><b class="ksw-profit">${sellerProfit(v.price, v.cost)}</b></div>`;
         }).join('')}</details>`;
       }).join('')}</div>`;
     },
@@ -305,7 +307,7 @@
         const row = e.target.closest('[data-k]'); if (!row) return;
         const k = row.dataset.k, base = rows.get(k), v = D.prices[k] || { price: base.price, cost: base.cost };
         v[e.target.dataset.f] = Math.max(0, num(e.target.value)); v.dirty = true; D.prices[k] = v;
-        row.querySelector('.ksw-profit').innerHTML = profit(v.price, v.cost);
+        row.querySelector('.ksw-profit').innerHTML = sellerProfit(v.price, v.cost);
       });
     },
     async save() {

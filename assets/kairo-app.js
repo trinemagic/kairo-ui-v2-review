@@ -445,7 +445,7 @@ let setupWizardLoader=null;
 function loadSetupWizard(){
   if(window.kairoSetupWizard)return Promise.resolve(window.kairoSetupWizard);
   if(!setupWizardLoader)setupWizardLoader=new Promise((resolve,reject)=>{
-    const v='1.0.8',css=document.createElement('link');css.rel='stylesheet';css.href=`assets/kairo-setup-wizard.css?v=${v}`;document.head.appendChild(css);
+    const v='1.0.9',css=document.createElement('link');css.rel='stylesheet';css.href=`assets/kairo-setup-wizard.css?v=${v}`;document.head.appendChild(css);
     const js=document.createElement('script');js.src=`assets/kairo-setup-wizard.js?v=${v}`;js.onload=()=>resolve(window.kairoSetupWizard);js.onerror=()=>{setupWizardLoader=null;reject(new Error('Setup wizard gagal dimuat.'));};document.head.appendChild(js);
   });
   return setupWizardLoader;
@@ -5492,7 +5492,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
   function buildMore(){
     document.getElementById('kairo-mobile-more-sheet')?.remove();
     const wrap=document.createElement('div');wrap.id='kairo-mobile-more-sheet';wrap.setAttribute('aria-hidden','true');
-    wrap.innerHTML=`<button type="button" class="kairo-mobile-more-backdrop" aria-label="Tutup menu"></button><section class="kairo-mobile-more-panel" role="dialog" aria-modal="true" aria-label="Menu lainnya"><div class="kairo-mobile-sheet-handle"></div><div class="kairo-mobile-sheet-head"><div><strong>Menu Lainnya</strong><small>Akses cepat ke fitur workspace</small></div><button type="button" class="kairo-mobile-sheet-close" aria-label="Tutup menu">${icons.close}</button></div><div class="kairo-mobile-more-grid"></div><div class="kairo-mobile-sheet-tip"><span>✦</span><div><strong>Quick access</strong><small>Menu mengikuti akses paket workspace.</small></div></div></section>`;
+    wrap.innerHTML=`<button type="button" class="kairo-mobile-more-backdrop" aria-label="Tutup menu"></button><section class="kairo-mobile-more-panel" role="dialog" aria-modal="true" aria-label="Menu lainnya"><div class="kairo-mobile-sheet-handle"></div><div class="kairo-mobile-sheet-head"><div><strong>Menu Lainnya</strong><small>Akses cepat ke fitur workspace</small></div><button type="button" class="kairo-mobile-sheet-close" aria-label="Tutup menu">${icons.close}</button></div><div class="kairo-mobile-more-grid"></div></section>`;
     document.body.appendChild(wrap);
     const grid=wrap.querySelector('.kairo-mobile-more-grid');
     MORE_TABS.forEach(tab=>{
@@ -5604,7 +5604,8 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
     if(section!=='dashboard')setHistoryMode(false);
     const active=section==='dashboard'&&document.body.classList.contains('kairo-mobile-history')?'history':section;
     document.querySelectorAll('#saas-mobile-bottom .saas-mobile-nav-btn[data-mobile-tab],#kairo-mobile-more-sheet .saas-mobile-nav-btn[data-mobile-tab]').forEach(b=>b.classList.toggle('active',b.dataset.mobileTab===active));
-    document.getElementById('kairo-mobile-more-btn')?.classList.toggle('active',MORE_TABS.includes(active));
+    // Seller memindah History ke More (slotnya dipakai Langganan); saat itu More yang menyala.
+    document.getElementById('kairo-mobile-more-btn')?.classList.toggle('active',MORE_TABS.includes(active)||(active==='history'&&!document.querySelector('#saas-mobile-bottom [data-mobile-tab="history"]')));
     if(active==='settings'){if(!document.getElementById('kairo-mobile-settings-hub'))buildSettings();syncSettings()}
     syncPlan();
   }
@@ -5701,14 +5702,14 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
         const link=document.createElement('link');
         link.id='seller-app-premium-css';
         link.rel='stylesheet';
-        link.href='assets/templates/seller-app-premium.css?v=20.10.158';
+        link.href='assets/templates/seller-app-premium.css?v=20.10.159';
         // Sebelum CSS tema (kairo-themes.css) supaya aturan tema tetap menang seperti dulu.
         document.head.insertBefore(link,document.getElementById('kairo-themes-css'));
       }
       if(!document.getElementById('seller-app-premium-js')){
         const script=document.createElement('script');
         script.id='seller-app-premium-js';
-        script.src='assets/templates/seller-app-premium.js?v=20.10.164';
+        script.src='assets/templates/seller-app-premium.js?v=20.10.166';
         script.defer=true;
         document.body.appendChild(script);
       }

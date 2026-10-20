@@ -152,6 +152,7 @@ body.saas-dark #kairo-setup .ksw-scrim { background: rgba(0, 0, 0, .6); }
 #kairo-setup .ksw-plan { font-weight: 650; color: var(--k-ink); }
 #kairo-setup .ksw-profit { font-weight: 800; color: var(--k-ok); white-space: nowrap; }
 #kairo-setup .ksw-profit .is-loss { color: var(--k-bad); }
+#kairo-setup .ksw-profit .is-empty { color: var(--k-mut); font-weight: 650; font-size: 11.5px; white-space: normal; }
 #kairo-setup .ksw-ml { display: none; }
 #kairo-setup .ksw-grp { border-bottom: 1px solid var(--k-line); }
 #kairo-setup .ksw-grp summary { display: flex; align-items: center; gap: 10px; padding: 10px; cursor: pointer; list-style: none; font-size: 13px; color: var(--k-ink); }
