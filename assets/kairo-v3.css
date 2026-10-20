@@ -1069,9 +1069,17 @@ html.kairo-v3 #dashboard .kpi .kpi-value {
 }
 
 html.kairo-v3 #dashboard .kpi .kpi-eye {
+  position: relative;
   width: 24px;
   height: 24px;
   margin: -4px -4px -4px 0;
+}
+
+/* Area sentuh 44x44 tanpa mengubah ukuran ikon/kartu. */
+html.kairo-v3 #dashboard .kpi .kpi-eye::after {
+  content: "";
+  position: absolute;
+  inset: -10px;
 }
 
 html.kairo-v3 #dashboard .kpi .kpi-eye svg {
@@ -4846,6 +4854,19 @@ html.kairo-v3 .pick-minus:hover { background: rgba(255, 255, 255, .45); }
     min-width: 0;
     text-align: center;
   }
+}
+
+/* Bottom nav & pop-up Auto Lock HP (mode terang): latar solid supaya tulisan kartu di belakang tidak ikut terbaca (tema Mawar/Awan/Lavender punya --card tembus pandang). */
+html.kairo-v3 body:not(.saas-dark) #saas-mobile-bottom::before,
+html.kairo-v3 body:not(.saas-dark) #saas-mobile-bottom::after,
+html.kairo-v3 body:not(.saas-dark) .kairo-mobile-header-popover {
+  background: color-mix(in srgb, var(--v3-primary) 5%, #ffffff) !important;
+}
+
+html.kairo-v3 body:not(.saas-dark) #saas-mobile-bottom::before,
+html.kairo-v3 body:not(.saas-dark) .kairo-mobile-header-popover {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
 /* Pop-up Notifikasi & Menu Lainnya (mode terang): latar solid, bukan tembus pandang. */
