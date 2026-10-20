@@ -187,7 +187,7 @@
     if (!form || !actions || q('#kairo-pin-settings')) return;
     const box = document.createElement('div'); box.id = 'kairo-pin-settings'; box.className = 'full kairo-pin-settings';
     box.innerHTML = `<div class="kairo-layout-colors-title">PIN Login</div>
-      <div class="page-sub">Masuk lebih cepat di HP ini dengan PIN 6 angka. Salah 5 kali, PIN dihapus dan kamu harus masuk dengan password. Password tidak disimpan.</div>
+      <div class="page-sub">Masuk cepat di perangkat ini dengan PIN 6 angka. Salah 5 kali, PIN dihapus dan kamu masuk pakai password lagi.</div>
       <div class="kairo-pin-row"><span class="kairo-pin-state"></span><span class="kairo-pin-btns"><button type="button" class="btn btn-outline" data-pin-set></button><button type="button" class="btn btn-outline" data-pin-del hidden>Hapus PIN</button></span></div>`;
     actions.before(box);
     q('[data-pin-set]', box).onclick = () => openSetup(active());
