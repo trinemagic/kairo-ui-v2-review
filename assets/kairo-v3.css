@@ -5361,3 +5361,27 @@ body.saas-dark .kh-status.is-bad { color: #ff9fb0; }
   html.kairo-v3 .kh-head { display: none; }
   html.kairo-v3 .kh-actions .btn { width: 100%; }
 }
+
+/* Kolom Tanggal di form (Orders, Withdraw, Petty Cash) sama lebar & sejajar dengan kolom lain (owner 21 Okt 2026).
+   Safari iPhone memberi input date lebar bawaan sendiri sehingga melebihi kartu dan tulisannya di tengah:
+   copot tampilan bawaan, kunci lebar ke kartu, rata kiri. Kotak kalender tetap terbuka saat diketuk. */
+html.kairo-v3 input.input[type="date"] {
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+  box-sizing: border-box;
+  inline-size: 100%;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  min-height: 44px;
+  text-align: left;
+}
+
+html.kairo-v3 input.input[type="date"]::-webkit-date-and-time-value {
+  min-width: 0;
+  text-align: left;
+}
+
+html.kairo-v3 input.input[type="date"]::-webkit-calendar-picker-indicator {
+  margin-inline-start: auto;
+}
