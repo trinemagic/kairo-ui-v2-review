@@ -2163,6 +2163,51 @@ html.kairo-v3 body.saas-dark .customer-contact-item strong {
   }
 }
 
+@media (max-width: 520px) {
+  /* HP: Refresh & Export jadi tombol ikon di baris judul, supaya kartu angka naik ke layar pertama (audit UI/UX Okt 2026). */
+  html.kairo-v3 #app-shell main.container > .toolbar.kairo-page-header {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    column-gap: 8px;
+    row-gap: 12px;
+    align-items: center !important;
+  }
+
+  html.kairo-v3 #app-shell main.container > .toolbar.kairo-page-header > :first-child {
+    grid-column: 1;
+    grid-row: 1;
+    min-width: 0;
+  }
+
+  html.kairo-v3 #app-shell main.container > .toolbar.kairo-page-header .filters {
+    display: contents !important;
+  }
+
+  html.kairo-v3 #app-shell main.container > .toolbar.kairo-page-header .filters > .btn {
+    grid-row: 1;
+    width: 42px !important;
+    min-width: 42px !important;
+    padding: 0 !important;
+  }
+
+  html.kairo-v3 #app-shell main.container > .toolbar.kairo-page-header .kairo-refresh-btn {
+    grid-column: 2;
+  }
+
+  html.kairo-v3 #app-shell main.container > .toolbar.kairo-page-header .btn-gold {
+    grid-column: 3;
+  }
+
+  html.kairo-v3 #app-shell main.container > .toolbar.kairo-page-header .filters > .btn > span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html.kairo-v3 *,
   html.kairo-v3 *::before,
@@ -4541,6 +4586,11 @@ html.kairo-v3 body:not(.saas-dark) .saas-settings-submenu-btn.active {
 }
 html.kairo-v3 body:not(.saas-dark) .sh-select-trigger.placeholder {
   color: #6c5a61;
+}
+/* Placeholder bawaan browser (#757575) cuma 4,4:1 di atas kolom; disamakan dengan teks pudar v3. */
+html.kairo-v3 body:not(.saas-dark) #app-shell :is(input, textarea)::placeholder {
+  color: var(--v3-muted);
+  opacity: 1;
 }
 html.kairo-v3 body:not(.saas-dark) #saas-mobile-bottom .saas-mobile-nav-btn.active:not(.kairo-mobile-orders-main) {
   color: color-mix(in srgb, var(--brand-accent) 42%, #2b1a21) !important;
