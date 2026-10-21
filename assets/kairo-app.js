@@ -5562,7 +5562,7 @@ document.getElementById("landing-logout-button")?.addEventListener("click",()=>d
     const theme=document.querySelector('[data-mobile-header-action="theme"]');
     if(theme)theme.querySelector('.kairo-mobile-theme-icon').innerHTML=dark?icons.sun:icons.moon;
     const lock=document.querySelector('[data-mobile-header-action="lock"]');
-    if(lock){const strong=lock.querySelector('strong');if(strong)strong.textContent=mobileAutoLockLabel();lock.style.display=document.getElementById('kairo-lock-trigger')?'':'none'}
+    if(lock){const label=mobileAutoLockLabel(),strong=lock.querySelector('strong');if(strong)strong.textContent=label;lock.setAttribute('aria-label','Auto Lock: '+label);lock.title='Auto Lock: '+label;lock.style.display=document.getElementById('kairo-lock-trigger')?'':'none'}
     const avatar=document.querySelector('[data-mobile-header-action="profile"]');
     if(avatar){const raw=(document.getElementById('user-email')?.textContent||'G').trim();avatar.textContent=(raw.match(/[A-Za-z0-9]/)?.[0]||'G').toUpperCase()}
   }

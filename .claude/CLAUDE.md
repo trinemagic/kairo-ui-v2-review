@@ -86,8 +86,8 @@ domain = pengguna login ulang & pengaturan browser (Ingat saya, dark mode) mulai
 | `assets/brand/` | Logo resmi KAIRO Workspaces (kit dari owner, Okt 2026) | `kairo-horizontal-color.svg` = landing (header, footer, dialog Masuk; latar terang, min. lebar 120px); `kairo-app-icon.svg` = logo default dashboard (`KAIRO_LOGO`, sidebar, header HP, preview Settings, admin) sampai user upload logo sendiri; `favicon.svg/.ico`; `assets/og/apple-touch-icon.png` dari kit. Wordmark digambar - jangan diketik ulang pakai font. `assets/kairo-mark.svg` (logo lama) sudah dihapus. |
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
-Versi terakhir: `kairo.css?v=20.10.164`, `kairo-receipt.css?v=1.3.0`, `kairo-v3.css?v=3.44.14`,
-`kairo-v3.js?v=3.32.18`, `kairo-app.js?v=20.10.271`, `preorder-jastip.js?v=1.0.2`/`.css?v=1.0.3` (dari loader kairo-app.js), `kairo-pin.js?v=1.0.3`, `kairo-payments.js?v=1.0.0`, `kairo-handler.js?v=1.1.0`, `kairo-themes.css?v=1.0.2`/`.js?v=1.0.2`; template seller dimuat dari kairo-app.js
+Versi terakhir: `kairo.css?v=20.10.165`, `kairo-receipt.css?v=1.3.0`, `kairo-v3.css?v=3.44.14`,
+`kairo-v3.js?v=3.32.18`, `kairo-app.js?v=20.10.272`, `preorder-jastip.js?v=1.0.2`/`.css?v=1.0.3` (dari loader kairo-app.js), `kairo-pin.js?v=1.0.3`, `kairo-payments.js?v=1.0.0`, `kairo-handler.js?v=1.1.0`, `kairo-themes.css?v=1.0.2`/`.js?v=1.0.2`; template seller dimuat dari kairo-app.js
 (`seller-app-premium.js?v=20.10.166`, `.css?v=20.10.159`) — naikkan juga bila file template diubah.
 Setup Wizard dimuat dari `loadSetupWizard()` di kairo-app.js (`kairo-setup-wizard.js/.css`, satu konstanta `v` = 1.0.9; online-shop.js 1.7.5 / css 1.7.3 dimuat dari loader template).
 Panduan dimuat dari `window.kairoOpenGuide()` di kairo-v3.js (`kairo-guide.js/.css?v=` konstanta `GUIDE_V`='1.2.10'; gambar `assets/guide/*.webp?v=` `SHOT_V` di kairo-guide.js).
@@ -339,6 +339,7 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   disembunyikan dari Dashboard mobile). Notifikasi mobile = sheet `#kairo-mobile-notif-sheet`,
   isi/dot/seen dari `window.kairoNotifications` (kairo-v3.js), sama dengan lonceng desktop.
   Sheet "Tambah" (quick actions) sudah dihapus.
+- **Header HP (`#kairo-mobile-brandbar`, semua template, owner 21 Okt 2026):** "KAIRO WORKSPACES" + nama workspace TIDAK boleh dipotong "…": blok nama mengambil sisa lebar (`flex:1`) dan boleh turun baris; Auto Lock di HP = tombol ikon (status ada di menu & `aria-label`/`title`, diisi `syncPlan()`). Desktop tidak terpengaruh (brandbar hanya <=900px).
 - **Dashboard:** "Halo, {display_name}!" (`window.kairoDisplayName`), jam real-time,
   quick access sudah dihapus.
 - **Kartu statistik Dashboard (compact):** ikon kiri + label & angka bertumpuk, tanpa
