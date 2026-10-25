@@ -56,6 +56,6 @@ window.supabase = { createClient: () => {
       async remove(paths) { paths.forEach(x => { if (D.storage) delete D.storage[bucket + '/' + x]; }); return { data: [], error: null }; },
       getPublicUrl(path) { return { data: { publicUrl: 'assets/brand/kairo-app-icon.svg#' + bucket + '/' + path } }; }
     }) },
-    auth: { refreshSession: async ({refresh_token}) => (window.__mockRT === refresh_token ? { data: { session: window.__mockSessionFull }, error: null } : { data: null, error: { message: 'Invalid Refresh Token', status: 400 } }), getSession: async () => ({ data: { session: window.__mockSession || null }, error: null }), onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }), signOut: async () => ({}), getUser: async () => ({ data: { user: null } }) }
+    auth: { refreshSession: async ({refresh_token}) => (window.__mockRT === refresh_token ? { data: { session: window.__mockSessionFull }, error: null } : { data: null, error: { message: 'Invalid Refresh Token', status: 400 } }), getSession: async () => ({ data: { session: window.__mockSession || null }, error: null }), onAuthStateChange: cb => { (window.__mockAuthCbs = window.__mockAuthCbs || []).push(cb); return { data: { subscription: { unsubscribe() {} } } }; }, signOut: async () => { (window.__mockAuthCbs || []).forEach(cb => { try { cb('SIGNED_OUT', null); } catch (e) {} }); return { error: null }; }, getUser: async () => ({ data: { user: null } }) }
   };
 } };

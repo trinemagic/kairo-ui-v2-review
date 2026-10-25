@@ -87,7 +87,7 @@ domain = pengguna login ulang & pengaturan browser (Ingat saya, dark mode) mulai
 
 **Cache key:** setiap mengubah file aset, naikkan `?v=` di `index.html`.
 Versi terakhir: `kairo.css?v=20.10.165`, `kairo-receipt.css?v=1.3.0`, `kairo-v3.css?v=3.44.14`,
-`kairo-v3.js?v=3.32.18`, `kairo-app.js?v=20.10.273`, `preorder-jastip.js?v=1.0.2`/`.css?v=1.0.3` (dari loader kairo-app.js), `kairo-pin.js?v=1.0.3`, `kairo-payments.js?v=1.0.0`, `kairo-handler.js?v=1.1.0`, `kairo-themes.css?v=1.0.2`/`.js?v=1.0.2`; template seller dimuat dari kairo-app.js
+`kairo-v3.js?v=3.32.18`, `kairo-app.js?v=20.10.274`, `preorder-jastip.js?v=1.0.2`/`.css?v=1.0.3` (dari loader kairo-app.js), `kairo-pin.js?v=1.0.3`, `kairo-payments.js?v=1.0.0`, `kairo-handler.js?v=1.1.0`, `kairo-themes.css?v=1.0.2`/`.js?v=1.0.2`; template seller dimuat dari kairo-app.js
 (`seller-app-premium.js?v=20.10.166`, `.css?v=20.10.159`) — naikkan juga bila file template diubah.
 Setup Wizard dimuat dari `loadSetupWizard()` di kairo-app.js (`kairo-setup-wizard.js/.css`, satu konstanta `v` = 1.0.9; online-shop.js 1.7.5 / css 1.7.3 dimuat dari loader template).
 Panduan dimuat dari `window.kairoOpenGuide()` di kairo-v3.js (`kairo-guide.js/.css?v=` konstanta `GUIDE_V`='1.2.10'; gambar `assets/guide/*.webp?v=` `SHOT_V` di kairo-guide.js).
@@ -494,6 +494,7 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   kosong, saran tidak muncul; paket Gratis tidak pernah dapat).
   Okt 2026 (owner): saran hanya bila ketikan = AWAL nama customer (dulu `includes` dua arah, jadi "bima x" masih menyarankan "Bima").
   DB: indeks unik nama customer dulu GLOBAL (`customers_normalized_name_unique` hanya `normalized_name`), jadi nama yang sudah dipakai workspace LAIN ditolak (laporan Lunera: "dea" ada di TRINE MAGIC). Diganti unik per `(workspace_id, normalized_name)`, `.claude/sql/2026-10-customer-name-per-workspace.sql` (indeks baru dibuat Claude via MCP 25 Okt 2026; DROP indeks lama ditolak izin otomatis -> dijalankan owner). Owner: 1 dashboard = 1 database customer, jangan ada aturan/sinkron lintas workspace. File yang sama juga mengganti `reading_shifts_only_one_open` (dulu hanya 1 sesi Open Store terbuka di SELURUH workspace) jadi per workspace.
+  Audit isolasi 25 Okt 2026 (DB asli): indeks unik lain yang tanpa `workspace_id` memang global by design (username, slug, token undangan, 1 akun = 1 workspace aktif, id transaksi/entri); semua policy RLS & trigger (stok, cek Kas) memfilter workspace; 0 data silang (transaksi->customer/shift/produk, pencairan->partner). Browser: keluar dari dashboard yang sudah terbuka = halaman dimuat ulang (`SIGNED_OUT` + `window.__kairoOpenedWorkspace`) supaya data/template akun sebelumnya tidak terbawa ke akun lain di perangkat yang sama. `mockdb.js` kini memanggil callback `onAuthStateChange('SIGNED_OUT')` saat `signOut()`.
 - **Orders — data wajib terlewat:** `invalid` (capture) di `#tx-form` → scroll ke field pertama,
   fokus, getar `.kairo-field-shake` + outline merah `.kairo-field-missing` (hilang saat diisi), toast
   kuning "Lengkapi dulu: …" (menggantikan yang lama, bukan menumpuk). Package/Topik kosong dicek

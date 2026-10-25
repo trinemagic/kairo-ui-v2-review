@@ -587,6 +587,7 @@ async function handleAuthSession(session){
       await db.auth.signOut();
       return;
     }
+    window.__kairoOpenedWorkspace=true;
     window.kairoDisplayName=session.user.user_metadata?.display_name || session.user.user_metadata?.username || "";
     window.kairoUsername=session.user.user_metadata?.username || "";
     document.body.classList.remove("auth-locked");
@@ -3195,6 +3196,9 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!logoutBusy) closeL
 updateKpiEyeButtons();
 
 db.auth.onAuthStateChange((event,session)=>{
+  // Tiap dashboard terpisah (owner 25 Okt 2026): setelah keluar dari dashboard yang sudah terbuka, halaman dimuat ulang
+  // supaya data, template dan cache dashboard sebelumnya tidak terbawa ke akun berikutnya yang masuk di perangkat yang sama.
+  if(event==="SIGNED_OUT"&&window.__kairoOpenedWorkspace&&!window.__kairoDemo){ window.__kairoOpenedWorkspace=false; location.reload(); return; }
   // Password recovery has its own verified-email flow and must not open the dashboard.
   if(event==="PASSWORD_RECOVERY"){ setTimeout(()=>window.__kairoOpenRecoveryComplete?.(session),0); return; }
   // Defer dashboard work so Supabase auth callbacks do not block the auth lock.
