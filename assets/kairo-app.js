@@ -2463,8 +2463,10 @@ function renderCustomerMatches(){
     return;
   }
 
+  // Saran hanya bila ketikan = awal nama customer (atau awal salah satu katanya).
+  // Begitu satu huruf berbeda, customer itu tidak disarankan lagi.
   let matches=customerDirectory
-    .filter(c=>c.normalized.includes(q) || q.includes(c.normalized))
+    .filter(c=>c.normalized.startsWith(q) || c.normalized.split(" ").some(w=>w.startsWith(q)))
     .sort((a,b)=>{
       const ae=a.normalized===q?1:0, be=b.normalized===q?1:0;
       if(ae!==be)return be-ae;
@@ -2530,6 +2532,7 @@ async function ensureCustomerForPendingTransaction(){
       if(collision){
         throw new Error(`Nama "${collision.display_name}" sudah terdaftar. Pilih customer tersebut dari popup atau gunakan nama berbeda.`);
       }
+      throw new Error(`Nama customer "${name}" belum bisa disimpan. Coba lagi, atau tambahkan pembeda di namanya.`);
     }
     throw error;
   }
