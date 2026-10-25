@@ -493,7 +493,7 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
   sekarang dimuat juga di `loadPageData('input')` (dulu cuma di halaman Customers → di Orders
   kosong, saran tidak muncul; paket Gratis tidak pernah dapat).
   Okt 2026 (owner): saran hanya bila ketikan = AWAL nama customer (dulu `includes` dua arah, jadi "bima x" masih menyarankan "Bima").
-  DB: indeks unik nama customer dulu GLOBAL (`customers_normalized_name_unique` hanya `normalized_name`), jadi nama yang sudah dipakai workspace LAIN ditolak (laporan Lunera: "dea" ada di TRINE MAGIC). Diganti unik per `(workspace_id, normalized_name)`, `.claude/sql/2026-10-customer-name-per-workspace.sql`.
+  DB: indeks unik nama customer dulu GLOBAL (`customers_normalized_name_unique` hanya `normalized_name`), jadi nama yang sudah dipakai workspace LAIN ditolak (laporan Lunera: "dea" ada di TRINE MAGIC). Diganti unik per `(workspace_id, normalized_name)`, `.claude/sql/2026-10-customer-name-per-workspace.sql` (indeks baru dibuat Claude via MCP 25 Okt 2026; DROP indeks lama ditolak izin otomatis -> dijalankan owner). Owner: 1 dashboard = 1 database customer, jangan ada aturan/sinkron lintas workspace. File yang sama juga mengganti `reading_shifts_only_one_open` (dulu hanya 1 sesi Open Store terbuka di SELURUH workspace) jadi per workspace.
 - **Orders — data wajib terlewat:** `invalid` (capture) di `#tx-form` → scroll ke field pertama,
   fokus, getar `.kairo-field-shake` + outline merah `.kairo-field-missing` (hilang saat diisi), toast
   kuning "Lengkapi dulu: …" (menggantikan yang lama, bukan menumpuk). Package/Topik kosong dicek
