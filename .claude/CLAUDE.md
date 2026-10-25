@@ -492,7 +492,7 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
 - **Orders — saran nama customer:** `renderCustomerMatches()` membaca `customerDirectory`, yang
   sekarang dimuat juga di `loadPageData('input')` (dulu cuma di halaman Customers → di Orders
   kosong, saran tidak muncul; paket Gratis tidak pernah dapat).
-  Okt 2026 (owner): saran hanya bila ketikan = AWAL nama customer atau awal salah satu katanya (dulu `includes` dua arah, jadi "bima x" masih menyarankan "Bima").
+  Okt 2026 (owner): saran hanya bila ketikan = AWAL nama customer (dulu `includes` dua arah, jadi "bima x" masih menyarankan "Bima").
   DB: indeks unik nama customer dulu GLOBAL (`customers_normalized_name_unique` hanya `normalized_name`), jadi nama yang sudah dipakai workspace LAIN ditolak (laporan Lunera: "dea" ada di TRINE MAGIC). Diganti unik per `(workspace_id, normalized_name)`, `.claude/sql/2026-10-customer-name-per-workspace.sql`.
 - **Orders — data wajib terlewat:** `invalid` (capture) di `#tx-form` → scroll ke field pertama,
   fokus, getar `.kairo-field-shake` + outline merah `.kairo-field-missing` (hilang saat diisi), toast

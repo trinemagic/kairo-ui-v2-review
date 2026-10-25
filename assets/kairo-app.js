@@ -2463,10 +2463,10 @@ function renderCustomerMatches(){
     return;
   }
 
-  // Saran hanya bila ketikan = awal nama customer (atau awal salah satu katanya).
+  // Saran hanya bila ketikan = awal nama customer.
   // Begitu satu huruf berbeda, customer itu tidak disarankan lagi.
   let matches=customerDirectory
-    .filter(c=>c.normalized.startsWith(q) || c.normalized.split(" ").some(w=>w.startsWith(q)))
+    .filter(c=>c.normalized.startsWith(q))
     .sort((a,b)=>{
       const ae=a.normalized===q?1:0, be=b.normalized===q?1:0;
       if(ae!==be)return be-ae;
@@ -2492,7 +2492,7 @@ function renderCustomerMatches(){
       </button>`).join("");
 
   if(exact){
-    pop.innerHTML+=`<div class="customer-duplicate-warning">Kalau ini orang yang berbeda, ubah namanya dulu (contoh: ${escapeHtml(raw)} 2).</div>`;
+    pop.innerHTML+=`<div class="customer-duplicate-warning">Kalau orangnya beda, tambahkan pembeda di nama (contoh: ${escapeHtml(raw)} 2 atau ${escapeHtml(raw)} IG).</div>`;
   }
   pop.classList.add("show");
 }
@@ -2517,7 +2517,7 @@ async function ensureCustomerForPendingTransaction(){
 
   const exact=getExactCustomer(name);
   if(exact){
-    throw new Error(`Nama "${exact.display_name}" sudah terdaftar. Pilih customer tersebut dari popup atau gunakan nama berbeda.`);
+    throw new Error(`Nama "${exact.display_name}" sudah ada di daftar customer. Kalau orangnya sama, pilih nama itu dari saran di bawah kolom nama. Kalau orangnya beda, tambahkan pembeda (contoh: ${name} 2 atau ${name} IG).`);
   }
 
   const {data,error}=await db.from("customers")
@@ -2530,7 +2530,7 @@ async function ensureCustomerForPendingTransaction(){
       await loadCustomerDirectory();
       const collision=getExactCustomer(name);
       if(collision){
-        throw new Error(`Nama "${collision.display_name}" sudah terdaftar. Pilih customer tersebut dari popup atau gunakan nama berbeda.`);
+        throw new Error(`Nama "${collision.display_name}" sudah ada di daftar customer. Kalau orangnya sama, pilih nama itu dari saran di bawah kolom nama. Kalau orangnya beda, tambahkan pembeda (contoh: ${name} 2 atau ${name} IG).`);
       }
       throw new Error(`Nama customer "${name}" belum bisa disimpan. Coba lagi, atau tambahkan pembeda di namanya.`);
     }
@@ -2580,7 +2580,7 @@ document.getElementById("tx-form").addEventListener("submit",async e=>{
     const exactCustomer=getExactCustomer(customer);
     if(exactCustomer && String(exactCustomer.id)!==String(customerId||"")){
       renderCustomerMatches();
-      throw new Error(`Nama "${exactCustomer.display_name}" sudah ada. Pilih nama tersebut jika customer yang sama, atau ubah nama jika orangnya berbeda.`);
+      throw new Error(`Nama "${exactCustomer.display_name}" sudah ada di daftar customer. Kalau orangnya sama, pilih nama itu dari saran di bawah kolom nama. Kalau orangnya beda, tambahkan pembeda (contoh: ${customer} 2 atau ${customer} IG).`);
     }
 
     pendingTransactionPayload={
