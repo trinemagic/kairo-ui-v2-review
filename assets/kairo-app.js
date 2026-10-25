@@ -587,6 +587,7 @@ async function handleAuthSession(session){
       await db.auth.signOut();
       return;
     }
+    window.__kairoOpenedWorkspace=true;
     window.kairoDisplayName=session.user.user_metadata?.display_name || session.user.user_metadata?.username || "";
     window.kairoUsername=session.user.user_metadata?.username || "";
     document.body.classList.remove("auth-locked");
@@ -2463,8 +2464,10 @@ function renderCustomerMatches(){
     return;
   }
 
+  // Saran hanya bila ketikan = awal nama customer.
+  // Begitu satu huruf berbeda, customer itu tidak disarankan lagi.
   let matches=customerDirectory
-    .filter(c=>c.normalized.includes(q) || q.includes(c.normalized))
+    .filter(c=>c.normalized.startsWith(q))
     .sort((a,b)=>{
       const ae=a.normalized===q?1:0, be=b.normalized===q?1:0;
       if(ae!==be)return be-ae;
@@ -2490,7 +2493,7 @@ function renderCustomerMatches(){
       </button>`).join("");
 
   if(exact){
-    pop.innerHTML+=`<div class="customer-duplicate-warning">Kalau ini orang yang berbeda, ubah namanya dulu (contoh: ${escapeHtml(raw)} 2).</div>`;
+    pop.innerHTML+=`<div class="customer-duplicate-warning">Kalau orangnya beda, tambahkan pembeda di nama (contoh: ${escapeHtml(raw)} 2 atau ${escapeHtml(raw)} IG).</div>`;
   }
   pop.classList.add("show");
 }
@@ -2515,7 +2518,7 @@ async function ensureCustomerForPendingTransaction(){
 
   const exact=getExactCustomer(name);
   if(exact){
-    throw new Error(`Nama "${exact.display_name}" sudah terdaftar. Pilih customer tersebut dari popup atau gunakan nama berbeda.`);
+    throw new Error(`Nama "${exact.display_name}" sudah ada di daftar customer. Kalau orangnya sama, pilih nama itu dari saran di bawah kolom nama. Kalau orangnya beda, tambahkan pembeda (contoh: ${name} 2 atau ${name} IG).`);
   }
 
   const {data,error}=await db.from("customers")
@@ -2528,8 +2531,9 @@ async function ensureCustomerForPendingTransaction(){
       await loadCustomerDirectory();
       const collision=getExactCustomer(name);
       if(collision){
-        throw new Error(`Nama "${collision.display_name}" sudah terdaftar. Pilih customer tersebut dari popup atau gunakan nama berbeda.`);
+        throw new Error(`Nama "${collision.display_name}" sudah ada di daftar customer. Kalau orangnya sama, pilih nama itu dari saran di bawah kolom nama. Kalau orangnya beda, tambahkan pembeda (contoh: ${name} 2 atau ${name} IG).`);
       }
+      throw new Error(`Nama customer "${name}" belum bisa disimpan. Coba lagi, atau tambahkan pembeda di namanya.`);
     }
     throw error;
   }
@@ -2577,7 +2581,7 @@ document.getElementById("tx-form").addEventListener("submit",async e=>{
     const exactCustomer=getExactCustomer(customer);
     if(exactCustomer && String(exactCustomer.id)!==String(customerId||"")){
       renderCustomerMatches();
-      throw new Error(`Nama "${exactCustomer.display_name}" sudah ada. Pilih nama tersebut jika customer yang sama, atau ubah nama jika orangnya berbeda.`);
+      throw new Error(`Nama "${exactCustomer.display_name}" sudah ada di daftar customer. Kalau orangnya sama, pilih nama itu dari saran di bawah kolom nama. Kalau orangnya beda, tambahkan pembeda (contoh: ${customer} 2 atau ${customer} IG).`);
     }
 
     pendingTransactionPayload={
@@ -3192,6 +3196,9 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!logoutBusy) closeL
 updateKpiEyeButtons();
 
 db.auth.onAuthStateChange((event,session)=>{
+  // Tiap dashboard terpisah (owner 25 Okt 2026): setelah keluar dari dashboard yang sudah terbuka, halaman dimuat ulang
+  // supaya data, template dan cache dashboard sebelumnya tidak terbawa ke akun berikutnya yang masuk di perangkat yang sama.
+  if(event==="SIGNED_OUT"&&window.__kairoOpenedWorkspace&&!window.__kairoDemo){ window.__kairoOpenedWorkspace=false; location.reload(); return; }
   // Password recovery has its own verified-email flow and must not open the dashboard.
   if(event==="PASSWORD_RECOVERY"){ setTimeout(()=>window.__kairoOpenRecoveryComplete?.(session),0); return; }
   // Defer dashboard work so Supabase auth callbacks do not block the auth lock.
