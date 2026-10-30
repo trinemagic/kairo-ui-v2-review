@@ -12,7 +12,7 @@ const r=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});
 r.setPixelRatio(1);r.setSize(W,H);r.outputColorSpace=THREE.SRGBColorSpace;r.toneMapping=THREE.NeutralToneMapping;r.toneMappingExposure=1.0;
 r.shadowMap.enabled=true;r.shadowMap.type=THREE.PCFSoftShadowMap;document.body.appendChild(r.domElement);
 const scene=new THREE.Scene();
-const pm=new THREE.PMREMGenerator(r);scene.environment=pm.fromScene(new RoomEnvironment(),0.04).texture;scene.environmentIntensity=0.45;
+const pm=new THREE.PMREMGenerator(r);scene.environment=pm.fromScene(new RoomEnvironment(),0.04).texture;scene.environmentIntensity=0.22;
 const tl=new THREE.TextureLoader();
 const tex=async u=>{const t=await tl.loadAsync(u);t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=16;return t};
 function canvasTex(w,h,draw,repeat){const c=document.createElement('canvas');c.width=w;c.height=h;draw(c.getContext('2d'),w,h);const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=16;if(repeat){t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(...repeat)}return t}
@@ -102,19 +102,22 @@ const hBase=new THREE.Mesh(new RoundedBoxGeometry(8.6,1.2,8,3,.4),holdMat);hBase
 const hBack=new THREE.Mesh(new RoundedBoxGeometry(6.4,11,0.7,3,.3),holdMat);hBack.rotation.x=HOLD_A-Math.PI/2;hBack.position.set(0,6,-3.2);hBack.castShadow=true;holder.add(hBack);
 const hLip=new THREE.Mesh(new RoundedBoxGeometry(8.6,1.6,1,3,.3),holdMat);hLip.position.set(0,1.8,3.1);hLip.castShadow=true;holder.add(hLip);
 holder.position.set(30,0,-2+Math.cos(HOLD_A)*PL/2-1.6);
+const screenGlow=new THREE.PointLight('#dff2f7',110,60,2);screenGlow.position.set(4,16,-4);scene.add(screenGlow);
+const phoneGlow=new THREE.PointLight('#dff2f7',22,25,2);phoneGlow.position.set(30,9,0);scene.add(phoneGlow);
 // lampu berdiri (lantai -> setinggi laptop), kap kain putih tulang, cahaya hangat
 const lamp=new THREE.Group();scene.add(lamp);
 const LMx=-53,LMz=-24,LTOP=21;
 const lMetal=new THREE.MeshPhysicalMaterial({color:'#173a59',metalness:.7,roughness:.3,clearcoat:.5});
 const lBase=new THREE.Mesh(new THREE.CylinderGeometry(8,9,1.8,48),lMetal);lBase.position.y=FY+1.1;lBase.castShadow=lBase.receiveShadow=true;lamp.add(lBase);
 const poleH=LTOP-13-FY;const pole=new THREE.Mesh(new THREE.CylinderGeometry(.6,.6,poleH,24),lMetal);pole.position.y=FY+poleH/2;pole.castShadow=true;lamp.add(pole);
-const shade=new THREE.Mesh(new THREE.CylinderGeometry(7,9.5,13,48,1,true),new THREE.MeshStandardMaterial({color:'#fbfcf8',emissive:'#ffcf8a',emissiveIntensity:.55,roughness:.9,side:THREE.DoubleSide,transparent:true,opacity:.97}));shade.position.y=LTOP-6.5;lamp.add(shade);
-const bulb=new THREE.PointLight('#ffc77a',1800,0,2);bulb.position.y=LTOP-7;bulb.castShadow=false;lamp.add(bulb);
+const shade=new THREE.Mesh(new THREE.CylinderGeometry(7,9.5,13,48,1,true),new THREE.MeshStandardMaterial({color:'#fbfcf8',emissive:'#ffcf8a',emissiveIntensity:.95,roughness:.9,side:THREE.DoubleSide,transparent:true,opacity:.97}));shade.position.y=LTOP-6.5;lamp.add(shade);
+const bulb=new THREE.PointLight('#ffc27a',3800,0,2);bulb.position.y=LTOP-7;bulb.castShadow=false;lamp.add(bulb);
 lamp.position.set(LMx,0,LMz);
 // lampu: matahari sore dari jendela kiri-belakang, isian langit sejuk
-const sun=new THREE.DirectionalLight('#ffe2b8',3.2);sun.position.set(-120,110,60);sun.castShadow=true;sun.shadow.mapSize.set(4096,4096);sun.shadow.radius=6;sun.shadow.blurSamples=20;sun.shadow.bias=-0.0003;sun.shadow.normalBias=.05;Object.assign(sun.shadow.camera,{left:-140,right:140,top:140,bottom:-140,near:1,far:500});scene.add(sun);
-scene.add(new THREE.HemisphereLight('#cfe4ff','#4a3010',0.55));
-const fill=new THREE.DirectionalLight('#dceff4',.45);fill.position.set(50,40,60);scene.add(fill);
+// malam: cahaya bulan biru redup dari jendela kiri, lampu berdiri = cahaya hangat utama
+const sun=new THREE.DirectionalLight('#9fb6e0',1.05);sun.position.set(-120,110,60);sun.castShadow=true;sun.shadow.mapSize.set(4096,4096);sun.shadow.radius=6;sun.shadow.blurSamples=20;sun.shadow.bias=-0.0003;sun.shadow.normalBias=.05;Object.assign(sun.shadow.camera,{left:-140,right:140,top:140,bottom:-140,near:1,far:500});scene.add(sun);
+scene.add(new THREE.HemisphereLight('#6f8fbf','#1a2533',0.4));
+const fill=new THREE.DirectionalLight('#dceff4',.18);fill.position.set(50,40,60);scene.add(fill);
 const cam=new THREE.PerspectiveCamera(variant==='wide'?44:36,W/H,1,900);
 // POV orang yang duduk di depan laptop: kamera lurus di tengah; versi lebar menggeser lensa supaya laptop di kanan (kiri untuk teks).
 if(variant==='wide'){// geser lensa: skala SAMA di dua arah (kalau beda, gambar melebar)
@@ -123,6 +126,6 @@ r.render(scene,cam);
 // grain + vignette (2D) supaya terasa hasil kamera
 const out=document.createElement('canvas');out.width=W;out.height=H;const o=out.getContext('2d');o.drawImage(r.domElement,0,0);
 const vg=o.createRadialGradient(W*.62,H*.5,Math.min(W,H)*.25,W*.55,H*.5,Math.max(W,H)*.75);vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(20,12,4,.45)');o.fillStyle=vg;o.fillRect(0,0,W,H);
-const id=o.getImageData(0,0,W,H),d=id.data;for(let i=0;i<d.length;i+=4){const n=(Math.random()-.5)*14;d[i]+=n;d[i+1]+=n;d[i+2]+=n}o.putImageData(id,0,0);
+const id=o.getImageData(0,0,W,H),d=id.data;for(let i=0;i<d.length;i+=4){const n=(Math.random()-.5)*7;d[i]+=n;d[i+1]+=n;d[i+2]+=n}o.putImageData(id,0,0);
 out.id='final';document.body.appendChild(out);window.__done=true;
 </script></body></html>

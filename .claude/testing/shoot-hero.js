@@ -21,7 +21,7 @@ async function shoot(b, name, w, h, dsf, outW) {
 }
 (async () => {
   const b = await chromium.launch();
-  await shoot(b, 'hero-laptop', 1440, 900, 1, 1280);
-  await shoot(b, 'hero-phone', 390, 844, 2, 520);
+  await shoot(b, 'hero-laptop', 1440, 900, 2, 2560);
+  await shoot(b, 'hero-phone', 390, 844, 3, 1170);
   await b.close();
 })();
