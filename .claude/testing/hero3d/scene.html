@@ -11,7 +11,7 @@ const W=+P.get('w')||2400,H=+P.get('h')||1350,variant=P.get('v')||'wide';
 const r=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});
 r.setPixelRatio(1);r.setSize(W,H);r.outputColorSpace=THREE.SRGBColorSpace;r.toneMapping=THREE.NeutralToneMapping;r.toneMappingExposure=1.0;
 r.shadowMap.enabled=true;r.shadowMap.type=THREE.PCFSoftShadowMap;document.body.appendChild(r.domElement);
-const scene=new THREE.Scene();scene.background=new THREE.Color('#2a1c0c');
+const scene=new THREE.Scene();
 const pm=new THREE.PMREMGenerator(r);scene.environment=pm.fromScene(new RoomEnvironment(),0.04).texture;scene.environmentIntensity=0.45;
 const tl=new THREE.TextureLoader();
 const tex=async u=>{const t=await tl.loadAsync(u);t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=16;return t};
@@ -29,10 +29,32 @@ function woodDraw(x,w,h,rough){
     for(let k=0;k<(rnd()<.35?1:0);k++){const kx=rnd()*w,ky=y0+plankH*(.3+rnd()*.4);for(let r=18;r>2;r-=2.5){x.beginPath();x.ellipse(kx,ky,r*2.4,r,0,0,7);x.strokeStyle=rough?'rgba(0,0,0,.08)':'rgba(55,32,8,.18)';x.lineWidth=1.2;x.stroke()}}
     x.fillStyle=rough?'rgba(0,0,0,.35)':'rgba(30,18,4,.7)';x.fillRect(0,y0+plankH-3,w,3);}
 }
-const deskTex=canvasTex(4096,2048,(x,w,h)=>woodDraw(x,w,h,false),[1.4,1.6]);
-const deskRough=canvasTex(2048,1024,(x,w,h)=>woodDraw(x,w,h,true),[1.4,1.6]);deskRough.colorSpace=THREE.NoColorSpace;
-const desk=new THREE.Mesh(new THREE.PlaneGeometry(260,260),new THREE.MeshPhysicalMaterial({map:deskTex,roughnessMap:deskRough,bumpMap:deskRough,bumpScale:.35,roughness:.55,clearcoat:.35,clearcoatRoughness:.35}));
-desk.rotation.x=-Math.PI/2;desk.receiveShadow=true;scene.add(desk);
+const deskTex=canvasTex(4096,2048,(x,w,h)=>woodDraw(x,w,h,false),[1,1]);
+const deskRough=canvasTex(2048,1024,(x,w,h)=>woodDraw(x,w,h,true),[1,1]);deskRough.colorSpace=THREE.NoColorSpace;
+// daun meja (atas = kayu, sisi = kayu gelap), 4 kaki delft, lantai delft (warna identitas Kairo tetap dominan)
+const DX=6,DW=104,DD=60,TH=3.2,LEG=74;
+const edgeMat=new THREE.MeshStandardMaterial({color:'#4a2f0c',roughness:.6});
+const topMat=new THREE.MeshPhysicalMaterial({map:deskTex,roughnessMap:deskRough,bumpMap:deskRough,bumpScale:.35,roughness:.55,clearcoat:.35,clearcoatRoughness:.35});
+const desk=new THREE.Mesh(new THREE.BoxGeometry(DW,TH,DD),[edgeMat,edgeMat,topMat,edgeMat,edgeMat,edgeMat]);desk.position.set(DX,-TH/2,0);desk.castShadow=desk.receiveShadow=true;scene.add(desk);
+const legMat=new THREE.MeshPhysicalMaterial({color:'#173a59',metalness:.5,roughness:.35,clearcoat:.5});
+for(const sx of [-1,1])for(const sz of [-1,1]){const leg=new THREE.Mesh(new RoundedBoxGeometry(4.2,LEG,4.2,2,.6),legMat);leg.position.set(DX+sx*(DW/2-6),-TH-LEG/2,sz*(DD/2-6));leg.castShadow=leg.receiveShadow=true;scene.add(leg)}
+const floorTex=canvasTex(1024,1024,(x,w,h)=>{x.fillStyle='#173a59';x.fillRect(0,0,w,h);for(let i=0;i<120000;i++){x.fillStyle=`rgba(${rnd()<.5?'255,255,255':'0,0,0'},${rnd()*.035})`;x.fillRect(rnd()*w,rnd()*h,2,2)}},[6,6]);
+const floor=new THREE.Mesh(new THREE.PlaneGeometry(900,900),new THREE.MeshStandardMaterial({map:floorTex,roughness:.92}));floor.rotation.x=-Math.PI/2;floor.position.y=-TH-LEG;floor.receiveShadow=true;scene.add(floor);
+scene.background=new THREE.Color('#173a59');
+const wallTex=canvasTex(1024,1024,(x,w,h)=>{x.fillStyle='#1f4668';x.fillRect(0,0,w,h);for(let i=0;i<90000;i++){x.fillStyle=`rgba(${rnd()<.5?'255,255,255':'0,0,0'},${rnd()*.025})`;x.fillRect(rnd()*w,rnd()*h,2,2)}},[4,3]);
+const wall=new THREE.Mesh(new THREE.PlaneGeometry(700,320),new THREE.MeshStandardMaterial({map:wallTex,roughness:.95}));wall.position.set(0,-TH-LEG+160,-DD/2-14);wall.receiveShadow=true;scene.add(wall);
+// buku catatan (sampul delft, karet emas) + pulpen di atasnya = 2 item, sejajar rapi di kiri laptop
+const book=new THREE.Group();scene.add(book);
+const cover=new THREE.Mesh(new RoundedBoxGeometry(15,1.1,21,3,.25),new THREE.MeshPhysicalMaterial({color:'#31556f',roughness:.55,sheen:.3}));cover.position.y=.55;cover.castShadow=cover.receiveShadow=true;book.add(cover);
+const pages=new THREE.Mesh(new THREE.BoxGeometry(14.6,.8,20.4),new THREE.MeshStandardMaterial({color:'#f3efe4',roughness:.9}));pages.position.set(.25,.55,0);book.add(pages);
+const band=new THREE.Mesh(new THREE.BoxGeometry(.6,1.16,21.05),new THREE.MeshStandardMaterial({color:'#dfa94a',roughness:.5}));band.position.set(5.6,.55,0);book.add(band);
+book.position.set(-24,0,2);
+const pen=new THREE.Group();scene.add(pen);
+const penMat=new THREE.MeshPhysicalMaterial({color:'#173a59',metalness:.3,roughness:.25,clearcoat:.8});
+const penBody=new THREE.Mesh(new THREE.CylinderGeometry(.5,.45,13.5,24),penMat);penBody.rotation.x=Math.PI/2;pen.add(penBody);
+const penTip=new THREE.Mesh(new THREE.ConeGeometry(.45,1.4,24),new THREE.MeshStandardMaterial({color:'#c9cdd1',metalness:1,roughness:.25}));penTip.rotation.x=-Math.PI/2;penTip.position.z=-7.4;pen.add(penTip);
+const clip=new THREE.Mesh(new RoundedBoxGeometry(.32,.25,5,2,.1),new THREE.MeshStandardMaterial({color:'#25b9b0',metalness:.6,roughness:.3}));clip.position.set(0,.55,4.2);pen.add(clip);
+pen.traverse(m=>{m.castShadow=true});pen.position.set(-25.5,1.62,2);pen.rotation.y=0;
 // laptop
 const alu=new THREE.MeshPhysicalMaterial({color:'#d9dde1',metalness:1,roughness:.24,clearcoat:.4,clearcoatRoughness:.25,envMapIntensity:1.6});
 const laptop=new THREE.Group();scene.add(laptop);
@@ -53,7 +75,7 @@ const scr=await tex('hero-laptop.webp');
 const SW=28.4,SH=SW*800/1280;
 const screen=new THREE.Mesh(new THREE.PlaneGeometry(SW,SH),new THREE.MeshBasicMaterial({map:scr,toneMapped:false}));screen.position.set(0,10.9,0.06);lid.add(screen);
 const glare=new THREE.Mesh(new THREE.PlaneGeometry(SW,SH),new THREE.MeshPhysicalMaterial({color:'#ffffff',transparent:true,opacity:.03,roughness:.05,metalness:0}));glare.position.set(0,10.9,0.07);lid.add(glare);
-laptop.position.set(0,0,-3);
+laptop.position.set(4,0,-8);
 // HP di meja, di samping laptop
 const phone=new THREE.Group();scene.add(phone);
 const PW=7.4,PL=15.6;
@@ -61,14 +83,14 @@ const pbody=new THREE.Mesh(new RoundedBoxGeometry(PW,0.8,PL,8,0.9),new THREE.Mes
 const pglass=new THREE.Mesh(new RoundedBoxGeometry(PW-0.2,0.02,PL-0.2,6,0.8),new THREE.MeshStandardMaterial({color:'#05080a',roughness:.15}));pglass.position.y=0.81;phone.add(pglass);
 const ps=await tex('hero-phone.webp');const PSW=PW-0.75,PSH=PSW*1125/520;
 const pscreen=new THREE.Mesh(new THREE.PlaneGeometry(PSW,Math.min(PSH,PL-0.75)),new THREE.MeshBasicMaterial({map:ps,toneMapped:false}));pscreen.rotation.x=-Math.PI/2;pscreen.position.y=0.83;phone.add(pscreen);
-phone.position.set(24.5,0,3.5);
+phone.position.set(30,0,-1);
 // lampu: matahari sore dari jendela kiri-belakang, isian langit sejuk
-const sun=new THREE.DirectionalLight('#ffe2b8',3.2);sun.position.set(-55,95,15);sun.castShadow=true;sun.shadow.mapSize.set(4096,4096);sun.shadow.radius=6;sun.shadow.blurSamples=20;sun.shadow.bias=-0.0003;sun.shadow.normalBias=.05;Object.assign(sun.shadow.camera,{left:-70,right:70,top:70,bottom:-70,near:1,far:260});scene.add(sun);
+const sun=new THREE.DirectionalLight('#ffe2b8',3.2);sun.position.set(-120,110,60);sun.castShadow=true;sun.shadow.mapSize.set(4096,4096);sun.shadow.radius=6;sun.shadow.blurSamples=20;sun.shadow.bias=-0.0003;sun.shadow.normalBias=.05;Object.assign(sun.shadow.camera,{left:-140,right:140,top:140,bottom:-140,near:1,far:500});scene.add(sun);
 scene.add(new THREE.HemisphereLight('#cfe4ff','#4a3010',0.55));
 const fill=new THREE.DirectionalLight('#dceff4',.45);fill.position.set(50,40,60);scene.add(fill);
-const cam=new THREE.PerspectiveCamera(variant==='wide'?30:36,W/H,1,500);
+const cam=new THREE.PerspectiveCamera(variant==='wide'?30:36,W/H,1,900);
 // POV orang yang duduk di depan laptop: kamera lurus di tengah; versi lebar menggeser lensa supaya laptop di kanan (kiri untuk teks).
-if(variant==='wide'){cam.position.set(9,70,88);cam.lookAt(9,4,-4);cam.setViewOffset(W*1.42,H*1.04,0,H*0.03,W,H)}else{cam.position.set(6,78,86);cam.lookAt(6,5,-4)}
+if(variant==='wide'){cam.position.set(18,62,150);cam.lookAt(14,-10,-8);cam.setViewOffset(W*1.66,H*1.06,0,H*0.02,W,H)}else{cam.position.set(6,52,108);cam.lookAt(6,-8,-8)}
 r.render(scene,cam);
 // grain + vignette (2D) supaya terasa hasil kamera
 const out=document.createElement('canvas');out.width=W;out.height=H;const o=out.getContext('2d');o.drawImage(r.domElement,0,0);

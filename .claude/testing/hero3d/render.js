@@ -5,7 +5,7 @@
 // jadi assets/landing/hero-desk.webp dan hero-desk-hp.webp.
 const {chromium}=require('/opt/node22/lib/node_modules/playwright');
 (async()=>{const b=await chromium.launch({args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader','--ignore-gpu-blocklist']});
-for(const [v,w,h] of [['wide',2400,1350],['tall',1200,1200]]){const p=await b.newPage({viewport:{width:w,height:h}});p.on('console',m=>console.log('console',m.text()));p.on('pageerror',e=>console.log('err',e.message));
+const SM=process.env.SMALL==='1';for(const [v,w,h] of (SM?[['wide',1200,675],['tall',600,600]]:[['wide',2400,1350],['tall',1200,1200]])){const p=await b.newPage({viewport:{width:w,height:h}});p.on('console',m=>console.log('console',m.text()));p.on('pageerror',e=>console.log('err',e.message));
 await p.goto(`http://localhost:8123/.claude/testing/hero3d/scene.html?v=${v}&w=${w}&h=${h}`,{waitUntil:'commit'});await p.waitForFunction(()=>window.__done,null,{timeout:180000});
 const data=await p.evaluate(()=>(document.getElementById('final')||document.querySelector('canvas')).toDataURL('image/png'));require('fs').writeFileSync(`render-${v}.png`,Buffer.from(data.split(',')[1],'base64'));console.log('ok',v);await p.close()}
 await b.close()})();
