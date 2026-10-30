@@ -42,7 +42,18 @@ const floorTex=canvasTex(1024,1024,(x,w,h)=>{x.fillStyle='#173a59';x.fillRect(0,
 const floor=new THREE.Mesh(new THREE.PlaneGeometry(900,900),new THREE.MeshStandardMaterial({map:floorTex,roughness:.92}));floor.rotation.x=-Math.PI/2;floor.position.y=-TH-LEG;floor.receiveShadow=true;scene.add(floor);
 scene.background=new THREE.Color('#173a59');
 const wallTex=canvasTex(1024,1024,(x,w,h)=>{x.fillStyle='#1f4668';x.fillRect(0,0,w,h);for(let i=0;i<90000;i++){x.fillStyle=`rgba(${rnd()<.5?'255,255,255':'0,0,0'},${rnd()*.025})`;x.fillRect(rnd()*w,rnd()*h,2,2)}},[4,3]);
-const wall=new THREE.Mesh(new THREE.PlaneGeometry(700,320),new THREE.MeshStandardMaterial({map:wallTex,roughness:.95}));wall.position.set(0,-TH-LEG+160,-DD/2-14);wall.receiveShadow=true;scene.add(wall);
+const wall=new THREE.Mesh(new THREE.PlaneGeometry(700,320),new THREE.MeshStandardMaterial({map:wallTex,roughness:.95}));wall.position.set(0,-TH-LEG+160,-DD/2-34);wall.receiveShadow=true;scene.add(wall);
+const WZ=-DD/2-34,FY=-TH-LEG;
+const skirt=new THREE.Mesh(new THREE.BoxGeometry(700,9,1.2),new THREE.MeshStandardMaterial({color:'#123049',roughness:.7}));skirt.position.set(0,FY+4.5,WZ+.6);skirt.receiveShadow=true;scene.add(skirt);
+// pigura: bingkai kayu tipis, passe-partout putih tulang, karya abstrak palet Kairo (lingkaran emas, busur toska, garis delft)
+const artTex=canvasTex(800,1000,(x,w,h)=>{x.fillStyle='#fbfcf8';x.fillRect(0,0,w,h);x.fillStyle='#dceff4';x.fillRect(90,90,w-180,h-180);
+  x.fillStyle='#dfa94a';x.beginPath();x.arc(w*.6,h*.38,120,0,7);x.fill();
+  x.strokeStyle='#25b9b0';x.lineWidth=46;x.beginPath();x.arc(w*.42,h*.66,150,Math.PI*1.05,Math.PI*1.95);x.stroke();
+  x.fillStyle='#173a59';x.fillRect(150,h-230,w-300,18);});
+const art=new THREE.Group();scene.add(art);
+const frame=new THREE.Mesh(new THREE.BoxGeometry(34,42,1.6),new THREE.MeshStandardMaterial({color:'#5a3a12',roughness:.5}));frame.castShadow=true;art.add(frame);
+const canvasArt=new THREE.Mesh(new THREE.PlaneGeometry(31,39),new THREE.MeshStandardMaterial({map:artTex,roughness:.85}));canvasArt.position.z=.82;art.add(canvasArt);
+art.position.set(-6,38,WZ+.9);art.scale.setScalar(.72);
 // buku catatan (sampul delft, karet emas) + pulpen di atasnya = 2 item, sejajar rapi di kiri laptop
 const book=new THREE.Group();scene.add(book);
 const cover=new THREE.Mesh(new RoundedBoxGeometry(15,1.1,21,3,.25),new THREE.MeshPhysicalMaterial({color:'#31556f',roughness:.55,sheen:.3}));cover.position.y=.55;cover.castShadow=cover.receiveShadow=true;book.add(cover);
@@ -83,14 +94,31 @@ const pbody=new THREE.Mesh(new RoundedBoxGeometry(PW,0.8,PL,8,0.9),new THREE.Mes
 const pglass=new THREE.Mesh(new RoundedBoxGeometry(PW-0.2,0.02,PL-0.2,6,0.8),new THREE.MeshStandardMaterial({color:'#05080a',roughness:.15}));pglass.position.y=0.81;phone.add(pglass);
 const ps=await tex('hero-phone.webp');const PSW=PW-0.75,PSH=PSW*1125/520;
 const pscreen=new THREE.Mesh(new THREE.PlaneGeometry(PSW,Math.min(PSH,PL-0.75)),new THREE.MeshBasicMaterial({map:ps,toneMapped:false}));pscreen.rotation.x=-Math.PI/2;pscreen.position.y=0.83;phone.add(pscreen);
-phone.position.set(30,0,-1);
+const HOLD_A=1.22;// kemiringan HP (~70 derajat dari meja)
+phone.rotation.x=HOLD_A;phone.position.set(30,1.4+(PL/2)*Math.sin(HOLD_A)*.98+.3,-2);
+const holdMat=new THREE.MeshPhysicalMaterial({color:'#31556f',metalness:.6,roughness:.35,clearcoat:.4});
+const holder=new THREE.Group();scene.add(holder);
+const hBase=new THREE.Mesh(new RoundedBoxGeometry(8.6,1.2,8,3,.4),holdMat);hBase.position.y=.6;hBase.castShadow=hBase.receiveShadow=true;holder.add(hBase);
+const hBack=new THREE.Mesh(new RoundedBoxGeometry(6.4,11,0.7,3,.3),holdMat);hBack.rotation.x=HOLD_A-Math.PI/2;hBack.position.set(0,6,-3.2);hBack.castShadow=true;holder.add(hBack);
+const hLip=new THREE.Mesh(new RoundedBoxGeometry(8.6,1.6,1,3,.3),holdMat);hLip.position.set(0,1.8,3.1);hLip.castShadow=true;holder.add(hLip);
+holder.position.set(30,0,-2+Math.cos(HOLD_A)*PL/2-1.6);
+// lampu berdiri (lantai -> setinggi laptop), kap kain putih tulang, cahaya hangat
+const lamp=new THREE.Group();scene.add(lamp);
+const LMx=-53,LMz=-24,LTOP=21;
+const lMetal=new THREE.MeshPhysicalMaterial({color:'#173a59',metalness:.7,roughness:.3,clearcoat:.5});
+const lBase=new THREE.Mesh(new THREE.CylinderGeometry(8,9,1.8,48),lMetal);lBase.position.y=FY+1.1;lBase.castShadow=lBase.receiveShadow=true;lamp.add(lBase);
+const poleH=LTOP-13-FY;const pole=new THREE.Mesh(new THREE.CylinderGeometry(.6,.6,poleH,24),lMetal);pole.position.y=FY+poleH/2;pole.castShadow=true;lamp.add(pole);
+const shade=new THREE.Mesh(new THREE.CylinderGeometry(7,9.5,13,48,1,true),new THREE.MeshStandardMaterial({color:'#fbfcf8',emissive:'#ffcf8a',emissiveIntensity:.55,roughness:.9,side:THREE.DoubleSide,transparent:true,opacity:.97}));shade.position.y=LTOP-6.5;lamp.add(shade);
+const bulb=new THREE.PointLight('#ffc77a',1800,0,2);bulb.position.y=LTOP-7;bulb.castShadow=false;lamp.add(bulb);
+lamp.position.set(LMx,0,LMz);
 // lampu: matahari sore dari jendela kiri-belakang, isian langit sejuk
 const sun=new THREE.DirectionalLight('#ffe2b8',3.2);sun.position.set(-120,110,60);sun.castShadow=true;sun.shadow.mapSize.set(4096,4096);sun.shadow.radius=6;sun.shadow.blurSamples=20;sun.shadow.bias=-0.0003;sun.shadow.normalBias=.05;Object.assign(sun.shadow.camera,{left:-140,right:140,top:140,bottom:-140,near:1,far:500});scene.add(sun);
 scene.add(new THREE.HemisphereLight('#cfe4ff','#4a3010',0.55));
 const fill=new THREE.DirectionalLight('#dceff4',.45);fill.position.set(50,40,60);scene.add(fill);
-const cam=new THREE.PerspectiveCamera(variant==='wide'?30:36,W/H,1,900);
+const cam=new THREE.PerspectiveCamera(variant==='wide'?44:36,W/H,1,900);
 // POV orang yang duduk di depan laptop: kamera lurus di tengah; versi lebar menggeser lensa supaya laptop di kanan (kiri untuk teks).
-if(variant==='wide'){cam.position.set(18,62,150);cam.lookAt(14,-10,-8);cam.setViewOffset(W*1.66,H*1.06,0,H*0.02,W,H)}else{cam.position.set(6,52,108);cam.lookAt(6,-8,-8)}
+if(variant==='wide'){// geser lensa: skala SAMA di dua arah (kalau beda, gambar melebar)
+const K=1.5;cam.position.set(12,60,150);cam.lookAt(8,-10,-8);cam.setViewOffset(W*K,H*K,0,-H*0.08,W,H)}else{cam.position.set(-10,58,142);cam.lookAt(-10,-6,-8)}
 r.render(scene,cam);
 // grain + vignette (2D) supaya terasa hasil kamera
 const out=document.createElement('canvas');out.width=W;out.height=H;const o=out.getContext('2d');o.drawImage(r.domElement,0,0);
