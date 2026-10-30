@@ -135,10 +135,25 @@ if (window.top !== window.self) {
       else link.removeAttribute('aria-current');
     });
     window.scrollTo(0, 0);
+    syncNavHeight(root);
+  }
+
+  // Tinggi menu (HP: 2 baris) dipakai hero untuk naik ke bawah menu; tidak dihitung saat scroll supaya hemat.
+  function syncNavHeight(root) {
+    root.style.setProperty('--hero-nav', `${q('#kairo-entry-nav', root)?.offsetHeight || 77}px`);
+    syncNavDark(root);
+  }
+
+  // Menu transparan (logo & tulisan terang) selama hero Home yang gelap masih ada di bawah menu.
+  function syncNavDark(root) {
+    const hero = q('#home', root), nav = q('#kairo-entry-nav', root);
+    root.toggleAttribute('data-nav-dark', root.dataset.page === 'home' && !!hero && hero.getBoundingClientRect().bottom > (nav?.offsetHeight || 0));
   }
 
   function bindLandingPages(root) {
     showLandingPage(root);
+    window.addEventListener('scroll', () => syncNavDark(root), { passive: true });
+    window.addEventListener('resize', () => syncNavHeight(root), { passive: true });
     // "Ingat saya": open the login form straight away. The home address is already turned into "#masuk" by the
     // inline script in index.html; here it also covers phones that reopen the last landing page (#pricing, #features...).
     const params = new URLSearchParams(location.search);

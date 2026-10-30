@@ -136,7 +136,7 @@ html.kairo-standalone #kairo-splash.is-leaving{opacity:0;visibility:hidden;point
 </script>
 <script defer src="assets/demo/demo-entry.js?v=1.0.1"></script>
 <!-- Stable auth boot order. Feature-heavy libraries remain lazy inside kairo-app.js. -->
-<script defer src="assets/kairo-v3.js?v=3.32.18"></script>
+<script defer src="assets/kairo-v3.js?v=3.33.0"></script>
 <script defer src="assets/kairo-themes.js?v=1.0.2"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js" integrity="sha384-Rj26LVGvoeRVR6+mwQmFfcR3QOBEwT+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok" crossorigin="anonymous"></script>
 
@@ -185,7 +185,7 @@ html.kairo-standalone #kairo-splash.is-leaving{opacity:0;visibility:hidden;point
 
 <link rel="stylesheet" href="assets/kairo.css?v=20.10.165">
 <link rel="stylesheet" href="assets/kairo-receipt.css?v=1.3.0">
-<link rel="stylesheet" href="assets/kairo-v3.css?v=3.44.15">
+<link rel="stylesheet" href="assets/kairo-v3.css?v=3.45.5">
 <link rel="stylesheet" id="kairo-themes-css" href="assets/kairo-themes.css?v=1.0.2">
 </head>
 
@@ -198,6 +198,7 @@ html.kairo-standalone #kairo-splash.is-leaving{opacity:0;visibility:hidden;point
     <div class="kairo-entry-container kairo-nav-inner">
       <a class="kairo-entry-brand" href="#home" aria-label="KAIRO Workspaces — kembali ke awal">
         <img class="kairo-brand-lockup" src="assets/brand/kairo-horizontal-color.svg" alt="KAIRO Workspaces" width="124" height="46">
+        <img class="kairo-brand-icon" src="assets/brand/kairo-app-icon.svg" alt="" width="40" height="40">
       </a>
       <div id="kairo-nav-menu" class="kairo-nav-menu">
         <div class="kairo-nav-links">
@@ -216,69 +217,25 @@ html.kairo-standalone #kairo-splash.is-leaving{opacity:0;visibility:hidden;point
   </nav>
 
   <main class="kairo-landing-main">
-    <section id="home" class="kairo-lp-hero">
-      <div class="kairo-entry-container kairo-lp-hero-grid">
-        <div class="kairo-lp-hero-copy" data-kairo-reveal>
-          <h1>Pencatatan usaha yang rapi untuk <mark>seller &amp; jasa online.</mark></h1>
-          <p>Catat order, pantau omzet, kelola customer dan langganan, sampai buat struk profesional. Semua dari satu workspace di browser, tanpa sistem yang ribet.</p>
-          <div class="kairo-lp-actions">
-            <button type="button" class="kairo-button kairo-button-primary kairo-button-large" data-v3-signup>Coba KAIRO Gratis</button>
-            <button type="button" class="kairo-button kairo-button-secondary kairo-button-large" data-kairo-demo>Coba Demo</button>
-            <a class="kairo-button kairo-button-text kairo-button-large" href="#about">Lihat Cara Kerjanya <span aria-hidden="true">↓</span></a>
-          </div>
-          <div class="kairo-lp-trust">
-            <span><i aria-hidden="true">✓</i> Tanpa instalasi</span>
-            <span><i aria-hidden="true">✓</i> Satu workspace</span>
-            <span><i aria-hidden="true">✓</i> Siap dipakai dari browser</span>
+    <section id="home" class="kairo-lp-hero" aria-labelledby="hero-title">
+      <picture class="kairo-hero-scene">
+        <source media="(max-width: 900px)" srcset="assets/landing/hero-desk-hp.webp" width="1200" height="960">
+        <img src="assets/landing/hero-desk.webp" width="2400" height="1350" alt="Meja kerja kayu dengan laptop dan HP di phone holder yang sama-sama membuka dashboard KAIRO Workspaces milik Toko Demo (omzet, profit, transaksi, stok produk), buku catatan dan pulpen, lampu berdiri di samping meja, dan satu pigura di dinding." fetchpriority="high" decoding="async">
+      </picture>
+      <div class="kairo-entry-container kairo-hero-inner">
+        <div class="kairo-hero-head" data-kairo-reveal>
+          <p class="kairo-hero-tag">Mulai kisahmu disini. Buat jadi berarti.</p>
+          <h1 id="hero-title" class="kairo-hero-title"><img src="assets/brand/kairo-horizontal-white.svg" alt="Kairo Workspaces" width="687" height="256"></h1>
+        </div>
+        <div class="kairo-hero-card" data-kairo-reveal>
+          <blockquote class="kairo-hero-quote" lang="en"><p>“Someday, you’ll look back at how far you’ve come. Kairo remembers where you started”</p></blockquote>
+          <p>Tanpa instalasi.<br>Siap dipakai dari browser.</p>
+          <div class="kairo-hero-actions">
+            <button type="button" class="kairo-button kairo-button-primary" data-v3-signup>Coba KAIRO Gratis</button>
+            <button type="button" class="kairo-button kairo-hero-ghost" data-kairo-demo>Coba Demo</button>
           </div>
         </div>
-
-        <div class="kairo-lp-hero-visual" data-kairo-reveal>
-          <div class="kairo-lp-preview kairo-lp-preview-main" aria-label="Preview dashboard KAIRO Workspaces">
-            <div class="kairo-lp-windowbar">
-              <span class="kairo-lp-dots" aria-hidden="true"><i></i><i></i><i></i></span>
-              <span class="kairo-lp-address">KAIRO / Dashboard</span>
-              <span class="kairo-lp-status"><i></i> Aktif</span>
-            </div>
-            <div class="kairo-lp-dashboard">
-              <aside aria-hidden="true">
-                <div class="kairo-lp-dash-brand"><img src="assets/brand/kairo-app-icon.svg" alt="" width="28" height="28"><b>KAIRO</b></div>
-                <span class="is-active"><i></i>Dashboard</span>
-                <span><i></i>Orders</span>
-                <span><i></i>Customers</span>
-                <span><i></i>Finance</span>
-              </aside>
-              <div class="kairo-lp-dash-main">
-                <header><div><small>WORKSPACE HARI INI</small><h2>Halo, siap rapihin bisnismu?</h2><p>Ringkasan penting ada di satu tempat.</p></div><b>G</b></header>
-                <div class="kairo-lp-stat-grid">
-                  <article><span>Omzet</span><strong>Rp4,85 jt</strong><small>Hari ini</small></article>
-                  <article class="is-gold"><span>Kas</span><strong>Rp8,24 jt</strong><small>Tercatat</small></article>
-                  <article><span>Order</span><strong>28</strong><small>6 diproses</small></article>
-                  <article class="is-sky"><span>Piutang</span><strong>Rp720 rb</strong><small>3 customer</small></article>
-                </div>
-                <div class="kairo-lp-dash-grid">
-                  <article class="kairo-lp-chart">
-                    <div class="kairo-lp-card-head"><span><strong>Performa omzet</strong><small>7 hari terakhir</small></span><b>+18,2%</b></div>
-                    <svg viewBox="0 0 420 150" role="img" aria-label="Grafik performa omzet meningkat"><path class="area" d="M0 128C42 118 61 126 92 97s62-18 88-11 52 8 80-24 67-20 91-9 42-11 69-34v131H0Z"/><path class="line" d="M0 128C42 118 61 126 92 97s62-18 88-11 52 8 80-24 67-20 91-9 42-11 69-34"/></svg>
-                  </article>
-                  <article class="kairo-lp-orders">
-                    <div class="kairo-lp-card-head"><span><strong>Order terbaru</strong><small>Hari ini</small></span><b>28 order</b></div>
-                    <div><i>AR</i><span><strong>Ariana</strong><small>Canva Pro · 12 bulan</small></span><em>Lunas</em></div>
-                    <div><i>DM</i><span><strong>Dimas</strong><small>Netflix · 1 bulan</small></span><em>Diproses</em></div>
-                    <div><i>SN</i><span><strong>Sinta</strong><small>Spotify · 3 bulan</small></span><em>Baru</em></div>
-                  </article>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="kairo-lp-mini kairo-lp-mini-order" aria-hidden="true">
-            <span>Order hari ini</span><strong>28</strong><small>6 perlu diproses</small>
-          </div>
-          <div class="kairo-lp-mini kairo-lp-mini-receipt" aria-hidden="true">
-            <svg viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2Z"/><path d="M9 8h6M9 12h6"/></svg>
-            <span><strong>Struk siap</strong><small>Download & bagikan</small></span>
-          </div>
-        </div>
+        <a class="kairo-hero-scroll" href="#home-highlights"><span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m7 10 5 5 5-5"/></svg></span>Gulir untuk lanjut</a>
       </div>
     </section>
 
