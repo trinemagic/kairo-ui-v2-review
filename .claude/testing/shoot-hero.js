@@ -1,8 +1,8 @@
-// Hero landing: layar laptop + HP dari demo Online Shop ("Toko Demo"), jadi assets/landing/hero-*.webp.
+// Tekstur layar render 3D hero: dashboard demo Online Shop ("Toko Demo") -> hero3d/hero-laptop.webp & hero-phone.webp.
 // Run: python3 -m http.server 8123 (repo root), then `node shoot-hero.js` here.
 const { chromium } = require('/opt/node22/lib/node_modules/playwright');
 const fs = require('fs'), path = require('path');
-const OUT = path.join(__dirname, '../../assets/landing');
+const OUT = path.join(__dirname, 'hero3d');
 const chart = path.join(__dirname, 'chartjs/package/dist/chart.umd.js');
 async function shoot(b, name, w, h, dsf, outW) {
   const c = await b.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: dsf, isMobile: w < 500, hasTouch: w < 500 });

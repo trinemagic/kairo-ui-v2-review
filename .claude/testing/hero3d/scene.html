@@ -1,0 +1,78 @@
+<!doctype html><html><head><meta charset="utf-8">
+<style>html,body{margin:0;background:#000}canvas{display:block}</style>
+<script type="importmap">{"imports":{"three":"./pkg/package/build/three.module.js","three/addons/":"./pkg/package/examples/jsm/"}}</script>
+</head><body>
+<script type="module">
+import * as THREE from 'three';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+const P=new URLSearchParams(location.search);
+const W=+P.get('w')||2400,H=+P.get('h')||1350,variant=P.get('v')||'wide';
+const r=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});
+r.setPixelRatio(1);r.setSize(W,H);r.outputColorSpace=THREE.SRGBColorSpace;r.toneMapping=THREE.NeutralToneMapping;r.toneMappingExposure=1.0;
+r.shadowMap.enabled=true;r.shadowMap.type=THREE.PCFSoftShadowMap;document.body.appendChild(r.domElement);
+const scene=new THREE.Scene();scene.background=new THREE.Color('#2a1c0c');
+const pm=new THREE.PMREMGenerator(r);scene.environment=pm.fromScene(new RoomEnvironment(),0.04).texture;scene.environmentIntensity=0.45;
+const tl=new THREE.TextureLoader();
+const tex=async u=>{const t=await tl.loadAsync(u);t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=16;return t};
+function canvasTex(w,h,draw,repeat){const c=document.createElement('canvas');c.width=w;c.height=h;draw(c.getContext('2d'),w,h);const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=16;if(repeat){t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(...repeat)}return t}
+// meja kayu (warna dari keluarga emas palet Kairo: #dfa94a -> #7a5410), papan memanjang kiri-kanan
+const rnd=(()=>{let x=7;return()=>(x=(x*16807)%2147483647)/2147483647})();
+const plankH=2048/7;
+function woodDraw(x,w,h,rough){
+  for(let p=0;p<h/plankH;p++){const y0=p*plankH,tone=rnd()*.18-.09;
+    const g=x.createLinearGradient(0,y0,0,y0+plankH);const base=rough?[128,128,128]:[0x6e+tone*70,0x4a+tone*50,0x1c+tone*22];
+    g.addColorStop(0,`rgb(${base.map(v=>v*.92|0)})`);g.addColorStop(.5,`rgb(${base.map(v=>v|0)})`);g.addColorStop(1,`rgb(${base.map(v=>v*.9|0)})`);x.fillStyle=g;x.fillRect(0,y0,w,plankH);
+    for(let i=0;i<260;i++){const yy=y0+rnd()*plankH,amp=3+rnd()*10,fq=.0008+rnd()*.0025,ph=rnd()*9;x.beginPath();
+      for(let X=0;X<=w;X+=8){const Y=yy+Math.sin(X*fq+ph)*amp+Math.sin(X*fq*3.1+ph)*amp*.3;X?x.lineTo(X,Y):x.moveTo(X,Y)}
+      x.strokeStyle=rough?`rgba(${rnd()<.5?255:0},${rnd()<.5?255:0},${rnd()<.5?255:0},${.03+rnd()*.05})`:`rgba(${rnd()<.6?'45,26,6':'223,169,74'},${.025+rnd()*.06})`;x.lineWidth=.5+rnd()*1.3;x.stroke()}
+    for(let k=0;k<(rnd()<.35?1:0);k++){const kx=rnd()*w,ky=y0+plankH*(.3+rnd()*.4);for(let r=18;r>2;r-=2.5){x.beginPath();x.ellipse(kx,ky,r*2.4,r,0,0,7);x.strokeStyle=rough?'rgba(0,0,0,.08)':'rgba(55,32,8,.18)';x.lineWidth=1.2;x.stroke()}}
+    x.fillStyle=rough?'rgba(0,0,0,.35)':'rgba(30,18,4,.7)';x.fillRect(0,y0+plankH-3,w,3);}
+}
+const deskTex=canvasTex(4096,2048,(x,w,h)=>woodDraw(x,w,h,false),[1.4,1.6]);
+const deskRough=canvasTex(2048,1024,(x,w,h)=>woodDraw(x,w,h,true),[1.4,1.6]);deskRough.colorSpace=THREE.NoColorSpace;
+const desk=new THREE.Mesh(new THREE.PlaneGeometry(260,260),new THREE.MeshPhysicalMaterial({map:deskTex,roughnessMap:deskRough,bumpMap:deskRough,bumpScale:.35,roughness:.55,clearcoat:.35,clearcoatRoughness:.35}));
+desk.rotation.x=-Math.PI/2;desk.receiveShadow=true;scene.add(desk);
+// laptop
+const alu=new THREE.MeshPhysicalMaterial({color:'#d9dde1',metalness:1,roughness:.24,clearcoat:.4,clearcoatRoughness:.25,envMapIntensity:1.6});
+const laptop=new THREE.Group();scene.add(laptop);
+const LW=31.2,LD=22,BH=1.1;
+const base=new THREE.Mesh(new RoundedBoxGeometry(LW,BH,LD,6,0.55),alu);base.position.y=BH/2;base.castShadow=base.receiveShadow=true;laptop.add(base);
+const deck=new THREE.Mesh(new THREE.PlaneGeometry(26.4,10.6),new THREE.MeshStandardMaterial({color:'#2b333a',roughness:.55,envMapIntensity:.8}));deck.rotation.x=-Math.PI/2;deck.position.set(0,BH+0.002,-3.6);laptop.add(deck);
+const keyGeo=new RoundedBoxGeometry(1.62,0.18,1.55,3,0.18),keyMat=new THREE.MeshStandardMaterial({color:'#262d33',roughness:.45,envMapIntensity:1.2});
+const rows=[14,14,13,12,11],keys=new THREE.InstancedMesh(keyGeo,keyMat,80);let k=0;const m4=new THREE.Matrix4();
+rows.forEach((n,ri)=>{const pitch=1.86,start=-(n-1)*pitch/2;for(let i=0;i<n;i++){m4.makeTranslation(start+i*pitch,BH+0.1,-7.9+ri*1.86);keys.setMatrixAt(k++,m4)}});
+const space=new THREE.Mesh(new RoundedBoxGeometry(9.4,0.18,1.55,3,0.18),keyMat);space.position.set(0,BH+0.1,-7.9+5*1.86);laptop.add(space);
+keys.count=k;keys.castShadow=true;laptop.add(keys);
+const pad=new THREE.Mesh(new RoundedBoxGeometry(12.5,0.05,7.6,3,0.5),new THREE.MeshPhysicalMaterial({color:'#cfd4d8',metalness:.9,roughness:.3,envMapIntensity:1.4}));pad.position.set(0,BH+0.01,6.2);laptop.add(pad);
+// layar (engsel di belakang, terbuka ~108 derajat)
+const lid=new THREE.Group();lid.position.set(0,BH,-LD/2+0.3);lid.rotation.x=-(108-90)*Math.PI/180;laptop.add(lid);
+const lidBody=new THREE.Mesh(new RoundedBoxGeometry(LW,21.2,0.55,6,0.27),alu);lidBody.position.set(0,10.6,-0.27);lidBody.castShadow=true;lid.add(lidBody);
+const bezel=new THREE.Mesh(new RoundedBoxGeometry(LW-0.4,20.8,0.05,4,0.6),new THREE.MeshStandardMaterial({color:'#0a0d10',roughness:.25,metalness:.2}));bezel.position.set(0,10.6,0.02);lid.add(bezel);
+const scr=await tex('hero-laptop.webp');
+const SW=28.4,SH=SW*800/1280;
+const screen=new THREE.Mesh(new THREE.PlaneGeometry(SW,SH),new THREE.MeshBasicMaterial({map:scr,toneMapped:false}));screen.position.set(0,10.9,0.06);lid.add(screen);
+const glare=new THREE.Mesh(new THREE.PlaneGeometry(SW,SH),new THREE.MeshPhysicalMaterial({color:'#ffffff',transparent:true,opacity:.03,roughness:.05,metalness:0}));glare.position.set(0,10.9,0.07);lid.add(glare);
+laptop.position.set(0,0,-3);
+// HP di meja, di samping laptop
+const phone=new THREE.Group();scene.add(phone);
+const PW=7.4,PL=15.6;
+const pbody=new THREE.Mesh(new RoundedBoxGeometry(PW,0.8,PL,8,0.9),new THREE.MeshPhysicalMaterial({color:'#082f3b',metalness:.85,roughness:.3,clearcoat:.6}));pbody.position.y=0.4;pbody.castShadow=true;phone.add(pbody);
+const pglass=new THREE.Mesh(new RoundedBoxGeometry(PW-0.2,0.02,PL-0.2,6,0.8),new THREE.MeshStandardMaterial({color:'#05080a',roughness:.15}));pglass.position.y=0.81;phone.add(pglass);
+const ps=await tex('hero-phone.webp');const PSW=PW-0.75,PSH=PSW*1125/520;
+const pscreen=new THREE.Mesh(new THREE.PlaneGeometry(PSW,Math.min(PSH,PL-0.75)),new THREE.MeshBasicMaterial({map:ps,toneMapped:false}));pscreen.rotation.x=-Math.PI/2;pscreen.position.y=0.83;phone.add(pscreen);
+phone.position.set(24.5,0,3.5);
+// lampu: matahari sore dari jendela kiri-belakang, isian langit sejuk
+const sun=new THREE.DirectionalLight('#ffe2b8',3.2);sun.position.set(-55,95,15);sun.castShadow=true;sun.shadow.mapSize.set(4096,4096);sun.shadow.radius=6;sun.shadow.blurSamples=20;sun.shadow.bias=-0.0003;sun.shadow.normalBias=.05;Object.assign(sun.shadow.camera,{left:-70,right:70,top:70,bottom:-70,near:1,far:260});scene.add(sun);
+scene.add(new THREE.HemisphereLight('#cfe4ff','#4a3010',0.55));
+const fill=new THREE.DirectionalLight('#dceff4',.45);fill.position.set(50,40,60);scene.add(fill);
+const cam=new THREE.PerspectiveCamera(variant==='wide'?30:36,W/H,1,500);
+// POV orang yang duduk di depan laptop: kamera lurus di tengah; versi lebar menggeser lensa supaya laptop di kanan (kiri untuk teks).
+if(variant==='wide'){cam.position.set(9,70,88);cam.lookAt(9,4,-4);cam.setViewOffset(W*1.42,H*1.04,0,H*0.03,W,H)}else{cam.position.set(6,78,86);cam.lookAt(6,5,-4)}
+r.render(scene,cam);
+// grain + vignette (2D) supaya terasa hasil kamera
+const out=document.createElement('canvas');out.width=W;out.height=H;const o=out.getContext('2d');o.drawImage(r.domElement,0,0);
+const vg=o.createRadialGradient(W*.62,H*.5,Math.min(W,H)*.25,W*.55,H*.5,Math.max(W,H)*.75);vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(20,12,4,.45)');o.fillStyle=vg;o.fillRect(0,0,W,H);
+const id=o.getImageData(0,0,W,H),d=id.data;for(let i=0;i<d.length;i+=4){const n=(Math.random()-.5)*14;d[i]+=n;d[i+1]+=n;d[i+2]+=n}o.putImageData(id,0,0);
+out.id='final';document.body.appendChild(out);window.__done=true;
+</script></body></html>

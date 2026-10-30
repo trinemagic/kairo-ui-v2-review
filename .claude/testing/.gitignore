@@ -2,3 +2,6 @@ out/
 chartjs/
 node_modules/
 *.tgz
+hero3d/pkg/
+hero3d/*.tgz
+hero3d/render-*.png
