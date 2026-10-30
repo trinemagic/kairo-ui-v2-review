@@ -2674,7 +2674,7 @@ html.kairo-v3 .kairo-lp-about-visual::before {
   position: absolute;
   inset: 0 8% 0 0;
   border-radius: 72px 138px 44px 108px;
-  background: #5c3b11;
+  background: var(--kairo-delft);
   box-shadow: 0 24px 60px rgba(23, 58, 89, .14);
   content: "";
 }
@@ -2954,7 +2954,7 @@ html.kairo-v3 .kairo-lp-price-card {
 
 html.kairo-v3 .kairo-lp-price-card.is-featured {
   border-color: var(--kairo-delft);
-  background: #5c3b11;
+  background: var(--kairo-delft);
   color: var(--kairo-white);
   box-shadow: 0 22px 50px rgba(23, 58, 89, .15);
 }
@@ -3083,7 +3083,7 @@ html.kairo-v3 .kairo-lp-cta-panel {
   overflow: hidden;
   padding: clamp(36px, 5vw, 60px);
   border-radius: 22px;
-  background: #5c3b11;
+  background: var(--kairo-delft);
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   gap: 48px;
@@ -4767,7 +4767,7 @@ html.kairo-v3 input.input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 /* Hero landing (owner Okt 2026): render 3D statis meja kayu (laptop + HP, POV orang yang membuka web, layar = dashboard asli),
-   assets/landing/hero-desk*.webp dari .claude/testing/hero3d/. #5c3b11 = warna kayu di tepi render (bukan warna brand baru). */
+   assets/landing/hero-desk*.webp dari .claude/testing/hero3d/. Lantai render = delft, jadi latar hero delft menyambung. */
 html.kairo-v3 .kairo-lp-hero {
   position: relative;
   min-height: min(100svh, 940px);
@@ -4775,12 +4775,10 @@ html.kairo-v3 .kairo-lp-hero {
   padding-top: var(--hero-nav, 77px);
   overflow: hidden;
   color: var(--kairo-off-white);
-  background: #5c3b11;
+  background: var(--kairo-delft);
 }
 html.kairo-v3 .kairo-hero-scene { position: absolute; inset: 0; }
-/* Bayangan gelap di kiri supaya teks putih tetap kontras di atas kayu. */
-html.kairo-v3 .kairo-hero-scene::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(23, 14, 3, .62) 0%, rgba(23, 14, 3, .3) 38%, rgba(23, 14, 3, 0) 60%); }
-html.kairo-v3 .kairo-hero-scene img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 78% 50%; }
+html.kairo-v3 .kairo-hero-scene img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 100% 50%; }
 html.kairo-v3 .kairo-hero-inner {
   position: relative; z-index: 1;
   min-height: calc(min(100svh, 940px) - var(--hero-nav, 77px));
@@ -4840,7 +4838,6 @@ html.kairo-v3 #kairo-entry[data-nav-dark] .kairo-nav-actions .kairo-button-secon
   html.kairo-v3 .kairo-hero-head { order: 1; }
   html.kairo-v3 .kairo-hero-title img { width: min(100%, 420px); }
   html.kairo-v3 .kairo-hero-scene { position: relative; order: 2; margin-top: 4px; }
-  html.kairo-v3 .kairo-hero-scene::after { content: none; }
   html.kairo-v3 .kairo-hero-scene img { height: auto; -webkit-mask-image: linear-gradient(transparent, #000 14%, #000 86%, transparent); mask-image: linear-gradient(transparent, #000 14%, #000 86%, transparent); }
   html.kairo-v3 .kairo-hero-card { position: relative; order: 3; left: auto; bottom: auto; margin-top: 8px; }
   html.kairo-v3 .kairo-hero-scroll { display: none; }
