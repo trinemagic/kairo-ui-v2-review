@@ -104,14 +104,16 @@ kartu yang tidak ter-update, cek cabang tab-nya di sini).
 
 ## 3. Yang sudah dibangun (jangan dirusak)
 
-- **Hero landing baru (owner 30 Okt 2026, PREVIEW sebelum merge):** gaya referensi produk (meja kerja dilihat dari atas, latar delft gelap). Identitas brand dipetakan di `docs/brand.md`
-  (keputusan owner: navy resmi = website `#173a59`, bukan navy kit logo `#1F305E`; logo putih boleh dibuat -> `assets/brand/kairo-horizontal-white.svg` = logo resmi dengan navy diganti putih).
-  `section#home.kairo-lp-hero`: scene `.kairo-hero-scene` (role=img + aria-label; tatakan `.kairo-hero-mat`, laptop CSS `.kairo-hero-laptop` dengan layar `assets/landing/hero-laptop.webp`, HP `.kairo-hero-phone` dengan `hero-phone.webp`,
-  keduanya screenshot dashboard asli demo Online Shop "Toko Demo", dibuat ulang `.claude/testing/shoot-hero.js`; owner: layar HP = tampilan dashboard, BUKAN layar loading), tagline "Mulai kisahmu disini. Buat jadi berarti." (tanda baca persis),
-  judul h1 = logo resmi putih (opsi A owner; opsi ketik Plus Jakarta Sans ditolak), kartu kaca `.kairo-hero-card` (copy lama + tombol Coba KAIRO Gratis/Coba Demo), link "Gulir untuk lanjut" -> `#home-highlights`.
-  Menu di atas hero = transparan + ikon K (`#kairo-entry[data-nav-dark]`, dipasang `syncNavDark()` kairo-v3.js saat scroll; logo lengkap kembali setelah melewati hero); tinggi menu (HP 2 baris) -> `--hero-nav` (`syncNavHeight()`, hanya saat ganti halaman/resize).
-  HP <=900px: tagline+logo, scene, kartu (section jadi grid lewat selector ber-id karena aturan halaman landing `#kairo-entry[data-page] ... > #home{display:block}` lebih kuat). Mockup dashboard HTML lama (Piutang, Netflix/Spotify) + 97 rule CSS-nya sudah dihapus.
-  Audit piksel kontras (`pixaudit.js`) 0 temuan di 1440/1024/390/360. BELUM diuji: Safari/iPhone (backdrop-filter kartu kaca), HP asli.
+- **Hero landing baru (owner 30 Okt 2026, PREVIEW sebelum merge):** komposisi gaya referensi produk. Identitas brand dipetakan di `docs/brand.md`
+  (keputusan owner: navy resmi = website `#173a59`, bukan navy kit logo `#1F305E`; logo putih boleh -> `assets/brand/kairo-horizontal-white.svg` = logo resmi dengan navy diganti putih).
+  **Scene = render 3D STATIS (owner: tidak mau ilustrasi/animasi/interaktif; mau seperti foto kamera):** meja kayu, laptop + HP rapi dari sudut pandang orang yang duduk membuka web (laptop lurus, HP sejajar di sampingnya,
+  BUKAN di atas laptop), layar = dashboard asli demo Online Shop "Toko Demo" dan HARUS tajam (owner: jangan blur; blur lensa/BokehPass & post-processing three.js dilepas karena memudarkan layar). Gambar: `assets/landing/hero-desk.webp`
+  (2400x1350, desktop, `object-position` kanan) dan `hero-desk-hp.webp` (1200x820, <=900px), WebP quality 76. Dibuat ulang: `.claude/testing/shoot-hero.js` (tekstur layar -> `hero3d/hero-*.webp`) lalu `hero3d/render.js` (three.js 0.170 dari `npm pack`, folder `pkg/` tidak di-commit; render di Chromium SwiftShader ±1,5 mnt; grain + vignette 2D).
+  Warna kayu dari keluarga emas palet; latar hero `#5c3b11` = warna tepi render; bayangan kiri `.kairo-hero-scene::after` untuk kontras teks (desktop saja). Situs foto/mockup (Unsplash, Pexels, Poly Haven) diblokir sandbox.
+  Tagline "Mulai kisahmu disini. Buat jadi berarti." (tanda baca persis), h1 = logo resmi putih (opsi A owner), kartu kaca `.kairo-hero-card` (copy lama + tombol Coba KAIRO Gratis/Coba Demo), "Gulir untuk lanjut" -> `#home-highlights`.
+  Menu di atas hero = transparan + ikon K (`#kairo-entry[data-nav-dark]`, `syncNavDark()` kairo-v3.js saat scroll); tinggi menu -> `--hero-nav` (`syncNavHeight()`, hanya ganti halaman/resize).
+  HP <=900px: tagline+logo, gambar, kartu (section jadi grid lewat selector ber-id karena `#kairo-entry[data-page] ... > #home{display:block}` lebih kuat). Mockup dashboard HTML lama + 97 rule CSS-nya dihapus.
+  Audit piksel kontras (`pixaudit.js`) 0 temuan di 1440/1024/390/360. BELUM diuji: Safari/iPhone (backdrop-filter kartu), HP asli. Batas jujur: render buatan sendiri, belum setara foto studio profesional.
 - **Landing:** Home (Hero + `#home-highlights` "Kenapa KAIRO" 4 kartu `.kairo-lp-feature-list` +
   `#home-plans` ringkasan Gratis/Pro + CTA + FAQ), halaman hash `#features #solutions #pricing #about`,
   `#features` = showcase screenshot asli (`assets/landing/*.webp`, data contoh nama netral "Toko Demo",
