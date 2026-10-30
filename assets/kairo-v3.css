@@ -4831,6 +4831,24 @@ html.kairo-v3 .kairo-hero-inner {
 html.kairo-v3 .kairo-hero-tag { margin: 0 0 14px; font-size: clamp(15px, 1.35vw, 19px); font-weight: 800; letter-spacing: -.01em; }
 html.kairo-v3 .kairo-hero-title { margin: 0; }
 html.kairo-v3 .kairo-hero-title img { display: block; width: clamp(280px, 34vw, 500px); height: auto; }
+html.kairo-v3 .kairo-hero-card {
+  position: absolute; left: 0; bottom: clamp(28px, 5vh, 48px); width: 320px;
+  padding: 24px 22px 20px; border-radius: 8px;
+  border: 1px solid rgba(251, 252, 248, .24);
+  background: rgba(8, 47, 59, .72);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  backdrop-filter: blur(16px) saturate(1.2);
+}
+html.kairo-v3 .kairo-hero-card h2 { margin: 0; color: var(--kairo-off-white); font-size: 21px; line-height: 1.18; font-weight: 800; letter-spacing: -.02em; }
+html.kairo-v3 .kairo-hero-card p {
+  margin: 18px 0 16px; padding-top: 14px;
+  border-top: 1px dashed rgba(251, 252, 248, .5);
+  color: #dceff4; font-size: 14.5px; line-height: 1.5; text-align: right;
+}
+html.kairo-v3 .kairo-hero-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+html.kairo-v3 .kairo-hero-actions .kairo-button { flex: 1 1 auto; font-size: 13px; }
+html.kairo-v3 .kairo-hero-ghost { border-color: rgba(251, 252, 248, .6); background: transparent; color: var(--kairo-off-white); }
+html.kairo-v3 .kairo-hero-ghost:hover { background: rgba(251, 252, 248, .1); }
 html.kairo-v3 .kairo-hero-scroll {
   position: absolute; left: 352px; bottom: clamp(28px, 5vh, 48px);
   display: inline-flex; align-items: center; gap: 8px;
