@@ -4865,3 +4865,28 @@ html.kairo-v3 #kairo-entry[data-nav-dark] .kairo-brand-lockup { display: none; }
 html.kairo-v3 #kairo-entry[data-nav-dark] .kairo-brand-icon { display: block; }
 html.kairo-v3 #kairo-entry[data-nav-dark] .kairo-nav-links a { color: var(--kairo-off-white); }
 html.kairo-v3 #kairo-entry[data-nav-dark] .kairo-nav-actions .kairo-button-secondary { border-color: rgba(251, 252, 248, .6); background: transparent; color: var(--kairo-off-white); }
+
+@media (max-width: 1100px) {
+  html.kairo-v3 .kairo-hero-laptop { left: 50%; width: 46vw; }
+  html.kairo-v3 .kairo-hero-card { width: 290px; }
+  html.kairo-v3 .kairo-hero-scroll { display: none; }
+}
+
+@media (max-width: 900px) {
+  html.kairo-v3 #kairo-entry[data-page="home"] .kairo-landing-main > #home {
+    display: grid; min-height: 0;
+    padding: calc(var(--hero-nav, 89px) + 20px) 0 32px;
+  }
+  html.kairo-v3 .kairo-hero-inner { display: contents; }
+  html.kairo-v3 .kairo-hero-head,
+  html.kairo-v3 .kairo-hero-card { width: min(calc(100% - 32px), 560px); margin-inline: auto; }
+  html.kairo-v3 .kairo-hero-head { order: 1; }
+  html.kairo-v3 .kairo-hero-title img { width: min(100%, 420px); }
+  html.kairo-v3 .kairo-hero-scene { position: relative; order: 2; height: clamp(300px, 88vw, 440px); margin-top: 12px; overflow: hidden; }
+  html.kairo-v3 .kairo-hero-mat { left: -6%; top: 10%; width: 112%; height: 86%; transform: rotate(-5deg); }
+  html.kairo-v3 .kairo-hero-laptop { left: 4%; top: 14%; width: 76%; }
+  html.kairo-v3 .kairo-hero-phone { right: 5%; bottom: 4%; width: 28%; padding: 6px; border-radius: 22px; }
+  html.kairo-v3 .kairo-hero-phone img { border-radius: 16px; }
+  html.kairo-v3 .kairo-hero-card { position: relative; order: 3; left: auto; bottom: auto; margin-top: 8px; }
+  html.kairo-v3 .kairo-hero-scroll { display: none; }
+}
