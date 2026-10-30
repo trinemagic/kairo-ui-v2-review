@@ -2674,7 +2674,7 @@ html.kairo-v3 .kairo-lp-about-visual::before {
   position: absolute;
   inset: 0 8% 0 0;
   border-radius: 72px 138px 44px 108px;
-  background: var(--kairo-delft);
+  background: #5c3b11;
   box-shadow: 0 24px 60px rgba(23, 58, 89, .14);
   content: "";
 }
@@ -2954,7 +2954,7 @@ html.kairo-v3 .kairo-lp-price-card {
 
 html.kairo-v3 .kairo-lp-price-card.is-featured {
   border-color: var(--kairo-delft);
-  background: var(--kairo-delft);
+  background: #5c3b11;
   color: var(--kairo-white);
   box-shadow: 0 22px 50px rgba(23, 58, 89, .15);
 }
@@ -3083,7 +3083,7 @@ html.kairo-v3 .kairo-lp-cta-panel {
   overflow: hidden;
   padding: clamp(36px, 5vw, 60px);
   border-radius: 22px;
-  background: var(--kairo-delft);
+  background: #5c3b11;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   gap: 48px;
@@ -4766,8 +4766,8 @@ html.kairo-v3 input.input[type="date"]::-webkit-calendar-picker-indicator {
   margin-inline-start: auto;
 }
 
-/* Hero landing (owner Okt 2026): meja kerja dilihat dari atas, laptop + HP membuka dashboard asli (assets/landing/hero-*.webp,
-   dibuat .claude/testing/shoot-hero.js). Warna dari docs/brand.md: delft #173a59, delft-soft #31556f, ink #082f3b, off-white. */
+/* Hero landing (owner Okt 2026): render 3D statis meja kayu (laptop + HP, POV orang yang membuka web, layar = dashboard asli),
+   assets/landing/hero-desk*.webp dari .claude/testing/hero3d/. #5c3b11 = warna kayu di tepi render (bukan warna brand baru). */
 html.kairo-v3 .kairo-lp-hero {
   position: relative;
   min-height: min(100svh, 940px);
@@ -4775,54 +4775,12 @@ html.kairo-v3 .kairo-lp-hero {
   padding-top: var(--hero-nav, 77px);
   overflow: hidden;
   color: var(--kairo-off-white);
-  background: radial-gradient(120% 95% at 72% 58%, var(--kairo-delft-soft) 0%, var(--kairo-delft) 46%, #082f3b 100%);
+  background: #5c3b11;
 }
-html.kairo-v3 .kairo-hero-scene { position: absolute; inset: 0; pointer-events: none; }
-html.kairo-v3 .kairo-hero-mat {
-  position: absolute; left: 38%; top: 13%; width: 72%; height: 100%;
-  border-radius: 26px; transform: rotate(-6deg);
-  background:
-    repeating-linear-gradient(0deg, rgba(251, 252, 248, .07) 0 1px, transparent 1px 46px),
-    repeating-linear-gradient(90deg, rgba(251, 252, 248, .07) 0 1px, transparent 1px 46px),
-    var(--kairo-delft-soft);
-  box-shadow: 0 40px 80px rgba(8, 47, 59, .45);
-}
-html.kairo-v3 .kairo-hero-laptop {
-  position: absolute; left: 51%; top: 20%; width: min(43vw, 620px);
-  transform: rotate(-6deg);
-  filter: drop-shadow(0 28px 40px rgba(8, 47, 59, .55));
-}
-html.kairo-v3 .kairo-hero-screen {
-  padding: 2.2% 2.2% 3.4%;
-  border-radius: 18px 18px 6px 6px;
-  background: #082f3b;
-}
-html.kairo-v3 .kairo-hero-screen img,
-html.kairo-v3 .kairo-hero-phone img { display: block; width: 100%; height: auto; border-radius: 6px; }
-html.kairo-v3 .kairo-hero-base {
-  position: relative; display: block; height: 0; padding-top: 64%;
-  border-radius: 6px 6px 22px 22px;
-  background: linear-gradient(180deg, var(--kairo-entry-line), var(--kairo-sky-100));
-}
-html.kairo-v3 .kairo-hero-keys {
-  position: absolute; left: 7%; right: 7%; top: 8%; height: 46%;
-  border-radius: 6px;
-  background:
-    repeating-linear-gradient(90deg, transparent 0 calc(100% / 14 - 3px), var(--kairo-entry-line) calc(100% / 14 - 3px) calc(100% / 14)),
-    repeating-linear-gradient(0deg, transparent 0 calc(100% / 6 - 3px), var(--kairo-entry-line) calc(100% / 6 - 3px) calc(100% / 6)),
-    #31556f;
-}
-html.kairo-v3 .kairo-hero-pad {
-  position: absolute; left: 34%; right: 34%; top: 60%; bottom: 10%;
-  border-radius: 8px; border: 1px solid #b8dfe9; background: #f3fafb;
-}
-html.kairo-v3 .kairo-hero-phone {
-  position: absolute; right: 6%; bottom: 7%; width: clamp(150px, 13vw, 200px);
-  padding: 9px; border-radius: 30px; background: #082f3b;
-  transform: rotate(11deg);
-  box-shadow: 0 30px 50px rgba(8, 47, 59, .6), inset 0 0 0 2px var(--kairo-delft-soft);
-}
-html.kairo-v3 .kairo-hero-phone img { border-radius: 22px; }
+html.kairo-v3 .kairo-hero-scene { position: absolute; inset: 0; }
+/* Bayangan gelap di kiri supaya teks putih tetap kontras di atas kayu. */
+html.kairo-v3 .kairo-hero-scene::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(23, 14, 3, .62) 0%, rgba(23, 14, 3, .3) 38%, rgba(23, 14, 3, 0) 60%); }
+html.kairo-v3 .kairo-hero-scene img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 78% 50%; }
 html.kairo-v3 .kairo-hero-inner {
   position: relative; z-index: 1;
   min-height: calc(min(100svh, 940px) - var(--hero-nav, 77px));
@@ -4867,7 +4825,6 @@ html.kairo-v3 #kairo-entry[data-nav-dark] .kairo-nav-links a { color: var(--kair
 html.kairo-v3 #kairo-entry[data-nav-dark] .kairo-nav-actions .kairo-button-secondary { border-color: rgba(251, 252, 248, .6); background: transparent; color: var(--kairo-off-white); }
 
 @media (max-width: 1100px) {
-  html.kairo-v3 .kairo-hero-laptop { left: 50%; width: 46vw; }
   html.kairo-v3 .kairo-hero-card { width: 290px; }
   html.kairo-v3 .kairo-hero-scroll { display: none; }
 }
@@ -4882,11 +4839,9 @@ html.kairo-v3 #kairo-entry[data-nav-dark] .kairo-nav-actions .kairo-button-secon
   html.kairo-v3 .kairo-hero-card { width: min(calc(100% - 32px), 560px); margin-inline: auto; }
   html.kairo-v3 .kairo-hero-head { order: 1; }
   html.kairo-v3 .kairo-hero-title img { width: min(100%, 420px); }
-  html.kairo-v3 .kairo-hero-scene { position: relative; order: 2; height: clamp(300px, 88vw, 440px); margin-top: 12px; overflow: hidden; }
-  html.kairo-v3 .kairo-hero-mat { left: -6%; top: 10%; width: 112%; height: 86%; transform: rotate(-5deg); }
-  html.kairo-v3 .kairo-hero-laptop { left: 4%; top: 14%; width: 76%; }
-  html.kairo-v3 .kairo-hero-phone { right: 5%; bottom: 4%; width: 28%; padding: 6px; border-radius: 22px; }
-  html.kairo-v3 .kairo-hero-phone img { border-radius: 16px; }
+  html.kairo-v3 .kairo-hero-scene { position: relative; order: 2; margin-top: 4px; }
+  html.kairo-v3 .kairo-hero-scene::after { content: none; }
+  html.kairo-v3 .kairo-hero-scene img { height: auto; -webkit-mask-image: linear-gradient(transparent, #000 14%, #000 86%, transparent); mask-image: linear-gradient(transparent, #000 14%, #000 86%, transparent); }
   html.kairo-v3 .kairo-hero-card { position: relative; order: 3; left: auto; bottom: auto; margin-top: 8px; }
   html.kairo-v3 .kairo-hero-scroll { display: none; }
 }
