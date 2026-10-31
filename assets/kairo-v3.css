@@ -4770,7 +4770,7 @@ html.kairo-v3 input.input[type="date"]::-webkit-calendar-picker-indicator {
    assets/landing/hero-desk*.webp dari .claude/testing/hero3d/. Lantai render = delft, jadi latar hero delft menyambung. */
 html.kairo-v3 .kairo-lp-hero {
   position: relative;
-  min-height: min(100svh, 940px);
+  min-height: min(calc(100svh - 88px), 900px);
   margin-top: calc(-1 * var(--hero-nav, 77px));
   padding-top: var(--hero-nav, 77px);
   overflow: hidden;
@@ -4779,9 +4779,11 @@ html.kairo-v3 .kairo-lp-hero {
 }
 html.kairo-v3 .kairo-hero-scene { position: absolute; inset: 0; }
 html.kairo-v3 .kairo-hero-scene img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 100% 50%; }
+/* Bawah gambar memudar ke delft supaya menyambung ke bagian berikutnya (tidak ada garis potong). */
+html.kairo-v3 .kairo-hero-scene::after { content: ""; position: absolute; inset: auto 0 0; height: 24%; background: linear-gradient(180deg, rgba(23, 58, 89, 0), var(--kairo-delft)); pointer-events: none; }
 html.kairo-v3 .kairo-hero-inner {
   position: relative; z-index: 1;
-  min-height: calc(min(100svh, 940px) - var(--hero-nav, 77px));
+  min-height: calc(min(calc(100svh - 88px), 900px) - var(--hero-nav, 77px));
   padding: clamp(28px, 5vh, 56px) 0 clamp(28px, 5vh, 48px);
 }
 html.kairo-v3 .kairo-hero-tag { margin: 0 0 14px; font-size: clamp(15px, 1.35vw, 19px); font-weight: 800; letter-spacing: -.01em; }
@@ -4818,6 +4820,8 @@ html.kairo-v3 .kairo-lp-hero :focus-visible { outline: 3px solid var(--kairo-gol
 /* Menu di atas hero gelap (atribut dipasang kairo-v3.js selama hero masih di bawah menu). */
 html.kairo-v3 .kairo-entry-brand .kairo-brand-icon { display: none; width: 40px; height: 40px; border-radius: 10px; }
 html.kairo-v3 #kairo-entry[data-nav-dark] .kairo-entry-nav { border-bottom-color: transparent; background: transparent; backdrop-filter: none; }
+/* Sudah di-scroll tapi masih di bagian 'malam': menu gelap semi-tembus supaya teks di bawahnya tidak bertabrakan. */
+html.kairo-v3 #kairo-entry[data-nav-dark][data-nav-solid] .kairo-entry-nav { border-bottom-color: rgba(251, 252, 248, .12); background: rgba(23, 58, 89, .9); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
 html.kairo-v3 #kairo-entry[data-nav-dark] .kairo-brand-lockup { display: none; }
 html.kairo-v3 #kairo-entry[data-nav-dark] .kairo-brand-icon { display: block; }
 html.kairo-v3 #kairo-entry[data-nav-dark] .kairo-nav-links a { color: var(--kairo-off-white); }
@@ -4839,7 +4843,32 @@ html.kairo-v3 #kairo-entry[data-nav-dark] .kairo-nav-actions .kairo-button-secon
   html.kairo-v3 .kairo-hero-head { order: 1; }
   html.kairo-v3 .kairo-hero-title img { width: min(100%, 420px); }
   html.kairo-v3 .kairo-hero-scene { position: relative; order: 2; margin-top: 4px; }
+  html.kairo-v3 .kairo-hero-scene::after { content: none; }
   html.kairo-v3 .kairo-hero-scene img { height: auto; -webkit-mask-image: linear-gradient(transparent, #000 14%, #000 86%, transparent); mask-image: linear-gradient(transparent, #000 14%, #000 86%, transparent); }
   html.kairo-v3 .kairo-hero-card { position: relative; order: 3; left: auto; bottom: auto; margin-top: 8px; }
   html.kairo-v3 .kairo-hero-scroll { display: none; }
 }
+
+/* Alur Home "dari malam ke pagi" (owner Okt 2026): hero = malam, Kenapa KAIRO = masih malam (kartu kaca + pendar lampu),
+   Paket = fajar (gradasi delft -> sky -> off-white), CTA & FAQ = pagi (terang). Hanya halaman Home; kelas yang sama di halaman lain tidak berubah. */
+html.kairo-v3 #kairo-entry[data-page="home"] #home-highlights {
+  color: var(--kairo-off-white);
+  background:
+    linear-gradient(180deg, var(--kairo-delft) 0, rgba(23, 58, 89, 0) 160px),
+    radial-gradient(55% 70% at 10% 60%, rgba(223, 169, 74, .12), rgba(223, 169, 74, 0) 70%),
+    linear-gradient(180deg, var(--kairo-delft) 0%, #1f4668 100%);
+}
+html.kairo-v3 #kairo-entry[data-page="home"] #home-highlights h2 { color: var(--kairo-off-white); }
+html.kairo-v3 #kairo-entry[data-page="home"] :is(#home-highlights, #home-plans) h2 mark { color: #75d9d2; }
+html.kairo-v3 #kairo-entry[data-page="home"] #home-highlights .kairo-lp-feature-list { gap: 16px; }
+html.kairo-v3 #kairo-entry[data-page="home"] #home-highlights .kairo-lp-feature-list article {
+  padding: 20px 18px; border: 1px solid rgba(251, 252, 248, .16); border-radius: 16px;
+  background: rgba(8, 47, 59, .42); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+}
+html.kairo-v3 #kairo-entry[data-page="home"] #home-highlights .kairo-lp-feature-list h3 { color: var(--kairo-off-white); }
+html.kairo-v3 #kairo-entry[data-page="home"] #home-highlights .kairo-lp-feature-list p { color: #c6d5de; }
+html.kairo-v3 #kairo-entry[data-page="home"] #home-highlights .kairo-lp-more-link { color: #75d9d2; }
+html.kairo-v3 #kairo-entry[data-page="home"] #home-plans {
+  background: linear-gradient(180deg, #1f4668 0%, var(--kairo-delft-soft) 26%, #b8dfe9 70%, var(--kairo-off-white) 100%);
+}
+html.kairo-v3 #kairo-entry[data-page="home"] #home-plans h2 { color: var(--kairo-off-white); }

@@ -144,10 +144,13 @@ if (window.top !== window.self) {
     syncNavDark(root);
   }
 
-  // Menu transparan (logo & tulisan terang) selama hero Home yang gelap masih ada di bawah menu.
+  // Menu transparan (logo & tulisan terang) selama bagian gelap Home masih ada di bawah menu.
   function syncNavDark(root) {
-    const hero = q('#home', root), nav = q('#kairo-entry-nav', root);
-    root.toggleAttribute('data-nav-dark', root.dataset.page === 'home' && !!hero && hero.getBoundingClientRect().bottom > (nav?.offsetHeight || 0));
+    // Bagian 'malam' Home = hero + Kenapa KAIRO; menu gelap sampai bagian itu lewat, semi-tembus setelah mulai di-scroll.
+    const night = q('#home-highlights', root) || q('#home', root), nav = q('#kairo-entry-nav', root);
+    const dark = root.dataset.page === 'home' && !!night && night.getBoundingClientRect().bottom > (nav?.offsetHeight || 0);
+    root.toggleAttribute('data-nav-dark', dark);
+    root.toggleAttribute('data-nav-solid', dark && window.scrollY > 8);
   }
 
   function bindLandingPages(root) {
