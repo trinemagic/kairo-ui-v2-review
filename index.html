@@ -136,7 +136,7 @@ html.kairo-standalone #kairo-splash.is-leaving{opacity:0;visibility:hidden;point
 </script>
 <script defer src="assets/demo/demo-entry.js?v=1.0.1"></script>
 <!-- Stable auth boot order. Feature-heavy libraries remain lazy inside kairo-app.js. -->
-<script defer src="assets/kairo-v3.js?v=3.33.0"></script>
+<script defer src="assets/kairo-v3.js?v=3.34.0"></script>
 <script defer src="assets/kairo-themes.js?v=1.0.2"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js" integrity="sha384-Rj26LVGvoeRVR6+mwQmFfcR3QOBEwT+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok" crossorigin="anonymous"></script>
 
@@ -185,7 +185,7 @@ html.kairo-standalone #kairo-splash.is-leaving{opacity:0;visibility:hidden;point
 
 <link rel="stylesheet" href="assets/kairo.css?v=20.10.165">
 <link rel="stylesheet" href="assets/kairo-receipt.css?v=1.3.0">
-<link rel="stylesheet" href="assets/kairo-v3.css?v=3.45.5">
+<link rel="stylesheet" href="assets/kairo-v3.css?v=3.47.1">
 <link rel="stylesheet" id="kairo-themes-css" href="assets/kairo-themes.css?v=1.0.2">
 </head>
 
@@ -218,6 +218,7 @@ html.kairo-standalone #kairo-splash.is-leaving{opacity:0;visibility:hidden;point
 
   <main class="kairo-landing-main">
     <section id="home" class="kairo-lp-hero" aria-labelledby="hero-title">
+      <div class="kairo-journey is-first" aria-hidden="true"></div>
       <picture class="kairo-hero-scene">
         <source media="(max-width: 900px)" srcset="assets/landing/hero-desk-hp.webp" width="1200" height="960">
         <img src="assets/landing/hero-desk.webp" width="2400" height="1350" alt="Meja kerja kayu dengan laptop dan HP di phone holder yang sama-sama membuka dashboard KAIRO Workspaces milik Toko Demo (omzet, profit, transaksi, stok produk), buku catatan dan pulpen, lampu berdiri di samping meja, dan satu pigura di dinding." fetchpriority="high" decoding="async">
@@ -241,23 +242,28 @@ html.kairo-standalone #kairo-splash.is-leaving{opacity:0;visibility:hidden;point
 
     <section id="home-highlights" class="kairo-lp-features" aria-labelledby="highlights-title">
       <div class="kairo-entry-container">
+        <div class="kairo-journey" aria-hidden="true"></div>
         <header class="kairo-lp-section-head" data-kairo-reveal>
           <h2 id="highlights-title">Yang penting untuk operasional, <mark>tanpa bikin penuh layar.</mark></h2>
         </header>
         <div class="kairo-lp-feature-list">
           <article data-kairo-reveal>
+            <figure class="kairo-hl-shot" aria-hidden="true"><img src="assets/landing/hl-orders.webp" width="640" height="284" alt="" loading="lazy" decoding="async"></figure>
             <span class="kairo-lp-icon"><svg viewBox="0 0 24 24"><path d="M6 4h12v16H6Z"/><path d="M9 8h6M9 12h6M9 16h4"/></svg></span>
             <div><h3>Order lebih teratur</h3><p>Catat order manual atau autofill, dan nama customer lama muncul sendiri saat diketik.</p></div>
           </article>
           <article data-kairo-reveal>
+            <figure class="kairo-hl-shot" aria-hidden="true"><img src="assets/landing/hl-receipt.webp" width="640" height="284" alt="" loading="lazy" decoding="async"></figure>
             <span class="kairo-lp-icon is-warm"><svg viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2Z"/><path d="M9 8h6M9 12h6"/></svg></span>
             <div><h3>Struk siap dibagikan</h3><p>Simpan, salin, bagikan, dan cetak ulang struk dari setiap transaksi.</p></div>
           </article>
           <article data-kairo-reveal>
+            <figure class="kairo-hl-shot" aria-hidden="true"><img src="assets/landing/hl-dashboard.webp" width="640" height="284" alt="" loading="lazy" decoding="async"></figure>
             <span class="kairo-lp-icon is-gold"><svg viewBox="0 0 24 24"><path d="M4 18V9M10 18V5M16 18v-7M22 18V3"/><path d="M2 20h20"/></svg></span>
             <div><h3>Angka lebih terbaca</h3><p>Omzet, kas, pengeluaran, dan pembagian hasil terangkum di satu dashboard.</p></div>
           </article>
           <article data-kairo-reveal>
+            <figure class="kairo-hl-shot" aria-hidden="true"><img src="assets/landing/hl-customers.webp" width="640" height="284" alt="" loading="lazy" decoding="async"></figure>
             <span class="kairo-lp-icon is-sky"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3"/><path d="M5 20c0-4 3-7 7-7s7 3 7 7"/></svg></span>
             <div><h3>Customer tersimpan rapi</h3><p>Riwayat order setiap customer mudah ditemukan saat mereka order lagi.</p></div>
           </article>
@@ -268,6 +274,7 @@ html.kairo-standalone #kairo-splash.is-leaving{opacity:0;visibility:hidden;point
 
     <section id="home-plans" class="kairo-lp-plans-lite" aria-labelledby="home-plans-title">
       <div class="kairo-entry-container">
+        <div class="kairo-journey" aria-hidden="true"></div>
         <header class="kairo-lp-section-head kairo-lp-section-head-center" data-kairo-reveal>
           <h2 id="home-plans-title">Mulai gratis, <mark>upgrade saat siap.</mark></h2>
         </header>
@@ -446,6 +453,7 @@ html.kairo-standalone #kairo-splash.is-leaving{opacity:0;visibility:hidden;point
 
     <section class="kairo-lp-cta" aria-labelledby="cta-title">
       <div class="kairo-entry-container">
+        <div class="kairo-journey is-last" aria-hidden="true"></div>
         <div class="kairo-lp-cta-panel" data-kairo-reveal>
           <div>
             <h2 id="cta-title">Bisnismu sudah jalan. Sekarang waktunya workspace-mu ikut <mark>tertata.</mark></h2>
