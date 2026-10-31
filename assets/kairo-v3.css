@@ -4872,3 +4872,58 @@ html.kairo-v3 #kairo-entry[data-page="home"] #home-plans {
   background: linear-gradient(180deg, #1f4668 0%, var(--kairo-delft-soft) 26%, #b8dfe9 70%, var(--kairo-off-white) 100%);
 }
 html.kairo-v3 #kairo-entry[data-page="home"] #home-plans h2 { color: var(--kairo-off-white); }
+
+/* Elemen penyambung Home (owner 31 Okt 2026, PREVIEW): garis perjalanan emas putus-putus + penanda waktu
+   (bulan 21.00 Mulai -> bulan 23.30 Rapi -> fajar 05.30 Tumbuh -> matahari 07.00 Siap) dan potongan layar asli di kartu Kenapa KAIRO.
+   Lebar >=1360px: garis di ruang kosong kiri (tengah gutter), menyambung lintas bagian. Lebih sempit: penanda kecil di atas judul + potongan garis ke atas. */
+html.kairo-v3 .kairo-journey { display: none; }
+html.kairo-v3 #kairo-entry[data-page="home"] :is(#home, #home-highlights, #home-plans, .kairo-lp-cta) { position: relative; }
+html.kairo-v3 #kairo-entry[data-page="home"] .kairo-journey { --jy: 100px; --jline: rgba(223, 169, 74, .75); --jtext: #c6d5de; --jtime: #f0c879; --jnode: var(--kairo-delft); }
+html.kairo-v3 #kairo-entry[data-page="home"] .kairo-journey-node { display: grid; place-items: center; width: 36px; height: 36px; border: 1.5px solid var(--kairo-gold); border-radius: 50%; background: var(--jnode); color: var(--kairo-gold); }
+html.kairo-v3 #kairo-entry[data-page="home"] .kairo-journey-node svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+html.kairo-v3 #kairo-entry[data-page="home"] .kairo-journey-label { color: var(--jtext); font-size: 12.5px; font-weight: 700; line-height: 1.3; }
+html.kairo-v3 #kairo-entry[data-page="home"] .kairo-journey-label b { color: var(--jtime); font-weight: 800; letter-spacing: .02em; }
+html.kairo-v3 #kairo-entry[data-page="home"] #home-plans .kairo-journey { --jy: 90px; --jnode: #1f4668; }
+html.kairo-v3 #kairo-entry[data-page="home"] .kairo-lp-cta .kairo-journey { --jy: 60px; --jline: rgba(184, 132, 40, .8); --jtext: #3c5368; --jtime: #7d5410; --jnode: var(--kairo-off-white); }
+html.kairo-v3 #kairo-entry[data-page="home"] .kairo-lp-cta .kairo-journey-node { border-color: #b8842a; color: #9a6a18; }
+
+@media (min-width: 1360px) {
+  html.kairo-v3 #kairo-entry[data-page="home"] .kairo-journey {
+    display: block; position: absolute; z-index: 1; top: 0; bottom: 0; width: 0;
+    left: calc((100% - min(100% - 48px, var(--kairo-entry-container))) / 4);
+    pointer-events: none;
+  }
+  html.kairo-v3 #kairo-entry[data-page="home"] .kairo-journey::before,
+  html.kairo-v3 #kairo-entry[data-page="home"] .kairo-journey::after { content: ""; position: absolute; left: -1px; border-left: 2px dotted var(--jline); }
+  html.kairo-v3 #kairo-entry[data-page="home"] .kairo-journey::before { top: 0; height: calc(var(--jy) - 6px); }
+  html.kairo-v3 #kairo-entry[data-page="home"] .kairo-journey::after { top: calc(var(--jy) + 88px); bottom: 0; }
+  html.kairo-v3 #kairo-entry[data-page="home"] .kairo-journey.is-first::before,
+  html.kairo-v3 #kairo-entry[data-page="home"] .kairo-journey.is-last::after { content: none; }
+  html.kairo-v3 #kairo-entry[data-page="home"] #home .kairo-journey { --jy: calc(100% - 300px); }
+  html.kairo-v3 #kairo-entry[data-page="home"] .kairo-journey-mark { position: absolute; top: var(--jy); left: 0; transform: translateX(-50%); display: grid; justify-items: center; gap: 6px; width: 84px; text-align: center; }
+  html.kairo-v3 #kairo-entry[data-page="home"] .kairo-journey-label b { display: block; }
+}
+@media (max-width: 1359.98px) {
+  html.kairo-v3 #kairo-entry[data-page="home"] :is(#home-highlights, #home-plans, .kairo-lp-cta) .kairo-journey { display: block; position: relative; margin-bottom: 14px; }
+  html.kairo-v3 #kairo-entry[data-page="home"] .kairo-journey-mark { display: inline-flex; align-items: center; gap: 10px; }
+  html.kairo-v3 #kairo-entry[data-page="home"] .kairo-journey-node { width: 30px; height: 30px; }
+  html.kairo-v3 #kairo-entry[data-page="home"] .kairo-journey-node svg { width: 16px; height: 16px; }
+  html.kairo-v3 #kairo-entry[data-page="home"] .kairo-journey::before { content: ""; position: absolute; left: 14px; bottom: 100%; height: 44px; border-left: 2px dotted var(--jline); }
+  html.kairo-v3 #kairo-entry[data-page="home"] .kairo-journey-label b { margin-right: 4px; }
+  html.kairo-v3 #kairo-entry[data-page="home"] #home-plans .kairo-journey { text-align: center; }
+  html.kairo-v3 #kairo-entry[data-page="home"] #home-plans .kairo-journey::before { left: calc(50% - 1px); }
+  html.kairo-v3 #kairo-entry[data-page="home"] #home-plans .kairo-journey-mark { flex-direction: column; gap: 6px; }
+}
+
+/* Potongan layar asli di kartu Kenapa KAIRO: seperti layar yang menyala di meja malam. */
+html.kairo-v3 #kairo-entry[data-page="home"] #home-highlights .kairo-hl-shot {
+  grid-column: 1 / -1; margin: -6px -4px 4px; overflow: hidden;
+  border: 1px solid rgba(251, 252, 248, .18); border-radius: 10px; background: #fbfcf8;
+  box-shadow: 0 10px 28px rgba(4, 22, 34, .45), 0 0 34px rgba(117, 217, 210, .12);
+}
+html.kairo-v3 #kairo-entry[data-page="home"] #home-highlights .kairo-hl-shot img { display: block; width: 100%; height: auto; }
+@media (max-width: 700px) {
+  html.kairo-v3 #kairo-entry[data-page="home"] #home-highlights .kairo-lp-feature-list { gap: 14px; }
+  html.kairo-v3 #kairo-entry[data-page="home"] #home-highlights .kairo-hl-shot { height: 96px; }
+  html.kairo-v3 #kairo-entry[data-page="home"] #home-highlights .kairo-hl-shot img { height: 100%; object-fit: cover; object-position: 0 0; }
+}
